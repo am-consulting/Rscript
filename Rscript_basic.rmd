@@ -1,0 +1,650 @@
+```{r}
+#library
+options("getSymbols.warning4.0"=F)
+library(quantmod)
+library(ggplot2)
+library(gridExtra)
+library(knitr)
+library(scales)
+library(tseries)
+library(PerformanceAnalytics)
+library(reshape2)
+library(urca)
+#list
+dataset<-list()
+dataset.yy<-list()
+dataset.xts<-list()
+dataset.xts.yy<-list()
+all.data<-list()
+all.data.yy<-list()
+all.data.xts<-list()
+all.data.xts.yy<-list()
+timeline<-list()
+dataset.tm<-list()
+#parameter
+username<-Sys.info()['user']
+path<-paste("C:/Users/",username,"/Desktop",sep="")
+path02<-paste("C:/Users/",username,"/Desktop/tmpFolder/",sep="")
+path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+cnt<-0
+plot.type<-1
+ttt.range<-c(1:2)
+yy.type<-12 #12 month,4 period
+level.multi<-(0)
+#functions
+##separate data into individual datasets
+fun.individual<-function(tmp,monthly){
+  for(ccc in 2:ncol(tmp)){
+    cnt<<-cnt+1 #caution.gloval variable
+    dataset[[cnt]]<-tmp[,c(1,ccc)]
+    dataset[[cnt]][,2]<-gsub(" ", "",dataset[[cnt]][,2]) #remove space
+    dataset[[cnt]]<-subset(dataset[[cnt]],dataset[[cnt]][,2]!="") #remove blank row
+    dataset[[cnt]][,2]<-as.double(dataset[[cnt]][,2])
+    colnames(dataset[[cnt]])[1]<-"date"
+    if(monthly==1){
+      tmp.ymd<-dataset[[cnt]][,1]+31
+      dataset[[cnt]][,1]<-as.Date(paste(format(tmp.ymd,"%Y"),"-",format(tmp.ymd,"%m"),"-1",sep=""))-1
+    }
+    dataset[[cnt]]<<-dataset[[cnt]] #caution.gloval variable
+    print(head(dataset[[cnt]],3))
+    print(tail(dataset[[cnt]],3))
+  }
+}
+##calculate for tmp.0,tmp.1 and tmp.date
+fun.common<-function(ppp,iii,ttt){
+  if(ppp==1){
+    tmp.date<-max(as.Date(first.date[ttt]),na.omit(dataset[[obj[iii]]])[1,1])
+    tmp.1<-na.omit(subset(dataset[[obj[iii]]],tmp.date<=dataset[[obj[iii]]][,1]))
+  }else{
+    tmp.date<-max(as.Date(first.date[ttt]),na.omit(dataset.yy[[obj[iii]]])[1,1])
+    tmp.1<-na.omit(subset(dataset.yy[[obj[iii]]],tmp.date<=dataset.yy[[obj[iii]]][,1]))
+  }
+  for(kkk in seq(1,nrow(dataset.tm[[ttt]]),by=1)){
+    if(dataset.tm[[ttt]][kkk,1]<=tmp.date & tmp.date<=dataset.tm[[ttt]][kkk,2]){break}  
+  }
+  tmp.0<-dataset.tm[[ttt]][c(kkk:nrow(dataset.tm[[ttt]])),]
+  if(nrow(tmp.0)!=0){
+    tmp.0[1,1]<-tmp.date
+    tmp.0[nrow(tmp.0),2]<-last(tmp.1)[1]
+  }else{
+    tmp.0<-last(dataset.tm[[ttt]])
+    tmp.0[1,1]<-tmp.date
+    tmp.0[1,2]<-last(tmp.1)[1]
+  }
+  tmp.1<<-tmp.1 #caution
+  head(tmp.1,3)
+  tmp.0<<-tmp.0 #caution
+  head(tmp.0,3)
+  tmp.date<<-tmp.date #caution
+  tmp.date
+}
+##make dataset.tm[[x]]
+timeline[[1]]<-c(
+"1946-5-22","吉田茂",
+"1947-5-24","片山哲",
+"1948-3-10","芦田均",
+"1948-10-15","吉田茂",
+"1954-12-10","鳩山一郎",
+"1956-12-23","石橋湛山",
+"1957-2-25","岸信介",
+"1960-7-19","池田勇人",
+"1964-11-9","佐藤栄作",
+"1972-7-7","田中角栄",
+"1974-12-9","三木武夫",
+"1976-12-24","福田赳夫",
+"1978-12-7","大平正芳",
+"1980-7-17","鈴木善幸",
+"1982-11-27","中曽根康弘",
+"1987-11-6","竹下登",
+"1989-6-3","宇野宗佑",
+"1989-8-10","海部俊樹",
+"1991-11-5","宮沢喜一",
+"1993-8-9","細川護熙",
+"1994-4-28","羽田孜",
+"1994-6-30","村山富市",
+"1996-1-11","橋本龍太郎",
+"1998-7-30","小渕恵三",
+"2000-4-5","森喜朗",
+"2001-4-26","小泉純一郎",
+"2006-9-26","安倍晋三",
+"2007-9-26","福田康夫",
+"2008-9-24","麻生太郎",
+"2009-9-16","鳩山由紀夫",
+"2010-6-8","菅直人",
+"2011-9-2","野田佳彦",
+"2012-12-26","安倍晋三(2次-)"
+)
+timeline[[2]]<-c(
+"1946-6-1","一万田尚登",
+"1954-12-11","新木榮吉",
+"1956-11-30","山際正道",
+"1964-12-17","宇佐美洵",
+"1969-12-17","佐々木直",
+"1974-12-17","森永貞一郎",
+"1979-12-17","前川春雄",
+"1984-12-17","澄田智",
+"1989-12-17","三重野康",
+"1994-12-17","松下康雄",
+"1998-3-20","速水優",
+"2003-3-20","福井俊彦",
+"2008-4-9","白川方明",
+"2013-3-20","黒田東彦"
+)
+timeline[[3]]<-c(
+"1949-1-20","Harry S. Truman",
+"1953-1-20","Dwight David Eisenhower",
+"1961-1-20","John Fitzgerald Kennedy",
+"1963-11-22","Lyndon Baines Johnson",
+"1969-1-20","Richard Milhouse Nixon",
+"1974-8-9","Gerald Rudolph Ford Jr.",
+"1977-1-20","James Earl Carter",
+"1981-1-20","Ronald Wilson Reagan",
+"1989-1-20","George H.W Bush",
+"1993-1-20","Bill Clinton",
+"2001-1-20","George W. Bush",
+"2009-1-20","Barack Obama"
+)
+timeline[[4]]<-c(
+"1970-2-1","Arthur F.Burns",
+"1978-3-8","G.William Miller",
+"1987-8-11","Alan Greenspan",
+"2006-2-1","Ben S.Bernanke",
+"2014-2-1","Janet Yellen"
+)
+for(ttt in 1:4){
+  tmp<-timeline[[ttt]]
+  inaugural.date<-as.Date(tmp[seq(1,length(tmp),by=2)])
+  resignation.date<-c((inaugural.date-1)[-1],Sys.Date()+31)
+  Name<-tmp[seq(2,length(tmp),by=2)]
+  dataset.tm[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
+  dataset.tm[[ttt]][,3]<-ordered(dataset.tm[[ttt]][,3],levels=dataset.tm[[ttt]][,3][1:nrow(dataset.tm[[ttt]])])
+  order(dataset.tm[[ttt]][,3])
+  print(head(dataset.tm[[ttt]],3))
+}
+```
+
+```{r}
+#read data from bank of japan as data frame
+exe<-1
+monthly<-1 # 0 or 1
+if(exe==1){
+  folder.name<-c("BOJdata")
+  folder.path<-file.path(path,folder.name)
+  setwd(folder.path)
+  if(length(dir(folder.path))!=0){
+    for(fff in 1:length(dir(folder.path))){
+      tmp<-read.csv(file=dir(folder.path)[fff],header=T,as.is=T,skip=1,na.strings=c("", "NA"))
+      colnames(tmp)<-paste(colnames(tmp),".",tmp[2,],sep="")
+      tmp<-tmp[-c(1:12),]
+      if(monthly==1){
+        tmp[,1]<-paste(tmp[,1],"/1",sep="")
+        tmp[,1]<-as.Date(tmp[,1])
+      }
+      fun.individual(tmp,monthly)
+    }
+  }
+}
+```
+
+```{r}
+#read various sorts of data that class is data frame
+exe<-0
+monthly<-1 # 0 or 1
+if(exe==1){
+  folder.name<-c("R_Data_Read")
+  folder.path<-file.path(path,folder.name)
+  setwd(folder.path)
+  if(length(dir(folder.path))!=0){
+    for(iii in 1:length(dir(folder.path))){
+      tmp<-read.table(file=dir(folder.path)[iii],header=TRUE,sep=",",na.strings=c("NA","-",""))
+      tmp[,1]<-as.Date(tmp[,1])
+      colnames(tmp)[1]<-"date"
+      FUN.1<-function(x) as.numeric(gsub("[( | ) | -+ | , | < | >]","",x))
+      tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
+      fun.individual(tmp,monthly)
+    }
+  }
+}
+```
+
+```{r}
+#read data from fred by quantmod as xts,after that, convert to data frame
+exe<-1
+monthly<-0 # 0 or 1
+if(exe==1){
+  ts.source<-list()
+  ts.source[[1]]<-c("FRED",1,"NIKKEI225")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS
+  for(lll in 1:length(ts.source)){
+    if(2<length(ts.source[[lll]])){
+      for(iii in 3:length(ts.source[[lll]])){
+        item<- ts.source[[lll]][iii]
+        tmp<-getSymbols(item,src=ts.source[[lll]][1],auto.assign=FALSE)
+        tmp<-tmp[,as.double(ts.source[[lll]][2])]
+        tmp<-data.frame(date=index(tmp),tmp, row.names=NULL)
+        fun.individual(tmp,monthly)
+      }
+    }
+  }
+}
+```
+
+```{r}
+#read nikkei225 as data frame
+exe<-0
+monthly<-1
+if(monthly==0){url.period<-"daily"}else{url.period<-"monthly"}
+if(exe==1){
+  url<-c(
+  paste("http://indexes.nikkei.co.jp/nkave/historical/nikkei_stock_average_",url.period,"_en.csv",sep="")
+  )
+  for(iii in 1:length(url)){
+    tmp<-read.csv(url[iii],header=T,skip=0,stringsAsFactor=F)
+    tmp[,1]<-as.Date(tmp[,1])
+    if(grepl("nikkei",url[iii])==T){
+      colnames(tmp)[-1]<-paste("Nikkei.",colnames(tmp)[-1],sep="")
+    }
+    fun.individual(tmp,monthly)
+  }
+}
+```
+
+```{r}
+#read TODAIDailyPriceIndex as data frame
+exe<-0
+monthly<-0
+if(exe==1){
+  url<-c(
+  "http://www.cmdlab.co.jp/price_u-tokyo/download/HistoricalDailyData.csv"
+  )
+  for(iii in 1:length(url)){
+    tmp<-read.csv(url[iii],header=T,skip=0,stringsAsFactor=F)
+    tmp[,1]<-as.Date(tmp[,1])
+    if(grepl("nikkei",url[iii])==T){
+      colnames(tmp)[-1]<-paste("Nikkei.",colnames(tmp)[-1],sep="")
+    }
+    fun.individual(tmp,monthly)
+  }
+}
+```
+
+```{r}
+#Japanese Government Bonds as data frame
+exe<-1
+monthly<-0
+plot.type<-1
+ttt.range<-c(1:2)
+level.multi<-0
+if(exe==1){
+  url<-c(
+  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
+  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
+  )
+  tmp<-rbind(read.csv(url[1],header=T,skip=0,stringsAsFactor=F),read.csv(url[2],header=T,skip=0,stringsAsFactor=F))
+  tmp[,1]<-as.Date(tmp[,1])
+  FUN.1<-function(x) as.numeric(x)
+  tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
+  fun.individual(tmp,monthly)
+}
+```
+
+```{r}
+#Convert dataframe to xts
+for(iii in 1:cnt){
+  cat(paste(iii,colnames(dataset[[iii]])[2],"\n")) 
+  dataset.xts[[iii]]<-as.xts(dataset[[iii]][,-1],order.by=as.Date(dataset[[iii]][,1]))
+  colnames(dataset.xts[[iii]])[1]<-colnames(dataset[[iii]])[2]
+}
+#merge all datasets
+obj<-c(1:length(dataset.xts))
+for(iii in 1:length(obj)){
+  if(iii==1){
+    all.data.xts[[1]]<-dataset.xts[[obj[iii]]]
+  }else{
+    all.data.xts[[1]]<-merge.xts(all.data.xts[[1]],dataset.xts[[obj[iii]]],all=T)
+  }
+}
+all.data[[1]]<-data.frame(date=index(all.data.xts[[1]]),all.data.xts[[1]],row.names=NULL)
+head(all.data[[1]])
+tail(all.data[[1]])
+#year-to-year change
+if(plot.type==2){
+  for(ddd in 1:cnt){
+    tmp<-na.omit(dataset.xts[[ddd]])
+    if(yy.type<=nrow(tmp)){
+      tmp<-round(diff(tmp,lag=yy.type)/lag(tmp,yy.type)*100,2)[-1]
+      dataset.xts.yy[[ddd]]<-tmp
+      colnames(dataset.xts.yy[[ddd]])<-paste("前年比.",colnames(dataset.xts.yy[[ddd]]),sep="")
+      dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
+      if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
+      colnames(all.data.xts.yy[[1]])<-paste("前年比.",colnames(all.data.xts.yy[[1]]),sep="")
+    }
+  }
+  all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
+}
+```
+
+```{r}
+first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
+for(ppp in 1:plot.type){
+  for(iii in 1:length(obj)){
+    for(ttt in ttt.range){
+      fun.common(ppp,iii,ttt)
+      if(nrow(tmp.1)!=0){
+        switch(ttt,  
+          title<-paste(colnames(tmp.1)[2],"\nby Prime Minister of Japan"),
+          title<-paste(colnames(tmp.1)[2],"\nby Chairman of Bank of Japan"),
+          title<-paste(colnames(tmp.1)[2],"\nby President of U.S.A"),
+          title<-paste(colnames(tmp.1)[2],"\nby Chairman of FRB")
+        )
+        graph.title<-colnames(tmp.1)[2]
+        graph.title<-gsub(".億円","",graph.title, perl=T)
+        graph.title<-gsub("マネタリーベース平均残高","MB",graph.title, perl=T)
+        graph.title<-gsub("前年比.","ytoy",graph.title, perl=T)
+        graph.title<-gsub(".うち.日銀当座預金",".balance",graph.title, perl=T)
+        graph.title<-gsub("経常収支","CurrentAccountNet",graph.title, perl=T)
+        graph.title<-gsub("貿易収支","Goods",graph.title, perl=T)
+        graph.title<-gsub("ネット","Net",graph.title, perl=T)
+        graph.title<-gsub("輸出","Exports",graph.title, perl=T)
+        graph.title<-gsub("輸入","Imports",graph.title, perl=T)
+        graph.title<-gsub("Ｍ２.","M2",graph.title, perl=T)
+        graph.title<-gsub("Ｍ３.","M3",graph.title, perl=T)
+        graph.title<-gsub("広義流動性.","L",graph.title, perl=T)
+        graph.title<-gsub(".マネーストック","MoneyStock",graph.title, perl=T)
+        graph.title<-gsub("平","",graph.title, perl=T)
+        switch(ttt,  
+          graph.title<-paste(graph.title,"pmofjapan",sep=""),
+          graph.title<-paste(graph.title,"boj",sep=""),
+          graph.title<-paste(graph.title,"PresidentofUSA",sep=""),
+          graph.title<-paste(graph.title,"FRB",sep="")
+        )
+        switch(ppp,
+          multi<-(10^level.multi),
+          multi<-1
+        )
+        if(monthly==1){
+          f.date<-format(tmp.1[,1][1],"%Y/%m")
+          e.date<-format(tmp.1[,1][nrow(tmp.1)],"%Y/%m")
+        }else{
+          f.date<-format(tmp.1[,1][1],"%Y/%m/%d")
+          e.date<-format(tmp.1[,1][nrow(tmp.1)],"%Y/%m/%d")
+        }            
+        colnames(tmp.1)[2]<-"value"
+        tmp.1[,2]<-tmp.1[,2]*multi 
+        if(nrow(tmp.0)!=0){
+          x0<-tmp.0$inaugural.date[seq(1,length(tmp.0$inaugural.date),by=2)]
+          x1<-tmp.0$resignation.date[seq(1,length(tmp.0$resignation.date),by=2)]
+        }else{
+          x0<-tmp.0[1,1]
+          x1<-tmp.0[1,2]
+        }
+        y0<-min(na.omit(tmp.1[,2]))
+        y1<-max(na.omit(tmp.1[,2]))
+        shade<-data.frame(x0,x1,y0,y1)
+        shade<<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
+        value.y<<-median(na.omit(tmp.1[,2])) #value.y<<-mean(na.omit(tmp.1[,2])) 
+        setwd(path03)
+        png(file=paste(graph.title,".png",sep=""),width=1400,height=800)  
+          g<-ggplot()
+          g<-g+geom_segment(data=tmp.0,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=10)
+          g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
+          if(ppp==1){
+            g<-g+geom_line(data=tmp.1,aes(x=date,y=value),size=2)
+#            g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+#geom_bar:データが全てプラス値の場合、表示されない
+            }else{
+            g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+          }
+          g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=lm)
+          g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
+          g<-g+ggtitle(paste(f.date,"-",e.date))+xlab("")+ylab("")
+          g<-g+ylim(y0,y1)
+          g<-g+theme(axis.text=element_text(size=30),
+            axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"),
+            legend.position="top",legend.text=element_text(colour="black",size=25,face="bold"),
+            legend.title=element_text(colour="white",size=1,face="bold"))          
+          g<-g+scale_x_date(labels=date_format("%y/%m"))
+          print(g)
+        dev.off()  
+      }
+    }
+  }
+}
+#20150113-"graph.title"はpngファイル名としてのみ利用.
+```
+
+```{r}
+if(ttt.range[1]==1){
+  ttt.diff<-2
+}else{
+  ttt.diff<-0
+}  
+first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
+for(ppp in 1:plot.type){
+  for(iii in 1:length(obj)){
+    setwd(path03)
+    cnt<-0
+    for(ttt in ttt.range){
+      if(cnt==0){
+        if(ppp==1){
+          tmp.0<-subset(dataset[[obj[iii]]],as.Date(first.date[ttt])<=dataset[[obj[iii]]][,1])
+        }else{
+          tmp.0<-subset(dataset.yy[[obj[iii]]],as.Date(first.date[ttt])<=dataset.yy[[obj[iii]]][,1])
+        }
+        cnt<-1
+      }
+      for(jjj in 1:nrow(tmp.0)){
+        for(kkk in seq(nrow(dataset.tm[[ttt]]),1,by=-1)){
+          if(dataset.tm[[ttt]][kkk,1]<=tmp.0[jjj,1] & tmp.0[jjj,1]<=dataset.tm[[ttt]][kkk,2]){
+            tmp.0[jjj,ttt+ttt.diff]<-dataset.tm[[ttt]][kkk,3];break
+          }  
+        }
+      }
+       if(ttt==2){
+         colnames(tmp.0)[3]<-"Prime Minister"
+         colnames(tmp.0)[4]<-"Bank of Japan"
+       }
+       if(ttt==4){
+         colnames(tmp.0)[3]<-"President"
+         colnames(tmp.0)[4]<-"FRB"
+       }
+    }
+    row.names(tmp.0)<-NULL
+    tmp.1<-tmp.0[,c(1:4)]
+    switch(ppp,
+      multi<-(10^level.multi),
+      multi<-1
+    )
+    tmp.1[,2]<-tmp.1[,2]*multi      
+    tmp.unitroot<-tmp.1[,c(1:2)]
+    tmp.table.title<-colnames(tmp.1)[2]
+    if(regexpr("前年比",colnames(tmp.1)[2])!=-1){
+      tmp.table.title<-gsub("億円","%",tmp.table.title, perl=T)
+    }
+    if(level.multi==-4){
+      tmp.table.title<-gsub("億円","兆円",tmp.table.title, perl=T)
+    }
+    tmp.table.title<-gsub("GOLDAMGBD228NLBM","ゴールド価格.米ドル/トロイオンス",tmp.table.title, perl=T)
+    tmp.table.title<-gsub("DCOILWTICO","WTI原油価格.米ドル/バレル",tmp.table.title, perl=T)
+    tmp.table.title<-gsub("前年比.","前年比<br>",tmp.table.title, perl=T)
+    tmp.table.title<-gsub(".うち.","<br>うち.",tmp.table.title, perl=T)
+    tmp.table<-tmp.1
+    #tmp.table[,2]<-format(tmp.table[,2],big.mark=",",scientific=F) #csvのseparating commaを誤認識する
+    colnames(tmp.table)[1]<-"Date"
+    colnames(tmp.table)[2]<-gsub(".億円","",colnames(tmp.table)[2], perl=T)  
+    colnames(tmp.table)[2]<-gsub("マネタリーベース平均残高","MB",colnames(tmp.table)[2], perl=T)  
+    colnames(tmp.table)[2]<-gsub("GOLDAMGBD228NLBM","GoldPrice",colnames(tmp.table)[2], perl=T)  
+    colnames(tmp.table)[2]<-gsub("DCOILWTICO","WTI原油価格",colnames(tmp.table)[2], perl=T)  
+    if(ttt<=2){
+      colnames(tmp.table)[3]<-"PM"      
+      colnames(tmp.table)[4]<-"BOJ"
+    }else{
+      colnames(tmp.table)[3]<-"U.S.A"      
+      colnames(tmp.table)[4]<-"FRB"
+    }  
+    tmp.table<-tmp.table[order(tmp.table$Date,decreasing=T),]
+    tmp.table<-head(tmp.table,50) # 180 365
+    rownames(tmp.table)<-NULL    
+    if(monthly==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
+    graph.title<-colnames(tmp.table)[2]
+    graph.title<-gsub(".億円","",graph.title, perl=T)
+    graph.title<-gsub("マネタリーベース平均残高","MB",graph.title, perl=T)
+    graph.title<-gsub("前年比.","ytoy",graph.title, perl=T)
+    graph.title<-gsub(".うち.日銀当座預金",".balance",graph.title, perl=T)     
+#output csv file
+    graph.title<-gsub("GoldPrice","GOLDAMGBD228NLBM",graph.title, perl=T)  
+    graph.title<-gsub("WTI原油価格","DCOILWTICO",graph.title, perl=T)  
+    graph.title<-gsub("経常収支","CurrentAccountNet",graph.title, perl=T)
+    graph.title<-gsub("貿易収支","Goods",graph.title, perl=T)
+    graph.title<-gsub("ネット","Net",graph.title, perl=T)
+    graph.title<-gsub("輸出","Exports",graph.title, perl=T)
+    graph.title<-gsub("輸入","Imports",graph.title, perl=T)
+    graph.title<-gsub("Ｍ２.","M2",graph.title, perl=T)
+    graph.title<-gsub("Ｍ３.","M3",graph.title, perl=T)
+    graph.title<-gsub("広義流動性.","L",graph.title, perl=T)
+    graph.title<-gsub(".マネーストック","MoneyStock",graph.title, perl=T)
+    graph.title<-gsub("平","",graph.title, perl=T)
+    write.csv(tmp.table,paste(gsub(" ", "",graph.title),".csv",sep=""),col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#unit root test      
+##text
+    cat("\n<b>",tmp.table.title,"</b>","\n",file=paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=F)      
+    tmp.unitroot<-na.omit(tmp.unitroot)
+    date.f.l<-as.Date(tmp.unitroot[1,1])
+    date.e.l<-as.Date(tmp.unitroot[nrow(tmp.unitroot),1])
+    date.f.d<-as.Date(tmp.unitroot[2,1])
+    date.e.d<-date.e.l
+    if(monthly==1){
+      date.f.l<-format(date.f.l,"%Y-%m")
+      date.e.l<-format(date.e.l,"%Y-%m")
+      date.f.d<-format(date.f.d,"%Y-%m")
+      date.e.d<-format(date.e.d,"%Y-%m")
+    }else{
+      date.f.l<-format(date.f.l,"%Y-%m-%d")
+      date.e.l<-format(date.e.l,"%Y-%m-%d")
+      date.f.d<-format(date.f.d,"%Y-%m-%d")
+      date.e.d<-format(date.e.d,"%Y-%m-%d")
+    }    
+    value.level<-tmp.unitroot[,2]
+    value.1stDiff<-diff(tmp.unitroot[,2])
+    tmp.unitroot.result<-capture.output(adf.test(value.level))
+    tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
+    cat("\nPeriod:",date.f.l,"-",date.e.l,file=paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
+    write(tmp.unitroot.result,paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
+    tmp.unitroot.result<-capture.output(adf.test(value.1stDiff))
+    tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
+    cat("\nPeriod:",date.f.d,"-",date.e.d,file=paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
+    write(tmp.unitroot.result,paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
+##graph
+    tmp.unitroot.xts<-as.xts(tmp.unitroot[,-1],order.by=as.Date(tmp.unitroot[,1]))
+    tmp.xts.title<-gsub("GOLDAMGBD228NLBM","ゴールド価格",colnames(tmp.unitroot)[2], perl=T)
+    tmp.xts.title<-gsub("DCOILWTICO","WTI原油価格",colnames(tmp.unitroot)[2], perl=T)
+    colnames(tmp.unitroot.xts)[1]<-paste(tmp.xts.title,".レベル",sep="")
+    if(level.multi==-4){
+      colnames(tmp.unitroot.xts)[1]<-gsub(".億円",".兆円",colnames(tmp.unitroot.xts)[1], perl=T)
+    }
+    tmp.unitroot.xts.diff<-diff(tmp.unitroot.xts)
+    colnames(tmp.unitroot.xts.diff)[1]<-paste(tmp.xts.title,".1次階差",sep="")
+    if(level.multi==-4){
+      colnames(tmp.unitroot.xts.diff)[1]<-gsub(".億円",".兆円",colnames(tmp.unitroot.xts.diff)[1], perl=T)
+    }
+    png(file=paste("unitroot",graph.title,".png",sep=""),width=1400,height=800)   
+      if(monthly==1){
+        maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m")
+        maintitle.last<-format(last(index(tmp.unitroot.xts)),"%Y-%m")
+      }else{
+        maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m-%d")
+        maintitle.last<-format(last(index(tmp.unitroot.xts)),"%Y-%m-%d")
+      }  
+      chart.TimeSeries(tmp.unitroot.xts,main=paste(maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2) 
+      par(new=T)      
+      chart.TimeSeries(tmp.unitroot.xts.diff,main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
+    dev.off()
+#boxplot
+    for(ttt in ttt.range){    
+    switch(ttt,
+      buf<-"PM",
+      buf<-"BOJ",
+      buf<-"USA",
+      buf<-"FRB"
+    )
+    tmp.table.title<-gsub("<br>",".",tmp.table.title, perl=T)
+    png(file=paste("boxplot",graph.title,buf,".png",sep=""),width=1400,height=800)   
+    tmp.boxplot<-tmp.1[,c(2,ttt+ttt.diff)]
+    colnames(tmp.boxplot)[2]<-"Person"  
+    tmp.boxplot<-melt(tmp.boxplot,id="Person")
+    tmp.boxplot<-tmp.boxplot[,-2]
+    tmp.boxplot[,2]<-as.numeric(tmp.boxplot[,2])
+    colnames(tmp.boxplot)[1]<-"variable"
+    g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
+    g<-g+geom_boxplot()
+    g<-g+ggtitle(tmp.table.title)+xlab("")+ylab("")
+    g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=30,face="bold"),title=element_text(size=45,face="bold"))          
+    print(g)
+    dev.off()      
+    }
+  }
+}
+dev.off()
+#20150113-"tmp.table.title"はboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用
+#20150113-"graph.title"はcsvファイルのタイトル、単位根検定結果htmlとpngのファイル名、boxplotのpngファイル名としてのみ利用
+#重複を修正すること
+```
+
+```{r}
+#cointegration test
+setwd(path03)
+priod.y<-5 #year
+explanatory<-2 #column
+objective<-3 #column
+objectDataset<-tail(na.omit(all.data[[1]]),5*12)
+date.f<-format(objectDataset[1,1],"%Y-%m")
+date.e<-format(objectDataset[nrow(objectDataset),1],"%Y-%m")
+graph.title1<-colnames(objectDataset)[explanatory]
+graph.title1<-gsub(".億円","",graph.title1, perl=T)
+graph.title1<-gsub("マネタリーベース平均残高","MB",graph.title1, perl=T)
+graph.title1<-gsub("Ｍ２.","M2",graph.title1, perl=T)
+graph.title1<-gsub("Ｍ３.","M3",graph.title1, perl=T)
+graph.title1<-gsub("広義流動性.","L",graph.title1, perl=T)
+graph.title1<-gsub(".マネーストック","MoneyStock",graph.title1, perl=T)
+graph.title1<-gsub("平","",graph.title1, perl=T)
+graph.title2<-colnames(objectDataset)[objective]
+graph.title2<-gsub(".億円","",graph.title2, perl=T)
+graph.title2<-gsub("マネタリーベース平均残高","MB",graph.title2, perl=T)
+graph.title2<-gsub("Ｍ２.","M2",graph.title2, perl=T)
+graph.title2<-gsub("Ｍ３.","M3",graph.title2, perl=T)
+graph.title2<-gsub("広義流動性.","L",graph.title2, perl=T)
+graph.title2<-gsub(".マネーストック","MoneyStock",graph.title2, perl=T)
+graph.title2<-gsub("平","",graph.title2, perl=T)
+#重複要修正
+#output html
+cat("帰無仮説:共和分関係なし<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=F)
+cat("利用関数:po.test()<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+cat("Period:",date.f,"-",date.e,"<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+cat(colnames(objectDataset)[2],"<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+value<-objectDataset[,2]
+tmp.unitroot.result<-capture.output(adf.test(value))
+tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
+write(tmp.unitroot.result,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+tmp.unitroot.result<-capture.output(adf.test(diff(value)))
+tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
+write(tmp.unitroot.result,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+cat(colnames(objectDataset)[3],"<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+value<-objectDataset[,3]
+tmp.unitroot.result<-capture.output(adf.test(value))
+tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
+write(tmp.unitroot.result,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+tmp.unitroot.result<-capture.output(adf.test(diff(value)))
+tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
+write(tmp.unitroot.result,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+tmp<-objectDataset[,c(objective,explanatory)]
+tmp.cointeg<-capture.output(po.test(tmp))
+tmp.cointeg<-gsub(", ","<br>",tmp.cointeg, perl=T)
+write(tmp.cointeg,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+#output png
+png(file=paste("cointeg.",graph.title1,graph.title2,".png",sep=""),width=1400,height=800) 
+par(ps=30)
+ccf(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]),24,main=paste("相互相関係数(共に一次階差)\n",colnames(objectDataset)[2],"×",colnames(objectDataset)[3]))
+dev.off()
+cor(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]))
+```
+
+

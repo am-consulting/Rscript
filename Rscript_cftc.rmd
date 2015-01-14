@@ -1,0 +1,182 @@
+```{r}
+options("getSymbols.warning4.0"=F)
+library(tseries)
+library(xts)
+library(ggplot2)
+library(knitr)
+library(PerformanceAnalytics)
+library(quantmod)
+library(scales)
+library(reshape2)
+suppressPackageStartupMessages(library(googleVis))
+year<-c(2014:2015)
+location<-2 #1:local 2:web
+username<-Sys.info()['user']
+path01<-paste("C:/Users/",username,"/Desktop/CFTC/",sep="")
+path02<-paste("C:/Users/",username,"/Desktop/tmpFolder/",sep="")
+path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path01)
+url<-"http://www.cftc.gov/files/dea/history/"
+chk<-0
+for(iii in 1:length(year)){
+  filename<-paste("deacot",year[iii],".zip",sep="")
+  if(location==2){
+    download.file(paste(url,"deacot",year[iii],".zip",sep=""),filename,mode="wb")
+  }
+  if(file.exists(filename)==T){
+    tmp<-read.table(unzip(filename),sep=",",header=T,as.is=T)
+    if(chk==0){cftc<-tmp;chk<-1}else{cftc<-rbind(cftc,tmp)}
+  }
+}
+head(cftc[,1:3],1)
+cftc<-cbind(date=as.Date(cftc[,3]),cftc[,-3]) 
+rrr<-order(cftc[,1])
+cftc<-cftc[rrr,]
+rownames(cftc)<-c(1:nrow(cftc))
+head(cftc[,1:3],1)
+colnames(cftc)[9:10]
+cftc$Noncommercial.Positions.Net<-cftc[,9]-cftc[,10]
+colnames(cftc)[126]
+ncol(cftc)
+colnames(cftc)[ncol(cftc)]
+#Extract currency data as dataframe
+currency<-c(
+  "JAPANESE YEN",
+  "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+  "AUSTRALIAN DOLLAR",
+  "BRITISH POUND STERLING",
+  "SWISS FRANC",
+  "NEW ZEALAND DOLLAR",
+  "CANADIAN DOLLAR",
+  "RUSSIAN RUBLE",
+  "MEXICAN PESO",
+  "BRAZILIAN REAL"
+) #,"SOUTH AFRICAN RAND")
+unit<-c(
+  "(CONTRACTS OF 12,500,000 JAPANESE YEN)|(CONTRACTS OF JPY 12,500,000)",
+  "(CONTRACTS OF 125,000 EUROS)|(CONTRACTS OF EUR 125,000)",
+  "(CONTRACTS OF 100,000 AUSTRALIAN DOLLARS)|(CONTRACTS OF AUD 100,000)",
+  "(CONTRACTS OF 62,500 POUNDS STERLING)|(CONTRACTS OF GBP 62,500)",
+  "(CONTRACTS OF 125,000 SWISS FRANCS)|(CONTRACTS OF CHF 125,000)",
+  "(CONTRACTS OF NZ$ 100,000)|(CONTRACTS OF NZD 100,000)",
+  "(CONTRACTS OF 100,000 CANADIAN DOLLARS)|(CONTRACTS OF CAD 100,000)",
+  "(CONTRACTS OF RUB 2,500,000)",
+  "(CONTRACTS OF 500,000 MEXICAN PESOS)|(CONTRACTS OF MXN 500,000)",
+  "(CONTRACTS OF BRL 100,000)"
+) #,"(CONTRACTS OF ZAR 500,000)")
+```
+
+```{r}
+diff.date<-365*1
+first.date<-Sys.Date()-diff.date
+dataset<-list()
+cnt<-0
+table.count<-0
+for(ccc in 1:length(currency)){
+  table.count<-table.count+1  
+  cnt<-cnt+1
+  dataset[[cnt]]<-cftc[grep(currency[ccc],cftc[,2]),]
+  dataset[[cnt]]<-dataset[[cnt]][grep(unit[ccc],dataset[[cnt]][,126]),]
+  dataset[[cnt]]<-dataset[[cnt]][,c(1,130,9,10)]
+  colnames(dataset[[cnt]])<-c("date",paste("Net",currency[ccc]),paste("Long",currency[ccc]),paste("Short",currency[ccc]))
+#output csv file
+  setwd(path03)
+  tmp.csv<-dataset[[cnt]]
+  colnames(tmp.csv)<-c("Date","Net","Long","Short")
+  tmp.csv <- tmp.csv[order(tmp.csv$Date,decreasing=T),] 
+  tmp.csv<-head(tmp.csv,10)
+  write.csv(tmp.csv,paste(gsub(" ", "",currency[ccc]),".csv",sep=""),col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#output png file
+  tmp<-dataset[[cnt]]
+  tmp<-subset(tmp,first.date<=tmp[,1])
+  head(tmp)
+  for(bbb in 2:4){
+    tmp.1<-tmp[,c(1,bbb)]
+    colnames(tmp.1)[2]<-"value"  
+    setwd(path03)
+    switch(bbb,
+      ,
+      subtitle<-"Net.Positions",
+      subtitle<-"Long.Positions",
+      subtitle<-"Short.Positions"       
+    )
+    png(file=paste(gsub(" ","", currency[ccc], perl=T),subtitle,".png",sep=""),width=1400,height=800)
+    g<-ggplot()
+    g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill=bbb,alpha=0.2,color="black")
+    g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
+    g<-g+ggtitle(paste(first(tmp[,1]),"-",last(tmp[,1])))+xlab("")+ylab(subtitle)
+    g<-g+scale_x_date(labels=date_format("%y-%m"))
+    g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"))
+    print(g)    
+    dev.off()
+  }
+}
+```
+
+```{r}
+dataset.xts<-list()
+for(ccc in 1:length(currency)){
+  dataset.xts[[ccc]]<-as.xts(dataset[[ccc]][,-1],order.by=as.Date(dataset[[ccc]]$date),header=T,as.is=T)
+  indexClass(dataset.xts[[ccc]])
+}
+#Import Foreign Exchange Rate from FRED as xts
+cnt<-0
+list.s<-list()
+fx.data<-list()
+#list.s[[1]]<-c("oanda",1,"JPY","EUR","AUD","GBP","CHF","NZD","CAD","RUB","MXN","BRL") #,"ZAR")
+list.s[[1]]<-c("FRED",1,"DEXJPUS","DEXUSEU","DEXUSAL","DEXUSUK","DEXSZUS","DEXUSNZ","DEXCAUS","RUB","DEXMXUS","DEXBZUS") #,"ZAR")
+for(lll in 1:length(list.s)){
+  for(iii in 3:length(list.s[[lll]])){
+    cnt<-cnt+1
+#    item<-paste(list.s[[lll]][iii],"/USD",sep="") 
+    if(list.s[[1]][iii]!="RUB"){
+      fx.data[[cnt]]<-getSymbols(list.s[[1]][iii],src=list.s[[lll]][1],auto.assign=FALSE)
+      fx.data[[cnt]]<-fx.data[[cnt]][,as.double(list.s[[lll]][2])]
+    }
+  }
+}
+```
+
+```{r}
+merge.fx<-list()
+cnt<-length(currency)
+for(iii in 1:cnt){
+  if(list.s[[1]][iii+2]!="RUB"){
+    cat(paste(iii,colnames(dataset.xts[[iii]])[1],"-",colnames(fx.data[[iii]])[1],"\n"))  
+  }
+}
+for(iii in 1:cnt){
+  if(list.s[[1]][iii+2]!="RUB"){
+    setwd(path03)
+    merge.fx[[iii]]<-merge(dataset.xts[[iii]],fx.data[[iii]],all=T)
+    #print(head(merge.fx[[iii]]))
+    merge.fx[[iii]]<-merge.fx[[iii]][,-c(2,3)]
+    #print(head(merge.fx[[iii]]))
+    diff.date<-365*1
+    first.date<-Sys.Date()-diff.date
+    last.date<-Sys.Date()-0
+    merge.fx[[iii]]<-merge.fx[[iii]][paste(first.date,"::",last.date,sep="")]
+    tmp<-diff(na.omit(merge.fx[[iii]]))[-1]
+    #print(head(tmp))
+    #print(tail(tmp))
+    cat(paste(colnames(tmp)[1],"-",colnames(tmp)[2],"\n",sep=""))
+    cat(paste(first(index(tmp)),"-",last(index(tmp)),sep=""))
+    print(kable(cor(tmp)))
+    print(summary(lm(tmp[,2]~tmp[,1])))
+    cat("\n--------------------------------------------------------------------------------\n")
+#output html      
+    cat("一次階差同士の相関係数<br>",file=paste("corre.",gsub(" ", "",currency[iii]),".html",sep=""),append=F)     
+    cat(gsub(".FX...CHICAGO.MERCANTILE.EXCHANGE", "",colnames(cor(tmp))[1]),"<br>&nbsp;&nbsp;&nbsp;×&nbsp;&nbsp;&nbsp;<br>",colnames(cor(tmp))[2],file=paste("corre.",gsub(" ", "",currency[iii]),".html",sep=""),append=T)     
+    cat("<br>相関係数=",cor(tmp)[1,2],file=paste("corre.",gsub(" ", "",currency[iii]),".html",sep=""),append=T)     
+    cat("<br>p値=",summary(lm(tmp[,2]~tmp[,1]))$coe[8],file=paste("corre.",gsub(" ", "",currency[iii]),".html",sep=""),append=T)  
+#output png      
+    png(file=paste("corre",gsub(" ","", currency[iii], perl=T),".png",sep=""),width=1400,height=800)
+    chart.TimeSeries(merge.fx[[iii]][,1],main=paste(currency[iii],"",
+      first(index(merge.fx[[iii]])),"-",last(index(merge.fx[[1]]))),yaxis.right=F,type="h",lwd="2",
+      legend.loc="bottomleft",color="blue",cex.main=4,cex.legend=3,cex.lab=2)
+    par(new=T)
+    chart.TimeSeries(merge.fx[[iii]][,2],main="",type="o",lwd="2",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
+    dev.off()
+  } 
+}
+```
