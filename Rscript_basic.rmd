@@ -27,7 +27,7 @@ path<-paste("C:/Users/",username,"/Desktop",sep="")
 path02<-paste("C:/Users/",username,"/Desktop/tmpFolder/",sep="")
 path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 cnt<-0
-plot.type<-1
+plot.type<-2
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
@@ -351,6 +351,18 @@ for(ppp in 1:plot.type){
         graph.title<-gsub("広義流動性.","L",graph.title, perl=T)
         graph.title<-gsub(".マネーストック","MoneyStock",graph.title, perl=T)
         graph.title<-gsub("平","",graph.title, perl=T)
+        graph.title<-gsub("大類別.工業製品.2010年.100","Manufacturing",graph.title, perl=T)
+        graph.title<-gsub("大類別.農林水産物.2010年.100","Agriculture",graph.title, perl=T)
+        graph.title<-gsub("大類別.鉱産物.2010年.100","Minerals",graph.title, perl=T)
+        graph.title<-gsub("大類別.電力.都市ガス.水道.2010年.100","Electric",graph.title, perl=T)
+        graph.title<-gsub("大類別.スクラップ類.2010年.100","Scrap",graph.title, perl=T)
+        if(regexpr("国内企業物価指数", graph.title)!=-1){
+          if(ppp==1){
+            graph.title<-"ppiall"
+          }else{
+            graph.title<-"ytoyppiall"
+          }
+        }
         switch(ttt,  
           graph.title<-paste(graph.title,"pmofjapan",sep=""),
           graph.title<-paste(graph.title,"boj",sep=""),
@@ -389,8 +401,7 @@ for(ppp in 1:plot.type){
           g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
           if(ppp==1){
             g<-g+geom_line(data=tmp.1,aes(x=date,y=value),size=2)
-#            g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
-#geom_bar:データが全てプラス値の場合、表示されない
+#            g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black") #geom_bar:データが全てプラス値の場合、表示されない
             }else{
             g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
           }
@@ -503,6 +514,18 @@ for(ppp in 1:plot.type){
     graph.title<-gsub("広義流動性.","L",graph.title, perl=T)
     graph.title<-gsub(".マネーストック","MoneyStock",graph.title, perl=T)
     graph.title<-gsub("平","",graph.title, perl=T)
+    graph.title<-gsub("大類別.工業製品.2010年.100","Manufacturing",graph.title, perl=T)
+    graph.title<-gsub("大類別.農林水産物.2010年.100","Agriculture",graph.title, perl=T)
+    graph.title<-gsub("大類別.鉱産物.2010年.100","Minerals",graph.title, perl=T)
+    graph.title<-gsub("大類別.電力.都市ガス.水道.2010年.100","Electric",graph.title, perl=T)
+    graph.title<-gsub("大類別.スクラップ類.2010年.100","Scrap",graph.title, perl=T)
+    if(regexpr("国内企業物価指数", graph.title)!=-1){
+      if(ppp==1){
+        graph.title<-"ppiall"
+      }else{
+        graph.title<-"ytoyppiall"
+      }
+    }
     write.csv(tmp.table,paste(gsub(" ", "",graph.title),".csv",sep=""),col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 #unit root test      
 ##text
@@ -646,5 +669,3 @@ ccf(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]),24,main=pa
 dev.off()
 cor(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]))
 ```
-
-
