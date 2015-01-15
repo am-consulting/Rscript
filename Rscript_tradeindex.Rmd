@@ -1,0 +1,123 @@
+```{r}
+options("getSymbols.warning4.0"=F)
+library(quantmod)
+library(knitr)
+library(xts)
+library(ggplot2)
+library(scales)
+library(stringr)
+username<-Sys.info()['user']
+folder.name<-c("TradeIndex")
+path<-paste("C:/Users/",username,"/Desktop",sep="")
+for(fff in 1:length(folder.name)){
+  folder.path<-file.path(path,folder.name[fff])
+  if(file.exists(folder.path)==F){dir.create(folder.path)}
+  assign(paste("path",fff,sep=""),folder.path)
+}
+setwd(path1)
+ts.data<-list()
+for(iii in 1:length(dir(path1))){
+  ts.data[[iii]]<-read.table(file=dir(path1)[iii],header=T,sep=",",as.is=T,skip=1) 
+}
+```
+
+```{r}
+#http://www.e-stat.go.jp/SG1/estat/OtherList.do?bid=000001008860&cycode=1
+year<-c(2009:2014)
+month<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+area<-c("WORLD","USA","EU","ASIA","ASIA NIES","ASEAN","CHINA")
+data<-list()
+cnt<-0
+tmp<-0
+for(iii in 1:length(ts.data)){  
+  for(nnn in 1:ncol(ts.data[[iii]])){
+    colnames(ts.data[[iii]])[nnn]<-gsub("Percent.Change","YY",colnames(ts.data[[iii]])[nnn])  
+  }
+  for(yyyy in 1:length(year)){
+    for(mm in 1:length(month)){
+      tmp<-subset(ts.data[[iii]],match(ts.data[[iii]][,1],paste(year[yyyy]," ",month[mm],".",sep=""))!=0)
+      if(nrow(tmp)==0){
+      break}else {
+      tmp[,1]<-as.Date(paste(year[yyyy],"-",mm,"-1",sep=""))
+      if(cnt==0){buf<-tmp;cnt<-1}else{buf<-rbind(buf,tmp)
+      }
+      }
+    }
+  }
+}
+for(aaa in 1:length(area)){
+  data[[aaa]]<-subset(buf,match(buf[,2],area[aaa])!=0)
+  colnames(data[[aaa]])[1]<-"date"
+}
+colnames(data[[1]])
+length(data)
+```
+
+```{r}
+path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path02)
+for(iii in 1:length(data)){
+  for(ppp in 1:4){
+    switch(ppp,
+      tmp<-data[[iii]][,c(1,2,3:5)],
+      tmp<-data[[iii]][,c(1,2,6:8)],
+      tmp<-data[[iii]][,c(1,2,9:11)],
+      tmp<-data[[iii]][,c(1,2,12:14)]
+    )
+    tmp[,1]<-format(tmp[,1],"%Y-%m")
+    rownames(tmp)<-NULL
+    csv.file.name<-gsub(" ","",paste(tmp[1,2],ppp,".csv",sep=""))
+    write.csv(tmp,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+    html.file.name<-gsub(" ","",paste(tmp[1,2],".html",sep=""))
+    html.file.name<-"table.html"
+    if(iii==1 && ppp==1){
+      cat("$(function(){",file=html.file.name,append=F)     
+    }else{
+      cat("$(function(){",file=html.file.name,append=T)     
+    }
+    cat(gsub(" ","",paste("\n","$('#",tmp[1,2],ppp,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=html.file.name,append=T)     
+  	cat("\nfunction(){",file=html.file.name,append=T)
+    cat(gsub(" ","",paste("\n$('#",tmp[1,2],ppp,"').find('TABLE').dataTable(")),file=html.file.name,append=T)
+    cat("\n{",file=html.file.name,append=T)    
+  	cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=html.file.name,append=T) 
+		cat("\n\"order\": [[ 0,\"desc\"]],",file=html.file.name,append=T)			
+		cat("\n\"bFilter\":false,",file=html.file.name,append=T)
+		cat("\n\"paging\":true,",file=html.file.name,append=T)
+		cat("\n\"info\":true",file=html.file.name,append=T)
+    cat("\n}",file=html.file.name,append=T)    
+    cat("\n);",file=html.file.name,append=T)
+    cat("\n});;",file=html.file.name,append=T)    
+    cat("\n});\n\n",file=html.file.name,append=T)    
+  }
+}
+```
+
+```{r}
+path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path02)
+for(iii in 1:length(data)){
+  for(ccc in 3:length(data[[iii]])){
+    png.file<-gsub(" ","",paste(data[[iii]][1,2],colnames(data[[iii]])[ccc],".png",sep=""))
+    png(file=png.file,width=1400,height=800) 
+    tmp<-data[[iii]]
+    colnames(tmp)[ccc]<-"value"
+    f.date<-format(tmp[1,1],"%Y-%m")
+    e.date<-format(tmp[nrow(tmp),1],"%Y-%m")
+    g<-ggplot()
+    g<-g+geom_bar(data=tmp,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+    g<-g+geom_smooth(data=tmp,aes(x=date,y=value),method=lm)
+    g<-g+geom_smooth(data=tmp,aes(x=date,y=value),method=loess,color="red")
+    g<-g+ggtitle(paste(data[[iii]][1,2],"\n",colnames(data[[iii]])[ccc],"\n",f.date,"-",e.date))+xlab("")+ylab("")
+   g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"),legend.position="top",legend.text=element_text(colour="black",size=25,face="bold"),legend.title=element_text(colour="white",size=1,face="bold"))          
+    g<-g+scale_x_date(labels=date_format("%Y-%m"))
+    print(g)
+    dev.off()
+    html.file.name<-"graph.html"    
+    if(iii==1 && ccc==3){
+      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", "alt=\"\" width=\"100%\"><br><br>",sep=""),file=html.file.name,append=F)
+    }else{
+      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", "alt=\"\" width=\"100%\"><br><br>",sep=""),file=html.file.name,append=T)
+    }
+  }
+}
+```
