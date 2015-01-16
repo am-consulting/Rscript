@@ -1,0 +1,123 @@
+```{r}
+library(tseries)
+library(ggplot2)
+library(scales)
+library(gridExtra)
+library(knitr)
+```
+
+```{r}
+username<-Sys.info()['user']
+path01<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path01)
+ssn<-list()
+url<-c(
+"http://solarscience.msfc.nasa.gov/greenwch/spot_num.txt",
+"http://solarscience.msfc.nasa.gov/greenwch/sunspot_area.txt",
+"http://solarscience.msfc.nasa.gov/greenwch/sunspot_area_north.txt",
+"http://solarscience.msfc.nasa.gov/greenwch/sunspot_area_south.txt"
+)
+for(iii in 1:length(url)){
+  ssn[[iii]]<-read.table(url[[iii]],header=T,skip=0,as.is=T,stringsAsFactor=FALSE)
+  if(grepl("_num",url[[iii]])==T){
+    ssn[[iii]]$date<-as.Date(paste(ssn[[iii]]$YEAR,"/",ssn[[iii]]$MON,"/1",sep=""))
+    ssn[[iii]]<-ssn[[iii]][,c(5,3,4)]
+  }
+  else{
+    ssn[[iii]]$date<-as.Date(paste(ssn[[iii]]$Year,"/",ssn[[iii]]$Mon,"/1",sep=""))
+    if(grepl("_north",url[[iii]])==T){
+      colnames(ssn[[iii]])[3]<-paste(colnames(ssn[[iii]])[3],".north",sep="")
+    }else if(grepl("_south",url[[iii]])==T){
+      colnames(ssn[[iii]])[3]<-paste(colnames(ssn[[iii]])[3],".south",sep="")
+    }  
+    else{
+      colnames(ssn[[iii]])[3]<-paste(colnames(ssn[[iii]])[3],".total",sep="")
+    }
+    ssn[[iii]]<-ssn[[iii]][,c(4,3)]
+  }
+  if(iii==1){ssn[[(length(url)+1)]]<-ssn[[iii]]}else{(ssn[[(length(url)+1)]]<-merge(ssn[[(length(url)+1)]],ssn[[iii]],by="date"))}
+}
+```
+
+```{r}
+plots<-list()
+n.col<-2
+for(ppp in 1:2){
+  for(iii in 1:(length(url))){
+    tmp<-ssn[[iii]]
+    date.s<-format(tmp[,1][1],"%Y/%m")
+    date.e<-format(tmp[,1][nrow(tmp)],"%Y/%m")
+    colnames(tmp)[2]<-"value"
+    if(ppp==1){
+      g<-ggplot(tmp,aes(x=date,y=value))
+      g<-g+geom_line()
+      g<-g+geom_point()
+      g<-g+scale_x_date(labels=date_format("%Y/%m"))
+    }else{
+      g<-ggplot(tmp,aes(x=value))
+      g<-g+geom_histogram(binwidth=10,fill="grey",alpha=0.5,color="black")
+    }
+    g<-g+ggtitle(paste(colnames(ssn[[iii]])[2],"\n",date.s,"-",date.e))
+    g<-g+theme(axis.text=element_text(size=30))
+    g<-g+theme(axis.title=element_text(size=50,face="bold"))
+    g<-g+theme(title=element_text(size=60,face="bold"))
+    g<-g+theme(legend.position="top")
+    g<-g+theme(legend.text=element_text(colour="black",size=25,face="bold"))
+    g<-g+theme(legend.title=element_text(colour="white",size=1,face="bold"))
+    g<-g+xlab("")+ylab("")
+    png.file<-paste(colnames(ssn[[iii]])[2],ppp,".png",sep="")
+    html.file.name<-"ssn.image.html"
+    png(file=png.file,width=1400,height=800) 
+    print(g)
+    dev.off()
+    if(ppp==1 && iii==1){
+      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=html.file.name,append=F)
+    }else{
+      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=html.file.name,append=T)
+    }    
+  }
+}
+```
+
+```{r}
+for(ppp in 1:(length(url))){
+  tmp<-na.omit(ssn[[ppp]])
+  png.file<-paste("acf.",colnames(tmp)[2],ppp,".png",sep="")
+  html.file.name<-"acf.ssn.image.html"
+  png(file=png.file,width=1400,height=800)
+  par(cex.main=4,cex.axis=2,cex.lab=2,cex.sub=1,mar=c(6,6,5,2))
+  date.s<-format(tmp[,1][1],"%Y/%m")
+  date.e<-format(tmp[,1][nrow(tmp)],"%Y/%m")
+  acf(tmp[,2],type="correlation",main=paste("\n\nACF of",colnames(tmp)[2],"",date.s,"-",date.e),lag=240,ci=c(0.9,0.95))
+  dev.off()
+  if(ppp==1){
+    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=html.file.name,append=F)
+  }else{
+    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=html.file.name,append=T)
+  }    
+}
+```
+
+```{r}
+tmp<-ssn[[length(url)+1]]
+tmp[,1]<-format(tmp[,1],"%Y-%m")
+#    rownames(tmp)<-NULL
+csv.file.name<-"ssn.csv"
+write.csv(tmp,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+html.file.name<-"ssn.table.html"
+cat("$(function(){",file=html.file.name,append=F)     
+cat(gsub(" ","",paste("\n","$('#ssn').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=html.file.name,append=T)     
+cat("\nfunction(){",file=html.file.name,append=T)
+cat(gsub(" ","",paste("\n$('#ssn').find('TABLE').dataTable(")),file=html.file.name,append=T)
+cat("\n{",file=html.file.name,append=T)    
+cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=html.file.name,append=T) 
+cat("\n\"order\": [[ 0,\"desc\"]],",file=html.file.name,append=T)			
+cat("\n\"bFilter\":false,",file=html.file.name,append=T)
+cat("\n\"paging\":true,",file=html.file.name,append=T)
+cat("\n\"info\":true",file=html.file.name,append=T)
+cat("\n}",file=html.file.name,append=T)    
+cat("\n);",file=html.file.name,append=T)
+cat("\n});;",file=html.file.name,append=T)    
+cat("\n});\n\n",file=html.file.name,append=T)
+cat("<div id=\"ssn\"></div>",file=html.file.name,append=T)
+```
