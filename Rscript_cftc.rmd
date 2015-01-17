@@ -8,9 +8,8 @@ library(PerformanceAnalytics)
 library(quantmod)
 library(scales)
 library(reshape2)
-suppressPackageStartupMessages(library(googleVis))
 year<-c(2014:2015)
-location<-2 #1:local 2:web
+location<-1 #1:local 2:web
 username<-Sys.info()['user']
 path01<-paste("C:/Users/",username,"/Desktop/CFTC/",sep="")
 path02<-paste("C:/Users/",username,"/Desktop/tmpFolder/",sep="")
@@ -72,6 +71,10 @@ first.date<-Sys.Date()-diff.date
 dataset<-list()
 cnt<-0
 table.count<-0
+output1.html<-"cftcoutput01.html" #for table
+output2.html<-"cftcoutput02.html" #for graph
+output3.html<-"cftcoutput03.html" #corre
+js.file.name<-"id005cftc.js"
 for(ccc in 1:length(currency)){
   table.count<-table.count+1  
   cnt<-cnt+1
@@ -85,7 +88,35 @@ for(ccc in 1:length(currency)){
   colnames(tmp.csv)<-c("Date","Net","Long","Short")
   tmp.csv <- tmp.csv[order(tmp.csv$Date,decreasing=T),] 
   tmp.csv<-head(tmp.csv,10)
-  write.csv(tmp.csv,paste(gsub(" ", "",currency[ccc]),".csv",sep=""),col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+  csv.file.name<-paste(gsub(" ", "",currency[ccc]),".csv",sep="")
+  write.csv(tmp.csv,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#output js  
+  csv.id<-paste(gsub(" ", "",currency[ccc]),sep="")
+  if(ccc==1){  
+    cat("$(function(){",file=js.file.name,append=F)     
+  }else{
+    cat("$(function(){",file=js.file.name,append=T)     
+  }  
+  cat(gsub(" ","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
+  cat("\nfunction(){",file=js.file.name,append=T)
+  cat(gsub(" ","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(",sep="")),file=js.file.name,append=T)
+  cat("\n{",file=js.file.name,append=T)    
+  cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
+  cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)  		
+  cat("\n\"bFilter\":false,",file=js.file.name,append=T)
+  cat("\n\"paging\":true,",file=js.file.name,append=T)
+  cat("\n\"info\":true",file=js.file.name,append=T)
+  cat("\n}",file=js.file.name,append=T)    
+  cat("\n);",file=js.file.name,append=T)
+  cat("\n});;",file=js.file.name,append=T)    
+  cat("\n});\n\n",file=js.file.name,append=T)
+#output html  
+  if(ccc==1){  
+    cat(paste("<b>",csv.id,"</b>\n",sep=""),file=output1.html,append=F)  
+  }else{
+    cat(paste("<b>",csv.id,"</b>\n",sep=""),file=output1.html,append=T)  
+  }  
+  cat(paste("<div id=\"",csv.id,"\"></div>\n<hr>\n",sep=""),file=output1.html,append=T)  
 #output png file
   tmp<-dataset[[cnt]]
   tmp<-subset(tmp,first.date<=tmp[,1])
@@ -100,7 +131,8 @@ for(ccc in 1:length(currency)){
       subtitle<-"Long.Positions",
       subtitle<-"Short.Positions"       
     )
-    png(file=paste(gsub(" ","", currency[ccc], perl=T),subtitle,".png",sep=""),width=1400,height=800)
+    png.file<-paste(gsub(" ","", currency[ccc], perl=T),subtitle,".png",sep="")
+    png(file=png.file,width=1400,height=800)
     g<-ggplot()
     g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill=bbb,alpha=0.2,color="black")
     g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
@@ -109,6 +141,17 @@ for(ccc in 1:length(currency)){
     g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"))
     print(g)    
     dev.off()
+#output html
+    if(bbb==2){
+      if(ccc==1){
+        cat("<div style=\"text-align: center\">\n",file=output2.html,append=F)
+      }else{
+        cat("<div style=\"text-align: center\">\n",file=output2.html,append=T)
+      }
+      cat("<b><br>",currency[ccc],"</b>\n",file=output2.html,append=T)
+      cat("</div>\n",file=output2.html,append=T)
+    }
+    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output2.html,append=T)
   }
 }
 ```
@@ -123,15 +166,14 @@ for(ccc in 1:length(currency)){
 cnt<-0
 list.s<-list()
 fx.data<-list()
-#list.s[[1]]<-c("oanda",1,"JPY","EUR","AUD","GBP","CHF","NZD","CAD","RUB","MXN","BRL") #,"ZAR")
-list.s[[1]]<-c("FRED",1,"DEXJPUS","DEXUSEU","DEXUSAL","DEXUSUK","DEXSZUS","DEXUSNZ","DEXCAUS","RUB","DEXMXUS","DEXBZUS") #,"ZAR")
+list.s[[1]]<-c("FRED",1,"DEXJPUS","DEXUSEU","DEXUSAL","DEXUSUK","DEXSZUS","DEXUSNZ","DEXCAUS","RUB","DEXMXUS","DEXBZUS")
 for(lll in 1:length(list.s)){
   for(iii in 3:length(list.s[[lll]])){
     cnt<-cnt+1
-#    item<-paste(list.s[[lll]][iii],"/USD",sep="") 
     if(list.s[[1]][iii]!="RUB"){
       fx.data[[cnt]]<-getSymbols(list.s[[1]][iii],src=list.s[[lll]][1],auto.assign=FALSE)
       fx.data[[cnt]]<-fx.data[[cnt]][,as.double(list.s[[lll]][2])]
+      print(tail(fx.data[[cnt]],3))
     }
   }
 }
@@ -149,34 +191,41 @@ for(iii in 1:cnt){
   if(list.s[[1]][iii+2]!="RUB"){
     setwd(path03)
     merge.fx[[iii]]<-merge(dataset.xts[[iii]],fx.data[[iii]],all=T)
-    #print(head(merge.fx[[iii]]))
     merge.fx[[iii]]<-merge.fx[[iii]][,-c(2,3)]
-    #print(head(merge.fx[[iii]]))
     diff.date<-365*1
     first.date<-Sys.Date()-diff.date
     last.date<-Sys.Date()-0
     merge.fx[[iii]]<-merge.fx[[iii]][paste(first.date,"::",last.date,sep="")]
-    tmp<-diff(na.omit(merge.fx[[iii]]))[-1]
-    #print(head(tmp))
-    #print(tail(tmp))
-    cat(paste(colnames(tmp)[1],"-",colnames(tmp)[2],"\n",sep=""))
-    cat(paste(first(index(tmp)),"-",last(index(tmp)),sep=""))
-    print(kable(cor(tmp)))
-    print(summary(lm(tmp[,2]~tmp[,1])))
-    cat("\n--------------------------------------------------------------------------------\n")
-#output html      
-    cat("一次階差同士の相関係数<br>",file=paste("corre.",gsub(" ", "",currency[iii]),".html",sep=""),append=F)     
-    cat(gsub(".FX...CHICAGO.MERCANTILE.EXCHANGE", "",colnames(cor(tmp))[1]),"<br>&nbsp;&nbsp;&nbsp;×&nbsp;&nbsp;&nbsp;<br>",colnames(cor(tmp))[2],file=paste("corre.",gsub(" ", "",currency[iii]),".html",sep=""),append=T)     
-    cat("<br>相関係数=",cor(tmp)[1,2],file=paste("corre.",gsub(" ", "",currency[iii]),".html",sep=""),append=T)     
-    cat("<br>p値=",summary(lm(tmp[,2]~tmp[,1]))$coe[8],file=paste("corre.",gsub(" ", "",currency[iii]),".html",sep=""),append=T)  
-#output png      
-    png(file=paste("corre",gsub(" ","", currency[iii], perl=T),".png",sep=""),width=1400,height=800)
-    chart.TimeSeries(merge.fx[[iii]][,1],main=paste(currency[iii],"",
-      first(index(merge.fx[[iii]])),"-",last(index(merge.fx[[1]]))),yaxis.right=F,type="h",lwd="2",
+    tmp.0<-na.omit(merge.fx[[iii]])
+    tmp<-diff(tmp.0)[-1]
+#output png
+    png.file<-paste("corre",gsub(" ","", currency[iii], perl=T),".png",sep="")
+    png(file=png.file,width=1400,height=800)
+    chart.TimeSeries(tmp.0[,1],main=paste(currency[iii],"",
+      first(index(tmp.0)),"-",last(index(tmp.0))),yaxis.right=F,type="h",lwd="2",
       legend.loc="bottomleft",color="blue",cex.main=4,cex.legend=3,cex.lab=2)
     par(new=T)
-    chart.TimeSeries(merge.fx[[iii]][,2],main="",type="o",lwd="2",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
+    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
     dev.off()
+#output html
+    result.corr.file.name<-paste("corre",gsub(" ","", currency[iii], perl=T),".html",sep="")
+    cat("一次階差同士の相関係数<br>\n",file=result.corr.file.name,append=F)
+    cat(paste("期間:",first(index(tmp.0)),"-",last(index(tmp.0)),"\n"),file=result.corr.file.name,append=T)
+    cat(paste(gsub(".FX...CHICAGO.MERCANTILE.EXCHANGE", "",colnames(tmp)[1]),"\n&nbsp;&nbsp;&nbsp;×&nbsp;&nbsp;&nbsp;\n",colnames(tmp)[2],sep=""),file=result.corr.file.name,append=T)     
+    cat("\n相関係数=",cor(tmp)[1,2],file=result.corr.file.name,append=T)     
+    cat("\np値=",summary(lm(tmp[,2]~tmp[,1]))$coe[8],file=result.corr.file.name,append=T)  
+    if(iii==1){
+      cat(paste("\n<div id=\"","corre",gsub(" ","", currency[iii], perl=T),"\"></div>",sep=""),file=output3.html,append=F)  
+    }else{
+      cat(paste("\n<div id=\"","corre",gsub(" ","", currency[iii], perl=T),"\"></div>",sep=""),file=output3.html,append=T)  
+    }
+    cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" width=\"100%\">\n\n",sep=""),file=output3.html,append=T)
+#output js    
+    cat("\n\n$(function() {",file=js.file.name,append=T)
+    cat(paste("\n$.get('http://archive.am-consulting.co.jp/",result.corr.file.name,"', function(data) {",sep=""),file=js.file.name,append=T)
+		cat(paste("\n$('#corre",gsub(" ", "",currency[iii]),"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+		cat("\n});",file=js.file.name,append=T)
+  	cat("\n});\n\n",file=js.file.name,append=T)    
   } 
 }
 ```
