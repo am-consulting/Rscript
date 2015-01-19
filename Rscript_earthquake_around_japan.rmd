@@ -26,8 +26,6 @@ if(data.location==1){
     skip=0
   ) 
 }
-path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
-setwd(path02)
 dataset.j<-dataset[grep("Japan",dataset[,14]),]
 dataset.j$latlong<-paste(dataset.j$latitude,dataset.j$longitude,sep=":")
 dataset.j$jst<-as.POSIXct(sub("Z","",sub("T"," ",dataset.j$time)))+3600*9 #UTC+9
@@ -42,10 +40,13 @@ dataset.j$info<-paste(
 )
 dataset.j$energy.GJ<-round(10^((dataset.j$mag)*1.5+4.8)*(10^-9),4)
 #maps
+dataTime<-Sys.time()
+path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path02)
 for(mmm in 1:length(dataset.j[,1])){
-tmp<-dataset.j$mag[mmm]+10^-3
-if(round(tmp)==floor(tmp)){tmp<-floor(tmp)}else{tmp<-(round(tmp)-0.5)} 
-dataset.j$magMap[mmm]<-tmp
+  tmp<-dataset.j$mag[mmm]+10^-3
+  if(round(tmp)==floor(tmp)){tmp<-floor(tmp)}else{tmp<-(round(tmp)-0.5)} 
+  dataset.j$magMap[mmm]<-tmp
 }
 japan<-map(xlim=c(120,150),ylim=c(20,50))
 japan<-as.data.frame(japan[c("x","y")])
@@ -53,7 +54,7 @@ japan.map<-ggplot(japan,aes(x,y))
 japan.map<-japan.map+geom_path()
 date.f<-dataset.j$jst[1]
 date.e<-dataset.j$jst[nrow(dataset.j)]
-japan.map<-japan.map+ggtitle(paste(date.e,"-",date.f))
+japan.map<-japan.map+ggtitle(paste(date.e,"-",date.f,"\n確認日時:",dataTime))
 japan.map<-japan.map+theme(axis.text=element_text(size=30),axis.title=element_text(colour="white",size=1,face="bold"),title=element_text(size=40,face="bold"),legend.position="right",legend.text=element_text(colour="black",size=40,face="bold"),legend.title=element_text(colour="black",size=40,face="bold"))   
 japan.map.1<-japan.map+geom_point(
   data=dataset.j,
@@ -67,9 +68,7 @@ japan.map.1<-japan.map.1+scale_size_continuous(paste("Magnitude(M)","\n","M~(M+0
 png(file="earthquakejapan01.png",width=1400,height=800) 
 plot(japan.map.1)
 dev.off()
-```
-
-```{r}
+#map02
 japan.map.2<-japan.map+geom_point(data=dataset.j,aes(x=longitude,y=latitude,size=mag))
 japan.map.2<-japan.map.2+geom_segment(
   data=dataset.j,
@@ -81,14 +80,11 @@ japan.map.2<-japan.map.2+geom_segment(
   yend=c(tail(latitude,n=-1),NA)),
   arrow=arrow(angle=15,ends="first",length=unit(0.5,"cm"))
 )
-japan.map.2<-japan.map.2+ggtitle(paste(date.e,"-",date.f))
+japan.map.2<-japan.map.2+ggtitle(paste(date.e,"-",date.f,"\n確認日時:",dataTime))
 japan.map.2<-japan.map.2+theme(axis.text=element_text(size=30),axis.title=element_text(colour="white",size=1,face="bold"),title=element_text(size=40,face="bold"),legend.position="right",legend.text=element_text(colour="black",size=40,face="bold"),legend.title=element_text(colour="black",size=40,face="bold")) 
 png(file="earthquakejapan02.png",width=1400,height=800) 
 plot(japan.map.2)
 dev.off()
-```
-
-```{r}
 #3D-plot
 lon.range<-c(120,150)
 lat.range<-c(20,60)
@@ -103,8 +99,8 @@ ddd<-1
 map2d<-map(xlim=c(lon.range[1],lon.range[2]),ylim=c(lat.range[1],lat.range[2]))
 map2d<-as.data.frame(map2d[c("x","y")])
 map2d<-cbind(map2d,z=z.min)
-png(file="earthquakejapan03.png",width=1400,height=800) 
-par(ps=45)
+png(file="earthquakejapan03.png",width=1400,height=800)
+par(ps=40)
 ppp<-1
 for(ccc in 1:length(map2d[,1])){
   if(is.na(map2d[,1][ccc])==T){
@@ -146,15 +142,13 @@ earthquake.point<-scatterplot3d(
   lwd="3",
   scale.y=1,
   color=4,
-  main=paste("In the past 30days-Magnitude-over",z.border,sep=""),
+  main=paste("In the past 30days.over M",z.border,".確認日時:",dataTime,sep=""),
   xlim=c(lon.range[1],lon.range[2]),
   ylim=c(lat.range[1],lat.range[2]),
   zlim=c(z.min,z.max),pch=" "
 )
 dev.off()
-```
-
-```{r}
+#histogram
 PlotTitle<-"Japan"
 bw=c(5,5,10,0.1)
 for(ppp in 1:4){ 
@@ -165,17 +159,14 @@ for(ppp in 1:4){
     g<-ggplot(dataset.j,aes(x=mag))
   )  
   g<-g+geom_histogram(alpha=0.2,binwidth=bw[ppp],colour="blue")
-  g<-g+labs(title=PlotTitle)
   g<-g+theme(plot.title=element_text(size=40))
   g<-g+theme(axis.title.x=element_text(size=40),axis.title.y=element_text(size=40)) 
   g<-g+theme(axis.text.x=element_text(size=40),axis.text.y=element_text(size=40)) 
+  g<-g+ggtitle(paste(PlotTitle,":",date.e,"-",date.f,"\n確認日時:",dataTime))
   png(file=paste("earthquakejapan",ppp*10,".png",sep=""),width=1400,height=800) 
   plot(g)
   dev.off()
 }
-```
-
-```{r}
 #earthquake table
 E.list<-dataset.j[,c(17,5,19,6,14,2,3,4)]
 E.list<-data.frame(No=c(1:nrow(E.list)),E.list)
@@ -183,12 +174,18 @@ E.list[,6]<-gsub(", Japan", "",E.list[,6])
 E.list<-E.list[,c(2,3,6)]
 rownames(E.list)<-NULL
 write.csv(E.list,"earthquakejapan.csv",col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
-```
-
-```{r}
 totalEnergy<-sum(dataset.j[,19])
 cat("Total Energy(TJ)=",totalEnergy*10^-3,"\n\n")
 cat("Energy of ",round(totalEnergy*(10^-3)/67,1),"Little Boy")
+#timeseries
+attach(dataset.j)
+class(jst)
+png(file="earthquakejapan100.png",width=1400,height=800)
+par(mar=c(10,6,6,6))
+plot(jst,mag,type="h",xlab="",ylab="Magnitude",xaxt="n",col=4,lwd=2,main=paste("Time Series Earthquakes around Japan\n",date.e,"-",date.f," 確認日時:",dataTime),cex.main=3,cex.legend=3,cex.lab=3,cex.axis=3)
+r=as.POSIXct(round(range(jst),"hours"))
+axis.POSIXct(1,at=seq(r[1],r[2],by="24 hours"),format="%m-%d %Hh",las=2,cex.axis=2)
+dev.off()
 ```
   
 Caution:Energy is calculated according to the following equation regardless of magnitude type(mb,ms,etc.).  
@@ -196,14 +193,3 @@ Blast yield of Little Boy("HIROSHIMA-GATA atomic bomb")=67(TJ)
 $$
 \log E=4.8+1.5M
 $$
-
-```{r}
-#timeseries
-attach(dataset.j)
-class(jst)
-png(file="earthquakejapan100.png",width=1400,height=800) 
-plot(jst,mag,type="h",xlab="",ylab="Magnitude",xaxt="n",col=4,lwd=2,main="Time Series\nEarthquakes around Japan")
-r=as.POSIXct(round(range(jst),"hours"))
-axis.POSIXct(1,at=seq(r[1],r[2],by="24 hours"),format="%m-%d %Hh",las=2)
-dev.off()
-```
