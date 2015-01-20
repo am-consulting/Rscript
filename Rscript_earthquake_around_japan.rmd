@@ -9,9 +9,9 @@ library(rgl)
 library(gridExtra)
 library(scatterplot3d)
 library(scales)
-```
-
-```{r}
+library(lubridate)
+add.ver<-paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),sep="")
+output.html<-"earthquake.html"
 data.location<-2 #1:local 2:web
 data.file<-"all_month.csv"
 username<-Sys.info()['user']
@@ -65,9 +65,14 @@ japan.map.1<-japan.map+geom_point(
   )
 )
 japan.map.1<-japan.map.1+scale_size_continuous(paste("Magnitude(M)","\n","M~(M+0.5)"))
-png(file="earthquakejapan01.png",width=1400,height=800) 
+png.file<-"earthquakejapan01.png"
+png(file=png.file,width=1400,height=1200) 
 plot(japan.map.1)
 dev.off()
+#map html
+cat("地震マップ\n",file=output.html,append=F)   
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
+cat("\n<hr>\n\n",file=output.html,append=T)
 #map02
 japan.map.2<-japan.map+geom_point(data=dataset.j,aes(x=longitude,y=latitude,size=mag))
 japan.map.2<-japan.map.2+geom_segment(
@@ -82,9 +87,14 @@ japan.map.2<-japan.map.2+geom_segment(
 )
 japan.map.2<-japan.map.2+ggtitle(paste(date.e,"-",date.f,"\n確認日時:",dataTime))
 japan.map.2<-japan.map.2+theme(axis.text=element_text(size=30),axis.title=element_text(colour="white",size=1,face="bold"),title=element_text(size=40,face="bold"),legend.position="right",legend.text=element_text(colour="black",size=40,face="bold"),legend.title=element_text(colour="black",size=40,face="bold")) 
-png(file="earthquakejapan02.png",width=1400,height=800) 
+png.file<-"earthquakejapan02.png"
+png(file=png.file,width=1400,height=1400) 
 plot(japan.map.2)
 dev.off()
+#map html
+cat("地震マップ 発生順軌跡\n",file=output.html,append=T)   
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
+cat("\n<hr>\n\n",file=output.html,append=T)
 #3D-plot
 lon.range<-c(120,150)
 lat.range<-c(20,60)
@@ -99,7 +109,8 @@ ddd<-1
 map2d<-map(xlim=c(lon.range[1],lon.range[2]),ylim=c(lat.range[1],lat.range[2]))
 map2d<-as.data.frame(map2d[c("x","y")])
 map2d<-cbind(map2d,z=z.min)
-png(file="earthquakejapan03.png",width=1400,height=800)
+png.file<-"earthquakejapan03.png"
+png(file=png.file,width=1400,height=1400)
 par(ps=40)
 ppp<-1
 for(ccc in 1:length(map2d[,1])){
@@ -148,6 +159,10 @@ earthquake.point<-scatterplot3d(
   zlim=c(z.min,z.max),pch=" "
 )
 dev.off()
+#map html
+cat("地震マップ 3-D\n",file=output.html,append=T)   
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
+cat("\n<hr>\n\n",file=output.html,append=T)
 #histogram
 PlotTitle<-"Japan"
 bw=c(5,5,10,0.1)
@@ -163,9 +178,20 @@ for(ppp in 1:4){
   g<-g+theme(axis.title.x=element_text(size=40),axis.title.y=element_text(size=40)) 
   g<-g+theme(axis.text.x=element_text(size=40),axis.text.y=element_text(size=40)) 
   g<-g+ggtitle(paste(PlotTitle,":",date.e,"-",date.f,"\n確認日時:",dataTime))
-  png(file=paste("earthquakejapan",ppp*10,".png",sep=""),width=1400,height=800) 
+  png.file<-paste("earthquakejapan",ppp*10,".png",sep="")
+  png(file=png.file,width=1400,height=1200) 
   plot(g)
   dev.off()
+  #histogram html
+  switch(ppp,
+    hist.sub<-"緯度(°)",
+    hist.sub<-"経度(°)",
+    hist.sub<-"深さ(km)",
+    hist.sub<-"マグニチュード"
+  )  
+  cat("ヒストグラム-",hist.sub,file=output.html,append=T)   
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
+  cat("\n<hr>\n\n",file=output.html,append=T) 
 }
 #earthquake table
 E.list<-dataset.j[,c(17,5,19,6,14,2,3,4)]
@@ -173,19 +199,42 @@ E.list<-data.frame(No=c(1:nrow(E.list)),E.list)
 E.list[,6]<-gsub(", Japan", "",E.list[,6])
 E.list<-E.list[,c(2,3,6)]
 rownames(E.list)<-NULL
-write.csv(E.list,"earthquakejapan.csv",col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+csv.file.name<-"earthquakejapan.csv"
+write.csv(E.list,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+js.file.name<-"earthquakejapan.js"
+csv.id<-"earthquakejapan"
+#output csv js  
+cat("$(function(){",file=js.file.name,append=F)     
+cat(gsub(" ","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
+cat("\nfunction(){",file=js.file.name,append=T)
+cat(gsub(" ","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(",sep="")),file=js.file.name,append=T)
+cat("\n{",file=js.file.name,append=T)    
+cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
+cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)      
+cat("\n\"bFilter\":false,",file=js.file.name,append=T)
+cat("\n\"paging\":true,",file=js.file.name,append=T)
+cat("\n\"info\":true",file=js.file.name,append=T)
+cat("\n}",file=js.file.name,append=T)    
+cat("\n);",file=js.file.name,append=T)
+cat("\n});;",file=js.file.name,append=T) 
+cat("\n});\n\n",file=js.file.name,append=T)  
 totalEnergy<-sum(dataset.j[,19])
 cat("Total Energy(TJ)=",totalEnergy*10^-3,"\n\n")
 cat("Energy of ",round(totalEnergy*(10^-3)/67,1),"Little Boy")
 #timeseries
 attach(dataset.j)
 class(jst)
-png(file="earthquakejapan100.png",width=1400,height=800)
+png.file<-"earthquakejapan100.png"
+png(file=png.file,width=1400,height=1200)
 par(mar=c(10,6,6,6))
 plot(jst,mag,type="h",xlab="",ylab="Magnitude",xaxt="n",col=4,lwd=2,main=paste("Time Series Earthquakes around Japan\n",date.e,"-",date.f," 確認日時:",dataTime),cex.main=3,cex.legend=3,cex.lab=3,cex.axis=3)
 r=as.POSIXct(round(range(jst),"hours"))
 axis.POSIXct(1,at=seq(r[1],r[2],by="24 hours"),format="%m-%d %Hh",las=2,cex.axis=2)
 dev.off()
+#time series html
+cat("時系列プロット\n",file=output.html,append=T)   
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
+cat("\n<hr>\n\n",file=output.html,append=T) 
 ```
   
 Caution:Energy is calculated according to the following equation regardless of magnitude type(mb,ms,etc.).  
