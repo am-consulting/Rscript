@@ -10,6 +10,7 @@ library(tseries)
 library(PerformanceAnalytics)
 library(reshape2)
 library(urca)
+add.ver<-paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),sep="")
 #list
 dataset<-list()
 dataset.yy<-list()
@@ -437,7 +438,7 @@ for(ppp in 1:plot.type){
           cat("<b><br>",buf.graph.title,"</b>\n",file=output2.html,append=T)
           cat("</div>\n",file=output2.html,append=T)
           }
-        cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output2.html,append=T)
+        cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output2.html,append=T)
       }
     }
   }
@@ -566,7 +567,7 @@ for(ppp in 1:plot.type){
     }else{
       cat("$(function(){",file=js.file.name,append=T)     
     }  
-    cat(gsub(" ","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
+    cat(gsub(" ","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
     cat("\nfunction(){",file=js.file.name,append=T)
     cat(gsub(" ","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(",sep="")),file=js.file.name,append=T)
     cat("\n{",file=js.file.name,append=T)    
@@ -610,7 +611,7 @@ for(ppp in 1:plot.type){
     write(tmp.unitroot.result,result.unitroot.file.name,append=T)
 #unit root test js    
     cat("\n\n$(function() {",file=js.file.name,append=T)
-    cat(paste("\n$.get('http://archive.am-consulting.co.jp/",result.unitroot.file.name,"', function(data) {",sep=""),file=js.file.name,append=T)
+    cat(paste("\n$.get('http://archive.am-consulting.co.jp/",result.unitroot.file.name,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
     buf.result.unitroot.file.name<-gsub("\\.","",result.unitroot.file.name)
   	cat(paste("\n$('#",buf.result.unitroot.file.name,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
 		cat("\n});",file=js.file.name,append=T)
@@ -648,7 +649,7 @@ for(ppp in 1:plot.type){
     }else{
       cat(paste("<div id=\"",buf.result.unitroot.file.name,"\"></div>\n",sep=""),file=output4.html,append=T)   
     }  
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",unitroot.png,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output4.html,append=T)   
+    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",unitroot.png,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output4.html,append=T)   
     cat("<br><hr>\n\n",file=output4.html,append=T) 
 #boxplot graphimage
     for(ttt in ttt.range){    
@@ -676,9 +677,9 @@ for(ppp in 1:plot.type){
       dev.off()
 #boxplot html
       if(ppp==1 && iii==1 && ttt==ttt.range[1]){
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output3.html,append=F)
+    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output3.html,append=F)
       }else{
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output3.html,append=T)
+    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output3.html,append=T)
       }
     }
   }
