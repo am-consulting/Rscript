@@ -10,6 +10,7 @@ library(tseries)
 library(PerformanceAnalytics)
 library(reshape2)
 library(urca)
+library(lubridate)
 add.ver<-paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),sep="")
 #list
 dataset<-list()
@@ -28,8 +29,8 @@ path<-paste("C:/Users/",username,"/Desktop",sep="")
 path02<-paste("C:/Users/",username,"/Desktop/tmpFolder/",sep="")
 path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 cnt<-0
-plot.type<-1
-ttt.range<-c(1:2)
+plot.type<-2
+ttt.range<-c(3:4)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
 #functions
@@ -38,7 +39,7 @@ fun.individual<-function(tmp,monthly){
   for(ccc in 2:ncol(tmp)){
     cnt<<-cnt+1 #caution.gloval variable
     dataset[[cnt]]<-tmp[,c(1,ccc)]
-    dataset[[cnt]][,2]<-gsub(" ", "",dataset[[cnt]][,2]) #remove space
+    dataset[[cnt]][,2]<-gsub("\\s", "",dataset[[cnt]][,2]) #remove space
     dataset[[cnt]]<-subset(dataset[[cnt]],dataset[[cnt]][,2]!="") #remove blank row
     dataset[[cnt]][,2]<-as.double(dataset[[cnt]][,2])
     colnames(dataset[[cnt]])[1]<-"date"
@@ -211,11 +212,11 @@ if(exe==1){
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-0 # 0 or 1
+monthly<-1 # 0 or 1
 cnt<-0
 if(exe==1){
   ts.source<-list()
-  ts.source[[1]]<-c("FRED",1,"DEXJPUS")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500
+  ts.source[[1]]<-c("FRED",1,"HOUSTNSA")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -318,10 +319,10 @@ if(plot.type==2){
     if(yy.type<=nrow(tmp)){
       tmp<-round(diff(tmp,lag=yy.type)/lag(tmp,yy.type)*100,2)[-1]
       dataset.xts.yy[[ddd]]<-tmp
-      colnames(dataset.xts.yy[[ddd]])<-paste("前年比.",colnames(dataset.xts.yy[[ddd]]),sep="")
+      colnames(dataset.xts.yy[[ddd]])<-paste("yearToyear.",colnames(dataset.xts.yy[[ddd]]),sep="")
       dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
       if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
-      colnames(all.data.xts.yy[[1]])<-paste("前年比.",colnames(all.data.xts.yy[[1]]),sep="")
+      colnames(all.data.xts.yy[[1]])<-paste("yearToyear.",colnames(all.data.xts.yy[[1]]),sep="")
     }
   }
   all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
@@ -408,7 +409,7 @@ for(ppp in 1:plot.type){
         value.y<<-median(na.omit(tmp.1[,2])) #value.y<<-mean(na.omit(tmp.1[,2])) 
         setwd(path03)
         png.file<-paste(graph.title,".png",sep="")
-        png(file=png.file,width=1400,height=800)  
+        png(file=png.file,width=1400,height=1200)  
           g<-ggplot()
           g<-g+geom_segment(data=tmp.0,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=10)
           g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
@@ -551,10 +552,11 @@ for(ppp in 1:plot.type){
         graph.title<-"ytoyppiall"
       }
     }
-    csv.file.name<-paste(gsub(" ", "",graph.title),".csv",sep="")
+    csv.file.name<-paste(gsub("\\s", "",graph.title),".csv",sep="")
     write.csv(tmp.table,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 #output csv html  
-    csv.id<-paste(gsub(" ", "",buf.graph.title),sep="")
+    csv.id<-paste(gsub("\\s", "",buf.graph.title),sep="")
+    csv.id<-paste(gsub("\\.", "",buf.graph.title),sep="")
     if(ppp==1 && iii==1){  
       cat(paste("<b>",csv.id,"</b>\n",sep=""),file=output1.html,append=F)  
     }else{
@@ -567,9 +569,9 @@ for(ppp in 1:plot.type){
     }else{
       cat("$(function(){",file=js.file.name,append=T)     
     }  
-    cat(gsub(" ","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
+    cat(gsub("\\s","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
     cat("\nfunction(){",file=js.file.name,append=T)
-    cat(gsub(" ","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(",sep="")),file=js.file.name,append=T)
+    cat(gsub("\\s","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(",sep="")),file=js.file.name,append=T)
     cat("\n{",file=js.file.name,append=T)    
     cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
     cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)    	
@@ -601,11 +603,11 @@ for(ppp in 1:plot.type){
     value.level<-tmp.unitroot[,2]
     value.1stDiff<-diff(tmp.unitroot[,2])
     tmp.unitroot.result<-capture.output(adf.test(value.level))
-    tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
+    tmp.unitroot.result<-gsub(",\\s","<br>",tmp.unitroot.result, perl=T)
     cat("\nPeriod:",date.f.l,"-",date.e.l,file=paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
     write(tmp.unitroot.result,paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
     tmp.unitroot.result<-capture.output(adf.test(value.1stDiff))
-    tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
+    tmp.unitroot.result<-gsub(",\\s","<br>",tmp.unitroot.result, perl=T)
     cat("\nPeriod:",date.f.d,"-",date.e.d,file=paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
     result.unitroot.file.name<-paste("unitroot.",graph.title,ppp,".",iii,".html",sep="")
     write(tmp.unitroot.result,result.unitroot.file.name,append=T)
@@ -630,7 +632,7 @@ for(ppp in 1:plot.type){
       colnames(tmp.unitroot.xts.diff)[1]<-gsub(".億円",".兆円",colnames(tmp.unitroot.xts.diff)[1], perl=T)
     }
     unitroot.png<-paste("unitroot",graph.title,".png",sep="")
-    png(file=unitroot.png,width=1400,height=800)
+    png(file=unitroot.png,width=1400,height=1200)
     par(mar=c(5, 4, 14, 2))
       if(monthly==1){
         maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m")
@@ -660,9 +662,13 @@ for(ppp in 1:plot.type){
         buf<-"FRB"
       )
       tmp.table.title<-gsub("<br>",".",tmp.table.title, perl=T)
-      tmp.table.title1<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",tmp.table.title)
+      if(monthly==1){
+        tmp.table.title1<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",tmp.table.title)
+      }else{
+        tmp.table.title1<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",tmp.table.title)
+      }
       png.file<-paste("boxplot",graph.title,buf,".png",sep="")  
-      png(file=png.file,width=1400,height=800)   
+      png(file=png.file,width=1400,height=1200)   
       tmp.boxplot<-tmp.1[,c(2,ttt+ttt.diff)]
       colnames(tmp.boxplot)[2]<-"Person"  
       tmp.boxplot<-melt(tmp.boxplot,id="Person")
@@ -741,7 +747,7 @@ tmp.cointeg<-capture.output(po.test(tmp))
 tmp.cointeg<-gsub(", ","<br>",tmp.cointeg, perl=T)
 write(tmp.cointeg,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
 #output png
-png(file=paste("cointeg.",graph.title1,graph.title2,".png",sep=""),width=1400,height=800) 
+png(file=paste("cointeg.",graph.title1,graph.title2,".png",sep=""),width=1400,height=1200) 
 par(ps=30)
 ccf(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]),24,main=paste("相互相関係数(共に一次階差)\n",colnames(objectDataset)[2],"×",colnames(objectDataset)[3]))
 dev.off()
