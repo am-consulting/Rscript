@@ -11,6 +11,7 @@ library(PerformanceAnalytics)
 library(reshape2)
 library(urca)
 library(lubridate)
+id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 add.ver<-paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),sep="")
 #list
 dataset<-list()
@@ -29,8 +30,8 @@ path<-paste("C:/Users/",username,"/Desktop",sep="")
 path02<-paste("C:/Users/",username,"/Desktop/tmpFolder/",sep="")
 path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 cnt<-0
-plot.type<-2
-ttt.range<-c(3:4)
+plot.type<-1
+ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
 #functions
@@ -43,9 +44,10 @@ fun.individual<-function(tmp,monthly){
     dataset[[cnt]]<-subset(dataset[[cnt]],dataset[[cnt]][,2]!="") #remove blank row
     dataset[[cnt]][,2]<-as.double(dataset[[cnt]][,2])
     colnames(dataset[[cnt]])[1]<-"date"
-    if(monthly==1){
-      tmp.ymd<-dataset[[cnt]][,1]+31
-      dataset[[cnt]][,1]<-as.Date(paste(format(tmp.ymd,"%Y"),"-",format(tmp.ymd,"%m"),"-1",sep=""))-1
+    if(monthly==1){#ソースデータの日付が月末の場合に対処
+      tmp.ymd<-paste(year(dataset[[cnt]][,1]),"-",month(dataset[[cnt]][,1]+1),"-1",sep="")
+      tmp.ymd.1<-as.Date(tmp.ymd)-1
+      dataset[[cnt]][,1]<-tmp.ymd.1
     }
     dataset[[cnt]]<<-dataset[[cnt]] #caution.gloval variable
     print(head(dataset[[cnt]],3))
@@ -190,8 +192,9 @@ if(exe==1){
 
 ```{r}
 #read various sorts of data that class is data frame
-exe<-0
+exe<-1
 monthly<-1 # 0 or 1
+cnt<-0
 if(exe==1){
   folder.name<-c("R_Data_Read")
   folder.path<-file.path(path,folder.name)
@@ -207,6 +210,7 @@ if(exe==1){
     }
   }
 }
+js.title<-gsub(".csv","",dir(folder.path)[iii])
 ```
 
 ```{r}
@@ -331,57 +335,25 @@ if(plot.type==2){
 
 ```{r}
 #グラフ作成チャンク
-js.file.name<-paste(js.title,".external.js",sep="")
-output1.html<-"output01.html" #for table
-output2.html<-"output02.html" #for graph
-output3.html<-"output03.html" #boxplot
-output4.html<-"output04.html" #unitroot
+setwd(path03)
+level.type<-2
+#javascript part    
+js.file.name<-paste(js.title,".external01.js",sep="")
+output2.html<-paste("graph",id,".html",sep="")
+graph.id<-"cpi1"
+cat("\n\n$(function() {",file=js.file.name,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output2.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",graph.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T) 
+#javascript part    
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 for(ppp in 1:plot.type){
   for(iii in 1:length(obj)){
     for(ttt in ttt.range){
       fun.common(ppp,iii,ttt)
       if(nrow(tmp.1)!=0){
-        switch(ttt,  
-          title<-paste(colnames(tmp.1)[2],"\nby Prime Minister of Japan"),
-          title<-paste(colnames(tmp.1)[2],"\nby Chairman of Bank of Japan"),
-          title<-paste(colnames(tmp.1)[2],"\nby President of U.S.A"),
-          title<-paste(colnames(tmp.1)[2],"\nby Chairman of FRB")
-        )
-        graph.title<-colnames(tmp.1)[2]
-        graph.title<-gsub(".億円","",graph.title, perl=T)
-        buf.graph.title<-graph.title
-        graph.title<-gsub("マネタリーベース平均残高","MB",graph.title, perl=T)
-        graph.title<-gsub("前年比.","ytoy",graph.title, perl=T)
-        graph.title<-gsub(".うち.日銀当座預金",".balance",graph.title, perl=T)
-        graph.title<-gsub("経常収支","CurrentAccountNet",graph.title, perl=T)
-        graph.title<-gsub("貿易収支","Goods",graph.title, perl=T)
-        graph.title<-gsub("ネット","Net",graph.title, perl=T)
-        graph.title<-gsub("輸出","Exports",graph.title, perl=T)
-        graph.title<-gsub("輸入","Imports",graph.title, perl=T)
-        graph.title<-gsub("Ｍ２.","M2",graph.title, perl=T)
-        graph.title<-gsub("Ｍ３.","M3",graph.title, perl=T)
-        graph.title<-gsub("広義流動性.","L",graph.title, perl=T)
-        graph.title<-gsub(".マネーストック","MoneyStock",graph.title, perl=T)
-        graph.title<-gsub("平","",graph.title, perl=T)
-        graph.title<-gsub("大類別.工業製品.2010年.100","Manufacturing",graph.title, perl=T)
-        graph.title<-gsub("大類別.農林水産物.2010年.100","Agriculture",graph.title, perl=T)
-        graph.title<-gsub("大類別.鉱産物.2010年.100","Minerals",graph.title, perl=T)
-        graph.title<-gsub("大類別.電力.都市ガス.水道.2010年.100","Electric",graph.title, perl=T)
-        graph.title<-gsub("大類別.スクラップ類.2010年.100","Scrap",graph.title, perl=T)
-        if(regexpr("国内企業物価指数", graph.title)!=-1){
-          if(ppp==1){
-            graph.title<-"ppiall"
-          }else{
-            graph.title<-"ytoyppiall"
-          }
-        }
-        switch(ttt,  
-          graph.title<-paste(graph.title,"pmofjapan",sep=""),
-          graph.title<-paste(graph.title,"boj",sep=""),
-          graph.title<-paste(graph.title,"PresidentofUSA",sep=""),
-          graph.title<-paste(graph.title,"FRB",sep="")
-        )
+        graph.title<-gsub("\\.億円","",colnames(tmp.1)[2])
         switch(ppp,
           multi<-(10^level.multi),
           multi<-1
@@ -407,59 +379,74 @@ for(ppp in 1:plot.type){
         shade<-data.frame(x0,x1,y0,y1)
         shade<<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
         value.y<<-median(na.omit(tmp.1[,2])) #value.y<<-mean(na.omit(tmp.1[,2])) 
-        setwd(path03)
-        png.file<-paste(graph.title,".png",sep="")
+        png.file<-paste(id,ppp,iii,ttt,".png",sep="")
         png(file=png.file,width=1400,height=1200)  
-          g<-ggplot()
-          g<-g+geom_segment(data=tmp.0,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=10)
-          g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
-          if(ppp==1){
+        g<-ggplot()
+        g<-g+geom_segment(data=tmp.0,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=10)
+        g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
+        if(ppp==1){
+          if(level.type==1){
             g<-g+geom_line(data=tmp.1,aes(x=date,y=value),size=2)
-#            g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black") #geom_bar:データが全てプラス値の場合、表示されない
           }else{
             g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
-          }
-          g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=lm)
-          g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
-          g<-g+ggtitle(paste(buf.graph.title,"\n",f.date,"-",e.date))+xlab("")+ylab("")
-          g<-g+ylim(y0,y1)
-          g<-g+theme(axis.text=element_text(size=30),
-            axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"),
-            legend.position="top",legend.text=element_text(colour="black",size=25,face="bold"),
-            legend.title=element_text(colour="white",size=1,face="bold"))          
-          g<-g+scale_x_date(labels=date_format("%y/%m"))
-          print(g)
+          } #geom_bar:データが全てプラス値の場合、表示されない
+        }else{
+          g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+        }
+        g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=lm)
+        g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
+        g<-g+ggtitle(paste(graph.title,"\n",f.date,"-",e.date))+xlab("")+ylab("") 
+        g<-g+ylim(y0,y1)
+        g<-g+theme(axis.text=element_text(size=30),
+          axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"),
+          legend.position="top",legend.text=element_text(colour="black",size=25,face="bold"),
+          legend.title=element_text(colour="white",size=1,face="bold"))          
+        g<-g+scale_x_date(labels=date_format("%y/%m"))
+        print(g)
         dev.off() 
-        if(ttt==ttt.range[1]){
-          if(ppp==1 && iii==1){
-            cat("<div style=\"text-align: center\">\n",file=output2.html,append=F)
-          }else{
-            cat("<div style=\"text-align: center\">\n",file=output2.html,append=T)
-          }
-          cat("<b><br>",buf.graph.title,"</b>\n",file=output2.html,append=T)
-          cat("</div>\n",file=output2.html,append=T)
-          }
-        cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output2.html,append=T)
+#html part
+        if(ppp==1 && iii==1 && ttt==ttt.range[1]){
+          cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output2.html,append=F)
+        }else{
+          cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output2.html,append=T)
+        }
+#html part
       }
     }
   }
 }
-#20150113-"graph.title"はpngファイル名としてのみ利用.
 ```
 
 ```{r}
-#csv、単位根、基本統計量作成チャンク
+#csv、ボックスプロットおよび単位根作成チャンク
+first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
+js.file.table.list<-paste(js.title,".tablelist01.js",sep="")
+js.file.root.list<-paste(js.title,".rootunitlist01.js",sep="")
+output1.html<-paste("table",id,".html",sep="")
+output3.html<-paste("boxplot",id,".html",sep="")
+#javascript part for table   
+js.file.name.2<-paste(js.title,".external02.js",sep="")
+#javascript part for boxplot
+js.file.name.3<-paste(js.title,".external03.js",sep="")
+graph.id<-"cpi3"
+cat("\n\n$(function() {",file=js.file.name.3,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output3.html,add.ver,"', function(data) {",sep=""),file=js.file.name.3,append=T)
+cat(paste("\n$('#",graph.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.3,append=T)
+cat("\n});",file=js.file.name.3,append=T)
+cat("\n});\n\n",file=js.file.name.3,append=T) 
+#javascript part for unitroot
+js.file.name.4<-paste(js.title,".external04.js",sep="")
 if(ttt.range[1]==1){
   ttt.diff<-2
 }else{
   ttt.diff<-0
-}  
-first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
+}
 for(ppp in 1:plot.type){
   for(iii in 1:length(obj)){
-    setwd(path03)
     cnt<-0
-    for(ttt in ttt.range){ #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+#csv、ボックスプロット、単位根共通パート    
+#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+    for(ttt in ttt.range){
       if(cnt==0){
         if(ppp==1){
           tmp.0<-subset(dataset[[obj[iii]]],as.Date(first.date[ttt])<=dataset[[obj[iii]]][,1])
@@ -484,27 +471,37 @@ for(ppp in 1:plot.type){
          colnames(tmp.0)[4]<-"FRB"
        }
     }
+#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成。csv、ボックスプロット、単位根共通パート
     row.names(tmp.0)<-NULL
     tmp.1<-tmp.0[,c(1:4)]
     switch(ppp,
       multi<-(10^level.multi),
       multi<-1
     )
-    tmp.1[,2]<-tmp.1[,2]*multi      
-    tmp.unitroot<-tmp.1[,c(1:2)]
-    tmp.table.title<-colnames(tmp.1)[2]
+    tmp.1[,2]<-tmp.1[,2]*multi
+#titleはboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用    
+    title<-colnames(tmp.1)[2]
     if(regexpr("前年比",colnames(tmp.1)[2])!=-1){
-      tmp.table.title<-gsub("億円","%",tmp.table.title, perl=T)
+      title<-gsub("億円","%",title, perl=T)
     }
     if(level.multi==-4){
-      tmp.table.title<-gsub("億円","兆円",tmp.table.title, perl=T)
+      title<-gsub("億円","兆円",title, perl=T)
     }
-    tmp.table.title<-gsub("GOLDAMGBD228NLBM","ゴールド価格.米ドル/トロイオンス",tmp.table.title, perl=T)
-    tmp.table.title<-gsub("DCOILWTICO","WTI原油価格.米ドル/バレル",tmp.table.title, perl=T)
-    tmp.table.title<-gsub("前年比.","前年比<br>",tmp.table.title, perl=T)
-    tmp.table.title<-gsub(".うち.","<br>うち.",tmp.table.title, perl=T)
+    title<-gsub("GOLDAMGBD228NLBM","ゴールド価格.米ドル/トロイオンス",title, perl=T)
+    title<-gsub("DCOILWTICO","WTI原油価格.米ドル/バレル",title, perl=T)
+    title<-gsub("前年比.","前年比<br>",title, perl=T)
+    title<-gsub(".うち.","<br>うち.",title, perl=T)
+    title<-gsub("<br>",".",title, perl=T)
+    if(monthly==1){
+      title<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",title)
+    }else{
+      title<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",title)
+    }
+#titleはboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用      
+#csv、ボックスプロット、単位根共通パート    
+#テーブルパート。なおtmp.table[,2]<-format(tmp.table[,2],big.mark=",",scientific=F)とするとcsvのseparating commaを誤認識する
     tmp.table<-tmp.1
-    #tmp.table[,2]<-format(tmp.table[,2],big.mark=",",scientific=F) #csvのseparating commaを誤認識する
+#テーブルcolname修正パート
     colnames(tmp.table)[1]<-"Date"
     colnames(tmp.table)[2]<-gsub(".億円","",colnames(tmp.table)[2], perl=T)  
     colnames(tmp.table)[2]<-gsub("マネタリーベース平均残高","MB",colnames(tmp.table)[2], perl=T)  
@@ -517,73 +514,68 @@ for(ppp in 1:plot.type){
       colnames(tmp.table)[3]<-"U.S.A"      
       colnames(tmp.table)[4]<-"FRB"
     }  
+#テーブルcolname修正パート
     tmp.table<-tmp.table[order(tmp.table$Date,decreasing=T),]
-    tmp.table<-head(tmp.table,50) # 180 365
+    tmp.table<-head(tmp.table,20) # 180 365
     rownames(tmp.table)<-NULL    
     if(monthly==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
-    graph.title<-colnames(tmp.table)[2]
-    buf.graph.title<-graph.title
-    graph.title<-gsub(".億円","",graph.title, perl=T)
-    graph.title<-gsub("マネタリーベース平均残高","MB",graph.title, perl=T)
-    graph.title<-gsub("前年比.","ytoy",graph.title, perl=T)
-    graph.title<-gsub(".うち.日銀当座預金",".balance",graph.title, perl=T)     
 #output csv file
-    graph.title<-gsub("GoldPrice","GOLDAMGBD228NLBM",graph.title, perl=T)  
-    graph.title<-gsub("WTICrudeOilPrice","DCOILWTICO",graph.title, perl=T)  
-    graph.title<-gsub("経常収支","CurrentAccountNet",graph.title, perl=T)
-    graph.title<-gsub("貿易収支","Goods",graph.title, perl=T)
-    graph.title<-gsub("ネット","Net",graph.title, perl=T)
-    graph.title<-gsub("輸出","Exports",graph.title, perl=T)
-    graph.title<-gsub("輸入","Imports",graph.title, perl=T)
-    graph.title<-gsub("Ｍ２.","M2",graph.title, perl=T)
-    graph.title<-gsub("Ｍ３.","M3",graph.title, perl=T)
-    graph.title<-gsub("広義流動性.","L",graph.title, perl=T)
-    graph.title<-gsub(".マネーストック","MoneyStock",graph.title, perl=T)
-    graph.title<-gsub("平","",graph.title, perl=T)
-    graph.title<-gsub("大類別.工業製品.2010年.100","Manufacturing",graph.title, perl=T)
-    graph.title<-gsub("大類別.農林水産物.2010年.100","Agriculture",graph.title, perl=T)
-    graph.title<-gsub("大類別.鉱産物.2010年.100","Minerals",graph.title, perl=T)
-    graph.title<-gsub("大類別.電力.都市ガス.水道.2010年.100","Electric",graph.title, perl=T)
-    graph.title<-gsub("大類別.スクラップ類.2010年.100","Scrap",graph.title, perl=T)
-    if(regexpr("国内企業物価指数", graph.title)!=-1){
-      if(ppp==1){
-        graph.title<-"ppiall"
+    csv.file.name<-paste(id,ppp,iii,".csv",sep="")    
+    write.csv(tmp.table,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#output csv tablelist js  
+    if(ppp==1 && iii==1){
+      cat(paste("document.write('<div id=\"","csv",id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.table.list,append=F)
+    }else{
+      cat(paste("document.write('<div id=\"","csv",id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.table.list,append=T)
+    }
+#output csv js
+    if(ppp==1 && iii==1){
+      cat("$(function(){",file=js.file.name.2,append=F)     
+    }else{
+      cat("$(function(){",file=js.file.name.2,append=T)     
+    }  
+    cat(gsub("\\s","",paste("\n","$('#","csv",id,ppp,iii,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name.2,append=T)     
+    cat("\nfunction(){",file=js.file.name.2,append=T)
+    cat(gsub("\\s","",paste("\n$('#","csv",id,ppp,iii,"').find('TABLE').dataTable(",sep="")),file=js.file.name.2,append=T)
+    cat("\n{",file=js.file.name.2,append=T)    
+    cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name.2,append=T) 
+    cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name.2,append=T)      
+    cat("\n\"bFilter\":false,",file=js.file.name.2,append=T)
+    cat("\n\"paging\":true,",file=js.file.name.2,append=T)
+    cat("\n\"info\":true",file=js.file.name.2,append=T)
+    cat("\n}",file=js.file.name.2,append=T)    
+    cat("\n);",file=js.file.name.2,append=T)
+    cat("\n});;",file=js.file.name.2,append=T)    
+    cat("\n});\n\n",file=js.file.name.2,append=T) 
+#テーブルパート
+#boxplot part
+    for(ttt in ttt.range){    
+      png.file<-paste("boxplot",id,ppp,iii,ttt,".png",sep="")
+      png(file=png.file,width=1400,height=1200)   
+      tmp.boxplot<-tmp.1[,c(2,ttt+ttt.diff)]
+      colnames(tmp.boxplot)[2]<-"Person"  
+      tmp.boxplot<-melt(tmp.boxplot,id="Person")
+      tmp.boxplot<-tmp.boxplot[,-2]
+      tmp.boxplot[,2]<-as.numeric(tmp.boxplot[,2])
+      colnames(tmp.boxplot)[1]<-"variable"
+      g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
+      g<-g+geom_boxplot()
+      g<-g+ggtitle(title)+xlab("")+ylab("")
+      g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=30,face="bold"),title=element_text(size=45,face="bold"))          
+      print(g)
+      dev.off()
+      if(ppp==1 && iii==1 && ttt==ttt.range[1]){
+        cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output3.html,append=F)
       }else{
-        graph.title<-"ytoyppiall"
+        cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output3.html,append=T)
       }
     }
-    csv.file.name<-paste(gsub("\\s", "",graph.title),".csv",sep="")
-    write.csv(tmp.table,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
-#output csv html  
-    csv.id<-paste(gsub("\\s", "",buf.graph.title),sep="")
-    csv.id<-paste(gsub("\\.", "",buf.graph.title),sep="")
-    if(ppp==1 && iii==1){  
-      cat(paste("<b>",csv.id,"</b>\n",sep=""),file=output1.html,append=F)  
-    }else{
-      cat(paste("<b>",csv.id,"</b>\n",sep=""),file=output1.html,append=T)  
-    }  
-    cat(paste("<div id=\"",csv.id,"\"></div>\n<hr>\n",sep=""),file=output1.html,append=T)      
-#output csv js  
-    if(ppp==1 && iii==1){  
-      cat("$(function(){",file=js.file.name,append=F)     
-    }else{
-      cat("$(function(){",file=js.file.name,append=T)     
-    }  
-    cat(gsub("\\s","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
-    cat("\nfunction(){",file=js.file.name,append=T)
-    cat(gsub("\\s","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(",sep="")),file=js.file.name,append=T)
-    cat("\n{",file=js.file.name,append=T)    
-    cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
-    cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)    	
-    cat("\n\"bFilter\":false,",file=js.file.name,append=T)
-    cat("\n\"paging\":true,",file=js.file.name,append=T)
-    cat("\n\"info\":true",file=js.file.name,append=T)
-    cat("\n}",file=js.file.name,append=T)    
-    cat("\n);",file=js.file.name,append=T)
-    cat("\n});;",file=js.file.name,append=T)    
-    cat("\n});\n\n",file=js.file.name,append=T)    
-#unit root test html
-    cat("\n<b>",tmp.table.title,"</b>","\n",file=paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=F)      
+#boxplot part    
+#unitroot part    
+#unit root test result html
+    tmp.unitroot<-tmp.1[,c(1:2)]
+    unitrootresult<-paste("unitroot",id,ppp,iii,ttt,".html",sep="")
+    cat("\n<b>",title,"</b>","\n",file=unitrootresult,append=F)      
     tmp.unitroot<-na.omit(tmp.unitroot)
     date.f.l<-as.Date(tmp.unitroot[1,1])
     date.e.l<-as.Date(tmp.unitroot[nrow(tmp.unitroot),1])
@@ -604,20 +596,22 @@ for(ppp in 1:plot.type){
     value.1stDiff<-diff(tmp.unitroot[,2])
     tmp.unitroot.result<-capture.output(adf.test(value.level))
     tmp.unitroot.result<-gsub(",\\s","<br>",tmp.unitroot.result, perl=T)
-    cat("\nPeriod:",date.f.l,"-",date.e.l,file=paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
-    write(tmp.unitroot.result,paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
+    cat("\nPeriod:",date.f.l,"-",date.e.l,file=unitrootresult,append=T)
+    write(tmp.unitroot.result,unitrootresult,append=T)
     tmp.unitroot.result<-capture.output(adf.test(value.1stDiff))
     tmp.unitroot.result<-gsub(",\\s","<br>",tmp.unitroot.result, perl=T)
-    cat("\nPeriod:",date.f.d,"-",date.e.d,file=paste("unitroot.",graph.title,ppp,".",iii,".html",sep=""),append=T)
-    result.unitroot.file.name<-paste("unitroot.",graph.title,ppp,".",iii,".html",sep="")
-    write(tmp.unitroot.result,result.unitroot.file.name,append=T)
-#unit root test js    
-    cat("\n\n$(function() {",file=js.file.name,append=T)
-    cat(paste("\n$.get('http://archive.am-consulting.co.jp/",result.unitroot.file.name,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
-    buf.result.unitroot.file.name<-gsub("\\.","",result.unitroot.file.name)
-  	cat(paste("\n$('#",buf.result.unitroot.file.name,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
-		cat("\n});",file=js.file.name,append=T)
-  	cat("\n});\n\n",file=js.file.name,append=T) 
+    cat("\nPeriod:",date.f.d,"-",date.e.d,file=unitrootresult,append=T)
+    write(tmp.unitroot.result,unitrootresult,append=T)
+#javascript part for unitroot
+    if(ppp==1 && iii==1){
+      cat("\n\n$(function() {",file=js.file.name.4,append=F)
+    }else{
+      cat("\n\n$(function() {",file=js.file.name.4,append=T)
+    }
+    cat(paste("\n$.get('http://archive.am-consulting.co.jp/",unitrootresult,add.ver,"', function(data) {",sep=""),file=js.file.name.4,append=T)
+    cat(paste("\n$('#","unitrootresult",id,ppp,iii,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.4,append=T)
+		cat("\n});",file=js.file.name.4,append=T)
+  	cat("\n});\n\n",file=js.file.name.4,append=T) 
 #unit root test graphimage
     tmp.unitroot.xts<-as.xts(tmp.unitroot[,-1],order.by=as.Date(tmp.unitroot[,1]))
     tmp.xts.title<-gsub("GOLDAMGBD228NLBM","ゴールド価格",colnames(tmp.unitroot)[2], perl=T)
@@ -632,7 +626,8 @@ for(ppp in 1:plot.type){
       colnames(tmp.unitroot.xts.diff)[1]<-gsub(".億円",".兆円",colnames(tmp.unitroot.xts.diff)[1], perl=T)
     }
     unitroot.png<-paste("unitroot",graph.title,".png",sep="")
-    png(file=unitroot.png,width=1400,height=1200)
+    png.file<-paste("unitroot",id,ppp,iii,ttt,".png",sep="")
+    png(file=png.file,width=1400,height=1200)
     par(mar=c(5, 4, 14, 2))
       if(monthly==1){
         maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m")
@@ -645,55 +640,17 @@ for(ppp in 1:plot.type){
       par(new=T)      
       chart.TimeSeries(tmp.unitroot.xts.diff,main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
     dev.off()
-#unit root test html
-    if(ppp==1 && iii==1){  
-      cat(paste("<div id=\"",buf.result.unitroot.file.name,"\"></div>\n",sep=""),file=output4.html,append=)   
+#output rootunit ist js  
+    if(ppp==1 && iii==1){
+      cat(paste("document.write('<div id=\"","unitrootresult",id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.root.list,append=F)
     }else{
-      cat(paste("<div id=\"",buf.result.unitroot.file.name,"\"></div>\n",sep=""),file=output4.html,append=T)   
-    }  
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",unitroot.png,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output4.html,append=T)   
-    cat("<br><hr>\n\n",file=output4.html,append=T) 
-#boxplot graphimage
-    for(ttt in ttt.range){    
-      switch(ttt,
-        buf<-"PM",
-        buf<-"BOJ",
-        buf<-"USA",
-        buf<-"FRB"
-      )
-      tmp.table.title<-gsub("<br>",".",tmp.table.title, perl=T)
-      if(monthly==1){
-        tmp.table.title1<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",tmp.table.title)
-      }else{
-        tmp.table.title1<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",tmp.table.title)
-      }
-      png.file<-paste("boxplot",graph.title,buf,".png",sep="")  
-      png(file=png.file,width=1400,height=1200)   
-      tmp.boxplot<-tmp.1[,c(2,ttt+ttt.diff)]
-      colnames(tmp.boxplot)[2]<-"Person"  
-      tmp.boxplot<-melt(tmp.boxplot,id="Person")
-      tmp.boxplot<-tmp.boxplot[,-2]
-      tmp.boxplot[,2]<-as.numeric(tmp.boxplot[,2])
-      colnames(tmp.boxplot)[1]<-"variable"
-      g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
-      g<-g+geom_boxplot()
-      g<-g+ggtitle(tmp.table.title1)+xlab("")+ylab("")
-      g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=30,face="bold"),title=element_text(size=45,face="bold"))          
-      print(g)
-      dev.off()
-#boxplot html
-      if(ppp==1 && iii==1 && ttt==ttt.range[1]){
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output3.html,append=F)
-      }else{
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output3.html,append=T)
-      }
-    }
+      cat(paste("document.write('<div id=\"","unitrootresult",id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.root.list,append=T)
+    }     
+    cat(paste("document.write('<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\" alt=\"\" width=\"100%\">\');\n",sep=""),file=js.file.root.list,append=T)   
+    cat("document.write('<hr>\');\n",file=js.file.root.list,append=T)     
+#unitroot part    
   }
 }
-dev.off()
-#20150113-"tmp.table.title"はboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用
-#20150113-"graph.title"はcsvファイルのタイトル、単位根検定結果htmlとpngのファイル名、boxplotのpngファイル名としてのみ利用
-#重複を修正すること
 ```
 
 ```{r}
