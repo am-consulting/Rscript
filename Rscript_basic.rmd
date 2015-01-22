@@ -27,13 +27,12 @@ dataset.tm<-list()
 #parameter
 username<-Sys.info()['user']
 path<-paste("C:/Users/",username,"/Desktop",sep="")
-path02<-paste("C:/Users/",username,"/Desktop/tmpFolder/",sep="")
 path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 cnt<-0
-plot.type<-1
+plot.type<-2
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
-level.multi<-(0)
+level.multi<-(-4)
 #functions
 ##separate data into individual datasets
 fun.individual<-function(tmp,monthly){
@@ -44,10 +43,8 @@ fun.individual<-function(tmp,monthly){
     dataset[[cnt]]<-subset(dataset[[cnt]],dataset[[cnt]][,2]!="") #remove blank row
     dataset[[cnt]][,2]<-as.double(dataset[[cnt]][,2])
     colnames(dataset[[cnt]])[1]<-"date"
-    if(monthly==1){#ソースデータの日付が月末の場合に対処
-      tmp.ymd<-paste(year(dataset[[cnt]][,1]),"-",month(dataset[[cnt]][,1]+1),"-1",sep="")
-      tmp.ymd.1<-as.Date(tmp.ymd)-1
-      dataset[[cnt]][,1]<-tmp.ymd.1
+    if(monthly==1){#月次データの日付は月末に変更
+      dataset[[cnt]][,1]<-as.Date(paste(year(dataset[[cnt]][,1]),"-",month(dataset[[cnt]][,1]),"-",days_in_month(dataset[[cnt]][,1]),sep=""))
     }
     dataset[[cnt]]<<-dataset[[cnt]] #caution.gloval variable
     print(head(dataset[[cnt]],3))
@@ -76,11 +73,11 @@ fun.common<-function(ppp,iii,ttt){
     tmp.0[1,2]<-last(tmp.1)[1]
   }
   tmp.1<<-tmp.1 #caution
-  head(tmp.1,3)
+  print(head(tmp.1,3))
   tmp.0<<-tmp.0 #caution
-  head(tmp.0,3)
+  print(head(tmp.0,3))
   tmp.date<<-tmp.date #caution
-  tmp.date
+  print(tmp.date)
 }
 ##make dataset.tm[[x]]
 timeline[[1]]<-c(
@@ -169,7 +166,7 @@ for(ttt in 1:4){
 
 ```{r}
 #read data from bank of japan as data frame
-exe<-0
+exe<-1
 monthly<-1 # 0 or 1
 if(exe==1){
   folder.name<-c("BOJdata")
@@ -188,6 +185,7 @@ if(exe==1){
     }
   }
 }
+js.title<-"mb" # ms
 ```
 
 ```{r}
@@ -210,17 +208,17 @@ if(exe==1){
     }
   }
 }
-js.title<-gsub(".csv","",dir(folder.path)[iii])
+js.title<-gsub("\\.csv","",dir(folder.path)[iii])
 ```
 
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-1 # 0 or 1
+monthly<-0 # 0 or 1
 cnt<-0
 if(exe==1){
   ts.source<-list()
-  ts.source[[1]]<-c("FRED",1,"HOUSTNSA")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA
+  ts.source[[1]]<-c("FRED",1,"DGS10")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA DGS10
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -323,10 +321,10 @@ if(plot.type==2){
     if(yy.type<=nrow(tmp)){
       tmp<-round(diff(tmp,lag=yy.type)/lag(tmp,yy.type)*100,2)[-1]
       dataset.xts.yy[[ddd]]<-tmp
-      colnames(dataset.xts.yy[[ddd]])<-paste("yearToyear.",colnames(dataset.xts.yy[[ddd]]),sep="")
+      colnames(dataset.xts.yy[[ddd]])<-paste("前年同月比.",colnames(dataset.xts.yy[[ddd]]),sep="")
       dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
       if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
-      colnames(all.data.xts.yy[[1]])<-paste("yearToyear.",colnames(all.data.xts.yy[[1]]),sep="")
+      colnames(all.data.xts.yy[[1]])<-paste("前年同月比.",colnames(all.data.xts.yy[[1]]),sep="")
     }
   }
   all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
@@ -336,7 +334,7 @@ if(plot.type==2){
 ```{r}
 #グラフ作成チャンク
 setwd(path03)
-level.type<-2
+level.type<-1
 #javascript part    
 js.file.name<-paste(js.title,".external01.js",sep="")
 output2.html<-paste("graph",id,".html",sep="")
@@ -462,14 +460,14 @@ for(ppp in 1:plot.type){
           }  
         }
       }
-       if(ttt==2){
-         colnames(tmp.0)[3]<-"Prime Minister"
-         colnames(tmp.0)[4]<-"Bank of Japan"
-       }
-       if(ttt==4){
-         colnames(tmp.0)[3]<-"President"
-         colnames(tmp.0)[4]<-"FRB"
-       }
+      if(ttt==2){
+        colnames(tmp.0)[3]<-"Prime Minister"
+        colnames(tmp.0)[4]<-"Bank of Japan"
+      }
+      if(ttt==4){
+        colnames(tmp.0)[3]<-"President"
+        colnames(tmp.0)[4]<-"FRB"
+      }
     }
 #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成。csv、ボックスプロット、単位根共通パート
     row.names(tmp.0)<-NULL
@@ -482,16 +480,12 @@ for(ppp in 1:plot.type){
 #titleはboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用    
     title<-colnames(tmp.1)[2]
     if(regexpr("前年比",colnames(tmp.1)[2])!=-1){
-      title<-gsub("億円","%",title, perl=T)
+      title<-gsub("億円","パーセント",title, perl=T)
     }
-    if(level.multi==-4){
-      title<-gsub("億円","兆円",title, perl=T)
-    }
-    title<-gsub("GOLDAMGBD228NLBM","ゴールド価格.米ドル/トロイオンス",title, perl=T)
-    title<-gsub("DCOILWTICO","WTI原油価格.米ドル/バレル",title, perl=T)
+    title<-gsub("\\.億円","",title, perl=T)
     title<-gsub("前年比.","前年比<br>",title, perl=T)
-    title<-gsub(".うち.","<br>うち.",title, perl=T)
-    title<-gsub("<br>",".",title, perl=T)
+    title<-gsub("\\.うち\\.","<br>うち\\.",title, perl=T)
+    title<-gsub("<br>","\\.",title, perl=T)
     if(monthly==1){
       title<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",title)
     }else{
@@ -503,10 +497,7 @@ for(ppp in 1:plot.type){
     tmp.table<-tmp.1
 #テーブルcolname修正パート
     colnames(tmp.table)[1]<-"Date"
-    colnames(tmp.table)[2]<-gsub(".億円","",colnames(tmp.table)[2], perl=T)  
-    colnames(tmp.table)[2]<-gsub("マネタリーベース平均残高","MB",colnames(tmp.table)[2], perl=T)  
-    colnames(tmp.table)[2]<-gsub("GOLDAMGBD228NLBM","GoldPrice",colnames(tmp.table)[2], perl=T)  
-    colnames(tmp.table)[2]<-gsub("DCOILWTICO","WTICrudeOilPrice",colnames(tmp.table)[2], perl=T)  
+    colnames(tmp.table)[2]<-gsub("\\.億円","",colnames(tmp.table)[2], perl=T)  
     if(ttt<=2){
       colnames(tmp.table)[3]<-"PM"      
       colnames(tmp.table)[4]<-"BOJ"
@@ -521,7 +512,7 @@ for(ppp in 1:plot.type){
     if(monthly==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
 #output csv file
     csv.file.name<-paste(id,ppp,iii,".csv",sep="")    
-    write.csv(tmp.table,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+    write.csv(tmp.table[,1:2],csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 #output csv tablelist js  
     if(ppp==1 && iii==1){
       cat(paste("document.write('<div id=\"","csv",id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.table.list,append=F)
