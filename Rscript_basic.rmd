@@ -11,6 +11,7 @@ library(PerformanceAnalytics)
 library(reshape2)
 library(urca)
 library(lubridate)
+library(stringr)
 id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 add.ver<-paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),sep="")
 #list
@@ -31,8 +32,8 @@ path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 cnt<-0
 plot.type<-2
 ttt.range<-c(1:2)
-yy.type<-12 #12 month,4 period
-level.multi<-(-4)
+yy.type<-4 #12 month,4 period
+level.multi<-(0)
 #functions
 ##separate data into individual datasets
 fun.individual<-function(tmp,monthly){
@@ -162,12 +163,75 @@ for(ttt in 1:4){
   order(dataset.tm[[ttt]][,3])
   print(head(dataset.tm[[ttt]],3))
 }
+#Convert dataframe to xts
+fun.convert<-function(){
+  for(iii in 1:cnt){
+    cat(paste(iii,colnames(dataset[[iii]])[2],"\n")) 
+    dataset.xts[[iii]]<-as.xts(dataset[[iii]][,-1],order.by=as.Date(dataset[[iii]][,1]))
+    colnames(dataset.xts[[iii]])[1]<-colnames(dataset[[iii]])[2]
+    dataset.xts[[iii]]<<-dataset.xts[[iii]]
+  }
+  #merge all datasets
+  obj<-c(1:length(dataset.xts))
+  for(iii in 1:length(obj)){
+    if(iii==1){
+      all.data.xts[[1]]<-dataset.xts[[obj[iii]]]
+    }else{
+      all.data.xts[[1]]<-merge.xts(all.data.xts[[1]],dataset.xts[[obj[iii]]],all=T)
+    }
+  }
+  all.data[[1]]<-data.frame(date=index(all.data.xts[[1]]),all.data.xts[[1]],row.names=NULL)
+  all.data[[1]]<<-all.data[[1]]
+  all.data.xts[[1]]<<-all.data.xts[[1]]
+  obj<<-obj
+}
+#year-to-year change
+fun.yeartoyear<-function(){
+  if(plot.type==2){
+    for(ddd in 1:cnt){
+      tmp<-na.omit(dataset.xts[[ddd]])
+      if(yy.type<=nrow(tmp)){
+        tmp<-round(diff(tmp,lag=yy.type)/lag(tmp,yy.type)*100,2)[-1]
+        dataset.xts.yy[[ddd]]<-tmp
+        colnames(dataset.xts.yy[[ddd]])<-paste("前年同月比.",colnames(dataset.xts.yy[[ddd]]),sep="")
+        dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
+        if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
+        colnames(all.data.xts.yy[[1]])<-paste("前年同月比.",colnames(all.data.xts.yy[[1]]),sep="")
+        dataset.xts.yy[[ddd]]<<-dataset.xts.yy[[ddd]]
+        dataset.yy[[ddd]]<<-dataset.yy[[ddd]]
+      }
+    }
+    all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
+    all.data.yy[[1]]<<-all.data.yy[[1]]
+    all.data.xts.yy[[1]]<<-all.data.xts.yy[[1]]
+  }
+}
+
+fun.gettitle<-function(){
+  gettitle<-colnames(tmp.1)[2]
+  if(regexpr("前年同月比",gettitle)!=-1){
+    gettitle<-gsub("億円","パーセント",gettitle, perl=T)
+  }
+  gettitle<-gsub("\\.億円","",gettitle, perl=T)
+  gettitle<-gsub("前年同月比.","前年同月比\n",gettitle, perl=T)
+  gettitle<-sub("\\.", "\n", gettitle)
+  if(monthly==1){
+    gettitle<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",gettitle)
+  }else{
+    gettitle<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",gettitle)
+  }
+  gettitle<<-gettitle
+}
 ```
 
 ```{r}
 #read data from bank of japan as data frame
 exe<-1
 monthly<-1 # 0 or 1
+plot.type<-2
+ttt.range<-c(1:2)
+yy.type<-1 #12 month,4 period
+level.multi<-(-4)
 if(exe==1){
   folder.name<-c("BOJdata")
   folder.path<-file.path(path,folder.name)
@@ -186,12 +250,18 @@ if(exe==1){
   }
 }
 js.title<-"mb" # ms
+fun.convert()
+fun.yeartoyear()
 ```
 
 ```{r}
 #read various sorts of data that class is data frame
 exe<-1
 monthly<-1 # 0 or 1
+plot.type<-1
+ttt.range<-c(1:2)
+yy.type<-1 #12 month,4 period
+level.multi<-(-3)
 if(exe==1){
   folder.name<-c("R_Data_Read")
   folder.path<-file.path(path,folder.name)
@@ -208,12 +278,18 @@ if(exe==1){
   }
 }
 js.title<-gsub("\\.csv","",dir(folder.path)[iii])
+fun.convert()
+fun.yeartoyear()
 ```
 
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
 monthly<-1 # 0 or 1
+plot.type<-2
+ttt.range<-c(1:2)
+yy.type<-1 #12 month,4 period
+level.multi<-(0)
 if(exe==1){
   ts.source<-list()
   ts.source[[1]]<-c("FRED",1,"EXJPUS")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA DGS10
@@ -230,6 +306,8 @@ if(exe==1){
   }
 }
 js.title<-ts.source[[1]][3]
+fun.convert()
+fun.yeartoyear()
 ```
 
 ```{r}
@@ -294,42 +372,6 @@ if(exe==1){
 ```
 
 ```{r}
-#Convert dataframe to xts
-for(iii in 1:cnt){
-  cat(paste(iii,colnames(dataset[[iii]])[2],"\n")) 
-  dataset.xts[[iii]]<-as.xts(dataset[[iii]][,-1],order.by=as.Date(dataset[[iii]][,1]))
-  colnames(dataset.xts[[iii]])[1]<-colnames(dataset[[iii]])[2]
-}
-#merge all datasets
-obj<-c(1:length(dataset.xts))
-for(iii in 1:length(obj)){
-  if(iii==1){
-    all.data.xts[[1]]<-dataset.xts[[obj[iii]]]
-  }else{
-    all.data.xts[[1]]<-merge.xts(all.data.xts[[1]],dataset.xts[[obj[iii]]],all=T)
-  }
-}
-all.data[[1]]<-data.frame(date=index(all.data.xts[[1]]),all.data.xts[[1]],row.names=NULL)
-head(all.data[[1]])
-tail(all.data[[1]])
-#year-to-year change
-if(plot.type==2){
-  for(ddd in 1:cnt){
-    tmp<-na.omit(dataset.xts[[ddd]])
-    if(yy.type<=nrow(tmp)){
-      tmp<-round(diff(tmp,lag=yy.type)/lag(tmp,yy.type)*100,2)[-1]
-      dataset.xts.yy[[ddd]]<-tmp
-      colnames(dataset.xts.yy[[ddd]])<-paste("前年同月比.",colnames(dataset.xts.yy[[ddd]]),sep="")
-      dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
-      if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
-      colnames(all.data.xts.yy[[1]])<-paste("前年同月比.",colnames(all.data.xts.yy[[1]]),sep="")
-    }
-  }
-  all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
-}
-```
-
-```{r}
 #グラフ作成チャンク
 setwd(path03)
 level.type<-1
@@ -349,18 +391,11 @@ for(ppp in 1:plot.type){
     for(ttt in ttt.range){
       fun.common(ppp,iii,ttt)
       if(nrow(tmp.1)!=0){
-        graph.title<-gsub("\\.億円","",colnames(tmp.1)[2])
+        fun.gettitle()
         switch(ppp,
           multi<-(10^level.multi),
           multi<-1
         )
-        if(monthly==1){
-          f.date<-format(tmp.1[,1][1],"%Y/%m")
-          e.date<-format(tmp.1[,1][nrow(tmp.1)],"%Y/%m")
-        }else{
-          f.date<-format(tmp.1[,1][1],"%Y/%m/%d")
-          e.date<-format(tmp.1[,1][nrow(tmp.1)],"%Y/%m/%d")
-        }            
         colnames(tmp.1)[2]<-"value"
         tmp.1[,2]<-tmp.1[,2]*multi 
         if(nrow(tmp.0)!=0){
@@ -391,7 +426,7 @@ for(ppp in 1:plot.type){
         }
         g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=lm)
         g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
-        g<-g+ggtitle(paste(graph.title,"\n",f.date,"-",e.date))+xlab("")+ylab("") 
+        g<-g+ggtitle(gettitle)+xlab("")+ylab("") 
         g<-g+ylim(y0,y1)
         g<-g+theme(axis.text=element_text(size=30),
           axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"),
@@ -411,9 +446,9 @@ for(ppp in 1:plot.type){
     }
   }
 }
-```
+#```
 
-```{r}
+#```{r}
 #csv、ボックスプロットおよび単位根作成チャンク
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 js.file.table.list<-paste(js.title,".tablelist01.js",sep="")
@@ -476,19 +511,7 @@ for(ppp in 1:plot.type){
     )
     tmp.1[,2]<-tmp.1[,2]*multi
 #titleはboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用    
-    title<-colnames(tmp.1)[2]
-    if(regexpr("前年比",colnames(tmp.1)[2])!=-1){
-      title<-gsub("億円","パーセント",title, perl=T)
-    }
-    title<-gsub("\\.億円","",title, perl=T)
-    title<-gsub("前年比.","前年比<br>",title, perl=T)
-    title<-gsub("\\.うち\\.","<br>うち\\.",title, perl=T)
-    title<-gsub("<br>","\\.",title, perl=T)
-    if(monthly==1){
-      title<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",title)
-    }else{
-      title<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",title)
-    }
+    fun.gettitle()
 #titleはboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用      
 #csv、ボックスプロット、単位根共通パート    
 #テーブルパート。なおtmp.table[,2]<-format(tmp.table[,2],big.mark=",",scientific=F)とするとcsvのseparating commaを誤認識する
@@ -549,7 +572,7 @@ for(ppp in 1:plot.type){
       colnames(tmp.boxplot)[1]<-"variable"
       g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
       g<-g+geom_boxplot()
-      g<-g+ggtitle(title)+xlab("")+ylab("")
+      g<-g+ggtitle(gettitle)+xlab("")+ylab("")
       g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=30,face="bold"),title=element_text(size=45,face="bold"))          
       print(g)
       dev.off()
@@ -564,7 +587,7 @@ for(ppp in 1:plot.type){
 #unit root test result html
     tmp.unitroot<-tmp.1[,c(1:2)]
     unitrootresult<-paste("unitroot",id,ppp,iii,ttt,".html",sep="")
-    cat("\n<b>",title,"</b>","\n",file=unitrootresult,append=F)      
+    cat("\n<div align=\"center\"><b>",gettitle,"</b></div>","\n",file=unitrootresult,append=F)      
     tmp.unitroot<-na.omit(tmp.unitroot)
     date.f.l<-as.Date(tmp.unitroot[1,1])
     date.e.l<-as.Date(tmp.unitroot[nrow(tmp.unitroot),1])
@@ -603,33 +626,29 @@ for(ppp in 1:plot.type){
   	cat("\n});\n\n",file=js.file.name.4,append=T) 
 #unit root test graphimage
     tmp.unitroot.xts<-as.xts(tmp.unitroot[,-1],order.by=as.Date(tmp.unitroot[,1]))
-    tmp.xts.title<-gsub("GOLDAMGBD228NLBM","ゴールド価格",colnames(tmp.unitroot)[2], perl=T)
-    tmp.xts.title<-gsub("DCOILWTICO","WTI原油価格",colnames(tmp.unitroot)[2], perl=T)
-    colnames(tmp.unitroot.xts)[1]<-paste(tmp.xts.title,".レベル",sep="")
-    if(level.multi==-4){
-      colnames(tmp.unitroot.xts)[1]<-gsub(".億円",".兆円",colnames(tmp.unitroot.xts)[1], perl=T)
+    tmp.xts.title<-colnames(tmp.unitroot)[2]
+    if(regexpr("前年同月比",tmp.xts.title)!=-1){
+      tmp.xts.title<-gsub("億円","パーセント",tmp.xts.title, perl=T)
     }
+    tmp.xts.title<-gsub("\\.億円","",tmp.xts.title, perl=T)    
+    colnames(tmp.unitroot.xts)[1]<-paste(tmp.xts.title,".レベル",sep="")
     tmp.unitroot.xts.diff<-diff(tmp.unitroot.xts)
     colnames(tmp.unitroot.xts.diff)[1]<-paste(tmp.xts.title,".1次階差",sep="")
-    if(level.multi==-4){
-      colnames(tmp.unitroot.xts.diff)[1]<-gsub(".億円",".兆円",colnames(tmp.unitroot.xts.diff)[1], perl=T)
-    }
-    unitroot.png<-paste("unitroot",graph.title,".png",sep="")
     png.file<-paste("unitroot",id,ppp,iii,ttt,".png",sep="")
     png(file=png.file,width=1400,height=1200)
-    par(mar=c(5, 4, 14, 2))
-      if(monthly==1){
-        maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m")
-        maintitle.last<-format(last(index(tmp.unitroot.xts)),"%Y-%m")
-      }else{
-        maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m-%d")
-        maintitle.last<-format(last(index(tmp.unitroot.xts)),"%Y-%m-%d")
-      }  
-      chart.TimeSeries(tmp.unitroot.xts,main=paste(tmp.xts.title,"\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2) 
-      par(new=T)      
-      chart.TimeSeries(tmp.unitroot.xts.diff,main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
+    par(mar=c(7, 5, 5, 5))
+    if(monthly==1){
+      maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m")
+      maintitle.last<-format(last(index(tmp.unitroot.xts)),"%Y-%m")
+    }else{
+      maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m-%d")
+      maintitle.last<-format(last(index(tmp.unitroot.xts)),"%Y-%m-%d")
+    }  
+    chart.TimeSeries(tmp.unitroot.xts,main=paste(maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=4,ylab="",cex.axis=4) 
+    par(new=T)      
+    chart.TimeSeries(tmp.unitroot.xts.diff,main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.lab=4,cex.axis=4)
     dev.off()
-#output rootunit ist js  
+#output rootunit js  
     if(ppp==1 && iii==1){
       cat(paste("document.write('<div id=\"","unitrootresult",id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.root.list,append=F)
     }else{
@@ -645,17 +664,19 @@ for(ppp in 1:plot.type){
 ```{r}
 #cointegration test
 setwd(path03)
-js.title<-"usdjpynikkei" # mbms mbusdjpy
+js.title<-"mbusdjpy" # mbms mbusdjpy usdjpynikkei
 priod.y<-10 #year
 explanatory<-2 #column
-objective<-3 #column
+objective<-4 #column
 objectDataset<-tail(na.omit(all.data[[1]]),priod.y*12)
 date.f<-format(objectDataset[1,1],"%Y-%m")
 date.e<-format(objectDataset[nrow(objectDataset),1],"%Y-%m")
 graph.title1<-colnames(objectDataset)[explanatory]
 graph.title1<-gsub("\\.億円","",graph.title1, perl=T)
+colnames(objectDataset)[explanatory]<-graph.title1
 graph.title2<-colnames(objectDataset)[objective]
 graph.title2<-gsub("\\.億円","",graph.title2, perl=T)
+colnames(objectDataset)[objective]<-graph.title2
 #output html
 cointeg.file<-paste("cointeg",id,".html",sep="")
 cat("Co-integration test\n\n",file=cointeg.file,append=F)
@@ -663,8 +684,8 @@ cat("Null hypothesis:Not cointegrated.\n",file=cointeg.file,append=T)
 cat("by Package 'tseries' - po.test(),adf.test()\n\n",file=cointeg.file,append=T)
 cat("Period:",date.f,"-",date.e,"\n\n",file=cointeg.file,append=T)
 #説明変数パート
-cat(colnames(objectDataset)[2],"\n",file=cointeg.file,append=T)
-value<-objectDataset[,2]
+cat(colnames(objectDataset)[explanatory],"\n",file=cointeg.file,append=T)
+value<-objectDataset[,explanatory]
 tmp.unitroot.result<-capture.output(adf.test(value))
 tmp.unitroot.result<-gsub(", ","\n",tmp.unitroot.result, perl=T)
 write(tmp.unitroot.result,cointeg.file,append=T)
@@ -672,8 +693,8 @@ tmp.unitroot.result<-capture.output(adf.test(diff(value)))
 tmp.unitroot.result<-gsub(", ","\n",tmp.unitroot.result, perl=T)
 write(tmp.unitroot.result,cointeg.file,append=T)
 #応答変数パート
-cat(colnames(objectDataset)[3],"\n",file=cointeg.file,append=T)
-value<-objectDataset[,3]
+cat(colnames(objectDataset)[objective],"\n",file=cointeg.file,append=T)
+value<-objectDataset[,objective]
 tmp.unitroot.result<-capture.output(adf.test(value))
 tmp.unitroot.result<-gsub(", ","\n",tmp.unitroot.result, perl=T)
 write(tmp.unitroot.result,cointeg.file,append=T)
@@ -694,7 +715,6 @@ par(ps=40)
 ccf(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]),24,main=paste("相互相関係数(共に一次階差)\n",colnames(objectDataset)[explanatory],"×",colnames(objectDataset)[objective]))
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=cointeg.file,append=T)
-#cor(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]))
 ##chart
 ###level
 png.file<-paste("cointegchart",id,".png",sep="")
@@ -703,9 +723,9 @@ par(mar=c(5, 5, 14, 2))
 objectDataset.xts<-as.xts(objectDataset[,c(explanatory,objective)],order.by=as.Date(objectDataset[,1]))
 maintitle.first<-format(first(index(objectDataset.xts)),"%Y-%m")
 maintitle.last<-format(last(index(objectDataset.xts)),"%Y-%m")
-chart.TimeSeries(objectDataset.xts[,(explanatory-1)],main=paste(colnames(objectDataset)[explanatory],"×",colnames(objectDataset)[objective],":Level\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
+chart.TimeSeries(objectDataset.xts[,1],main=paste("Level\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
 par(new=T)      
-chart.TimeSeries(objectDataset.xts[,(objective-1)],main="",type="l",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
+chart.TimeSeries(objectDataset.xts[,2],main="",type="l",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=cointeg.file,append=T)
 ###1stdiff
@@ -715,7 +735,7 @@ par(mar=c(5, 5, 14, 2))
 objectDataset.xts.diff<-diff(objectDataset.xts)
 maintitle.first<-format(first(index(objectDataset.xts.diff)),"%Y-%m")
 maintitle.last<-format(last(index(objectDataset.xts.diff)),"%Y-%m")
-chart.TimeSeries(objectDataset.xts.diff[,1],main=paste(colnames(objectDataset)[explanatory],"×",colnames(objectDataset)[objective],":1stDiff\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="h",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
+chart.TimeSeries(objectDataset.xts.diff[,1],main=paste("1stDiff\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="h",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
 par(new=T)      
 chart.TimeSeries(objectDataset.xts.diff[,2],main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
 dev.off()
