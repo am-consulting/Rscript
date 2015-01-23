@@ -192,7 +192,6 @@ js.title<-"mb" # ms
 #read various sorts of data that class is data frame
 exe<-1
 monthly<-1 # 0 or 1
-cnt<-0
 if(exe==1){
   folder.name<-c("R_Data_Read")
   folder.path<-file.path(path,folder.name)
@@ -214,11 +213,10 @@ js.title<-gsub("\\.csv","",dir(folder.path)[iii])
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-0 # 0 or 1
-cnt<-0
+monthly<-1 # 0 or 1
 if(exe==1){
   ts.source<-list()
-  ts.source[[1]]<-c("FRED",1,"DGS10")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA DGS10
+  ts.source[[1]]<-c("FRED",1,"EXJPUS")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA DGS10
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -236,7 +234,7 @@ js.title<-ts.source[[1]][3]
 
 ```{r}
 #read nikkei225 as data frame
-exe<-0
+exe<-1
 monthly<-1
 if(monthly==0){url.period<-"daily"}else{url.period<-"monthly"}
 if(exe==1){
@@ -647,57 +645,87 @@ for(ppp in 1:plot.type){
 ```{r}
 #cointegration test
 setwd(path03)
-priod.y<-5 #year
+js.title<-"usdjpynikkei" # mbms mbusdjpy
+priod.y<-10 #year
 explanatory<-2 #column
 objective<-3 #column
-objectDataset<-tail(na.omit(all.data[[1]]),5*12)
+objectDataset<-tail(na.omit(all.data[[1]]),priod.y*12)
 date.f<-format(objectDataset[1,1],"%Y-%m")
 date.e<-format(objectDataset[nrow(objectDataset),1],"%Y-%m")
 graph.title1<-colnames(objectDataset)[explanatory]
-graph.title1<-gsub(".億円","",graph.title1, perl=T)
-graph.title1<-gsub("マネタリーベース平均残高","MB",graph.title1, perl=T)
-graph.title1<-gsub("Ｍ２.","M2",graph.title1, perl=T)
-graph.title1<-gsub("Ｍ３.","M3",graph.title1, perl=T)
-graph.title1<-gsub("広義流動性.","L",graph.title1, perl=T)
-graph.title1<-gsub(".マネーストック","MoneyStock",graph.title1, perl=T)
-graph.title1<-gsub("平","",graph.title1, perl=T)
+graph.title1<-gsub("\\.億円","",graph.title1, perl=T)
 graph.title2<-colnames(objectDataset)[objective]
-graph.title2<-gsub(".億円","",graph.title2, perl=T)
-graph.title2<-gsub("マネタリーベース平均残高","MB",graph.title2, perl=T)
-graph.title2<-gsub("Ｍ２.","M2",graph.title2, perl=T)
-graph.title2<-gsub("Ｍ３.","M3",graph.title2, perl=T)
-graph.title2<-gsub("広義流動性.","L",graph.title2, perl=T)
-graph.title2<-gsub(".マネーストック","MoneyStock",graph.title2, perl=T)
-graph.title2<-gsub("平","",graph.title2, perl=T)
-#重複要修正
+graph.title2<-gsub("\\.億円","",graph.title2, perl=T)
 #output html
-cat("帰無仮説:共和分関係なし<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=F)
-cat("利用関数:po.test()<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
-cat("Period:",date.f,"-",date.e,"<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
-cat(colnames(objectDataset)[2],"<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+cointeg.file<-paste("cointeg",id,".html",sep="")
+cat("Co-integration test\n\n",file=cointeg.file,append=F)
+cat("Null hypothesis:Not cointegrated.\n",file=cointeg.file,append=T)
+cat("by Package 'tseries' - po.test(),adf.test()\n\n",file=cointeg.file,append=T)
+cat("Period:",date.f,"-",date.e,"\n\n",file=cointeg.file,append=T)
+#説明変数パート
+cat(colnames(objectDataset)[2],"\n",file=cointeg.file,append=T)
 value<-objectDataset[,2]
 tmp.unitroot.result<-capture.output(adf.test(value))
-tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
-write(tmp.unitroot.result,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+tmp.unitroot.result<-gsub(", ","\n",tmp.unitroot.result, perl=T)
+write(tmp.unitroot.result,cointeg.file,append=T)
 tmp.unitroot.result<-capture.output(adf.test(diff(value)))
-tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
-write(tmp.unitroot.result,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
-cat(colnames(objectDataset)[3],"<br>",file=paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+tmp.unitroot.result<-gsub(", ","\n",tmp.unitroot.result, perl=T)
+write(tmp.unitroot.result,cointeg.file,append=T)
+#応答変数パート
+cat(colnames(objectDataset)[3],"\n",file=cointeg.file,append=T)
 value<-objectDataset[,3]
 tmp.unitroot.result<-capture.output(adf.test(value))
-tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
-write(tmp.unitroot.result,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+tmp.unitroot.result<-gsub(", ","\n",tmp.unitroot.result, perl=T)
+write(tmp.unitroot.result,cointeg.file,append=T)
 tmp.unitroot.result<-capture.output(adf.test(diff(value)))
-tmp.unitroot.result<-gsub(", ","<br>",tmp.unitroot.result, perl=T)
-write(tmp.unitroot.result,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+tmp.unitroot.result<-gsub(", ","\n",tmp.unitroot.result, perl=T)
+write(tmp.unitroot.result,cointeg.file,append=T)
+#共和分検定パート
 tmp<-objectDataset[,c(objective,explanatory)]
 tmp.cointeg<-capture.output(po.test(tmp))
-tmp.cointeg<-gsub(", ","<br>",tmp.cointeg, perl=T)
-write(tmp.cointeg,paste("cointeg.",graph.title1,graph.title2,".html",sep=""),append=T)
+tmp.cointeg<-gsub(", ","\n",tmp.cointeg, perl=T)
+write(tmp.cointeg,cointeg.file,append=T)
 #output png
-png(file=paste("cointeg.",graph.title1,graph.title2,".png",sep=""),width=1400,height=1200) 
-par(ps=30)
-ccf(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]),24,main=paste("相互相関係数(共に一次階差)\n",colnames(objectDataset)[2],"×",colnames(objectDataset)[3]))
+##cointeg
+png.file<-paste("cointeg",id,".png",sep="")
+png(file=png.file,width=1400,height=1200) 
+par(mar=c(7, 7, 10, 2))
+par(ps=40)
+ccf(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]),24,main=paste("相互相関係数(共に一次階差)\n",colnames(objectDataset)[explanatory],"×",colnames(objectDataset)[objective]))
 dev.off()
-cor(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]))
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=cointeg.file,append=T)
+#cor(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]))
+##chart
+###level
+png.file<-paste("cointegchart",id,".png",sep="")
+png(file=png.file,width=1400,height=1200)
+par(mar=c(5, 5, 14, 2))
+objectDataset.xts<-as.xts(objectDataset[,c(explanatory,objective)],order.by=as.Date(objectDataset[,1]))
+maintitle.first<-format(first(index(objectDataset.xts)),"%Y-%m")
+maintitle.last<-format(last(index(objectDataset.xts)),"%Y-%m")
+chart.TimeSeries(objectDataset.xts[,(explanatory-1)],main=paste(colnames(objectDataset)[explanatory],"×",colnames(objectDataset)[objective],":Level\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
+par(new=T)      
+chart.TimeSeries(objectDataset.xts[,(objective-1)],main="",type="l",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
+dev.off()
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=cointeg.file,append=T)
+###1stdiff
+png.file<-paste("cointegchart1stdiff",id,".png",sep="")
+png(file=png.file,width=1400,height=1200)
+par(mar=c(5, 5, 14, 2))
+objectDataset.xts.diff<-diff(objectDataset.xts)
+maintitle.first<-format(first(index(objectDataset.xts.diff)),"%Y-%m")
+maintitle.last<-format(last(index(objectDataset.xts.diff)),"%Y-%m")
+chart.TimeSeries(objectDataset.xts.diff[,1],main=paste(colnames(objectDataset)[explanatory],"×",colnames(objectDataset)[objective],":1stDiff\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="h",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
+par(new=T)      
+chart.TimeSeries(objectDataset.xts.diff[,2],main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
+dev.off()
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=cointeg.file,append=T)
+#javascript part    
+js.file.name<-paste(js.title,".cointeg.js",sep="")
+graph.id<-"cpi1"
+cat("\n\n$(function() {",file=js.file.name,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",cointeg.file,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",graph.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T) 
 ```
