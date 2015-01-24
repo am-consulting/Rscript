@@ -13,7 +13,7 @@ library(urca)
 library(lubridate)
 library(stringr)
 id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
-add.ver<-paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),sep="")
+add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 #list
 dataset<-list()
 dataset.yy<-list()
@@ -285,14 +285,14 @@ fun.yeartoyear()
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-1 # 0 or 1
-plot.type<-2
+monthly<-0 # 0 or 1
+plot.type<-1
 ttt.range<-c(1:2)
 yy.type<-1 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
   ts.source<-list()
-  ts.source[[1]]<-c("FRED",1,"EXJPUS")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA DGS10
+  ts.source[[1]]<-c("FRED",1,"DGS10")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA DGS10
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -357,7 +357,6 @@ cnt<-0
 plot.type<-1
 ttt.range<-c(1:2)
 level.multi<-0
-js.title<-"jgb"
 if(exe==1){
   url<-c(
   "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
@@ -369,6 +368,9 @@ if(exe==1){
   tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
   fun.individual(tmp,monthly)
 }
+js.title<-"jgb"
+fun.convert()
+fun.yeartoyear()
 ```
 
 ```{r}
@@ -378,10 +380,10 @@ level.type<-1
 #javascript part    
 js.file.name<-paste(js.title,".external01.js",sep="")
 output2.html<-paste("graph",id,".html",sep="")
-graph.id<-"cpi1"
+data.id<-"graph"
 cat("\n\n$(function() {",file=js.file.name,append=F)
 cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output2.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
-cat(paste("\n$('#",graph.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
 cat("\n});",file=js.file.name,append=T)
 cat("\n});\n\n",file=js.file.name,append=T) 
 #javascript part    
@@ -459,10 +461,10 @@ output3.html<-paste("boxplot",id,".html",sep="")
 js.file.name.2<-paste(js.title,".external02.js",sep="")
 #javascript part for boxplot
 js.file.name.3<-paste(js.title,".external03.js",sep="")
-graph.id<-"cpi3"
+data.id<-"boxplot"
 cat("\n\n$(function() {",file=js.file.name.3,append=F)
 cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output3.html,add.ver,"', function(data) {",sep=""),file=js.file.name.3,append=T)
-cat(paste("\n$('#",graph.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.3,append=T)
+cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.3,append=T)
 cat("\n});",file=js.file.name.3,append=T)
 cat("\n});\n\n",file=js.file.name.3,append=T) 
 #javascript part for unitroot
@@ -742,10 +744,10 @@ dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=cointeg.file,append=T)
 #javascript part    
 js.file.name<-paste(js.title,".cointeg.js",sep="")
-graph.id<-"cpi1"
+data.id<-"cointegration"
 cat("\n\n$(function() {",file=js.file.name,append=F)
 cat(paste("\n$.get('http://archive.am-consulting.co.jp/",cointeg.file,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
-cat(paste("\n$('#",graph.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
 cat("\n});",file=js.file.name,append=T)
 cat("\n});\n\n",file=js.file.name,append=T) 
 ```
