@@ -10,7 +10,7 @@ library(gridExtra)
 library(scatterplot3d)
 library(scales)
 library(lubridate)
-add.ver<-paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),sep="")
+add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 output.html<-"earthquake.html"
 data.location<-2 #1:local 2:web
 data.file<-"all_month.csv"
@@ -190,7 +190,7 @@ for(ppp in 1:4){
     hist.sub<-"マグニチュード"
   )  
   cat("ヒストグラム-",hist.sub,file=output.html,append=T)   
-  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
+  cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
   cat("\n<hr>\n\n",file=output.html,append=T) 
 }
 #earthquake table
@@ -201,7 +201,7 @@ E.list<-E.list[,c(2,3,6)]
 rownames(E.list)<-NULL
 csv.file.name<-"earthquakejapan.csv"
 write.csv(E.list,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
-js.file.name<-"earthquakejapan.js"
+js.file.name<-"earthquakejapan.csv.js"
 csv.id<-"earthquakejapan"
 #output csv js  
 cat("$(function(){",file=js.file.name,append=F)     
@@ -235,6 +235,15 @@ dev.off()
 cat("時系列プロット\n",file=output.html,append=T)   
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
 cat("\n<hr>\n\n",file=output.html,append=T) 
+#javascript part
+js.file.name<-"earthquakejapan.graph.js"
+data.id<-"graph"
+cat("\n\n$(function() {",file=js.file.name,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T) 
+#javascript part 
 ```
   
 Caution:Energy is calculated according to the following equation regardless of magnitude type(mb,ms,etc.).  
