@@ -30,10 +30,6 @@ username<-Sys.info()['user']
 path<-paste("C:/Users/",username,"/Desktop",sep="")
 path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 cnt<-0
-plot.type<-2
-ttt.range<-c(1:2)
-yy.type<-4 #12 month,4 period
-level.multi<-(0)
 #functions
 ##separate data into individual datasets
 fun.individual<-function(tmp,monthly){
@@ -263,7 +259,7 @@ fun.yeartoyear()
 #read various sorts of data that class is data frame
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-2
+plot.type<-1
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
@@ -381,7 +377,7 @@ fun.yeartoyear()
 ```{r}
 #グラフ作成チャンク
 setwd(path03)
-level.type<-1
+level.type<-2
 #javascript part    
 js.file.name<-paste(js.title,".external01.js",sep="")
 output2.html<-paste("graph",id,".html",sep="")
@@ -462,6 +458,7 @@ js.file.table.list<-paste(js.title,".tablelist01.js",sep="")
 js.file.root.list<-paste(js.title,".rootunitlist01.js",sep="")
 output1.html<-paste("table",id,".html",sep="")
 output3.html<-paste("boxplot",id,".html",sep="")
+output4.html<-paste("acf",id,".html",sep="")
 #javascript part for table   
 js.file.name.2<-paste(js.title,".external02.js",sep="")
 #javascript part for boxplot
@@ -472,6 +469,14 @@ cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output3.html,add.ver,"'
 cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.3,append=T)
 cat("\n});",file=js.file.name.3,append=T)
 cat("\n});\n\n",file=js.file.name.3,append=T) 
+#javascript part for acf
+js.file.name.5<-paste(js.title,".external05.js",sep="")
+data.id<-"acf"
+cat("\n\n$(function() {",file=js.file.name.5,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output4.html,add.ver,"', function(data) {",sep=""),file=js.file.name.5,append=T)
+cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.5,append=T)
+cat("\n});",file=js.file.name.5,append=T)
+cat("\n});\n\n",file=js.file.name.5,append=T) 
 #javascript part for unitroot
 js.file.name.4<-paste(js.title,".external04.js",sep="")
 if(ttt.range[1]==1){
@@ -587,7 +592,7 @@ for(ppp in 1:plot.type){
         g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
         g<-g+geom_boxplot()
         g<-g+ggtitle(gettitle)+xlab("")+ylab("")
-        g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=30,face="bold"),title=element_text(size=45,face="bold"))          
+        g<-g+theme(axis.text=element_text(size=30,color="black"),axis.title=element_text(size=30,face="bold"),title=element_text(size=45,face="bold"))          
         print(g)
         dev.off()
         if(ppp==1 && iii==1 && ttt==ttt.range[1]){
@@ -622,11 +627,11 @@ for(ppp in 1:plot.type){
         value.level<-tmp.unitroot[,2]
         value.1stDiff<-diff(tmp.unitroot[,2])
         tmp.unitroot.result<-capture.output(adf.test(value.level))
-        tmp.unitroot.result<-gsub(",\\s","<br>",tmp.unitroot.result, perl=T)
+        tmp.unitroot.result<-gsub(",\\s","\n",tmp.unitroot.result, perl=T)
         cat("\nPeriod:",date.f.l,"-",date.e.l,file=unitrootresult,append=T)
         write(tmp.unitroot.result,unitrootresult,append=T)
         tmp.unitroot.result<-capture.output(adf.test(value.1stDiff))
-        tmp.unitroot.result<-gsub(",\\s","<br>",tmp.unitroot.result, perl=T)
+        tmp.unitroot.result<-gsub(",\\s","\n",tmp.unitroot.result, perl=T)
         cat("\nPeriod:",date.f.d,"-",date.e.d,file=unitrootresult,append=T)
         write(tmp.unitroot.result,unitrootresult,append=T)
 #javascript part for unitroot
@@ -671,7 +676,28 @@ for(ppp in 1:plot.type){
         }     
         cat(paste("document.write('<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\" alt=\"\" width=\"100%\">\');\n",sep=""),file=js.file.root.list,append=T)   
         cat("document.write('<hr>\');\n",file=js.file.root.list,append=T)     
-#unitroot part    
+#unitroot part
+#acf part
+      tmp.acf<-dataset[[obj[iii]]]
+      png.file<-paste("acf",id,ppp,iii,".png",sep="")
+      png(file=png.file,width=1400,height=1200) 
+      par(mar=c(9, 7, 15, 4))
+      par(ps=40)
+      if(monthly==1){
+        date.f<-format(tmp.acf[1,1],"%Y-%m")
+        date.e<-format(tmp.acf[nrow(tmp.acf),1],"%Y-%m")
+      }else{
+        date.f<-format(tmp.acf[1,1],"%Y-%m-%d")
+        date.e<-format(tmp.acf[nrow(tmp.acf),1],"%Y-%m-%d")
+      }        
+      acf(tmp.acf[,2],90,main=paste("自己相関係数\n",colnames(tmp.acf)[2],"\n",date.f,"-",date.e))
+      dev.off()
+      if(ppp==1 && iii==1){  
+        cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output4.html,append=F)
+      }else{
+        cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output4.html,append=T)
+      }
+#acf part        
       }
     }
   }
