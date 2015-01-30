@@ -13,6 +13,7 @@ library(urca)
 library(lubridate)
 library(stringr)
 library(forecast)
+library(fitdistrplus)
 id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 #list
@@ -299,7 +300,7 @@ yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
   ts.source<-list()
-  ts.source[[1]]<-c("FRED",1,"DEXUSUK","DEXUSAL")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA DGS10 EXJPUS
+  ts.source[[1]]<-c("FRED",1,"DJIA")# DCOILWTICO CPIAUCSL NIKKEI225 UNRATE CPIAUCSL GOLDAMGBD228NLBM DEXUSEU DEXUSUK DEXCAUS DEXBZUS DEXUSAL DEXMXUS DEXSFUS DEXUSNZ DEXJPUS SP500 HOUSTNSA DGS10 EXJPUS DJIA
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -384,7 +385,7 @@ fun.yeartoyear()
 ```{r}
 #時系列チャート作成チャンク
 setwd(path03)
-level.type<-2
+level.type<-1
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 chk.j<-0
 chk.h<-0
@@ -472,7 +473,7 @@ dev.off()
 
 ```{r}
 setwd(path03)
-acf.lag<-12*10 #365*15
+acf.lag<-365*5 #365*15 12*10
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 chk.csv<-0
 chk.box<-0
@@ -563,6 +564,7 @@ for(ppp in 1:plot.type){
     cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name.table,append=T)      
     cat("\n\"bFilter\":false,",file=js.file.name.table,append=T)
     cat("\n\"paging\":true,",file=js.file.name.table,append=T)
+    cat("\n\"columnDefs\":[{\"width\":\"30%\",\"targets\":0}],",file=js.file.name.table,append=T) 
     cat("\n\"info\":true",file=js.file.name.table,append=T)
     cat("\n}",file=js.file.name.table,append=T)    
     cat("\n);",file=js.file.name.table,append=T)
@@ -759,8 +761,8 @@ for(ppp in 1:plot.type){
       dev.off()
       cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=forecast.html,append=T)
     #test
-      y.min<-min(tmp.forecast[,2])  
-      y.max<-max(tmp.forecast[,2])  
+      y.min<-min(tmp.forecast[,2],min(result.forecast$lower[,3]))  
+      y.max<-max(tmp.forecast[,2],max(result.forecast$upper[,3]))  
       png.file<-paste("forecasttest",id,ppp,iii,".png",sep="")
       png(file=png.file,width=1400,height=1200) 
       par(mar=c(5, 7, 18, 4))
@@ -782,6 +784,61 @@ for(ppp in 1:plot.type){
       dev.off()
       cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=forecast.html,append=T)
 ######################################forecastパート######################################    
+######################################returnfitting ###################################### 
+#javascript part
+if(ppp==1 && chk.forecast==0){  
+  return.html<-paste(js.title[[iii]],"return",id,".html",sep="")
+  js.file.name.return<-paste(js.title[[iii]],".external07.js",sep="")
+  cat("\n",file=return.html,append=F)
+  cat("\n",file=js.file.name.return,append=F)
+  if(dataset.type==1){
+  chk.forecast=1
+  }
+  data.id<-"return"
+  cat("\n\n$(function() {",file=js.file.name.return,append=F)
+  cat(paste("\n$.get('http://archive.am-consulting.co.jp/",return.html,add.ver,"', function(data) {",sep=""),file=js.file.name.return,append=T)
+  cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.return,append=T)
+  cat("\n});",file=js.file.name.return,append=T)
+  cat("\n});\n\n",file=js.file.name.return,append=T) 
+}      
+#javascript part
+tmp.fitting<-na.omit(tmp.1[,c(1:2)])
+tmp.fitting.return<-data.frame(tmp.fitting[,1][-1],diff(tmp.fitting[,2])/tmp.fitting[,2][-nrow(tmp.fitting)]*100)
+colnames(tmp.fitting.return)<-c("Date","value")
+if(monthly==1){
+  date.f<-format(tmp.fitting.return[1,1],"%Y-%m")
+  date.e<-format(tmp.fitting.return[nrow(tmp.fitting.return),1],"%Y-%m")
+}else{
+  date.f<-format(tmp.fitting.return[1,1],"%Y-%m-%d")
+  date.e<-format(tmp.fitting.return[nrow(tmp.fitting.return),1],"%Y-%m-%d")
+}  
+g<-ggplot(tmp.fitting.return,aes(x=value))      
+g<-g+geom_histogram(alpha=0.2,colour="blue",binwidth=0.1)
+g<-g+theme(plot.title=element_text(size=50))
+g<-g+theme(axis.title.x=element_text(size=40),axis.title.y=element_text(size=40)) 
+g<-g+theme(axis.text.x=element_text(size=40),axis.text.y=element_text(size=40)) 
+g<-g+ggtitle(paste("Returen of ",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e))
+g<-g+xlab("Return(%)")+ylab("Count")      
+png.file<-paste("return",id,ppp,iii,".png",sep="")
+png(file=png.file,width=1400,height=1200) 
+plot(g)
+dev.off()
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T) 
+tmp.data<-tmp.fitting.return[,2]      
+png.file<-paste("returnqq",id,ppp,iii,".png",sep="")
+png(file=png.file,width=1400,height=1200) 
+par(mar=c(5, 5, 14, 2))      
+qqnorm(tmp.data,main=paste("Normal Q-Q Plot Return of",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e,"\nShapiro Test:p-value=",shapiro.test(tmp.data)$p.value),cex.main=5,cex.legend=3,cex.lab=2,cex.axis=3)
+qqline(tmp.data,col="2") 
+dev.off()
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T) 
+png.file<-paste("returnecdf",id,ppp,iii,".png",sep="")
+png(file=png.file,width=1400,height=1200)
+par(mar=c(5, 5, 14, 2))     
+plot(ecdf(tmp.data),main=paste("Empirical distribution\nReturn of ",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e),cex.main=5,cex.legend=3,cex.lab=2,cex.axis=3)      
+dev.off()
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T) 
+######################################returnfitting ######################################    
       }
 ####テスト用####  
 #      }
