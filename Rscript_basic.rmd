@@ -41,7 +41,7 @@ fun.individual<-function(tmp,monthly){
     dataset[[cnt]][,2]<-gsub("\\s", "",dataset[[cnt]][,2]) #remove space
     dataset[[cnt]]<-subset(dataset[[cnt]],dataset[[cnt]][,2]!="") #remove blank row
     dataset[[cnt]][,2]<-as.double(dataset[[cnt]][,2])
-    colnames(dataset[[cnt]])[1]<-"date"
+    colnames(dataset[[cnt]])[1]<-"Date"
     if(monthly==1){#月次データの日付は月末に変更
       dataset[[cnt]][,1]<-as.Date(paste(year(dataset[[cnt]][,1]),"-",month(dataset[[cnt]][,1]),"-",days_in_month(dataset[[cnt]][,1]),sep=""))
     }
@@ -261,7 +261,7 @@ fun.yeartoyear()
 #read various sorts of data that class is data frame
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-2
+plot.type<-1
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
@@ -271,18 +271,22 @@ if(exe==1){
   setwd(folder.path)
   if(length(dir(folder.path))!=0){
     for(iii in 1:length(dir(folder.path))){
+      cnt.start<-cnt+1
       tmp<-read.table(file=dir(folder.path)[iii],header=TRUE,sep=",",na.strings=c("NA","-",""))
       tmp[,1]<-as.Date(tmp[,1])
       colnames(tmp)[1]<-"date"
       FUN.1<-function(x) as.numeric(gsub("[( | ) | -+ | , | < | >]","",x))
       tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
       fun.individual(tmp,monthly)
+      for(zzz in cnt.start:cnt){
+        js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[iii])
+      }  
     }
   }
 }
-js.title<-gsub("\\.csv","",dir(folder.path)[iii])
 fun.convert()
 fun.yeartoyear()
+dataset.type<-1 #0:single,1:multi 
 ```
 
 ```{r}
@@ -378,9 +382,9 @@ fun.yeartoyear()
 ```
 
 ```{r}
-#グラフ作成チャンク
+#時系列チャート作成チャンク
 setwd(path03)
-level.type<-1
+level.type<-2
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 chk.j<-0
 chk.h<-0
@@ -431,15 +435,15 @@ for(ppp in 1:plot.type){
         g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
         if(ppp==1){
           if(level.type==1){
-            g<-g+geom_line(data=tmp.1,aes(x=date,y=value),size=2)
+            g<-g+geom_line(data=tmp.1,aes(x=Date,y=value),size=2)
           }else{
-            g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+            g<-g+geom_bar(data=tmp.1,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
           } #geom_bar:データが全てプラス値の場合、表示されない
         }else{
-          g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+          g<-g+geom_bar(data=tmp.1,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
         }
-        g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=lm)
-        g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
+        g<-g+geom_smooth(data=tmp.1,aes(x=Date,y=value),method=lm)
+        g<-g+geom_smooth(data=tmp.1,aes(x=Date,y=value),method=loess,color="red")
         g<-g+ggtitle(gettitle)+xlab("")+ylab("") 
         g<-g+ylim(y0,y1)
         g<-g+theme(axis.text=element_text(size=30),
@@ -463,10 +467,12 @@ for(ppp in 1:plot.type){
     }
   }
 }
+dev.off()
 ```
 
 ```{r}
-acf.lag<-365*15
+setwd(path03)
+acf.lag<-12*10 #365*15
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 chk.csv<-0
 chk.box<-0
@@ -481,9 +487,8 @@ if(ttt.range[1]==1){
 for(ppp in 1:plot.type){
   for(iii in 1:length(obj)){
     chk<-0
-    
-#csv、ボックスプロット、単位根共通パート    
-  #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+###################################### 共 通 パート ######################################    
+#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
     for(ttt in ttt.range){
       if(chk==0){
         if(ppp==1){
@@ -509,7 +514,7 @@ for(ppp in 1:plot.type){
         tmp0<-0
       }
     }
-  #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成。csv、ボックスプロット、単位根共通パート
+#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
     if(tmp0==1){
       row.names(tmp.0)<-NULL
       tmp.1<-tmp.0[,c(1:4)]
@@ -518,12 +523,13 @@ for(ppp in 1:plot.type){
         multi<-1
       )
       tmp.1[,2]<-tmp.1[,2]*multi
-  #titleはboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用    
+#titleはboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用    
       fun.gettitle()
-#csv、ボックスプロット、単位根共通パート    
-
-#テーブルパート。なおtmp.table[,2]<-format(tmp.table[,2],big.mark=",",scientific=F)とするとcsvのseparating commaを誤認識する
-  #javascript part for csvtable   
+###################################### 共 通 パート ######################################    
+###################################### table パート ######################################    
+#なおtmp.table[,2]<-format(tmp.table[,2],big.mark=",",scientific=F)とするとcsvのseparating commaを誤認識する
+    tmp.table<-tmp.1
+#javascript part for csvtable   
     if(ppp==1 && chk.csv==0){
       js.file.table.list<-paste(js.title[[iii]],".tablelist01.js",sep="")
       cat("\n",file=js.file.table.list,append=F)
@@ -533,14 +539,12 @@ for(ppp in 1:plot.type){
         chk.csv<-1
       }
     } 
-  #javascript part for csvtable       
-    tmp.table<-tmp.1
-  #テーブルcolname修正パート
-    colnames(tmp.table)[1]<-"Date"
+#テーブルcolname修正パート
+#    colnames(tmp.table)[1]<-"Date"
     colnames(tmp.table)[2]<-gsub("\\.億円","",colnames(tmp.table)[2], perl=T)  
-  #テーブルcolname修正パート
+#テーブルcolname修正パート
     tmp.table<-tmp.table[order(tmp.table$Date,decreasing=T),]
-    tmp.table<-head(tmp.table,20) # 180 365
+    tmp.table<-head(tmp.table,24) # 180 365
     rownames(tmp.table)<-NULL    
     if(monthly==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
   #output csv file
@@ -564,9 +568,8 @@ for(ppp in 1:plot.type){
     cat("\n);",file=js.file.name.table,append=T)
     cat("\n});;",file=js.file.name.table,append=T)    
     cat("\n});\n\n",file=js.file.name.table,append=T) 
-#テーブルパート
-      
-#boxplot part
+###################################### table パート ######################################    
+###################################### boxplotパート######################################    
     #javascript part for boxplot
     if(ppp==1 && chk.box==0){
       boxplot.html<-paste(js.title[[iii]],"boxplot",id,".html",sep="")
@@ -599,9 +602,8 @@ for(ppp in 1:plot.type){
       dev.off()
       cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=boxplot.html,append=T)
     }
-#boxplot part
-      
-#unitroot part    
+###################################### boxplotパート######################################    
+######################################unitrootパート######################################    
   #javascript part for unitroot
     if(ppp==1 && chk.unitroot==0){  
       js.file.root.list<-paste(js.title[[iii]],".rootunitlist01.js",sep="")
@@ -679,24 +681,24 @@ for(ppp in 1:plot.type){
       cat(paste("document.write('<div id=\"",data.id,"\"></div>\');\n",sep=""),file=js.file.root.list,append=T)
       cat(paste("document.write('<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\" alt=\"\" width=\"100%\">\');\n",sep=""),file=js.file.root.list,append=T)   
       cat("document.write('<hr>\');\n",file=js.file.root.list,append=T)     
-#unitroot part
-      
-#acf part
+######################################unitrootパート######################################    
+######################################  acf  パート ######################################    
   #javascript part for acf
       if(ppp==1 && chk.acf==0){  
         acf.html<-paste(js.title[[iii]],"acf",id,".html",sep="")
         js.file.name.acf<-paste(js.title[[iii]],".external05.js",sep="")
+        cat("\n",file=acf.html,append=F)
         cat("\n",file=js.file.name.acf,append=F)
         if(dataset.type==1){
           chk.acf=1
         }
-      }
       data.id<-"acf"
       cat("\n\n$(function() {",file=js.file.name.acf,append=T)
       cat(paste("\n$.get('http://archive.am-consulting.co.jp/",acf.html,add.ver,"', function(data) {",sep=""),file=js.file.name.acf,append=T)
       cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.acf,append=T)
       cat("\n});",file=js.file.name.acf,append=T)
       cat("\n});\n\n",file=js.file.name.acf,append=T) 
+      }
       #javascript part for acf       
       tmp.acf<-dataset[[obj[iii]]]
       png.file<-paste("acf",id,ppp,iii,".png",sep="")
@@ -712,19 +714,22 @@ for(ppp in 1:plot.type){
       }        
       acf(tmp.acf[,2],acf.lag,main=paste("自己相関係数\n",colnames(tmp.acf)[2],"\n",date.f,"-",date.e))
       dev.off()
-      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=acf.html,append=F)
-#acf part 
-      
-#forecast part 
+      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=acf.html,append=T)
+######################################  acf  パート ######################################    
+######################################forecastパート######################################    
+####テスト用####  
+#test<-0
+#if(test==1){      
+####テスト用####  
   #javascript part for forecast
       if(ppp==1 && chk.forecast==0){  
         forecast.html<-paste(js.title[[iii]],"forecast",id,".html",sep="")
         js.file.name.forecast<-paste(js.title[[iii]],".external06.js",sep="")
+        cat("\n",file=forecast.html,append=F)
         cat("\n",file=js.file.name.forecast,append=F)
         if(dataset.type==1){
           chk.forecast=1
         }
-      }      
       data.id<-"forecast"
       cat("\n\n$(function() {",file=js.file.name.forecast,append=F)
       cat(paste("\n$.get('http://archive.am-consulting.co.jp/",forecast.html,add.ver,"', function(data) {",sep=""),file=js.file.name.forecast,append=T)
@@ -732,6 +737,7 @@ for(ppp in 1:plot.type){
       cat("\n});",file=js.file.name.forecast,append=T)
       cat("\n});\n\n",file=js.file.name.forecast,append=T) 
       #javascript part for forecast
+      }      
   #future
       tmp.forecast<-na.omit(dataset[[obj[iii]]]) 
       forecast.interval<-floor(length(tmp.forecast[,2])/10)
@@ -751,7 +757,7 @@ for(ppp in 1:plot.type){
       chart.title<-paste("Forecasts from",result.forecast$method,"\n",colnames(tmp.forecast)[2],"\n",date.f,"-",date.e)  
       plot(result.forecast,main=chart.title,ylab="")  
       dev.off()
-      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=forecast.html,append=F)
+      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=forecast.html,append=T)
     #test
       y.min<-min(tmp.forecast[,2])  
       y.max<-max(tmp.forecast[,2])  
@@ -775,11 +781,15 @@ for(ppp in 1:plot.type){
       plot(tmp.forecast[,2],type="l",col="2", ylim=c(y.min,y.max),ylab="",xlab="")   
       dev.off()
       cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=forecast.html,append=T)
-#forecast part        
+######################################forecastパート######################################    
       }
+####テスト用####  
+#      }
+####テスト用####  
     }
   }
 }
+dev.off()
 ```
 
 ```{r}

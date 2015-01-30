@@ -6,6 +6,7 @@ library(xts)
 library(ggplot2)
 library(scales)
 library(stringr)
+library(lubridate)
 username<-Sys.info()['user']
 folder.name<-c("TradeIndex")
 path<-paste("C:/Users/",username,"/Desktop",sep="")
@@ -19,6 +20,7 @@ ts.data<-list()
 for(iii in 1:length(dir(path1))){
   ts.data[[iii]]<-read.table(file=dir(path1)[iii],header=T,sep=",",as.is=T,skip=1) 
 }
+add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 ```
 
 ```{r}
@@ -56,6 +58,8 @@ length(data)
 ```{r}
 path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path02)
+js.file.table.list<-"TRADEINDEXJAPAN.tablelist01.js"
+cat("\n",file=js.file.table.list,append=F)
 for(iii in 1:length(data)){
   for(ppp in 1:4){
     switch(ppp,
@@ -65,29 +69,31 @@ for(iii in 1:length(data)){
       tmp<-data[[iii]][,c(1,2,12:14)]
     )
     tmp[,1]<-format(tmp[,1],"%Y-%m")
+    tmp<-tail(tmp,12)
     rownames(tmp)<-NULL
     csv.file.name<-gsub(" ","",paste(tmp[1,2],ppp,".csv",sep=""))
     write.csv(tmp,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
-    html.file.name<-gsub(" ","",paste(tmp[1,2],".html",sep=""))
-    html.file.name<-"table.html"
+    js.file.name<-"TRADEINDEXJAPAN.TABLE.js"
+    csv.id<-paste(tmp[1,2],ppp,sep="")
     if(iii==1 && ppp==1){
-      cat("$(function(){",file=html.file.name,append=F)     
+      cat("$(function(){",file=js.file.name,append=F)     
     }else{
-      cat("$(function(){",file=html.file.name,append=T)     
+      cat("$(function(){",file=js.file.name,append=T)     
     }
-    cat(gsub(" ","",paste("\n","$('#",tmp[1,2],ppp,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=html.file.name,append=T)     
-  	cat("\nfunction(){",file=html.file.name,append=T)
-    cat(gsub(" ","",paste("\n$('#",tmp[1,2],ppp,"').find('TABLE').dataTable(")),file=html.file.name,append=T)
-    cat("\n{",file=html.file.name,append=T)    
-  	cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=html.file.name,append=T) 
-		cat("\n\"order\": [[ 0,\"desc\"]],",file=html.file.name,append=T)			
-		cat("\n\"bFilter\":false,",file=html.file.name,append=T)
-		cat("\n\"paging\":true,",file=html.file.name,append=T)
-		cat("\n\"info\":true",file=html.file.name,append=T)
-    cat("\n}",file=html.file.name,append=T)    
-    cat("\n);",file=html.file.name,append=T)
-    cat("\n});;",file=html.file.name,append=T)    
-    cat("\n});\n\n",file=html.file.name,append=T)    
+    cat(gsub(" ","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
+  	cat("\nfunction(){",file=js.file.name,append=T)
+    cat(gsub(" ","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(")),file=js.file.name,append=T)
+    cat("\n{",file=js.file.name,append=T)    
+  	cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
+		cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)			
+		cat("\n\"bFilter\":false,",file=js.file.name,append=T)
+		cat("\n\"paging\":true,",file=js.file.name,append=T)
+		cat("\n\"info\":true",file=js.file.name,append=T)
+    cat("\n}",file=js.file.name,append=T)    
+    cat("\n);",file=js.file.name,append=T)
+    cat("\n});;",file=js.file.name,append=T)    
+    cat("\n});\n\n",file=js.file.name,append=T)  
+    cat(paste("document.write('<div id=\"",csv.id,"\"></div>\');\n",sep=""),file=js.file.table.list,append=T)
   }
 }
 ```
@@ -95,11 +101,23 @@ for(iii in 1:length(data)){
 ```{r}
 path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path02)
+#javascript part
+      js.file.name.graph<-"TRADEINDEXJAPAN.external01.js"
+      graph.html<-"TRADEINDEXCHART.html"
+      cat("\n",file=graph.html,append=F)      
+      data.id<-"graph"
+      cat("\n\n$(function() {",file=js.file.name.graph,append=F)
+      cat(paste("\n$.get('http://archive.am-consulting.co.jp/",graph.html,add.ver,"', function(data) {",sep=""),file=js.file.name.graph,append=T)
+      cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.graph,append=T)
+      cat("\n});",file=js.file.name.graph,append=T)
+      cat("\n});\n\n",file=js.file.name.graph,append=T)
+#javascript part  
 for(iii in 1:length(data)){
   for(ccc in 3:length(data[[iii]])){
     png.file<-gsub(" ","",paste(data[[iii]][1,2],colnames(data[[iii]])[ccc],".png",sep=""))
-    png(file=png.file,width=1400,height=800) 
+    png(file=png.file,width=1400,height=1400) 
     tmp<-data[[iii]]
+    tmp<-tail(tmp,24)
     colnames(tmp)[ccc]<-"value"
     f.date<-format(tmp[1,1],"%Y-%m")
     e.date<-format(tmp[nrow(tmp),1],"%Y-%m")
@@ -112,11 +130,11 @@ for(iii in 1:length(data)){
     g<-g+scale_x_date(labels=date_format("%Y-%m"))
     print(g)
     dev.off()
-    html.file.name<-"graph.html"    
+    html.file.name<-"tradeindexchart.html"    
     if(iii==1 && ccc==3){
-      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", "alt=\"\" width=\"100%\"><br><br>",sep=""),file=html.file.name,append=F)
+      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", "alt=\"\" width=\"100%\">\n",sep=""),file=graph.html,append=F)
     }else{
-      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", "alt=\"\" width=\"100%\"><br><br>",sep=""),file=html.file.name,append=T)
+      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", "alt=\"\" width=\"100%\">\n",sep=""),file=graph.html,append=T)
     }
   }
 }
