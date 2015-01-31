@@ -122,7 +122,8 @@ for(ccc in 1:length(currency)){
   }else{
     cat(paste("document.write(\"<b>",csv.id,"</b>\");\n",sep=""),file=js.file.table.list,append=T)  
   }  
-  cat(paste("document.write('<div id=\"",csv.id,"\"></div>\');\n\n",sep=""),file=js.file.table.list,append=T)
+  cat(paste("document.write('<div id=\"",csv.id,"\"></div>\');\n",sep=""),file=js.file.table.list,append=T)
+  cat("document.write('<br><hr><br>');\n\n",file=js.file.table.list,append=T)
 #output png file
   tmp<-dataset[[cnt]]
   tmp<-subset(tmp,first.date<=tmp[,1])
@@ -141,9 +142,9 @@ for(ccc in 1:length(currency)){
     png(file=png.file,width=1400,height=1200)
     par(mar=c(7, 7, 7, 7))    
     g<-ggplot()
-    g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill=bbb,alpha=0.2,color="black")
+    g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="white",alpha=0.1,color="black")
     g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
-    g<-g+ggtitle(paste(first(tmp[,1]),"-",last(tmp[,1])))+xlab("")+ylab(subtitle)
+    g<-g+ggtitle(paste(gsub("\\sFX\\s-\\sCHICAGO\\sMERCANTILE\\sEXCHANGE","",gsub("Net\\s","",colnames(tmp)[2])),"\n",subtitle,"\n",first(tmp[,1]),"-",last(tmp[,1])))+xlab("")+ylab(subtitle)
     g<-g+scale_x_date(labels=date_format("%y-%m"))
     g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"))
     print(g)    
@@ -160,6 +161,7 @@ for(ccc in 1:length(currency)){
     }
     cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output1.html,append=T)
   }
+  cat("\n<hr>\n",file=output1.html,append=T)
 #output js  
   js.file.name<-paste(js.title,".external02.js",sep="")
   part.id<-"graph"
@@ -226,9 +228,9 @@ for(iii in 1:cnt){
     par(mar=c(7, 7, 7, 7))
     chart.TimeSeries(tmp.0[,1],main=paste(currency[iii],"\n",
       first(index(tmp.0)),"-",last(index(tmp.0))),yaxis.right=F,type="h",lwd="2",
-      legend.loc="bottomleft",color="blue",cex.main=4,cex.legend=3,cex.lab=2)
+      legend.loc="bottomleft",color="black",cex.main=4,cex.legend=3,cex.lab=2)
     par(new=T)
-    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
+    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",color="blue",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
     dev.off()
 #output html
     result.corr.file.name<-paste("corre",gsub("\\s","", currency[iii], perl=T),".html",sep="")
@@ -242,7 +244,7 @@ for(iii in 1:cnt){
     }else{
       cat(paste("\n<div id=\"","corre",gsub("\\s","", currency[iii], perl=T),"\"></div>",sep=""),file=output2.html,append=T)  
     }
-    cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\" alt=\"\" width=\"100%\">\n\n",sep=""),file=output2.html,append=T)
+    cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\" alt=\"\" width=\"100%\">\n<hr>\n",sep=""),file=output2.html,append=T)
 #output js    
     cat("\n\n$(function() {",file=js.file.name,append=T)
     cat(paste("\n$.get('http://archive.am-consulting.co.jp/",result.corr.file.name,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
