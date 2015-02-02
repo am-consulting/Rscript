@@ -398,7 +398,6 @@ for(ppp in 1:plot.type){
     if(ppp==1 && chk.j==0){
       js.file.name.graph<-paste(js.title[[iii]],".external01.js",sep="")
       graph.html<-paste(js.title[[iii]],data.id,id,".html",sep="")
-      cat("\n",file=graph.html,append=F)      
       if(dataset.type==1 && iii==1){
         chk.j<-1
       }      
@@ -458,7 +457,6 @@ for(ppp in 1:plot.type){
         dev.off() 
 #html part
         if(ppp==1 && chk.h==0 && ttt==ttt.range[1]){
-          graph.html<-paste(js.title[[iii]],data.id,id,".html",sep="")
           cat("\n",file=graph.html,append=F)
           if(dataset.type==1){
             chk.h<-1
@@ -695,7 +693,6 @@ data.id<-"acf"
 #javascript part for acf
 if(ppp==1 && chk.acf==0){
   acf.html<-paste(js.title[[iii]],data.id,id,".html",sep="")   
-#  acf.html<-paste(js.title[[iii]],"acf",id,".html",sep="")
   js.file.name.acf<-paste(js.title[[iii]],".external05.js",sep="")
   cat("\n",file=acf.html,append=F)
   cat("\n",file=js.file.name.acf,append=F)
