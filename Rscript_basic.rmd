@@ -219,6 +219,7 @@ fun.gettitle<-function(){
   }
   gettitle<-gsub("\\.億円","",gettitle, perl=T)
   gettitle<-gsub("YoYchange.","YoYchange\n",gettitle, perl=T)
+  gettitle<-gsub("\\.q\\.","",gettitle, perl=T)
   gettitle<-sub("\\.", "\n", gettitle)
   if(monthly==1){
     gettitle<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",gettitle)
@@ -243,6 +244,7 @@ if(exe==1){
   setwd(folder.path)
   if(length(dir(folder.path))!=0){
     for(fff in 1:length(dir(folder.path))){
+      cnt.start<-cnt+1
       tmp<-read.csv(file=dir(folder.path)[fff],header=T,as.is=T,skip=1,na.strings=c("", "NA"))
       colnames(tmp)<-paste(colnames(tmp),".",tmp[2,],sep="")
       tmp<-tmp[-c(1:12),]
@@ -251,12 +253,15 @@ if(exe==1){
         tmp[,1]<-as.Date(tmp[,1])
       }
       fun.individual(tmp,monthly)
+      for(zzz in cnt.start:cnt){
+        js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[fff])
+      }  
     }
   }
 }
-js.title<-"governmentdebts" # ms governmentdebts mb
 fun.convert()
 fun.yeartoyear()
+dataset.type<-1 #0:single,1:multi 
 ```
 
 ```{r}
@@ -547,6 +552,7 @@ if(ppp==1 && chk.csv==0){
 } 
 #テーブルcolname修正パート
 colnames(tmp.table)[2]<-gsub("\\.億円","",colnames(tmp.table)[2], perl=T)  
+colnames(tmp.table)[2]<-gsub("\\.q\\.","",colnames(tmp.table)[2], perl=T)  
 #テーブルcolname修正パート
 tmp.table<-tmp.table[order(tmp.table$Date,decreasing=T),]
 tmp.table<-head(tmp.table,24) # 180 365
@@ -665,6 +671,7 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
     tmp.xts.title<-gsub("億円","percent",tmp.xts.title, perl=T)
   }
   tmp.xts.title<-gsub("\\.億円","",tmp.xts.title, perl=T)    
+  tmp.xts.title<-gsub("\\.q\\.","",tmp.xts.title, perl=T)    
   colnames(tmp.unitroot.xts)[1]<-paste(tmp.xts.title,".レベル",sep="")
   tmp.unitroot.xts.diff<-diff(tmp.unitroot.xts)
   colnames(tmp.unitroot.xts.diff)[1]<-paste(tmp.xts.title,".1次階差",sep="")
@@ -809,6 +816,7 @@ if(ppp==1 && chk.return==0){
 #javascript part
 tmp.fitting<-na.omit(tmp.1[,c(1:2)])
 tmp.fitting.return<-data.frame(tmp.fitting[,1][-1],diff(tmp.fitting[,2])/tmp.fitting[,2][-nrow(tmp.fitting)]*100)
+#caution 分母がゼロの場合のエスケープを挟むこと
 colnames(tmp.fitting.return)<-c("Date","value")
 if(monthly==1){
   date.f<-format(tmp.fitting.return[1,1],"%Y-%m")
@@ -829,7 +837,8 @@ png(file=png.file,width=1400,height=1200)
 plot(g)
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T) 
-tmp.data<-tmp.fitting.return[,2]      
+tmp.data<-na.omit(tmp.fitting.return[,2]) 
+tmp.data<-subset(tmp.data,is.infinite(tmp.data)==F)  
 png.file<-paste(js.title[[iii]],data.id,"qq",id,ppp,iii,".png",sep="")     
 png(file=png.file,width=1400,height=1200) 
 par(mar=c(5, 5, 14, 2))      
