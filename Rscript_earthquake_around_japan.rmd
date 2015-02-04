@@ -11,7 +11,11 @@ library(scatterplot3d)
 library(scales)
 library(lubridate)
 add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
+```
+
+```{r}
 output.html<-"earthquake.html"
+cat("",file=output.html,append=F) 
 data.location<-2 #1:local 2:web
 data.file<-"all_month.csv"
 username<-Sys.info()['user']
@@ -39,7 +43,6 @@ dataset.j$info<-paste(
   ,sep=""
 )
 dataset.j$energy.GJ<-round(10^((dataset.j$mag)*1.5+4.8)*(10^-9),4)
-#maps
 dataTime<-Sys.time()
 path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path02)
@@ -48,12 +51,16 @@ for(mmm in 1:length(dataset.j[,1])){
   if(round(tmp)==floor(tmp)){tmp<-floor(tmp)}else{tmp<-(round(tmp)-0.5)} 
   dataset.j$magMap[mmm]<-tmp
 }
+date.f<-dataset.j$jst[1]
+date.e<-dataset.j$jst[nrow(dataset.j)]
+cat(paste("<div align=\"center\"><b>",date.e,"-",date.f,"\nThe earthquake data was downloaded on\n",dataTime,"</b></div>\n"),file=output.html,append=T) 
+xxx<-0
+################################################## map1 html ##################################################
+if(xxx==1){
 japan<-map(xlim=c(120,150),ylim=c(20,50))
 japan<-as.data.frame(japan[c("x","y")])
 japan.map<-ggplot(japan,aes(x,y))
 japan.map<-japan.map+geom_path()
-date.f<-dataset.j$jst[1]
-date.e<-dataset.j$jst[nrow(dataset.j)]
 japan.map<-japan.map+ggtitle(paste(date.e,"-",date.f,"\n確認日時:",dataTime))
 japan.map<-japan.map+theme(axis.text=element_text(size=30),axis.title=element_text(colour="white",size=1,face="bold"),title=element_text(size=40,face="bold"),legend.position="right",legend.text=element_text(colour="black",size=40,face="bold"),legend.title=element_text(colour="black",size=40,face="bold"))   
 japan.map.1<-japan.map+geom_point(
@@ -65,15 +72,16 @@ japan.map.1<-japan.map+geom_point(
   )
 )
 japan.map.1<-japan.map.1+scale_size_continuous(paste("Magnitude(M)","\n","M~(M+0.5)"))
-png.file<-"earthquakejapan01.png"
+png.file<-"earthquakejapan01.png"#標準マップ
 png(file=png.file,width=1400,height=1200) 
 plot(japan.map.1)
 dev.off()
-#map html
-cat("地震マップ\n",file=output.html,append=F)   
+cat("地震マップ\n",file=output.html,append=T)   
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
 cat("\n<hr>\n\n",file=output.html,append=T)
-#map02
+}
+################################################## map2 html ##################################################
+if(xxx==1){
 japan.map.2<-japan.map+geom_point(data=dataset.j,aes(x=longitude,y=latitude,size=mag))
 japan.map.2<-japan.map.2+geom_segment(
   data=dataset.j,
@@ -87,15 +95,15 @@ japan.map.2<-japan.map.2+geom_segment(
 )
 japan.map.2<-japan.map.2+ggtitle(paste(date.e,"-",date.f,"\n確認日時:",dataTime))
 japan.map.2<-japan.map.2+theme(axis.text=element_text(size=30),axis.title=element_text(colour="white",size=1,face="bold"),title=element_text(size=40,face="bold"),legend.position="right",legend.text=element_text(colour="black",size=40,face="bold"),legend.title=element_text(colour="black",size=40,face="bold")) 
-png.file<-"earthquakejapan02.png"
+png.file<-"earthquakejapan02.png"#発生順軌跡
 png(file=png.file,width=1400,height=1400) 
 plot(japan.map.2)
 dev.off()
-#map html
 cat("地震マップ 発生順軌跡\n",file=output.html,append=T)   
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
 cat("\n<hr>\n\n",file=output.html,append=T)
-#3D-plot
+}
+################################################## 3Dmap html ##################################################
 lon.range<-c(120,150)
 lat.range<-c(20,60)
 Latitude.degree<-dataset.j$latitude
@@ -110,7 +118,7 @@ map2d<-map(xlim=c(lon.range[1],lon.range[2]),ylim=c(lat.range[1],lat.range[2]))
 map2d<-as.data.frame(map2d[c("x","y")])
 map2d<-cbind(map2d,z=z.min)
 png.file<-"earthquakejapan03.png"
-png(file=png.file,width=1400,height=1400)
+png(file=png.file,width=1400,height=1200)
 par(ps=40)
 ppp<-1
 for(ccc in 1:length(map2d[,1])){
@@ -153,19 +161,18 @@ earthquake.point<-scatterplot3d(
   lwd="3",
   scale.y=1,
   color=4,
-  main=paste("In the past 30days.over M",z.border,".確認日時:",dataTime,sep=""),
+#  main=paste("In the past 30days.over M",z.border,".確認日時:",dataTime,sep=""),
   xlim=c(lon.range[1],lon.range[2]),
   ylim=c(lat.range[1],lat.range[2]),
   zlim=c(z.min,z.max),pch=" "
 )
 dev.off()
-#map html
-cat("地震マップ 3-D\n",file=output.html,append=T)   
+cat("Earthquake 3-D Map\n",file=output.html,append=T)   
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
-cat("\n<hr>\n\n",file=output.html,append=T)
-#histogram
+cat("\n<hr>\n",file=output.html,append=T)
+################################################## histogram ##################################################
 PlotTitle<-"Japan"
-bw=c(5,5,10,0.1)
+bw=c(1,1,10,0.1)
 for(ppp in 1:4){ 
   switch(ppp,
     g<-ggplot(dataset.j,aes(x=latitude)),
@@ -177,23 +184,23 @@ for(ppp in 1:4){
   g<-g+theme(plot.title=element_text(size=40))
   g<-g+theme(axis.title.x=element_text(size=40),axis.title.y=element_text(size=40)) 
   g<-g+theme(axis.text.x=element_text(size=40),axis.text.y=element_text(size=40)) 
-  g<-g+ggtitle(paste(PlotTitle,":",date.e,"-",date.f,"\n確認日時:",dataTime))
+#  g<-g+ggtitle(paste(PlotTitle,":",date.e,"-",date.f,"\n確認日時:",dataTime))
   png.file<-paste("earthquakejapan",ppp*10,".png",sep="")
   png(file=png.file,width=1400,height=1200) 
   plot(g)
   dev.off()
   #histogram html
   switch(ppp,
-    hist.sub<-"緯度(°)",
-    hist.sub<-"経度(°)",
-    hist.sub<-"深さ(km)",
-    hist.sub<-"マグニチュード"
+    hist.sub<-"Latitude(degree)",
+    hist.sub<-"Longitude(degree)",
+    hist.sub<-"Depth(km)",
+    hist.sub<-"Magnitude"
   )  
-  cat("ヒストグラム-",hist.sub,file=output.html,append=T)   
+  cat("Histogram-",hist.sub,file=output.html,append=T)   
   cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
-  cat("\n<hr>\n\n",file=output.html,append=T) 
+  cat("\n<hr>\n",file=output.html,append=T) 
 }
-#earthquake table
+################################################## table     ##################################################
 E.list<-dataset.j[,c(17,5,19,6,14,2,3,4)]
 E.list<-data.frame(No=c(1:nrow(E.list)),E.list)
 E.list[,6]<-gsub(", Japan", "",E.list[,6])
@@ -213,6 +220,7 @@ cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T)
 cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)      
 cat("\n\"bFilter\":false,",file=js.file.name,append=T)
 cat("\n\"paging\":true,",file=js.file.name,append=T)
+cat("\n\"columnDefs\":[{\"width\":\"45%\",\"targets\":0},{\"width\":\"20%\",\"targets\":1}],",file=js.file.name,append=T) 
 cat("\n\"info\":true",file=js.file.name,append=T)
 cat("\n}",file=js.file.name,append=T)    
 cat("\n);",file=js.file.name,append=T)
@@ -221,21 +229,23 @@ cat("\n});\n\n",file=js.file.name,append=T)
 totalEnergy<-sum(dataset.j[,19])
 cat("Total Energy(TJ)=",totalEnergy*10^-3,"\n\n")
 cat("Energy of ",round(totalEnergy*(10^-3)/67,1),"Little Boy")
-#timeseries
+################################################## timeseries ##################################################
 attach(dataset.j)
 class(jst)
 png.file<-"earthquakejapan100.png"
 png(file=png.file,width=1400,height=1200)
 par(mar=c(10,6,6,6))
-plot(jst,mag,type="h",xlab="",ylab="Magnitude",xaxt="n",col=4,lwd=2,main=paste("Time Series Earthquakes around Japan\n",date.e,"-",date.f," 確認日時:",dataTime),cex.main=3,cex.legend=3,cex.lab=3,cex.axis=3)
+plot(jst,mag,type="h",xlab="",ylab="Magnitude",xaxt="n",col=4,lwd=2,cex.main=3,cex.legend=3,cex.lab=3,cex.axis=3)
+par(new=T)
+plot(jst,mag,type="p",xlab="",ylab="",xaxt="n",yaxt="n",col=4,pch=1)
 r=as.POSIXct(round(range(jst),"hours"))
 axis.POSIXct(1,at=seq(r[1],r[2],by="24 hours"),format="%m-%d %Hh",las=2,cex.axis=2)
 dev.off()
 #time series html
-cat("時系列プロット\n",file=output.html,append=T)   
+cat("Time Series Plot\n",file=output.html,append=T)   
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
 cat("\n<hr>\n\n",file=output.html,append=T) 
-#javascript part
+################################################## javascript part###############################################
 js.file.name<-"earthquakejapan.graph.js"
 data.id<-"graph"
 cat("\n\n$(function() {",file=js.file.name,append=F)
