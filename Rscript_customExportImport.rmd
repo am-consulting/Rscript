@@ -1,0 +1,131 @@
+```{r}
+library(ggplot2)
+library(PerformanceAnalytics)
+library(lubridate)
+dataset<-list()
+url<-list()
+file.name<-c("d41ma","d51ma","d61ma")#51輸出,61輸入
+base.url<-"http://www.customs.go.jp/toukei/suii/html/data/"
+iii<-1
+iii<-2
+iii<-3
+for(iii in 1:length(file.name)){
+  url[[iii]]<-paste(base.url,file.name[iii],".csv",sep="")
+  if(grepl("d41ma.csv",url[[iii]])==T){
+    dataset[[iii]]<-read.csv(url[[iii]],header=F,skip=0,stringsAsFactor=F)
+    colnames(dataset[[iii]])<-c("Date",dataset[[iii]][3,2],dataset[[iii]][3,3])
+    colnames(dataset[[iii]])<-gsub("-",".",colnames(dataset[[iii]]))
+    dataset[[iii]]<-dataset[[iii]][-c(1:4),]
+    dataset[[iii]][,1]<-gsub("/","-",dataset[[iii]][,1])
+    dataset[[iii]][,1]<-paste(dataset[[iii]][,1],"-01",sep="")
+  }else if(grepl("d51ma.csv",url[[iii]])==T || grepl("d61ma.csv",url[[iii]])==T){
+    tmp.data<-read.csv(url[[iii]],header=F,skip=0,stringsAsFactor=F)
+    tmp.data[3,]<-gsub("．","",tmp.data[3,])
+    tmp.data[3,]<-gsub("１","",tmp.data[3,])
+    tmp.data[3,]<-gsub("２","",tmp.data[3,])
+    tmp.data[3,]<-gsub("３","",tmp.data[3,])
+    tmp.data[3,]<-gsub("４","",tmp.data[3,])
+    tmp.data[3,]<-gsub("５","",tmp.data[3,])
+    tmp.data[3,]<-gsub("６","",tmp.data[3,])
+    tmp.data[3,]<-gsub("７","",tmp.data[3,])
+    tmp.data[3,]<-gsub("８","",tmp.data[3,])
+    tmp.data[3,]<-gsub("９","",tmp.data[3,])
+    tmp.data[3,]<-gsub("([.-])|[[:punct:]]","",tmp.data[3,])
+    tmp.data[4,]<-gsub("([.-])|[[:punct:]]","",tmp.data[4,])
+    tmp.name<-""
+    for(ccc in 2:length(tmp.data)){
+      if(tmp.data[3,ccc]!=tmp.data[4,ccc]){
+        if(tmp.data[3,ccc]=="" && tmp.data[4,ccc]!=""){
+          tmp.name<-c(tmp.name,tmp.data[4,ccc])
+        }else if(tmp.data[3,ccc]!="" && tmp.data[4,ccc]==""){
+          tmp.name<-c(tmp.name,tmp.data[3,ccc])
+        }else{
+          tmp.name<-c(tmp.name,paste(tmp.data[3,ccc],".",tmp.data[4,ccc],sep=""))
+        }
+      }else{
+        tmp.name<-c(tmp.name,tmp.data[3,ccc])
+      }      
+    }
+    tmp.name<-tmp.name[tmp.name!=""]
+    tmp.name
+    tmp.logical<-tmp.data[6,]=="金額"  
+    tmp.value<-tmp.data[,tmp.logical==TRUE]
+    tmp.value<-tmp.value[-c(1:7),]
+    tmp.date<-gsub("/","-",tmp.data[,1])
+    tmp.date<-paste(tmp.date,"-01",sep="")
+    tmp.date<-tmp.date[-c(1:7)]
+    tmp.data<-cbind(date=tmp.date,tmp.value)
+    colnames(tmp.data)<-c("date",tmp.name)
+    dataset[[iii]]<-tmp.data
+  }
+  dataset[[iii]][,1]<-as.Date(dataset[[iii]][,1])
+  FUN.1<-function(x){as.numeric(x)/(10^5)}
+  dataset[[iii]]<-cbind(dataset[[iii]][1],apply(dataset[[iii]][-1],2,FUN.1))
+}
+username<-Sys.info()['user']
+path<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path)
+id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
+add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
+```
+
+```{r}
+output.html<-paste("customExportImport",id,".html",sep="")
+cat("",file=output.html,append=F) 
+js.file.name<-"customExportImport.js"
+data.id<-"costom"
+cat("\n\n$(function() {",file=js.file.name,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T) 
+#```
+
+#```{r}
+png.file<-paste("customExportImport",id,".png",sep="")
+png(file=png.file,width=1400,height=1200)
+par(mar=c(7,7,7,7))
+date.f<-format(dataset[[1]][1,1],"%Y-%m")  
+date.e<-format(dataset[[1]][nrow(dataset[[1]]),1],"%Y-%m")  
+dataset.xts<-as.xts(dataset[[1]][,-1],order.by=as.Date(dataset[[1]]$Date))  
+max<-max(dataset.xts[,1],dataset.xts[,2])
+min<-min(dataset.xts[,1],dataset.xts[,2])
+chart.TimeSeries(dataset.xts[,1],ylim=c(min,max),legend.loc="bottomleft",main=paste(date.f,"-",date.e),lwd="2",cex.main=6,cex.legend=3,cex.lab=4,ylab="",cex.axis=4)
+par(new=T)      
+chart.TimeSeries(dataset.xts[,2],xaxis=F,yaxis.right=T,color="red",ylim=c(min,max),legend.loc="topleft",main="",lwd="2",cex.main=6,cex.legend=3,cex.lab=4,ylab="",cex.axis=4)
+cat(paste("<div align=\"center\"><b>Trade Statistics of Japan\nData Source:Ministry of Finance Japan\nUnit:100million JPY\n",date.f,"-",date.e,"</b></div>\n"),file=output.html,append=T)
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n<hr>",sep=""),file=output.html,append=T)
+dev.off()
+#```
+
+#```{r}
+for(iii in 2:3){
+  png.file<-paste("customExportImport",id,iii,".png",sep="")
+  png(file=png.file,width=2000,height=4000)
+  par(mar=c(7,7,7,7))
+  cat(paste("<div align=\"center\"><b>Trade Statistics of Japan\nData Source:Ministry of Finance Japan\nUnit:100million JPY\n",date.e,"\n"),file=output.html,append=T)
+  if(iii==2){
+    cat("Export</b></div>",file=output.html,append=T)
+  }else{
+    cat("Import</b></div>",file=output.html,append=T)
+  }  
+  r.dataset<-dataset[[iii]][nrow(dataset[[iii]]),c(3:ncol(dataset[[iii]]))]#日付と総額を除去
+  r.dataset[1,]<-round(r.dataset[1,])
+  r.dataset<-t(r.dataset)
+  r.dataset<-data.frame(Item=rownames(r.dataset),r.dataset,row.names=NULL)
+  rrr<-order(r.dataset[,2])
+  r.dataset<-r.dataset[rrr,]
+  rownames(r.dataset)<-c(1:nrow(r.dataset))
+  colnames(r.dataset)[2]<-"LatestValue"
+  r.dataset[,1]<-ordered(r.dataset[,1],levels=r.dataset[,1][1:length(r.dataset[,1])])
+  g<-ggplot(r.dataset,aes(x=Item,y=LatestValue))
+  g<-g+geom_bar(stat="identity",position="identity",fill="grey",alpha=0.5,color="black")
+  g<-g+geom_text(aes(label=r.dataset[,2]),hjust=0.2,size=20)+coord_flip() #vjust=-0.5
+  g<-g+theme(plot.title=element_text(size=45))
+  g<-g+theme(axis.title.x=element_text(size=45),axis.title.y=element_text(size=45)) 
+  g<-g+theme(axis.text.x=element_text(size=45),axis.text.y=element_text(size=45))  
+  plot(g)
+  dev.off()  
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n<hr>",sep=""),file=output.html,append=T)
+}
+```
