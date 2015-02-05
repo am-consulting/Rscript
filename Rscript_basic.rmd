@@ -308,15 +308,15 @@ dataset.type<-1 #0:single,1:multi
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-1 # 0 or 1
-plot.type<-2
+monthly<-0 # 0 or 1
+plot.type<-1
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
   ts.source<-list()
   ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS")#,"DEXKOUS","DEXCAUS","DEXCHUS","DEXINUS","DEXBZUS","DEXMXUS","DEXUSNZ","DEXTHUS","DEXTAUS","DEXSIUS","DEXMAUS","DEXSDUS","DEXHKUS","DEXDNUS","DEXSLUS" UNRATE CPIAUCSL HOUSTNSA EXJPUS 
-  ts.source[[1]]<-c("FRED",1,"CP0000EZ17M086NEST")# CP0000EZ17M086NEST CPIAUCSL
+  ts.source[[1]]<-c("FRED",1,"AMBNS","UNRATENSA")# CP0000EZ17M086NEST CPIAUCSL
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -997,8 +997,8 @@ dev.off()
 setwd(path03)
 ######################################引数設定パート######################################    
 analysis.id<-"MULTIVARIATEDATAANALYSIS"
-title.no<-1
-js.title<-c("MANETARYBASEANDUNEMPLOYMENTRATEJAPAN")
+title.no<-2
+js.title<-c("MANETARYBASEANDUNEMPLOYMENTRATEJAPAN","MANETARYBASEANDUNEMPLOYMENTRATEUSA")
 priod.y<-10 #year
 explanatory<-2 #column
 objective<-3 #column
@@ -1014,7 +1014,7 @@ colnames(objectDataset)[objective]<-graph.title2
 ######################################cointegパート ######################################    
 cat("<div align=\"center\"><b>Co-integration test\n\n",file=multianalysis.html,append=F)
 cat("Null hypothesis:Not cointegrated.\n",file=multianalysis.html,append=T)
-cat("by Package 'tseries' - po.test(),adf.test()\n\n",file=multianalysis.html,append=T)
+cat("powered by Package 'tseries' - po.test(),adf.test()\n\n",file=multianalysis.html,append=T)
 cat("Period:",date.f,"-",date.e,"</b></div>",file=multianalysis.html,append=T)
 #説明変数パート
 cat("<hr>",file=multianalysis.html,append=T)
@@ -1088,13 +1088,13 @@ tmp.var[,2]<-tmp.var[,2]/mean(tmp.var[,2])
 colnames(tmp.var)<-c("impulse","response")
 tmp.var.result<-VAR(tmp.var,p=VARselect(tmp.var,lag.max=24)$selection[1])#AIC
 tmp.var.irf<-irf(tmp.var.result,impulse="impulse",response=c("response"),boot=TRUE,n.ahead=24,ci=0.95)
-plot(tmp.var.irf,ask=FALSE)
+plot(tmp.var.irf,ask=FALSE,lwd=4)
 dev.off()
-cat(paste("<hr>\n<div align=\"center\">\n<b>Orthogonal Impulse Response\nfrom",orig.colnames[1],"(Impulse)\nto",orig.colnames[2],"(Response)\n各系列はその平均値で正規化しています</b>\n</div>"),file=multianalysis.html,append=T)
+cat(paste("<hr>\n<div align=\"center\">\n<b>Orthogonal Impulse Response\nfrom",orig.colnames[1],"(Impulse)\nto",orig.colnames[2],"(Response)\n各系列はその平均値で正規化しています</b>\npowered by R package 'vars' - VAR(),irf()</div>"),file=multianalysis.html,append=T)
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=multianalysis.html,append=T)
 ######################################  var  パート ######################################    
 #javascript part    
-js.file.name<-paste(analysis.id,".js",sep="")
+js.file.name<-paste(js.title[title.no],analysis.id,".js",sep="")
 data.id<-analysis.id
 cat("\n\n$(function() {",file=js.file.name,append=F)
 cat(paste("\n$.get('http://archive.am-consulting.co.jp/",multianalysis.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
