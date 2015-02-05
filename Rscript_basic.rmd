@@ -15,6 +15,7 @@ library(stringr)
 library(forecast)
 library(fGarch)
 library(vars)
+library(MSwM)
 id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 #list
@@ -483,6 +484,24 @@ for(ppp in 1:plot.type){
 #html part
       }
     }
+##################################マルコフ転換モデル######################################    
+cat("<div align=\"center\"><b>Markov Switching Models\npowered by R package 'MSwM' - msmFit()\n",file=graph.html,append=T)
+date.f<-tmp.1[1,1]    
+date.e<-tmp.1[nrow(tmp.1),1]    
+cat(paste(date.f,"-",date.e,"</b></div>\n"),file=graph.html,append=T)
+tmp.msm<-data.frame(x=1:nrow(tmp.1),y=tmp.1$value)
+tmp.msm.lm<-lm(y~x,tmp.msm)
+result.msm<-msmFit(tmp.msm.lm,k=2,p=0,sw=rep(T,length(tmp.msm)+1))# k(bull or bear)   
+for(qqqq in 1:(length(tmp.msm)+1)){
+  png.file<-paste(js.title[[iii]],"msm",id,ppp,iii,qqqq,".png",sep="")
+  png(file=png.file,width=1400,height=1200)
+  par(ps=40)
+  par(mar=c(9, 7, 15, 4))
+  plotProb(result.msm,which=qqqq)
+  dev.off() 
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=graph.html,append=T)
+}  
+##################################マルコフ転換モデル######################################    
   }
 }
 ```
