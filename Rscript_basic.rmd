@@ -309,7 +309,7 @@ dataset.type<-1 #0:single,1:multi
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-0 # 0 or 1
+monthly<-1 # 0 or 1
 plot.type<-1
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
@@ -317,7 +317,7 @@ level.multi<-(0)
 if(exe==1){
   ts.source<-list()
   ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS")#,"DEXKOUS","DEXCAUS","DEXCHUS","DEXINUS","DEXBZUS","DEXMXUS","DEXUSNZ","DEXTHUS","DEXTAUS","DEXSIUS","DEXMAUS","DEXSDUS","DEXHKUS","DEXDNUS","DEXSLUS" UNRATE CPIAUCSL HOUSTNSA EXJPUS 
-  ts.source[[1]]<-c("FRED",1,"AMBNS","UNRATENSA")# CP0000EZ17M086NEST CPIAUCSL
+  ts.source[[1]]<-c("FRED",1,"PAYEMS","MANEMP","UNRATE")# CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA"
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -655,7 +655,7 @@ for(ttt in ttt.range){
 data.id<-"unitroot"
 #javascript part for unitroot
 if(ppp==1 && chk.unitroot==0){  
-  js.file.root.list<-paste(js.title[[iii]],".rootunitlist01.js",sep="")
+  js.file.root.list<-paste(js.title[[iii]],".unitrootlist01.js",sep="")
   cat("\n",file=js.file.root.list,append=F)
   js.file.name.unitroot<-paste(js.title[[iii]],".external04.js",sep="")
   cat("\n",file=js.file.name.unitroot,append=F)
@@ -721,7 +721,7 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
   par(new=T)      
   chart.TimeSeries(tmp.unitroot.xts.diff,main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.lab=4,cex.axis=4)
   dev.off()
-  #output rootunit js  
+  #output unitroot js  
   cat(paste("document.write('<div id=\"",data.id,id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.root.list,append=T)
   cat(paste("document.write('<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\" alt=\"\" width=\"100%\">\');\n",sep=""),file=js.file.root.list,append=T)   
   cat("document.write('<hr>\');\n",file=js.file.root.list,append=T) 
