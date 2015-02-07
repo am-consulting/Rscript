@@ -80,6 +80,8 @@ first.date<-Sys.Date()-diff.date
 dataset<-list()
 cnt<-0
 table.count<-0
+cat("",file=output1.html,append=F)
+cat("",file=output2.html,append=F)
 for(ccc in 1:length(currency)){
   table.count<-table.count+1  
   cnt<-cnt+1
@@ -150,15 +152,6 @@ for(ccc in 1:length(currency)){
     print(g)    
     dev.off()
 #output html
-    if(bbb==2){
-      if(ccc==1){
-        cat("<div style=\"text-align: center\">\n",file=output1.html,append=F)
-      }else{
-        cat("<div style=\"text-align: center\">\n",file=output1.html,append=T)
-      }
-      cat("<b><br>",currency[ccc],"</b>\n",file=output1.html,append=T)
-      cat("</div>\n",file=output1.html,append=T)
-    }
     cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output1.html,append=T)
   }
   cat("\n<hr>\n",file=output1.html,append=T)
@@ -225,25 +218,19 @@ for(iii in 1:cnt){
 #output png
     png.file<-paste("corre",gsub("\\s","", currency[iii], perl=T),".png",sep="")
     png(file=png.file,width=1400,height=1200)
-    par(mar=c(7, 7, 7, 7))
-    chart.TimeSeries(tmp.0[,1],main=paste(currency[iii],"\n",
-      first(index(tmp.0)),"-",last(index(tmp.0))),yaxis.right=F,type="h",lwd="2",
-      legend.loc="bottomleft",color="black",cex.main=4,cex.legend=3,cex.lab=2)
+    par(mar=c(8, 8, 8, 8))
+    chart.TimeSeries(tmp.0[,1],main=paste(currency[iii],"\n",first(index(tmp.0)),"-",last(index(tmp.0))),yaxis.right=F,type="h",lwd="2",legend.loc="bottomleft",color="black",cex.main=5,cex.legend=4,cex.lab=5,cex.axis=5)
     par(new=T)
-    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",color="blue",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="")
+    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",color="blue",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=4,ylab="",cex.axis=5)
     dev.off()
 #output html
     result.corr.file.name<-paste("corre",gsub("\\s","", currency[iii], perl=T),".html",sep="")
-    cat("一次階差同士の相関係数\n",file=result.corr.file.name,append=F)
-    cat(paste("期間:",first(index(tmp.0)),"-",last(index(tmp.0)),"\n",sep=""),file=result.corr.file.name,append=T)
-    cat(paste("ペア1:",gsub(".FX...CHICAGO.MERCANTILE.EXCHANGE", "",colnames(tmp)[1]),"\nペア2:",colnames(tmp)[2],sep=""),file=result.corr.file.name,append=T)     
-    cat(paste("\n相関係数:",cor(tmp)[1,2],sep=""),file=result.corr.file.name,append=T)     
-    cat(paste("\np値:",summary(lm(tmp[,2]~tmp[,1]))$coe[8],sep=""),file=result.corr.file.name,append=T)  
-    if(iii==1){
-      cat(paste("\n<div id=\"","corre",gsub("\\s","", currency[iii], perl=T),"\"></div>",sep=""),file=output2.html,append=F)  
-    }else{
-      cat(paste("\n<div id=\"","corre",gsub("\\s","", currency[iii], perl=T),"\"></div>",sep=""),file=output2.html,append=T)  
-    }
+    cat("Correlation Coefficient\n",file=result.corr.file.name,append=F)
+    cat(paste("Period:",first(index(tmp.0)),"-",last(index(tmp.0)),"\n",sep=""),file=result.corr.file.name,append=T)
+    cat(paste("Pair1:1st diff of ",gsub(".FX...CHICAGO.MERCANTILE.EXCHANGE", "",colnames(tmp)[1]),"\nPair2:1st diff of ",colnames(tmp)[2],sep=""),file=result.corr.file.name,append=T)     
+    cat(paste("\nCorrelation Coefficient:",cor(tmp)[1,2],sep=""),file=result.corr.file.name,append=T)     
+    cat(paste("\np-value:",summary(lm(tmp[,2]~tmp[,1]))$coe[8],sep=""),file=result.corr.file.name,append=T)  
+    cat(paste("\n<div id=\"","corre",gsub("\\s","", currency[iii], perl=T),"\"></div>",sep=""),file=output2.html,append=T)  
     cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\" alt=\"\" width=\"100%\">\n<hr>\n",sep=""),file=output2.html,append=T)
 #output js    
     cat("\n\n$(function() {",file=js.file.name,append=T)
