@@ -221,7 +221,7 @@ for(iii in 1:cnt){
     par(mar=c(8, 8, 8, 8))
     chart.TimeSeries(tmp.0[,1],main=paste(currency[iii],"\n",first(index(tmp.0)),"-",last(index(tmp.0))),yaxis.right=F,type="h",lwd="2",legend.loc="bottomleft",color="black",cex.main=5,cex.legend=4,cex.lab=5,cex.axis=5)
     par(new=T)
-    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",color="blue",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=4,ylab="",cex.axis=5)
+    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",color="blue",xaxis=F,yaxis.right=T,legend.loc="topleft",cex.legend=4,ylab="",cex.axis=5)
     dev.off()
 #output html
     result.corr.file.name<-paste("corre",gsub("\\s","", currency[iii], perl=T),".html",sep="")
