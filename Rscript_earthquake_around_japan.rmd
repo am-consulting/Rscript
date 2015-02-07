@@ -14,6 +14,9 @@ add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.
 ```
 
 ```{r}
+dataTime<-Sys.time()
+path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path02)
 output.html<-"earthquake.html"
 cat("",file=output.html,append=F) 
 data.location<-2 #1:local 2:web
@@ -43,9 +46,6 @@ dataset.j$info<-paste(
   ,sep=""
 )
 dataset.j$energy.GJ<-round(10^((dataset.j$mag)*1.5+4.8)*(10^-9),4)
-dataTime<-Sys.time()
-path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
-setwd(path02)
 for(mmm in 1:length(dataset.j[,1])){
   tmp<-dataset.j$mag[mmm]+10^-3
   if(round(tmp)==floor(tmp)){tmp<-floor(tmp)}else{tmp<-(round(tmp)-0.5)} 
