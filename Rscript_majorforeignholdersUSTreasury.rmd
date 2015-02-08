@@ -1,0 +1,79 @@
+```{r}
+library(ggplot2)
+library(PerformanceAnalytics)
+library(lubridate)
+add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
+dataset<-list()
+url<-list()
+countrydata<-list()
+csv.file<-list()
+js.file<-list()
+csv.id<-list()
+js.file.list<-list()
+obj.date<-list()
+file.name<-c("mfhhis01")
+base.url<-"http://www.treasury.gov/resource-center/data-chart-center/tic/Documents/"
+username<-Sys.info()['user']
+path<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path)
+for(iii in 1:length(file.name)){
+  url[[iii]]<-paste(base.url,file.name[iii],".csv",sep="")
+  js.file[[iii]]<-paste("USAbond",iii,".js",sep="")
+  cat("",file=js.file[[iii]],append=F)
+  js.file.list[[iii]]<-paste("USAbondlist",iii,".js",sep="")
+  cat("",file=js.file.list[[iii]],append=F)
+  if(grepl("mfhhis01.csv",url[[iii]])==T){
+    dataset[[iii]]<-read.csv(url[[iii]],header=F,skip=0,stringsAsFactor=F)
+    for(yyy in 1:2){
+      end.ccc<-13
+      start.ccc<-end.ccc
+      if(yyy==1){
+        start.rrr<-9
+      }else{
+        start.rrr<-59
+      }  
+      while(dataset[[iii]][start.rrr,start.ccc]!="" && start.ccc!=1){
+        start.ccc<-start.ccc-1      
+      }
+      if(start.ccc<=0){start.ccc<-1}  
+      start.ccc<-start.ccc+1
+      end.rrr<-start.rrr
+      while(dataset[[iii]][end.rrr,1]!=""){
+        end.rrr<-end.rrr+1
+      }
+      end.rrr<-end.rrr-1
+      Country<-gsub(",|/|\\s[0-9]?[0-9]","",dataset[[iii]][start.rrr:end.rrr,1])
+      for(ccc in start.ccc:end.ccc){
+        data.id<-iii*1000+ccc*10+yyy
+        obj.date[[data.id]]<-paste(dataset[[iii]][start.rrr-3,ccc],"-",dataset[[iii]][start.rrr-2,ccc],sep="")
+        Value<-as.numeric(dataset[[iii]][start.rrr:end.rrr,ccc])
+        Ratio<-round(Value/as.numeric(dataset[[iii]][end.rrr,ccc])*100,2)
+        countrydata[[data.id]]<-data.frame(Country,Value,Ratio)
+        csv.file[[data.id]]<-paste(obj.date[[data.id]],"USAbond",iii,ccc,yyy,".csv",sep="")
+        write.csv(countrydata[[data.id]],csv.file[[data.id]],col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+        csv.id[[data.id]]<-paste(obj.date[[data.id]],"USAbond",iii,ccc,yyy,sep="")
+        #js.file.list
+        cat(paste("document.write('<div align=\"center\"><b>",obj.date[[data.id]],"</b></div>\');\n",sep=""),file=js.file.list[[iii]],append=T)
+        cat(paste("document.write('<div id=\"",csv.id[[data.id]],"\"></div><br><hr><br>\');\n\n",sep=""),file=js.file.list[[iii]],append=T)
+        #js.file
+        cat("$(function(){",file=js.file[[iii]],append=T)     
+        cat(paste("\n","$('#",csv.id[[data.id]],"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file[[data.id]],add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep=""),file=js.file[[iii]],append=T)     
+        cat("\nfunction(){",file=js.file[[iii]],append=T)
+        cat(gsub(" ","",paste("\n$('#",csv.id[[data.id]],"').find('TABLE').dataTable(",sep="")),file=js.file[[iii]],append=T)
+        cat("\n{",file=js.file[[iii]],append=T)    
+        cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file[[iii]],append=T) 
+        cat("\n\"order\": [[ 1,\"desc\"]],",file=js.file[[iii]],append=T)      
+        cat("\n\"bFilter\":false,",file=js.file[[iii]],append=T)
+        cat("\n\"paging\":true,",file=js.file[[iii]],append=T)
+        cat("\n\"columnDefs\":[{\"width\":\"45%\",\"targets\":0},{\"width\":\"30%\",\"targets\":1}],",file=js.file[[iii]],append=T) 
+        cat("\n\"info\":true",file=js.file[[iii]],append=T)
+        cat("\n}",file=js.file[[iii]],append=T)    
+        cat("\n);",file=js.file[[iii]],append=T)
+        cat("\n});;",file=js.file[[iii]],append=T) 
+        cat("\n});\n\n",file=js.file[[iii]],append=T)  
+      }
+    }
+  }else{
+  }
+}
+```
