@@ -244,7 +244,7 @@ fun.omit<-function(tmp.omit){#都度必要に応じて利用
 #read data from bank of japan as data frame
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-2
+plot.type<-1
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(-4)
@@ -318,6 +318,7 @@ if(exe==1){
   ts.source<-list()
   ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS")#,"DEXKOUS","DEXCAUS","DEXCHUS","DEXINUS","DEXBZUS","DEXMXUS","DEXUSNZ","DEXTHUS","DEXTAUS","DEXSIUS","DEXMAUS","DEXSDUS","DEXHKUS","DEXDNUS","DEXSLUS" UNRATE CPIAUCSL HOUSTNSA EXJPUS 
   ts.source[[1]]<-c("FRED",1,"M2V","A191RL1Q225SBEA")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
+  ts.source[[1]]<-c("FRED",1,"EXJPUS")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -510,6 +511,44 @@ for(qqqq in 1:(length(tmp.msm)+1)){
 ```
 
 ```{r}
+fun.withkeyposition<-function(){
+#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+for(ttt in ttt.range){
+  if(chk==0){
+    if(ppp==1){
+#      tmp.0<-subset(dataset[[obj[iii]]],as.Date(first.date[ttt])<=dataset[[obj[iii]]][,1])
+      tmp.0<-dataset[[obj[iii]]]
+    }else{
+#      tmp.0<-subset(dataset.yy[[obj[iii]]],as.Date(first.date[ttt])<=dataset.yy[[obj[iii]]][,1])
+      tmp.0<-dataset.yy[[obj[iii]]]
+    }
+    chk<-1
+  }
+  if(nrow(tmp.0)!=0){
+    for(jjj in 1:nrow(tmp.0)){
+      for(kkk in seq(nrow(dataset.tm[[ttt]]),1,by=-1)){
+        if(dataset.tm[[ttt]][kkk,1]<=tmp.0[jjj,1] & tmp.0[jjj,1]<=dataset.tm[[ttt]][kkk,2]){
+          tmp.0[jjj,ttt+ttt.diff]<-dataset.tm[[ttt]][kkk,3]
+          break
+        }  
+      }
+    }
+    if(ttt==2){colnames(tmp.0)[ttt.diff+1]<-"PM";colnames(tmp.0)[ttt.diff+2]<-"BoJ"}
+    if(ttt==4){colnames(tmp.0)[ttt.diff+3]<-"U.S.A";colnames(tmp.0)[ttt.diff+4]<-"FRB"}
+    tmp0<-1
+  }else{
+    tmp0<-0
+  }
+  tmp.0<-na.omit(tmp.0)
+  tmp.0<<-tmp.0  
+  tmp0<<-tmp0 
+  ttt<<-ttt
+}
+#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+}
+```
+
+```{r}
 ######################################引数設定パート######################################    
 exe.garch<-1
 exe.return<-1
@@ -536,7 +575,10 @@ if(ttt.range[1]==1){
 for(iii in 1:length(obj)){
   for(ppp in 1:plot.type){
     chk<-0#tttループ内で2回以上tmp.0を作成しないため
-###################################### 共 通 パート ######################################    
+###################################### 共 通 パート ######################################
+fun.withkeyposition()
+zzzz<-0#関数化確認用パート.動作に問題なければパートごと削除
+if(zzzz==1){#関数化確認用パート
 #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
 for(ttt in ttt.range){
   if(chk==0){
@@ -564,6 +606,7 @@ for(ttt in ttt.range){
   }
 }
 #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+}  
 if(tmp0==1){#条件分岐001
   row.names(tmp.0)<-NULL
   tmp.1<-tmp.0[,c(1:4)]
@@ -1037,29 +1080,47 @@ dev.off()
 #MULTIVARIATEDATAANALYSIS
 setwd(path03)
 ######################################引数設定パート######################################    
+ttt.range<-c(1:2)
 analysis.id<-"MULTIVARIATEDATAANALYSIS"
-title.no<-2
-js.title<-c("MANETARYBASEANDUNEMPLOYMENTRATEJAPAN","MANETARYBASEANDUNEMPLOYMENTRATEUSA")
-priod.y<-10 #year
-explanatory<-2 #column
-objective<-3 #column
+title.no<-3
+js.title<-c("MANETARYBASEANDUNEMPLOYMENTRATEJAPAN","MANETARYBASEANDUNEMPLOYMENTRATEUSA","MANETARYBASEANDUSDJPY")
+priod.y<-100 #year
+explanatory<-3 #column
+objective<-2 #column
 #multianalysis.html<-paste(js.title[title.no],id,".html",sep="")
 multianalysis.html<-paste(js.title[title.no],".html",sep="")
-######################################引数設定パート######################################    
-objectDataset<-tail(na.omit(all.data[[1]]),priod.y*12)
+cat("",file=multianalysis.html,append=F)
+#first.date<-c("2001-4-26","1946-6-1","1993-1-20","1987-8-11")
+if(ttt.range[1]==1){
+  ttt.diff<-3
+}else{
+  ttt.diff<-1
+}
+ppp<-1
+chk<-0
+iii<-1
+obj<-c(1)
+######################################引数設定パート###################################### 
+dataset[[obj[iii]]]<-tail(na.omit(all.data[[1]]),priod.y*12)
+fun.withkeyposition()
+tmp.1<-tmp.0[,c(1,2,3,5)]
+for(uuu in 1:length(unique(tmp.1[,4]))){
+objectDataset<-subset(tmp.1,tmp.1[,4]==unique(tmp.1[,4])[uuu])
 date.f<-format(objectDataset[1,1],"%Y-%m")
 date.e<-format(objectDataset[nrow(objectDataset),1],"%Y-%m")
 graph.title1<-colnames(objectDataset)[explanatory]
 colnames(objectDataset)[explanatory]<-graph.title1
 graph.title2<-colnames(objectDataset)[objective]
 colnames(objectDataset)[objective]<-graph.title2
+keyposition.id<-paste(colnames(objectDataset)[4],":",unique(tmp.1[,4])[uuu],sep="")  
 ######################################cointegパート ######################################    
-cat("<div align=\"center\"><b>Co-integration test\n\n",file=multianalysis.html,append=F)
+cat("<div align=\"center\"><b>Co-integration test\n\n",file=multianalysis.html,append=T)
 cat("Null hypothesis:Not cointegrated.\n",file=multianalysis.html,append=T)
 cat("powered by Package 'tseries' - po.test(),adf.test()\n\n",file=multianalysis.html,append=T)
-cat("Period:",date.f,"-",date.e,"</b></div>",file=multianalysis.html,append=T)
+cat("Period:",date.f,"-",date.e,"\n",file=multianalysis.html,append=T)
+cat(keyposition.id,"</b></div>\n",file=multianalysis.html,append=T)
 #説明変数パート
-cat("<hr>",file=multianalysis.html,append=T)
+cat("",file=multianalysis.html,append=T)
 cat(colnames(objectDataset)[explanatory],"\n",file=multianalysis.html,append=T)
 value<-objectDataset[,explanatory]
 tmp.unitroot.result<-capture.output(adf.test(value))
@@ -1087,41 +1148,41 @@ write(tmp.cointeg,multianalysis.html,append=T)
 #output png
 ##cointeg
 #png.file<-paste(js.title[title.no],"cointeg",id,".png",sep="")
-png.file<-paste(js.title[title.no],"cointeg",".png",sep="")
+png.file<-paste(js.title[title.no],"cointeg",uuu,".png",sep="")
 png(file=png.file,width=1400,height=1200) 
-par(mar=c(7, 7, 10, 2))
+par(mar=c(7, 7, 14, 2))
 par(ps=40)
-ccf(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]),24,main=paste("相互相関係数(共に一次階差)\n",colnames(objectDataset)[explanatory],"×",colnames(objectDataset)[objective]))
+ccf(diff(objectDataset[,objective]),diff(objectDataset[,explanatory]),24,main=paste("相互相関係数(共に一次階差)\n",colnames(objectDataset)[explanatory],"×",colnames(objectDataset)[objective],"\n",keyposition.id),lwd="4")
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=multianalysis.html,append=T)
 ##chart
 ###level
-png.file<-paste(js.title[title.no],"levelchart",id,".png",sep="")
+png.file<-paste(js.title[title.no],"levelchart",uuu,".png",sep="")
 png(file=png.file,width=1400,height=1200)
 par(mar=c(5, 5, 14, 2))
 objectDataset.xts<-as.xts(objectDataset[,c(explanatory,objective)],order.by=as.Date(objectDataset[,1]))
 maintitle.first<-format(first(index(objectDataset.xts)),"%Y-%m")
 maintitle.last<-format(last(index(objectDataset.xts)),"%Y-%m")
-chart.TimeSeries(objectDataset.xts[,1],main=paste("Level\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
+chart.TimeSeries(objectDataset.xts[,1],main=paste("Level\n",maintitle.first,"-",maintitle.last,"\n",keyposition.id),yaxis.right=F,type="l",lwd="4",legend.loc="bottomleft",color="blue",cex.main=5,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
 par(new=T)      
-chart.TimeSeries(objectDataset.xts[,2],main="",type="l",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
+chart.TimeSeries(objectDataset.xts[,2],main="",type="l",lwd="4",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=multianalysis.html,append=T)
 ###1stdiff
-png.file<-paste(js.title[title.no],"1stdiffchart",id,".png",sep="")
+png.file<-paste(js.title[title.no],"1stdiffchart",uuu,".png",sep="")
 png(file=png.file,width=1400,height=1200)
 par(mar=c(5, 5, 14, 2))
 objectDataset.xts.diff<-diff(objectDataset.xts)
 maintitle.first<-format(first(index(objectDataset.xts.diff)),"%Y-%m")
 maintitle.last<-format(last(index(objectDataset.xts.diff)),"%Y-%m")
-chart.TimeSeries(objectDataset.xts.diff[,1],main=paste("1stDiff\n",maintitle.first,"-",maintitle.last),yaxis.right=F,type="h",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
+chart.TimeSeries(objectDataset.xts.diff[,1],main=paste("1stDiff\n",maintitle.first,"-",maintitle.last,"\n",keyposition.id),yaxis.right=F,type="h",lwd="4",legend.loc="bottomleft",color="blue",cex.main=5,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
 par(new=T)      
 chart.TimeSeries(objectDataset.xts.diff[,2],main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=multianalysis.html,append=T)
 ######################################cointegパート ######################################    
 ######################################  var  パート ######################################    
-png.file<-paste(js.title[title.no],"impulse",id,".png",sep="")
+png.file<-paste(js.title[title.no],"impulse",uuu,".png",sep="")
 png(file=png.file,width=1400,height=1200)
 par(ps=25)
 tmp.var<-objectDataset[,2:3]
@@ -1129,13 +1190,15 @@ orig.colnames<-colnames(tmp.var)
 tmp.var[,1]<-tmp.var[,1]/mean(tmp.var[,1])
 tmp.var[,2]<-tmp.var[,2]/mean(tmp.var[,2])
 colnames(tmp.var)<-c("impulse","response")
-tmp.var.result<-VAR(tmp.var,p=VARselect(tmp.var,lag.max=24)$selection[1])#AIC
+var.lag<-floor(nrow(tmp.var)/2)  
+tmp.var.result<-VAR(tmp.var,p=VARselect(tmp.var,lag.max=var.lag)$selection[1])#AIC
 tmp.var.irf<-irf(tmp.var.result,impulse="impulse",response=c("response"),boot=TRUE,n.ahead=24,ci=0.95)
 plot(tmp.var.irf,ask=FALSE,lwd=4)
 dev.off()
-cat(paste("<hr>\n<div align=\"center\">\n<b>Orthogonal Impulse Response\nfrom",orig.colnames[1],"(Impulse)\nto",orig.colnames[2],"(Response)\n各系列はその平均値で正規化しています</b>\npowered by R package 'vars' - VAR(),irf()</div>"),file=multianalysis.html,append=T)
-cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=multianalysis.html,append=T)
+cat(paste("<hr>\n<div align=\"center\">\n<b>Orthogonal Impulse Response\nfrom",orig.colnames[1],"(Impulse)\nto",orig.colnames[2],"\n",keyposition.id,"(Response)\n各系列はその平均値で正規化しています</b>\npowered by R package 'vars' - VAR(),irf()</div>"),file=multianalysis.html,append=T)
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n\n<hr>\n",sep=""),file=multianalysis.html,append=T)
 ######################################  var  パート ######################################    
+}
 #javascript part    
 js.file.name<-paste(js.title[title.no],analysis.id,".js",sep="")
 data.id<-analysis.id
@@ -1143,5 +1206,5 @@ cat("\n\n$(function() {",file=js.file.name,append=F)
 cat(paste("\n$.get('http://archive.am-consulting.co.jp/",multianalysis.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
 cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
 cat("\n});",file=js.file.name,append=T)
-cat("\n});\n\n",file=js.file.name,append=T) 
+cat("\n});\n\n",file=js.file.name,append=T)
 ```
