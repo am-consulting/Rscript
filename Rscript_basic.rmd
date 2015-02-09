@@ -16,7 +16,7 @@ library(forecast)
 library(fGarch)
 library(vars)
 library(MSwM)
-id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
+library(tsDyn)
 add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 #list
 dataset<-list()
@@ -83,11 +83,11 @@ fun.common<-function(ppp,iii,ttt){#現在、時系列チャートチャンクの
     tmp.0[1,2]<-last(tmp.1)[1]
   }
   tmp.1<<-tmp.1 #caution
-  print(head(tmp.1,3))
+#  print(head(tmp.1,3))
   tmp.0<<-tmp.0 #caution
-  print(head(tmp.0,3))
+#  print(head(tmp.0,3))
   tmp.date<<-tmp.date #caution
-  print(tmp.date)
+#  print(tmp.date)
 }
 ##make dataset.tm[[x]]
 timeline[[1]]<-c(
@@ -170,7 +170,7 @@ for(ttt in 1:4){
   dataset.tm[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
   dataset.tm[[ttt]][,3]<-ordered(dataset.tm[[ttt]][,3],levels=dataset.tm[[ttt]][,3][1:nrow(dataset.tm[[ttt]])])
   order(dataset.tm[[ttt]][,3])
-  print(head(dataset.tm[[ttt]],3))
+#  print(head(dataset.tm[[ttt]],3))
 }
 #Convert dataframe to xts
 fun.convert<-function(){
@@ -309,16 +309,19 @@ dataset.type<-1 #0:single,1:multi
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-1 # 0 or 1
+monthly<-0 # 0 or 1
 plot.type<-1
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
   ts.source<-list()
-  ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS")#,"DEXKOUS","DEXCAUS","DEXCHUS","DEXINUS","DEXBZUS","DEXMXUS","DEXUSNZ","DEXTHUS","DEXTAUS","DEXSIUS","DEXMAUS","DEXSDUS","DEXHKUS","DEXDNUS","DEXSLUS" UNRATE CPIAUCSL HOUSTNSA EXJPUS 
-  ts.source[[1]]<-c("FRED",1,"M2V","A191RL1Q225SBEA")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
-  ts.source[[1]]<-c("FRED",1,"EXJPUS")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
+  ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA")
+  ts.source[[1]]<-c("FRED",1,"DEXKOUS")
+  #,"NASDAQ100","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS")#,"DEXCAUS","DEXCHUS","DEXINUS","DEXBZUS","DEXMXUS","DEXUSNZ","DEXTHUS","DEXTAUS","DEXSIUS","DEXMAUS","DEXSDUS","DEXHKUS","DEXDNUS","DEXSLUS" UNRATE CPIAUCSL HOUSTNSA EXJPUS 
+#  ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS")#,"DEXCAUS","DEXCHUS","DEXINUS","DEXBZUS","DEXMXUS","DEXUSNZ","DEXTHUS","DEXTAUS","DEXSIUS","DEXMAUS","DEXSDUS","DEXHKUS","DEXDNUS","DEXSLUS" UNRATE CPIAUCSL HOUSTNSA EXJPUS 
+#  ts.source[[1]]<-c("FRED",1,"M2V","A191RL1Q225SBEA")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
+#  ts.source[[1]]<-c("FRED",1,"EXJPUS")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -404,7 +407,7 @@ dataset.type<-0 #0:single,1:multi
 ```{r}
 #時系列チャート作成チャンク
 setwd(path03)
-level.type<-2
+level.type<-1
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 chk.j<-0
 chk.h<-0
@@ -414,7 +417,6 @@ for(iii in 1:length(obj)){
 #javascript part
     if(ppp==1 && chk.j==0){
       js.file.name.graph<-paste(js.title[[iii]],".external01.js",sep="")
-#      graph.html<-paste(js.title[[iii]],data.id,id,".html",sep="")
       graph.html<-paste(js.title[[iii]],data.id,".html",sep="")
       if(dataset.type==1 && iii==1){
         chk.j<-1
@@ -450,7 +452,6 @@ for(iii in 1:length(obj)){
         shade<-data.frame(x0,x1,y0,y1)
         shade<<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
         value.y<<-median(tmp.1[,2]) #value.y<<-mean(tmp.1[,2]) 
-#        png.file<-paste(js.title[[iii]],data.id,id,ppp,iii,ttt,".png",sep="")
         png.file<-paste(js.title[[iii]],data.id,ppp,iii,ttt,".png",sep="")
         png(file=png.file,width=1400,height=1200)  
         g<-ggplot()
@@ -487,29 +488,6 @@ for(iii in 1:length(obj)){
 #html part
       }
     }
-##################################マルコフ転換モデル######################################    
-cat("<div align=\"center\"><b>Markov Switching Models\npowered by R package 'MSwM' - msmFit()\n",file=graph.html,append=T)
-date.f<-tmp.1[1,1]    
-date.e<-tmp.1[nrow(tmp.1),1]    
-if(monthly==1){
-  date.f<-format(date.f,"%Y-%m")    
-  date.e<-format(date.e,"%Y-%m")    
-}
-cat(paste(date.f,"-",date.e,"</b></div>\n"),file=graph.html,append=T)
-tmp.msm<-data.frame(x=1:nrow(tmp.1),y=tmp.1$value)
-tmp.msm.lm<-lm(y~x,tmp.msm)
-result.msm<-msmFit(tmp.msm.lm,k=2,p=0,sw=rep(T,length(tmp.msm)+1))# k(bull or bear)   
-for(qqqq in 1:(length(tmp.msm)+1)){
-#  png.file<-paste(js.title[[iii]],"msm",id,ppp,iii,qqqq,".png",sep="")
-  png.file<-paste(js.title[[iii]],"msm",ppp,iii,qqqq,".png",sep="")
-  png(file=png.file,width=1400,height=1200)
-  par(ps=40)
-  par(mar=c(9, 7, 15, 4))
-  plotProb(result.msm,which=qqqq)
-  dev.off() 
-  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=graph.html,append=T)
-}  
-##################################マルコフ転換モデル######################################    
   }
 }
 ```
@@ -555,7 +533,7 @@ for(ttt in ttt.range){
 ```{r}
 ######################################引数設定パート######################################    
 exe.garch<-1
-exe.return<-0
+exe.return<-1
 setwd(path03)
 if(monthly==1){
   acf.lag<-12*5#オリジナルデータの長さに注意
@@ -703,7 +681,14 @@ for(ttt in ttt.range){
   dev.off()
   cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=boxplot.html,append=T)
 }
-###################################### boxplotパート######################################    
+###################################### boxplotパート######################################
+#以降で適用するデータフレーム  
+if(monthly==1){
+  data.lag<-12*5#オリジナルデータの長さに注意
+}else{
+  data.lag<-365*5
+}   
+tmp.1<-tail(tmp.1,data.lag)  
 ######################################unitrootパート######################################    
 data.id<-"unitroot"
 #javascript part for unitroot
@@ -1072,6 +1057,44 @@ cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\
 dev.off()
 }
 ######################################  garch       ###################################### 
+##################################マルコフ転換モデル######################################    
+cat("<div align=\"center\"><b>Markov Switching Models\npowered by R package 'MSwM' - msmFit()\n",file=garch.html,append=T)
+date.f<-tmp.1[1,1]    
+date.e<-tmp.1[nrow(tmp.1),1]    
+if(monthly==1){
+  date.f<-format(date.f,"%Y-%m")    
+  date.e<-format(date.e,"%Y-%m")    
+}
+cat(paste(date.f,"-",date.e,"</b></div>\n"),file=garch.html,append=T)
+x<-seq(1:nrow(tmp.1))    
+tmp.msm<-data.frame(x,y=tmp.1[,2])
+tmp.msm.lm<-lm(y~x,tmp.msm)
+result.msm<-msmFit(tmp.msm.lm,k=2,p=0,sw=rep(T,length(tmp.msm)+1))# k(bull or bear)   
+for(qqqq in 1:(length(tmp.msm)+1)){
+  png.file<-paste(js.title[[iii]],"msm",ppp,iii,qqqq,".png",sep="")
+  png(file=png.file,width=1400,height=1200)
+  par(ps=40)
+  par(mar=c(9, 7, 15, 4))
+  plotProb(result.msm,which=qqqq)
+  dev.off() 
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=garch.html,append=T)
+}  
+##################################マルコフ転換モデル###################################### 
+############### Self-Exciting Threshold AutoRegressive models ############################  
+result.setar<-setar(tmp.1[,2],mL=2,mM=2,mH=2,nthresh=2,thDelay=0)#ARモデルの次数は都度検討すること
+png.file<-paste(js.title[[iii]],"setar",ppp,iii,".png",sep="")
+png(file=png.file,width=1400,height=1200)    
+par(ps=30)
+par(mar=c(9, 7, 15, 4))
+plot(result.setar,ask=FALSE)
+dev.off()
+cat("<div align=\"center\"><b>Self-Exciting Threshold AutoRegressive models\npowered by R package 'tsDyn' - setar()<b></div>\n",file=garch.html,append=T)
+cat("Caution:\nThe time series data may have unit roots.\n",file=garch.html,append=T)
+cat(paste(date.f,"-",date.e,"</b></div>\n"),file=garch.html,append=T)  
+cat("Proportion of points in\n",file=garch.html,append=T)
+cat(paste("low regime:",round(result.setar$model.specific$RegProp[1]*100,digits=2),"%\nMiddle regime:",round(result.setar$model.specific$RegProp[2]*100,digits=2),"%\nHigh regime:",round(result.setar$model.specific$RegProp[3]*100,digits=2),"%\n",sep=""),file=garch.html,append=T)     
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=garch.html,append=T)
+############### Self-Exciting Threshold AutoRegressive models ############################  
 ####テスト用####  
 #      }
 ####テスト用####  
