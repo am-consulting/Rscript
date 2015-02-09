@@ -404,7 +404,7 @@ dataset.type<-0 #0:single,1:multi
 ```{r}
 #時系列チャート作成チャンク
 setwd(path03)
-level.type<-1
+level.type<-2
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 chk.j<-0
 chk.h<-0
@@ -491,6 +491,10 @@ for(iii in 1:length(obj)){
 cat("<div align=\"center\"><b>Markov Switching Models\npowered by R package 'MSwM' - msmFit()\n",file=graph.html,append=T)
 date.f<-tmp.1[1,1]    
 date.e<-tmp.1[nrow(tmp.1),1]    
+if(monthly==1){
+  date.f<-format(date.f,"%Y-%m")    
+  date.e<-format(date.e,"%Y-%m")    
+}
 cat(paste(date.f,"-",date.e,"</b></div>\n"),file=graph.html,append=T)
 tmp.msm<-data.frame(x=1:nrow(tmp.1),y=tmp.1$value)
 tmp.msm.lm<-lm(y~x,tmp.msm)
@@ -551,7 +555,7 @@ for(ttt in ttt.range){
 ```{r}
 ######################################引数設定パート######################################    
 exe.garch<-1
-exe.return<-1
+exe.return<-0
 setwd(path03)
 if(monthly==1){
   acf.lag<-12*5#オリジナルデータの長さに注意
@@ -692,9 +696,9 @@ for(ttt in ttt.range){
   tmp.boxplot[,2]<-as.numeric(tmp.boxplot[,2])
   colnames(tmp.boxplot)[1]<-"variable"
   g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
-  g<-g+geom_boxplot()
+  g<-g+geom_boxplot(lwd=2)
   g<-g+ggtitle(gettitle)+xlab("")+ylab("")
-  g<-g+theme(axis.text=element_text(size=30,color="black"),axis.title=element_text(size=30,face="bold"),title=element_text(size=45,face="bold"))          
+  g<-g+theme(axis.text=element_text(size=30,color="black",angle=90,hjust=1),axis.title=element_text(size=30,face="bold"),title=element_text(size=45,face="bold")) 
   print(g)
   dev.off()
   cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=boxplot.html,append=T)
@@ -769,9 +773,9 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
     maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m-%d")
     maintitle.last<-format(last(index(tmp.unitroot.xts)),"%Y-%m-%d")
   }  
-  chart.TimeSeries(tmp.unitroot.xts,main=paste(maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="2",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=4,ylab="",cex.axis=4) 
+  chart.TimeSeries(tmp.unitroot.xts,main=paste(maintitle.first,"-",maintitle.last),yaxis.right=F,type="l",lwd="4",legend.loc="bottomleft",color="blue",cex.main=6,cex.legend=3,cex.lab=4,ylab="",cex.axis=4) 
   par(new=T)      
-  chart.TimeSeries(tmp.unitroot.xts.diff,main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.lab=4,cex.axis=4)
+  chart.TimeSeries(tmp.unitroot.xts.diff,main="",type="h",lwd="4",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.lab=4,cex.axis=4)
   dev.off()
   #output unitroot js  
 #  cat(paste("document.write('<div id=\"",data.id,id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.root.list,append=T)
@@ -814,7 +818,7 @@ if(monthly==1){
   date.f<-format(tmp.acf[1,1],"%Y-%m-%d")
   date.e<-format(tmp.acf[nrow(tmp.acf),1],"%Y-%m-%d")
 }        
-acf(tmp.acf[,2],acf.lag,main=paste("自己相関係数\n",colnames(tmp.acf)[2],"\n",date.f,"-",date.e))
+acf(tmp.acf[,2],acf.lag,main=paste("自己相関係数\n",colnames(tmp.acf)[2],"\n",date.f,"-",date.e),lwd="4")
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=acf.html,append=T)
 ######################################  acf  パート ######################################    
@@ -861,7 +865,7 @@ if(monthly==1){
 result.arima<-auto.arima(tmp.forecast[,2],ic="aic",trace=T,stepwise=T)
 result.forecast<-forecast(result.arima,level=c(50,75,95),h=forecast.interval)  
 chart.title<-paste("Forecasts from",result.forecast$method,"\n",colnames(tmp.forecast)[2],"\n",date.f,"-",date.e)  
-plot(result.forecast,main=chart.title,ylab="")  
+plot(result.forecast,main=chart.title,ylab="",lwd="4")  
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=forecast.html,append=T)
 #test
@@ -883,9 +887,9 @@ if(monthly==1){
 result.arima.test<-auto.arima(tmp.forecast.test[,2],ic="aic",trace=T,stepwise=T)       
 result.forecast.test<-forecast(result.arima.test,level=c(50,75,95),h=forecast.interval)  
 chart.title<-paste("Verification\nForecasts from",result.forecast.test$method,"\n",colnames(tmp.forecast.test)[2],"\n",date.f,"-",date.e)  
-plot(result.forecast.test,ylim=c(y.min,y.max),ylab="",main=chart.title,xlab="")   
+plot(result.forecast.test,ylim=c(y.min,y.max),ylab="",main=chart.title,xlab="",lwd="4")   
 par(new=T)
-plot(tmp.forecast[,2],type="l",col="2", ylim=c(y.min,y.max),ylab="",xlab="")   
+plot(tmp.forecast[,2],type="l",col="2", ylim=c(y.min,y.max),ylab="",xlab="",lwd="4")   
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=forecast.html,append=T)
 ######################################forecastパート######################################    
@@ -1177,7 +1181,7 @@ maintitle.first<-format(first(index(objectDataset.xts.diff)),"%Y-%m")
 maintitle.last<-format(last(index(objectDataset.xts.diff)),"%Y-%m")
 chart.TimeSeries(objectDataset.xts.diff[,1],main=paste("1stDiff\n",maintitle.first,"-",maintitle.last,"\n",keyposition.id),yaxis.right=F,type="h",lwd="4",legend.loc="bottomleft",color="blue",cex.main=5,cex.legend=3,cex.lab=2,cex.axis=3,ylab="") 
 par(new=T)      
-chart.TimeSeries(objectDataset.xts.diff[,2],main="",type="h",lwd="2",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
+chart.TimeSeries(objectDataset.xts.diff[,2],main="",type="h",lwd="4",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.axis=3)
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=multianalysis.html,append=T)
 ######################################cointegパート ######################################    
