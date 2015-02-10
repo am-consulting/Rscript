@@ -54,7 +54,9 @@ fun.individual<-function(tmp,monthly){
     #omit part  
     #共通列名変更  
     colnames(dataset[[cnt]])[2]<-gsub("\\.億円","",colnames(dataset[[cnt]])[2], perl=T)  
-    colnames(dataset[[cnt]])[2]<-gsub("\\.q\\.","",colnames(dataset[[cnt]])[2], perl=T)#ETF購入  
+    colnames(dataset[[cnt]])[2]<-gsub("\\.q\\.","",colnames(dataset[[cnt]])[2], perl=T)#ETF購入 
+    colnames(dataset[[cnt]])[2]<-gsub("\\.\\.","\\.",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
+    colnames(dataset[[cnt]])[2]<-gsub("X\\.","",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
     #共通列名変更  
     dataset[[cnt]]<<-dataset[[cnt]] #caution.gloval variable
     print(head(dataset[[cnt]],2))
@@ -83,11 +85,8 @@ fun.common<-function(ppp,iii,ttt){#現在、時系列チャートチャンクの
     tmp.0[1,2]<-last(tmp.1)[1]
   }
   tmp.1<<-tmp.1 #caution
-#  print(head(tmp.1,3))
   tmp.0<<-tmp.0 #caution
-#  print(head(tmp.0,3))
   tmp.date<<-tmp.date #caution
-#  print(tmp.date)
 }
 ##make dataset.tm[[x]]
 timeline[[1]]<-c(
@@ -170,7 +169,6 @@ for(ttt in 1:4){
   dataset.tm[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
   dataset.tm[[ttt]][,3]<-ordered(dataset.tm[[ttt]][,3],levels=dataset.tm[[ttt]][,3][1:nrow(dataset.tm[[ttt]])])
   order(dataset.tm[[ttt]][,3])
-#  print(head(dataset.tm[[ttt]],3))
 }
 #Convert dataframe to xts
 fun.convert<-function(){
@@ -207,10 +205,10 @@ fun.yeartoyear<-function(){
         tmp<-subset(tmp,is.nan(tmp[,1])==F)
         
         dataset.xts.yy[[ddd]]<-tmp
-        colnames(dataset.xts.yy[[ddd]])<-paste("YoYchange.percent.",colnames(dataset.xts.yy[[ddd]]),sep="")
+        colnames(dataset.xts.yy[[ddd]])<-paste("YoY_pc_",colnames(dataset.xts.yy[[ddd]]),sep="")
         dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
         if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
-        colnames(all.data.xts.yy[[1]])<-paste("YoYchange.percent.",colnames(all.data.xts.yy[[1]]),sep="")
+        colnames(all.data.xts.yy[[1]])<-paste("YoY_pc_",colnames(all.data.xts.yy[[1]]),sep="")
         dataset.xts.yy[[ddd]]<<-dataset.xts.yy[[ddd]]
         colnames(dataset.yy[[ddd]])[1]<-"Date"
         dataset.yy[[ddd]]<<-dataset.yy[[ddd]]
@@ -225,7 +223,7 @@ fun.yeartoyear<-function(){
 fun.gettitle<-function(){
   gettitle<-colnames(tmp.1)[2]
   gettitle<-gsub("YoYchange.percent.","YoYchange.percent\n",gettitle, perl=T)
-  gettitle<-sub("\\.", "\n", gettitle)
+  gettitle<-sub("\\.", "\n", gettitle)#最初のドットのみとする
   if(monthly==1){
     gettitle<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",gettitle)
   }else{
@@ -244,10 +242,10 @@ fun.omit<-function(tmp.omit){#都度必要に応じて利用
 #read data from bank of japan as data frame
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-1
+plot.type<-2
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
-level.multi<-(-4)
+level.multi<-(0)
 if(exe==1){
   folder.name<-c("BOJdata")
   folder.path<-file.path(path,folder.name)
@@ -448,6 +446,9 @@ for(iii in 1:length(obj)){
         fun.omit(tmp.1)
         tmp.1<-tmp.omit
         y0<-min(tmp.1[,2])
+        if(0<y0 && ppp==2){
+          y0<-0
+        }
         y1<-max(tmp.1[,2])
         shade<-data.frame(x0,x1,y0,y1)
         shade<<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
@@ -462,7 +463,7 @@ for(iii in 1:length(obj)){
             g<-g+geom_line(data=tmp.1,aes(x=Date,y=value),size=2)
           }else{
             g<-g+geom_bar(data=tmp.1,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
-          } #geom_bar:データが全てプラス値の場合、表示されない
+          } #geom_bar:データが全てプラス値の場合、表示されない←y0<-0で解決
         }else{
           g<-g+geom_bar(data=tmp.1,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
         }
@@ -498,10 +499,8 @@ fun.withkeyposition<-function(){
 for(ttt in ttt.range){
   if(chk==0){
     if(ppp==1){
-#      tmp.0<-subset(dataset[[obj[iii]]],as.Date(first.date[ttt])<=dataset[[obj[iii]]][,1])
       tmp.0<-dataset[[obj[iii]]]
     }else{
-#      tmp.0<-subset(dataset.yy[[obj[iii]]],as.Date(first.date[ttt])<=dataset.yy[[obj[iii]]][,1])
       tmp.0<-dataset.yy[[obj[iii]]]
     }
     chk<-1
@@ -534,11 +533,13 @@ for(ttt in ttt.range){
 ######################################引数設定パート######################################    
 exe.garch<-1
 exe.return<-1
+exe.msm<-1
+exe.setar<-1
 setwd(path03)
 if(monthly==1){
   acf.lag<-12*5#オリジナルデータの長さに注意
 }else{
-  acf.lag<-365*15
+  acf.lag<-365*10
 }
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 chk.csv<-0
@@ -548,6 +549,8 @@ chk.acf<-0
 chk.forecast<-0
 chk.return<-0
 chk.garch<-0
+chk.msm<-0
+chk.setar<-0
 if(ttt.range[1]==1){
   ttt.diff<-2
 }else{
@@ -597,11 +600,10 @@ if(tmp0==1){#条件分岐001
     multi<-1
   )
   tmp.1[,2]<-tmp.1[,2]*multi
-#現在titleはboxplotグラフ内のグラフタイトルと単位根検定結果内のタイトルとしてのみ利用    
-  fun.gettitle()
 ###################################### 共 通 パート ######################################
 ###################################### table パート ######################################    
 #なおtmp.table[,2]<-format(tmp.table[,2],big.mark=",",scientific=F)とするとcsvのseparating commaを誤認識する
+fun.gettitle()
 tmp.table<-tmp.1
 fun.omit(tmp.table)  
 tmp.table<-tmp.omit
@@ -620,11 +622,9 @@ tmp.table<-head(tmp.table,24) # 180 365
 rownames(tmp.table)<-NULL    
 if(monthly==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
 #output csv file
-#csv.file.name<-paste(js.title[[iii]],id,ppp,iii,".csv",sep="")    
 csv.file.name<-paste(js.title[[iii]],ppp,iii,".csv",sep="")    
 write.csv(tmp.table[,1:2],csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 #output csv tablelist js
-#csv.id<-paste(js.title[[iii]],"csv",id,ppp,iii,sep="")
 csv.id<-paste(js.title[[iii]],"csv",ppp,iii,sep="")
 cat(paste("document.write('<div id=\"",csv.id,"\"></div>\');\n",sep=""),file=js.file.table.list,append=T)
 #output csv js
@@ -648,7 +648,6 @@ cat("\n});\n\n",file=js.file.name.table,append=T)
 data.id<-"boxplot"
 #javascript part for boxplot
 if(ppp==1 && chk.box==0){
-#  boxplot.html<-paste(js.title[[iii]],data.id,id,".html",sep="")
   boxplot.html<-paste(js.title[[iii]],data.id,".html",sep="")
   js.file.name.boxplot<-paste(js.title[[iii]],".external03.js",sep="")
   cat("\n",file=boxplot.html,append=F)      
@@ -662,7 +661,6 @@ if(ppp==1 && chk.box==0){
   cat("\n});\n\n",file=js.file.name.boxplot,append=T) 
 }
 for(ttt in ttt.range){    
-#  png.file<-paste(js.title[[iii]],data.id,id,ppp,iii,ttt,".png",sep="")  
   png.file<-paste(js.title[[iii]],data.id,ppp,iii,ttt,".png",sep="")  
   png(file=png.file,width=1400,height=1200)   
   tmp.boxplot<-tmp.1[,c(2,ttt+ttt.diff)]
@@ -684,11 +682,13 @@ for(ttt in ttt.range){
 ###################################### boxplotパート######################################
 #以降で適用するデータフレーム  
 if(monthly==1){
-  data.lag<-12*5#オリジナルデータの長さに注意
+  data.lag<-12*10#オリジナルデータの長さに注意
+  tmp.1<-tail(tmp.1,data.lag)  
 }else{
-  data.lag<-365*5
+  data.lag<-as.Date(paste(year(Sys.Date())-5,"-",month(Sys.Date()),"-",day(Sys.Date()),sep=""))
+  tmp.1<-subset(tmp.1,data.lag<=tmp.1[,1])  
 }   
-tmp.1<-tail(tmp.1,data.lag)  
+fun.gettitle()
 ######################################unitrootパート######################################    
 data.id<-"unitroot"
 #javascript part for unitroot
@@ -704,7 +704,6 @@ if(ppp==1 && chk.unitroot==0){
 #javascript part for unitroot      
 tmp.unitroot<-tmp.1[,c(1:2)]
 if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
-#  unitroot.html<-paste(js.title[[iii]],data.id,id,ppp,iii,".html",sep="")  
   unitroot.html<-paste(js.title[[iii]],data.id,ppp,iii,".html",sep="")  
   cat("\n<div align=\"center\"><b>",gettitle,"</b></div>","\n",file=unitroot.html,append=F)      
   fun.omit(tmp.unitroot)
@@ -737,7 +736,6 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
 #javascript part for unitroot
   cat("\n\n$(function() {",file=js.file.name.unitroot,append=T)
   cat(paste("\n$.get('http://archive.am-consulting.co.jp/",unitroot.html,add.ver,"', function(data) {",sep=""),file=js.file.name.unitroot,append=T)
-#  cat(paste("\n$('#",data.id,id,ppp,iii,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.unitroot,append=T)
   cat(paste("\n$('#",data.id,ppp,iii,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.unitroot,append=T)
   cat("\n});",file=js.file.name.unitroot,append=T)
   cat("\n});\n\n",file=js.file.name.unitroot,append=T) 
@@ -747,7 +745,6 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
   colnames(tmp.unitroot.xts)[1]<-paste(tmp.xts.title,".レベル",sep="")
   tmp.unitroot.xts.diff<-diff(tmp.unitroot.xts)
   colnames(tmp.unitroot.xts.diff)[1]<-paste(tmp.xts.title,".1次階差",sep="")
-#  png.file<-paste(js.title[[iii]],data.id,id,ppp,iii,".png",sep="")    
   png.file<-paste(js.title[[iii]],data.id,ppp,iii,".png",sep="")    
   png(file=png.file,width=1400,height=1200)
   par(mar=c(7, 5, 5, 5))
@@ -763,7 +760,6 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
   chart.TimeSeries(tmp.unitroot.xts.diff,main="",type="h",lwd="4",color="red",xaxis=F,yaxis.right=T,legend.loc="topright",cex.legend=3,ylab="",cex.lab=4,cex.axis=4)
   dev.off()
   #output unitroot js  
-#  cat(paste("document.write('<div id=\"",data.id,id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.root.list,append=T)
   cat(paste("document.write('<div id=\"",data.id,ppp,iii,"\"></div>\');\n",sep=""),file=js.file.root.list,append=T)
   cat(paste("document.write('<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\" alt=\"\" width=\"100%\">\');\n",sep=""),file=js.file.root.list,append=T)   
   cat("document.write('<hr>\');\n",file=js.file.root.list,append=T) 
@@ -773,7 +769,6 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
 data.id<-"acf"
 #javascript part for acf
 if(ppp==1 && chk.acf==0){
-#  acf.html<-paste(js.title[[iii]],data.id,id,".html",sep="")   
   acf.html<-paste(js.title[[iii]],data.id,".html",sep="")   
   js.file.name.acf<-paste(js.title[[iii]],".external05.js",sep="")
   cat("\n",file=acf.html,append=F)
@@ -791,7 +786,6 @@ if(ppp==1 && chk.acf==0){
 tmp.acf<-tmp.1[,c(1:2)]
 fun.omit(tmp.acf)  
 tmp.acf<-tmp.omit
-#png.file<-paste(js.title[[iii]],data.id,id,ppp,iii,".png",sep="")      
 png.file<-paste(js.title[[iii]],data.id,ppp,iii,".png",sep="")      
 png(file=png.file,width=1400,height=1200) 
 par(mar=c(9, 7, 15, 4))
@@ -808,14 +802,10 @@ dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=acf.html,append=T)
 ######################################  acf  パート ######################################    
 ######################################forecastパート######################################    
-####テスト用####  
-#test<-0
-#if(test==1){      
-####テスト用####  
+if(ppp==1){  
 data.id<-"forecast"
 #javascript part for forecast
 if(ppp==1 && chk.forecast==0){ 
-#  forecast.html<-paste(js.title[[iii]],data.id,id,".html",sep="")
   forecast.html<-paste(js.title[[iii]],data.id,".html",sep="")
   js.file.name.forecast<-paste(js.title[[iii]],".external06.js",sep="")
   cat("\n",file=forecast.html,append=F)
@@ -823,7 +813,7 @@ if(ppp==1 && chk.forecast==0){
   if(dataset.type==1){
     chk.forecast=1
   }
-  cat("\n\n$(function() {",file=js.file.name.forecast,append=F)
+  cat("\n\n$(function() {",file=js.file.name.forecast,append=T)
   cat(paste("\n$.get('http://archive.am-consulting.co.jp/",forecast.html,add.ver,"', function(data) {",sep=""),file=js.file.name.forecast,append=T)
   cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.forecast,append=T)
   cat("\n});",file=js.file.name.forecast,append=T)
@@ -835,7 +825,6 @@ tmp.forecast<-tmp.1[,c(1:2)]
 fun.omit(tmp.forecast)
 tmp.forecast<-tmp.omit  
 forecast.interval<-floor(length(tmp.forecast[,2])/10)
-#png.file<-paste(js.title[[iii]],data.id,"future",id,ppp,iii,".png",sep="")    
 png.file<-paste(js.title[[iii]],data.id,"future",ppp,iii,".png",sep="")    
 png(file=png.file,width=1400,height=1200) 
 par(mar=c(5, 7, 15, 4))
@@ -856,7 +845,6 @@ cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\""
 #test
 y.min<-min(tmp.forecast[,2],min(result.forecast$lower[,3]))  
 y.max<-max(tmp.forecast[,2],max(result.forecast$upper[,3]))  
-#png.file<-paste(js.title[[iii]],data.id,"test",id,ppp,iii,".png",sep="")    
 png.file<-paste(js.title[[iii]],data.id,"test",ppp,iii,".png",sep="")    
 png(file=png.file,width=1400,height=1200) 
 par(mar=c(5, 7, 18, 4))
@@ -877,6 +865,7 @@ par(new=T)
 plot(tmp.forecast[,2],type="l",col="2", ylim=c(y.min,y.max),ylab="",xlab="",lwd="4")   
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=forecast.html,append=T)
+}  
 ######################################forecastパート######################################    
 ######################################returnfitting ###################################### 
 if(exe.return==1){  
@@ -884,15 +873,14 @@ if(ppp==1){
 data.id<-"return"
 #javascript part
 if(ppp==1 && chk.return==0){
-#  return.html<-paste(js.title[[iii]],data.id,id,".html",sep="")
   return.html<-paste(js.title[[iii]],data.id,".html",sep="")
   js.file.name.return<-paste(js.title[[iii]],".external07.js",sep="")
   cat("\n",file=return.html,append=F)
   cat("\n",file=js.file.name.return,append=F)
   if(dataset.type==1){
-  chk.forecast=1
+  chk.return=1
   }
-  cat("\n\n$(function() {",file=js.file.name.return,append=F)
+  cat("\n\n$(function() {",file=js.file.name.return,append=T)
   cat(paste("\n$.get('http://archive.am-consulting.co.jp/",return.html,add.ver,"', function(data) {",sep=""),file=js.file.name.return,append=T)
   cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.return,append=T)
   cat("\n});",file=js.file.name.return,append=T)
@@ -921,15 +909,13 @@ g<-g+theme(axis.title.x=element_text(size=40),axis.title.y=element_text(size=40)
 g<-g+theme(axis.text.x=element_text(size=40),axis.text.y=element_text(size=40)) 
 g<-g+ggtitle(paste("Returen of ",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e))
 g<-g+xlab("Return(%)")+ylab("Count")      
-#png.file<-paste(js.title[[iii]],data.id,id,ppp,iii,".png",sep="")     
 png.file<-paste(js.title[[iii]],data.id,ppp,iii,".png",sep="")     
 png(file=png.file,width=1400,height=1200) 
 plot(g)
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T) 
 tmp.data<-na.omit(tmp.fitting.return[,2]) 
-tmp.data<-subset(tmp.data,is.infinite(tmp.data)==F)  
-#png.file<-paste(js.title[[iii]],data.id,"qq",id,ppp,iii,".png",sep="")     
+#tmp.data<-subset(tmp.data,is.infinite(tmp.data)==F)  
 png.file<-paste(js.title[[iii]],data.id,"qq",ppp,iii,".png",sep="")     
 png(file=png.file,width=1400,height=1200) 
 par(mar=c(5, 5, 14, 2))      
@@ -937,13 +923,13 @@ qqnorm(tmp.data,main=paste("Normal Q-Q Plot Return of",colnames(tmp.fitting)[2],
 qqline(tmp.data,col="2",lwd="5") 
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T) 
-#png.file<-paste(js.title[[iii]],data.id,"cdf",id,ppp,iii,".png",sep="")     
 png.file<-paste(js.title[[iii]],data.id,"cdf",ppp,iii,".png",sep="")     
 png(file=png.file,width=1400,height=1200)
 par(mar=c(5, 5, 14, 2))     
 plot(ecdf(tmp.data),main=paste("Empirical distribution\nReturn of ",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e),cex.main=4,cex.legend=3,cex.lab=2,cex.axis=3)      
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T)
+cat("Caution:Return rates are calculated regardless of NSA or SA.",file=return.html,append=T)
 }
 }  
 ######################################returnfitting ######################################    
@@ -970,7 +956,6 @@ for(rrrr in 1:3){
     tmp.return.rank.table.plot<-tmp.fitting.return
     rank.title=paste("Time Series of Return\n",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e)
   }  
-#  png.file<-paste(js.title[[iii]],data.id,id,ppp,iii,rrrr,".png",sep="")     
   png.file<-paste(js.title[[iii]],data.id,ppp,iii,rrrr,".png",sep="")     
   png(file=png.file,width=1400,height=1200)       
   g<-ggplot(tmp.return.rank.table.plot,aes(x=Date,y=value))
@@ -996,7 +981,6 @@ for(rrrr in 1:3){
 }  
 ######################################  returnrank  ###################################### 
 ######################################  garch       ###################################### 
-if(exe.garch==1){
 data.id<-"garch"
 if(monthly==1){
   fit.ahead=12
@@ -1005,7 +989,6 @@ if(monthly==1){
 }  
 #javascript part
 if(ppp==1 && chk.garch==0){  
-#  garch.html<-paste(js.title[[iii]],data.id,id,".html",sep="")
   garch.html<-paste(js.title[[iii]],data.id,".html",sep="")
   js.file.name.garch<-paste(js.title[[iii]],".external08.js",sep="")
   cat("\n",file=garch.html,append=F)
@@ -1020,11 +1003,12 @@ if(ppp==1 && chk.garch==0){
   cat("\n});\n\n",file=js.file.name.garch,append=T) 
 }      
 #javascript part
-#png.file<-paste(js.title[[iii]],data.id,id,ppp,iii,".png",sep="")   
+if(exe.garch==1){
 png.file<-paste(js.title[[iii]],data.id,ppp,iii,".png",sep="")   
 png(file=png.file,width=1400,height=1200)
 par(mfrow=c(1, 1),ps=40)
 par(mar=c(5, 7, 10, 2))       
+fun.gettitle()  
 tmp.garch<-tmp.1[,c(1:2)]
 fun.omit(tmp.garch)  
 tmp.garch<-tmp.omit  
@@ -1051,25 +1035,37 @@ if(monthly==1){
 }else{
   date.f<-format(tmp.garch[1,1],"%Y-%m-%d")
   date.e<-format(tmp.garch[nrow(tmp.garch),1],"%Y-%m-%d")
-}   
-cat(paste("\n<div align=\"center\"><b>",tmp.garch.result@title,"\n",tmp.garch.result@method,"\n",colnames(tmp.garch)[2],"\nfrom ",date.f," to ",date.e,"</b></div>"),file=garch.html,append=T)      
+}  
+cat(paste("\n<div align=\"center\"><b>",tmp.garch.result@title,"\n",tmp.garch.result@method,"\n",gettitle,"</b></div>"),file=garch.html,append=T)      
 cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=garch.html,append=T) 
 dev.off()
 }
 ######################################  garch       ###################################### 
-##################################マルコフ転換モデル######################################    
-cat("<div align=\"center\"><b>Markov Switching Models\npowered by R package 'MSwM' - msmFit()\n",file=garch.html,append=T)
-date.f<-tmp.1[1,1]    
-date.e<-tmp.1[nrow(tmp.1),1]    
-if(monthly==1){
-  date.f<-format(date.f,"%Y-%m")    
-  date.e<-format(date.e,"%Y-%m")    
-}
-cat(paste(date.f,"-",date.e,"</b></div>\n"),file=garch.html,append=T)
+##################################マルコフ転換モデル######################################
+data.id<-"msm"
+#javascript part
+if(ppp==1 && chk.msm==0){  
+  msm.html<-paste(js.title[[iii]],data.id,".html",sep="")
+  js.file.name.msm<-paste(js.title[[iii]],".external09.js",sep="")
+  cat("\n",file=msm.html,append=F)
+  cat("\n",file=js.file.name.msm,append=F)
+  if(dataset.type==1){
+    chk.msm<-1
+  }
+  cat("\n\n$(function() {",file=js.file.name.msm,append=F)
+  cat(paste("\n$.get('http://archive.am-consulting.co.jp/",msm.html,add.ver,"', function(data) {",sep=""),file=js.file.name.msm,append=T)
+  cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.msm,append=T)
+  cat("\n});",file=js.file.name.msm,append=T)
+  cat("\n});\n\n",file=js.file.name.msm,append=T) 
+}      
+#javascript part  
+if(exe.msm==1){
+cat("<div align=\"center\"><b>Markov Switching Models\npowered by R package 'MSwM' - msmFit()\n",file=msm.html,append=T)
 x<-seq(1:nrow(tmp.1))    
 tmp.msm<-data.frame(x,y=tmp.1[,2])
 tmp.msm.lm<-lm(y~x,tmp.msm)
 result.msm<-msmFit(tmp.msm.lm,k=2,p=0,sw=rep(T,length(tmp.msm)+1))# k(bull or bear)   
+cat(paste("\n<div align=\"center\"><b>",gettitle,"</b></div>"),file=msm.html,append=T)      
 for(qqqq in 1:(length(tmp.msm)+1)){
   png.file<-paste(js.title[[iii]],"msm",ppp,iii,qqqq,".png",sep="")
   png(file=png.file,width=1400,height=1200)
@@ -1077,10 +1073,33 @@ for(qqqq in 1:(length(tmp.msm)+1)){
   par(mar=c(9, 7, 15, 4))
   plotProb(result.msm,which=qqqq)
   dev.off() 
-  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=garch.html,append=T)
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=msm.html,append=T)
+}
 }  
 ##################################マルコフ転換モデル###################################### 
 ############### Self-Exciting Threshold AutoRegressive models ############################  
+if(ppp==1){  
+data.id<-"setar"
+#javascript part
+if(ppp==1 && chk.setar==0){  
+  setar.html<-paste(js.title[[iii]],data.id,".html",sep="")
+  js.file.name.setar<-paste(js.title[[iii]],".external010.js",sep="")
+  cat("\n",file=setar.html,append=F)
+  cat("\n",file=js.file.name.setar,append=F)
+  if(dataset.type==1){
+    chk.setar<-1
+  }
+  cat("\n\n$(function() {",file=js.file.name.setar,append=F)
+  cat(paste("\n$.get('http://archive.am-consulting.co.jp/",setar.html,add.ver,"', function(data) {",sep=""),file=js.file.name.setar,append=T)
+  cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.setar,append=T)
+  cat("\n});",file=js.file.name.setar,append=T)
+  cat("\n});\n\n",file=js.file.name.setar,append=T) 
+}      
+#javascript part  
+if(exe.setar==1){
+cat("<div align=\"center\"><b>Self-Exciting Threshold AutoRegressive models\npowered by R package 'tsDyn' - setar()<b></div>\n",file=setar.html,append=T)
+cat("Caution:\nThe time series data may have unit roots.\n",file=setar.html,append=T)
+cat(paste("\n<div align=\"center\"><b>",gettitle,"</b></div>"),file=setar.html,append=T)      
 result.setar<-setar(tmp.1[,2],mL=2,mM=2,mH=2,nthresh=2,thDelay=0)#ARモデルの次数は都度検討すること
 png.file<-paste(js.title[[iii]],"setar",ppp,iii,".png",sep="")
 png(file=png.file,width=1400,height=1200)    
@@ -1088,12 +1107,11 @@ par(ps=30)
 par(mar=c(9, 7, 15, 4))
 plot(result.setar,ask=FALSE)
 dev.off()
-cat("<div align=\"center\"><b>Self-Exciting Threshold AutoRegressive models\npowered by R package 'tsDyn' - setar()<b></div>\n",file=garch.html,append=T)
-cat("Caution:\nThe time series data may have unit roots.\n",file=garch.html,append=T)
-cat(paste(date.f,"-",date.e,"</b></div>\n"),file=garch.html,append=T)  
-cat("Proportion of points in\n",file=garch.html,append=T)
-cat(paste("low regime:",round(result.setar$model.specific$RegProp[1]*100,digits=2),"%\nMiddle regime:",round(result.setar$model.specific$RegProp[2]*100,digits=2),"%\nHigh regime:",round(result.setar$model.specific$RegProp[3]*100,digits=2),"%\n",sep=""),file=garch.html,append=T)     
-  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=garch.html,append=T)
+cat("Proportion of points in\n",file=setar.html,append=T)
+cat(paste("low regime:",round(result.setar$model.specific$RegProp[1]*100,digits=2),"%\nMiddle regime:",round(result.setar$model.specific$RegProp[2]*100,digits=2),"%\nHigh regime:",round(result.setar$model.specific$RegProp[3]*100,digits=2),"%\n",sep=""),file=setar.html,append=T)     
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=setar.html,append=T)
+}
+}  
 ############### Self-Exciting Threshold AutoRegressive models ############################  
 ####テスト用####  
 #      }
