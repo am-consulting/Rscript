@@ -14,6 +14,7 @@ add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.
 ```
 
 ```{r}
+username<-Sys.info()['user']
 dataTime<-Sys.time()
 path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path02)
@@ -21,7 +22,6 @@ output.html<-"earthquake.html"
 cat("",file=output.html,append=F) 
 data.location<-2 #1:local 2:web
 data.file<-"all_month.csv"
-username<-Sys.info()['user']
 if(data.location==1){
   path01<-paste("C:/Users/",username,"/Desktop/Earthquake_Data/",sep="")
   dataset<-read.table(file=paste(path01,data.file,sep=""),sep=",",header=T,as.is=T,skip=0)
@@ -118,7 +118,7 @@ map2d<-map(xlim=c(lon.range[1],lon.range[2]),ylim=c(lat.range[1],lat.range[2]))
 map2d<-as.data.frame(map2d[c("x","y")])
 map2d<-cbind(map2d,z=z.min)
 png.file<-"earthquakejapan03.png"
-png(file=png.file,width=1400,height=1200)
+png(file=png.file,width=1400,height=1000)
 par(ps=40)
 ppp<-1
 for(ccc in 1:length(map2d[,1])){

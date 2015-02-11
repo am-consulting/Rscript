@@ -314,10 +314,9 @@ yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
   ts.source<-list()
-  ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA")
-  ts.source[[1]]<-c("FRED",1,"DEXKOUS")
-  #,"NASDAQ100","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS")#,"DEXCAUS","DEXCHUS","DEXINUS","DEXBZUS","DEXMXUS","DEXUSNZ","DEXTHUS","DEXTAUS","DEXSIUS","DEXMAUS","DEXSDUS","DEXHKUS","DEXDNUS","DEXSLUS" UNRATE CPIAUCSL HOUSTNSA EXJPUS 
-#  ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS")#,"DEXCAUS","DEXCHUS","DEXINUS","DEXBZUS","DEXMXUS","DEXUSNZ","DEXTHUS","DEXTAUS","DEXSIUS","DEXMAUS","DEXSDUS","DEXHKUS","DEXDNUS","DEXSLUS" UNRATE CPIAUCSL HOUSTNSA EXJPUS 
+  ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100")
+  ts.source[[1]]<-c("FRED",1,"DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ")
+# UNRATE CPIAUCSL HOUSTNSA EXJPUS 
 #  ts.source[[1]]<-c("FRED",1,"M2V","A191RL1Q225SBEA")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
 #  ts.source[[1]]<-c("FRED",1,"EXJPUS")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
   for(lll in 1:length(ts.source)){
@@ -393,6 +392,7 @@ if(exe==1){
   tmp[,1]<-as.Date(tmp[,1])
   FUN.1<-function(x) as.numeric(x)
   tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
+  colnames(tmp)[2:length(tmp)]<-paste("JGB.",gsub("X","",colnames(tmp)[2:length(tmp)]),"year",sep="")
   tmp<-tmp[,c(1,11)]#10年物のみを抽出
   fun.individual(tmp,monthly)
 }
@@ -915,7 +915,6 @@ plot(g)
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T) 
 tmp.data<-na.omit(tmp.fitting.return[,2]) 
-#tmp.data<-subset(tmp.data,is.infinite(tmp.data)==F)  
 png.file<-paste(js.title[[iii]],data.id,"qq",ppp,iii,".png",sep="")     
 png(file=png.file,width=1400,height=1200) 
 par(mar=c(5, 5, 14, 2))      
@@ -923,13 +922,15 @@ qqnorm(tmp.data,main=paste("Normal Q-Q Plot Return of",colnames(tmp.fitting)[2],
 qqline(tmp.data,col="2",lwd="5") 
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T) 
-png.file<-paste(js.title[[iii]],data.id,"cdf",ppp,iii,".png",sep="")     
-png(file=png.file,width=1400,height=1200)
-par(mar=c(5, 5, 14, 2))     
-plot(ecdf(tmp.data),main=paste("Empirical distribution\nReturn of ",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e),cex.main=4,cex.legend=3,cex.lab=2,cex.axis=3)      
-dev.off()
-cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T)
-cat("Caution:Return rates are calculated regardless of NSA or SA.",file=return.html,append=T)
+eeeeeee<-0#一旦中止
+if(eeeeeee==1){
+  png.file<-paste(js.title[[iii]],data.id,"cdf",ppp,iii,".png",sep="")     
+  png(file=png.file,width=1400,height=1200)
+  par(mar=c(5, 5, 14, 2))     
+  plot(ecdf(tmp.data),main=paste("Empirical distribution\nReturn of ",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e),cex.main=4,cex.legend=3,cex.lab=2,cex.axis=3)      
+  dev.off()
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=return.html,append=T)
+}  
 }
 }  
 ######################################returnfitting ######################################    
@@ -945,7 +946,7 @@ if(monthly==1){
 return.rank<-order(tmp.return.rank.table[,2])      
 tmp.return.rank.table<-tmp.return.rank.table[return.rank,]
 tmp.return.rank.table[,1]<-ordered(tmp.return.rank.table[,1],levels=tmp.return.rank.table[,1][1:length(tmp.return.rank.table[,1])])
-for(rrrr in 1:3){      
+for(rrrr in 1:2){#3の時系列チャートは一旦中止      
   if(rrrr==1){
     tmp.return.rank.table.plot<-head(tmp.return.rank.table,10)
     rank.title=paste("Top 10 of Return:Plunge\n",colnames(tmp.fitting)[2],"\nfrom ",date.f," to ",date.e)
@@ -981,6 +982,7 @@ for(rrrr in 1:3){
 }  
 ######################################  returnrank  ###################################### 
 ######################################  garch       ###################################### 
+if(ppp==1){  
 data.id<-"garch"
 if(monthly==1){
   fit.ahead=12
@@ -1040,8 +1042,10 @@ cat(paste("\n<div align=\"center\"><b>",tmp.garch.result@title,"\n",tmp.garch.re
 cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=garch.html,append=T) 
 dev.off()
 }
+}
 ######################################  garch       ###################################### 
 ##################################マルコフ転換モデル######################################
+if(ppp==1){
 data.id<-"msm"
 #javascript part
 if(ppp==1 && chk.msm==0){  
@@ -1064,9 +1068,9 @@ cat("<div align=\"center\"><b>Markov Switching Models\npowered by R package 'MSw
 x<-seq(1:nrow(tmp.1))    
 tmp.msm<-data.frame(x,y=tmp.1[,2])
 tmp.msm.lm<-lm(y~x,tmp.msm)
-result.msm<-msmFit(tmp.msm.lm,k=2,p=0,sw=rep(T,length(tmp.msm)+1))# k(bull or bear)   
+result.msm<-msmFit(tmp.msm.lm,k=2,p=0,sw=rep(T,length(tmp.msm)+1))# k(example bull or bear)   
 cat(paste("\n<div align=\"center\"><b>",gettitle,"</b></div>"),file=msm.html,append=T)      
-for(qqqq in 1:(length(tmp.msm)+1)){
+for(qqqq in 2:(length(tmp.msm)+1)){#1は一旦中止
   png.file<-paste(js.title[[iii]],"msm",ppp,iii,qqqq,".png",sep="")
   png(file=png.file,width=1400,height=1200)
   par(ps=40)
@@ -1075,7 +1079,8 @@ for(qqqq in 1:(length(tmp.msm)+1)){
   dev.off() 
   cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=msm.html,append=T)
 }
-}  
+}
+}
 ##################################マルコフ転換モデル###################################### 
 ############### Self-Exciting Threshold AutoRegressive models ############################  
 if(ppp==1){  
