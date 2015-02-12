@@ -33,7 +33,7 @@ js.title<-list()
 #parameter
 username<-Sys.info()['user']
 path<-paste("C:/Users/",username,"/Desktop",sep="")
-path03<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 cnt<-0
 #functions
 ##separate data into individual datasets
@@ -404,7 +404,7 @@ dataset.type<-0 #0:single,1:multi
 
 ```{r}
 #時系列チャート作成チャンク
-setwd(path03)
+setwd(pathOutput)
 level.type<-1
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 chk.j<-0
@@ -535,7 +535,7 @@ exe.garch<-1
 exe.return<-1
 exe.msm<-1
 exe.setar<-1
-setwd(path03)
+setwd(pathOutput)
 if(monthly==1){
   acf.lag<-12*5#オリジナルデータの長さに注意
 }else{
@@ -1128,7 +1128,7 @@ cat(paste("low regime:",round(result.setar$model.specific$RegProp[1]*100,digits=
 
 ```{r}
 #MULTIVARIATEDATAANALYSIS
-setwd(path03)
+setwd(pathOutput)
 ######################################引数設定パート######################################    
 ttt.range<-c(1:2)
 analysis.id<-"MULTIVARIATEDATAANALYSIS"
