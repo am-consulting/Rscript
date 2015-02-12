@@ -236,6 +236,39 @@ fun.omit<-function(tmp.omit){#都度必要に応じて利用
   tmp.omit<-na.omit(tmp.omit)
   tmp.omit<<-tmp.omit
 }  
+fun.withkeyposition<-function(){
+#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+for(ttt in ttt.range){
+  if(chk==0){
+    if(ppp==1){
+      tmp.0<-dataset[[obj[iii]]]
+    }else{
+      tmp.0<-dataset.yy[[obj[iii]]]
+    }
+    chk<-1
+  }
+  if(nrow(tmp.0)!=0){
+    for(jjj in 1:nrow(tmp.0)){
+      for(kkk in seq(nrow(dataset.tm[[ttt]]),1,by=-1)){
+        if(dataset.tm[[ttt]][kkk,1]<=tmp.0[jjj,1] & tmp.0[jjj,1]<=dataset.tm[[ttt]][kkk,2]){
+          tmp.0[jjj,ttt+ttt.diff]<-dataset.tm[[ttt]][kkk,3]
+          break
+        }  
+      }
+    }
+    if(ttt==2){colnames(tmp.0)[ttt.diff+1]<-"PM";colnames(tmp.0)[ttt.diff+2]<-"BoJ"}
+    if(ttt==4){colnames(tmp.0)[ttt.diff+3]<-"U.S.A";colnames(tmp.0)[ttt.diff+4]<-"FRB"}
+    tmp0<-1
+  }else{
+    tmp0<-0
+  }
+  tmp.0<-na.omit(tmp.0)
+  tmp.0<<-tmp.0  
+  tmp0<<-tmp0 
+  ttt<<-ttt
+}
+#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+}
 ```
 
 ```{r}
@@ -494,42 +527,6 @@ for(iii in 1:length(obj)){
 ```
 
 ```{r}
-fun.withkeyposition<-function(){
-#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
-for(ttt in ttt.range){
-  if(chk==0){
-    if(ppp==1){
-      tmp.0<-dataset[[obj[iii]]]
-    }else{
-      tmp.0<-dataset.yy[[obj[iii]]]
-    }
-    chk<-1
-  }
-  if(nrow(tmp.0)!=0){
-    for(jjj in 1:nrow(tmp.0)){
-      for(kkk in seq(nrow(dataset.tm[[ttt]]),1,by=-1)){
-        if(dataset.tm[[ttt]][kkk,1]<=tmp.0[jjj,1] & tmp.0[jjj,1]<=dataset.tm[[ttt]][kkk,2]){
-          tmp.0[jjj,ttt+ttt.diff]<-dataset.tm[[ttt]][kkk,3]
-          break
-        }  
-      }
-    }
-    if(ttt==2){colnames(tmp.0)[ttt.diff+1]<-"PM";colnames(tmp.0)[ttt.diff+2]<-"BoJ"}
-    if(ttt==4){colnames(tmp.0)[ttt.diff+3]<-"U.S.A";colnames(tmp.0)[ttt.diff+4]<-"FRB"}
-    tmp0<-1
-  }else{
-    tmp0<-0
-  }
-  tmp.0<-na.omit(tmp.0)
-  tmp.0<<-tmp.0  
-  tmp0<<-tmp0 
-  ttt<<-ttt
-}
-#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
-}
-```
-
-```{r}
 ######################################引数設定パート######################################    
 exe.garch<-1
 exe.return<-1
@@ -682,7 +679,7 @@ for(ttt in ttt.range){
 ###################################### boxplotパート######################################
 #以降で適用するデータフレーム  
 if(monthly==1){
-  data.lag<-12*10#オリジナルデータの長さに注意
+  data.lag<-12*20#オリジナルデータの長さに注意
   tmp.1<-tail(tmp.1,data.lag)  
 }else{
   data.lag<-as.Date(paste(year(Sys.Date())-5,"-",month(Sys.Date()),"-",day(Sys.Date()),sep=""))
@@ -1006,15 +1003,25 @@ if(ppp==1 && chk.garch==0){
 }      
 #javascript part
 if(exe.garch==1){
+tmp.garch<-tmp.1[,c(1:2)]
+fun.omit(tmp.garch)  
+tmp.garch<-tmp.omit  
+fun.calc.garch<-function(){
+  tmp.garch.result<-try(garchFit(~garch(1,1),data=tmp.garch[,2],trace=F))   
+  tmp.garch.result<<-tmp.garch.result
+}
+either.error<-try(fun.calc.garch(),silent=FALSE)
+if(class(either.error)!="try-error"){
+  goahead<-1                        
+}else{
+  goahead<-0                        
+}
+if(goahead==1){
 png.file<-paste(js.title[[iii]],data.id,ppp,iii,".png",sep="")   
 png(file=png.file,width=1400,height=1200)
 par(mfrow=c(1, 1),ps=40)
 par(mar=c(5, 7, 10, 2))       
 fun.gettitle()  
-tmp.garch<-tmp.1[,c(1:2)]
-fun.omit(tmp.garch)  
-tmp.garch<-tmp.omit  
-tmp.garch.result<-garchFit(~garch(1,1),data=tmp.garch[,2],trace=F)      
 predict(tmp.garch.result,n.ahead=fit.ahead,plot=T,nx=nrow(tmp.garch))
 #plot(tmp.garch.result)  
 #0      
@@ -1041,6 +1048,7 @@ if(monthly==1){
 cat(paste("\n<div align=\"center\"><b>",tmp.garch.result@title,"\n",tmp.garch.result@method,"\n",gettitle,"</b></div>"),file=garch.html,append=T)      
 cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=garch.html,append=T) 
 dev.off()
+}  
 }
 }
 ######################################  garch       ###################################### 
@@ -1102,10 +1110,20 @@ if(ppp==1 && chk.setar==0){
 }      
 #javascript part  
 if(exe.setar==1){
+fun.calc.setar<-function(){
+  result.setar<-setar(tmp.1[,2],mL=2,mM=2,mH=2,nthresh=2,thDelay=0)#ARモデルの次数は都度検討すること
+  result.setar<<-result.setar
+}
+either.error<-try(fun.calc.setar(),silent=FALSE)
+if(class(either.error)!="try-error"){
+  goahead<-1                        
+}else{
+  goahead<-0                        
+}  
+if(goahead==1){  
 cat("<div align=\"center\"><b>Self-Exciting Threshold AutoRegressive models\npowered by R package 'tsDyn' - setar()<b></div>\n",file=setar.html,append=T)
 cat("Caution:\nThe time series data may have unit roots.\n",file=setar.html,append=T)
 cat(paste("\n<div align=\"center\"><b>",gettitle,"</b></div>"),file=setar.html,append=T)      
-result.setar<-setar(tmp.1[,2],mL=2,mM=2,mH=2,nthresh=2,thDelay=0)#ARモデルの次数は都度検討すること
 png.file<-paste(js.title[[iii]],"setar",ppp,iii,".png",sep="")
 png(file=png.file,width=1400,height=1200)    
 par(ps=30)
@@ -1113,8 +1131,9 @@ par(mar=c(9, 7, 15, 4))
 plot(result.setar,ask=FALSE)
 dev.off()
 cat("Proportion of points in\n",file=setar.html,append=T)
-cat(paste("low regime:",round(result.setar$model.specific$RegProp[1]*100,digits=2),"%\nMiddle regime:",round(result.setar$model.specific$RegProp[2]*100,digits=2),"%\nHigh regime:",round(result.setar$model.specific$RegProp[3]*100,digits=2),"%\n",sep=""),file=setar.html,append=T)     
+cat(paste("low regime:",round(result.setar$model.specific$RegProp[1]*100,digits=2),"%\nMiddle regime:",round(result.setar$model.specific$RegProp[2]*100,digits=2),"%\nHigh regime:",round(result.setar$model.specific$RegProp[3]*100,digits=2),"%\nth1:",result.setar$coefficients[11],"\nth2:",result.setar$coefficients[10],"\n",sep=""),file=setar.html,append=T)     
   cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=setar.html,append=T)
+}
 }
 }  
 ############### Self-Exciting Threshold AutoRegressive models ############################  
