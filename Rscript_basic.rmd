@@ -36,59 +36,6 @@ path<-paste("C:/Users/",username,"/Desktop",sep="")
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 pathInput<-paste("C:/Users/",username,"/Desktop/inputR/",sep="")
 cnt<-0
-#functions
-##separate data into individual datasets
-fun.individual<-function(tmp,monthly){
-  for(ccc in 2:ncol(tmp)){
-    cnt<<-cnt+1 #caution.gloval variable
-    dataset[[cnt]]<-tmp[,c(1,ccc)]
-    dataset[[cnt]][,2]<-gsub("\\s", "",dataset[[cnt]][,2]) #remove space
-    dataset[[cnt]]<-subset(dataset[[cnt]],dataset[[cnt]][,2]!="") #remove blank row
-    dataset[[cnt]][,2]<-as.double(dataset[[cnt]][,2])
-    colnames(dataset[[cnt]])[1]<-"Date"
-    if(monthly==1){#月次データの日付は月末に変更
-      dataset[[cnt]][,1]<-as.Date(paste(year(dataset[[cnt]][,1]),"-",month(dataset[[cnt]][,1]),"-",days_in_month(dataset[[cnt]][,1]),sep=""))
-    }
-    #omit part  
-    dataset[[cnt]]<-subset(dataset[[cnt]],is.infinite(dataset[[cnt]][,2])!=T) 
-    dataset[[cnt]]<-na.omit(dataset[[cnt]])  
-    #omit part  
-    #共通列名変更  
-    colnames(dataset[[cnt]])[2]<-gsub("\\.億円","",colnames(dataset[[cnt]])[2], perl=T)  
-    colnames(dataset[[cnt]])[2]<-gsub("\\.q\\.","",colnames(dataset[[cnt]])[2], perl=T)#ETF購入 
-    colnames(dataset[[cnt]])[2]<-gsub("\\.\\.","\\.",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
-    colnames(dataset[[cnt]])[2]<-gsub("X\\.","",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
-    #共通列名変更  
-    dataset[[cnt]]<<-dataset[[cnt]] #caution.gloval variable
-    print(head(dataset[[cnt]],2))
-    print(tail(dataset[[cnt]],2))
-  }
-}
-##calculate for tmp.0,tmp.1 and tmp.date
-fun.common<-function(ppp,iii,ttt){#現在、時系列チャートチャンクのみで利用
-  if(ppp==1){
-    tmp.date<-max(as.Date(first.date[ttt]),na.omit(dataset[[obj[iii]]])[1,1])
-    tmp.1<-na.omit(subset(dataset[[obj[iii]]],tmp.date<=dataset[[obj[iii]]][,1]))
-  }else{
-    tmp.date<-max(as.Date(first.date[ttt]),na.omit(dataset.yy[[obj[iii]]])[1,1])
-    tmp.1<-na.omit(subset(dataset.yy[[obj[iii]]],tmp.date<=dataset.yy[[obj[iii]]][,1]))
-  }
-  for(kkk in seq(1,nrow(dataset.tm[[ttt]]),by=1)){
-    if(dataset.tm[[ttt]][kkk,1]<=tmp.date & tmp.date<=dataset.tm[[ttt]][kkk,2]){break}  
-  }
-  tmp.0<-dataset.tm[[ttt]][c(kkk:nrow(dataset.tm[[ttt]])),]
-  if(nrow(tmp.0)!=0){
-    tmp.0[1,1]<-tmp.date
-    tmp.0[nrow(tmp.0),2]<-last(tmp.1)[1]
-  }else{
-    tmp.0<-last(dataset.tm[[ttt]])
-    tmp.0[1,1]<-tmp.date
-    tmp.0[1,2]<-last(tmp.1)[1]
-  }
-  tmp.1<<-tmp.1 #caution
-  tmp.0<<-tmp.0 #caution
-  tmp.date<<-tmp.date #caution
-}
 ##make dataset.tm[[x]]
 timeline[[1]]<-c(
 "1946-5-22","吉田茂",
@@ -170,6 +117,59 @@ for(ttt in 1:4){
   dataset.tm[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
   dataset.tm[[ttt]][,3]<-ordered(dataset.tm[[ttt]][,3],levels=dataset.tm[[ttt]][,3][1:nrow(dataset.tm[[ttt]])])
   order(dataset.tm[[ttt]][,3])
+}
+####################################################### functions #######################################################
+##separate data into individual datasets
+fun.individual<-function(tmp,monthly){
+  for(ccc in 2:ncol(tmp)){
+    cnt<<-cnt+1 #caution.gloval variable
+    dataset[[cnt]]<-tmp[,c(1,ccc)]
+    dataset[[cnt]][,2]<-gsub("\\s", "",dataset[[cnt]][,2]) #remove space
+    dataset[[cnt]]<-subset(dataset[[cnt]],dataset[[cnt]][,2]!="") #remove blank row
+    dataset[[cnt]][,2]<-as.double(dataset[[cnt]][,2])
+    colnames(dataset[[cnt]])[1]<-"Date"
+    if(monthly==1){#月次データの日付は月末に変更
+      dataset[[cnt]][,1]<-as.Date(paste(year(dataset[[cnt]][,1]),"-",month(dataset[[cnt]][,1]),"-",days_in_month(dataset[[cnt]][,1]),sep=""))
+    }
+    #omit part  
+    dataset[[cnt]]<-subset(dataset[[cnt]],is.infinite(dataset[[cnt]][,2])!=T) 
+    dataset[[cnt]]<-na.omit(dataset[[cnt]])  
+    #omit part  
+    #共通列名変更  
+    colnames(dataset[[cnt]])[2]<-gsub("\\.億円","",colnames(dataset[[cnt]])[2], perl=T)  
+    colnames(dataset[[cnt]])[2]<-gsub("\\.q\\.","",colnames(dataset[[cnt]])[2], perl=T)#ETF購入 
+    colnames(dataset[[cnt]])[2]<-gsub("\\.\\.","\\.",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
+    colnames(dataset[[cnt]])[2]<-gsub("X\\.","",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
+    #共通列名変更  
+    dataset[[cnt]]<<-dataset[[cnt]] #caution.gloval variable
+    print(head(dataset[[cnt]],2))
+    print(tail(dataset[[cnt]],2))
+  }
+}
+##calculate for tmp.0,tmp.1 and tmp.date
+fun.common<-function(ppp,iii,ttt){#現在、時系列チャートチャンクのみで利用
+  if(ppp==1){
+    tmp.date<-max(as.Date(first.date[ttt]),na.omit(dataset[[obj[iii]]])[1,1])
+    tmp.1<-na.omit(subset(dataset[[obj[iii]]],tmp.date<=dataset[[obj[iii]]][,1]))
+  }else{
+    tmp.date<-max(as.Date(first.date[ttt]),na.omit(dataset.yy[[obj[iii]]])[1,1])
+    tmp.1<-na.omit(subset(dataset.yy[[obj[iii]]],tmp.date<=dataset.yy[[obj[iii]]][,1]))
+  }
+  for(kkk in seq(1,nrow(dataset.tm[[ttt]]),by=1)){
+    if(dataset.tm[[ttt]][kkk,1]<=tmp.date & tmp.date<=dataset.tm[[ttt]][kkk,2]){break}  
+  }
+  tmp.0<-dataset.tm[[ttt]][c(kkk:nrow(dataset.tm[[ttt]])),]
+  if(nrow(tmp.0)!=0){
+    tmp.0[1,1]<-tmp.date
+    tmp.0[nrow(tmp.0),2]<-last(tmp.1)[1]
+  }else{
+    tmp.0<-last(dataset.tm[[ttt]])
+    tmp.0[1,1]<-tmp.date
+    tmp.0[1,2]<-last(tmp.1)[1]
+  }
+  tmp.1<<-tmp.1 #caution
+  tmp.0<<-tmp.0 #caution
+  tmp.date<<-tmp.date #caution
 }
 #Convert dataframe to xts
 fun.convert<-function(){
@@ -270,6 +270,10 @@ for(ttt in ttt.range){
 }
 #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
 }
+####################################################### functions #######################################################
+####################################################### argument  #######################################################
+
+####################################################### argument  #######################################################
 ```
 
 ```{r}
@@ -305,14 +309,14 @@ if(exe==1){
 }
 fun.convert()
 fun.yeartoyear()
-#dataset.type<-1 #0:single,1:multi 
 ```
 
 ```{r}
 #read various sorts of data of which class is data frame
+select.data<-6 # 1others 2BankofJapan 3yearlyData 4monthlyData 5dailyData 6quarterlyData
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-2
+plot.type<-1
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
@@ -320,14 +324,13 @@ if(exe==1){
   folder.path<-file.path(pathInput)
   setwd(folder.path)
   tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
-  folder.path<-paste("C:/Users/",username,tmp[1,2],sep="")
+  folder.path<-paste("C:/Users/",username,tmp[select.data,2],sep="")
   setwd(folder.path)
   if(length(dir(folder.path))!=0){
     for(iii in 1:length(dir(folder.path))){
       cnt.start<-cnt+1
       tmp<-read.table(file=dir(folder.path)[iii],header=TRUE,sep=",",na.strings=c("NA","-",""))
       tmp[,1]<-as.Date(tmp[,1])
-      colnames(tmp)[1]<-"date"
       FUN.1<-function(x) as.numeric(gsub("[( | ) | -+ | , | < | >]","",x))
       tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
       fun.individual(tmp,monthly)
@@ -339,7 +342,6 @@ if(exe==1){
 }
 fun.convert()
 fun.yeartoyear()
-#dataset.type<-1 #0:single,1:multi 
 ```
 
 ```{r}
