@@ -64,25 +64,22 @@ for(iii in 1:length(file.name)){
 }
 username<-Sys.info()['user']
 path<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
-setwd(path)
-id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 ```
 
 ```{r}
-output.html<-paste("customExportImport",id,".html",sep="")
+setwd(path)
+###################### tschart part
+output.html<-paste("customExportImport.html",sep="")
 cat("",file=output.html,append=F) 
-js.file.name<-"customExportImport.js"
-data.id<-"costom"
+js.file.name<-"TradeStatisticsJAPAN.external01.js"
+data.id<-"tschart"
 cat("\n\n$(function() {",file=js.file.name,append=F)
 cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
 cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
 cat("\n});",file=js.file.name,append=T)
 cat("\n});\n\n",file=js.file.name,append=T) 
-#```
-
-#```{r}
-png.file<-paste("customExportImport",id,".png",sep="")
+png.file<-paste("customExportImport1.png",sep="")
 png(file=png.file,width=1400,height=1200)
 par(mar=c(7,7,7,7))
 date.f<-format(dataset[[1]][1,1],"%Y-%m")  
@@ -93,22 +90,14 @@ min<-min(dataset.xts[,1],dataset.xts[,2])
 chart.TimeSeries(dataset.xts[,1],ylim=c(min,max),legend.loc="bottomleft",main=paste(date.f,"-",date.e),lwd="2",cex.main=6,cex.legend=3,cex.lab=4,ylab="",cex.axis=4)
 par(new=T)      
 chart.TimeSeries(dataset.xts[,2],xaxis=F,yaxis.right=T,color="red",ylim=c(min,max),legend.loc="topleft",main="",lwd="2",cex.main=6,cex.legend=3,cex.lab=4,ylab="",cex.axis=4)
-cat(paste("<div align=\"center\"><b>Trade Statistics of Japan\nData Source:Ministry of Finance Japan\nUnit:100million JPY\n",date.f,"-",date.e,"</b></div>\n"),file=output.html,append=T)
+cat(paste("<div align=\"center\"><b>Unit:100million JPY.",date.f,"-",date.e,"</b></div>\n"),file=output.html,append=T)
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n<hr>",sep=""),file=output.html,append=T)
 dev.off()
-#```
-
-#```{r}
+###################### tschart part
+###################### table part
+js.file.table.list<-"TradeStatisticsJAPAN.tablelist.js"
+cat("",file=js.file.table.list,append=F)
 for(iii in 2:3){
-  png.file<-paste("customExportImport",id,iii,".png",sep="")
-  png(file=png.file,width=2000,height=4000)
-  par(mar=c(7,7,7,7))
-  cat(paste("<div align=\"center\"><b>Trade Statistics of Japan\nData Source:Ministry of Finance Japan\nUnit:100million JPY\n",date.e,"\n"),file=output.html,append=T)
-  if(iii==2){
-    cat("Export</b></div>",file=output.html,append=T)
-  }else{
-    cat("Import</b></div>",file=output.html,append=T)
-  }  
   r.dataset<-dataset[[iii]][nrow(dataset[[iii]]),c(3:ncol(dataset[[iii]]))]#日付と総額を除去
   r.dataset[1,]<-round(r.dataset[1,])
   r.dataset<-t(r.dataset)
@@ -116,16 +105,40 @@ for(iii in 2:3){
   rrr<-order(r.dataset[,2])
   r.dataset<-r.dataset[rrr,]
   rownames(r.dataset)<-c(1:nrow(r.dataset))
-  colnames(r.dataset)[2]<-"LatestValue"
   r.dataset[,1]<-ordered(r.dataset[,1],levels=r.dataset[,1][1:length(r.dataset[,1])])
-  g<-ggplot(r.dataset,aes(x=Item,y=LatestValue))
-  g<-g+geom_bar(stat="identity",position="identity",fill="grey",alpha=0.5,color="black")
-  g<-g+geom_text(aes(label=r.dataset[,2]),hjust=0.2,size=20)+coord_flip() #vjust=-0.5
-  g<-g+theme(plot.title=element_text(size=45))
-  g<-g+theme(axis.title.x=element_text(size=45),axis.title.y=element_text(size=45)) 
-  g<-g+theme(axis.text.x=element_text(size=45),axis.text.y=element_text(size=45))  
-  plot(g)
-  dev.off()  
-  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n<hr>",sep=""),file=output.html,append=T)
+  r.dataset[,3]<-as.numeric(format(r.dataset[,2]/max(r.dataset[,2])*100,digits=2))
+  colnames(r.dataset)[3]<-"Maxas100"
+  colnames(r.dataset)[2]<-"Value"
+  r.dataset<-r.dataset[,c(3,2,1)]
+  csv.file.name<-paste("TradeStatisticsJAPAN",(iii-1),".csv",sep="")
+  write.csv(r.dataset,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8") 
+  js.file.name<-"TradeStatisticsJAPAN.external02.js"
+  csv.id<-paste("TradeStatisticsJAPAN",(iii-1),sep="")
+  if(iii==2){
+    cat("$(function(){",file=js.file.name,append=F)     
+  }else{
+    cat("$(function(){",file=js.file.name,append=T)     
+  }
+  cat(gsub(" ","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
+  cat("\nfunction(){",file=js.file.name,append=T)
+  cat(gsub(" ","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(")),file=js.file.name,append=T)
+  cat("\n{",file=js.file.name,append=T)    
+ 	cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
+		cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)			
+		cat("\n\"bFilter\":false,",file=js.file.name,append=T)
+		cat("\n\"paging\":true,",file=js.file.name,append=T)
+  cat("\n\"columnDefs\":[{\"width\":\"35%\",\"targets\":0},{\"width\":\"25%\",\"targets\":1}],",file=js.file.name,append=T)
+		cat("\n\"info\":true",file=js.file.name,append=T)
+  cat("\n}",file=js.file.name,append=T)    
+  cat("\n);",file=js.file.name,append=T)
+  cat("\n});;",file=js.file.name,append=T)    
+  cat("\n});\n\n",file=js.file.name,append=T)  
+  if(iii==2){
+   title<-paste(date.e,".Export",sep="")
+  }else{
+   title<-paste(date.e,".Import",sep="")
+  }
+  cat(paste("document.write('<div style=\"text-align: center\"><b>",title,".Unit:100million JPY</b></div>\');\n",sep=""),file=js.file.table.list,append=T) 
+  cat(paste("document.write('<div id=\"",csv.id,"\"></div>\');\n",sep=""),file=js.file.table.list,append=T) 
 }
 ```

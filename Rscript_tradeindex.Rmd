@@ -33,7 +33,7 @@ cnt<-0
 tmp<-0
 for(iii in 1:length(ts.data)){  
   for(nnn in 1:ncol(ts.data[[iii]])){
-    colnames(ts.data[[iii]])[nnn]<-gsub("Percent.Change","YY",colnames(ts.data[[iii]])[nnn])  
+    colnames(ts.data[[iii]])[nnn]<-gsub("Percent\\.Change","YoY",colnames(ts.data[[iii]])[nnn])  
   }
   for(yyyy in 1:length(year)){
     for(mm in 1:length(month)){
@@ -58,22 +58,17 @@ length(data)
 ```{r}
 path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path02)
-js.file.table.list<-"TRADEINDEXJAPAN.tablelist01.js"
+js.file.table.list<-"TradeIndexJAPAN.tablelist.js"
 cat("\n",file=js.file.table.list,append=F)
 for(iii in 1:length(data)){
-  for(ppp in 1:4){
-    switch(ppp,
-      tmp<-data[[iii]][,c(1,2,3:5)],
-      tmp<-data[[iii]][,c(1,2,6:8)],
-      tmp<-data[[iii]][,c(1,2,9:11)],
-      tmp<-data[[iii]][,c(1,2,12:14)]
-    )
+  for(ppp in 1:12){
+    tmp<-data[[iii]][,c(1,2,(ppp+2))]
     tmp[,1]<-format(tmp[,1],"%Y-%m")
     tmp<-tail(tmp,12)
     rownames(tmp)<-NULL
     csv.file.name<-gsub(" ","",paste(tmp[1,2],ppp,".csv",sep=""))
     write.csv(tmp,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
-    js.file.name<-"TRADEINDEXJAPAN.TABLE.js"
+    js.file.name<-"TradeIndexJAPAN.external02.js"
     csv.id<-paste(tmp[1,2],ppp,sep="")
     if(iii==1 && ppp==1){
       cat("$(function(){",file=js.file.name,append=F)     
@@ -81,14 +76,15 @@ for(iii in 1:length(data)){
       cat("$(function(){",file=js.file.name,append=T)     
     }
     cat(gsub(" ","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
-  	cat("\nfunction(){",file=js.file.name,append=T)
+   	cat("\nfunction(){",file=js.file.name,append=T)
     cat(gsub(" ","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(")),file=js.file.name,append=T)
     cat("\n{",file=js.file.name,append=T)    
-  	cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
-		cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)			
-		cat("\n\"bFilter\":false,",file=js.file.name,append=T)
-		cat("\n\"paging\":true,",file=js.file.name,append=T)
-		cat("\n\"info\":true",file=js.file.name,append=T)
+   	cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
+  		cat("\n\"order\": [[ 0,\"desc\"]],",file=js.file.name,append=T)			
+  		cat("\n\"bFilter\":false,",file=js.file.name,append=T)
+  		cat("\n\"paging\":true,",file=js.file.name,append=T)
+    cat("\n\"columnDefs\":[{\"width\":\"20%\",\"targets\":0},{\"width\":\"20%\",\"targets\":1}],",file=js.file.name,append=T)
+  		cat("\n\"info\":true",file=js.file.name,append=T)
     cat("\n}",file=js.file.name,append=T)    
     cat("\n);",file=js.file.name,append=T)
     cat("\n});;",file=js.file.name,append=T)    
@@ -102,10 +98,10 @@ for(iii in 1:length(data)){
 path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path02)
 #javascript part
-      js.file.name.graph<-"TRADEINDEXJAPAN.external01.js"
+      js.file.name.graph<-"TradeIndexJAPAN.external01.js"
       graph.html<-"TRADEINDEXCHART.html"
       cat("\n",file=graph.html,append=F)      
-      data.id<-"graph"
+      data.id<-"tschart"
       cat("\n\n$(function() {",file=js.file.name.graph,append=F)
       cat(paste("\n$.get('http://archive.am-consulting.co.jp/",graph.html,add.ver,"', function(data) {",sep=""),file=js.file.name.graph,append=T)
       cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name.graph,append=T)

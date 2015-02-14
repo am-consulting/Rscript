@@ -67,13 +67,13 @@ unit<-c(
 ```
 
 ```{r}
+setwd(path03)
 #javascript part 
-id<-gsub("\\.","",paste(year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 output1.html<-"cftcoutput01.html" #for graph
 output2.html<-"cftcoutput02.html" #corre
-js.title<-"cftc"
-js.file.table.list<-paste(js.title,".tablelist01.js",sep="")
+js.title<-"IMMpositions"
+js.file.table.list<-paste(js.title,".tablelist.js",sep="")
 #javascript part  
 diff.date<-365*10
 first.date<-Sys.Date()-diff.date
@@ -90,7 +90,6 @@ for(ccc in 1:length(currency)){
   dataset[[cnt]]<-dataset[[cnt]][,c(1,130,9,10)]
   colnames(dataset[[cnt]])<-c("date",paste("Net",currency[ccc]),paste("Long",currency[ccc]),paste("Short",currency[ccc]))
 #output csv file
-  setwd(path03)
   tmp.csv<-dataset[[cnt]]
   colnames(tmp.csv)<-c("Date","Net","Long","Short")
   tmp.csv <- tmp.csv[order(tmp.csv$Date,decreasing=T),] 
@@ -157,7 +156,7 @@ for(ccc in 1:length(currency)){
   cat("\n<hr>\n",file=output1.html,append=T)
 #output js  
   js.file.name<-paste(js.title,".external02.js",sep="")
-  part.id<-"graph"
+  part.id<-"tschart"
   cat("\n\n$(function() {",file=js.file.name,append=F)
   cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output1.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
   cat(paste("\n$('#",part.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
@@ -235,9 +234,9 @@ for(iii in 1:cnt){
 #output js    
     cat("\n\n$(function() {",file=js.file.name,append=T)
     cat(paste("\n$.get('http://archive.am-consulting.co.jp/",result.corr.file.name,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
-		cat(paste("\n$('#corre",gsub("\\s", "",currency[iii]),"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
-		cat("\n});",file=js.file.name,append=T)
-  	cat("\n});\n\n",file=js.file.name,append=T)    
+  		cat(paste("\n$('#corre",gsub("\\s", "",currency[iii]),"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+  		cat("\n});",file=js.file.name,append=T)
+   	cat("\n});\n\n",file=js.file.name,append=T)    
   } 
 }
 ```

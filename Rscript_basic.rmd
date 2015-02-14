@@ -313,7 +313,7 @@ fun.yeartoyear()
 
 ```{r}
 #read various sorts of data of which class is data frame
-select.data<-6 # 1others 2BankofJapan 3yearlyData 4monthlyData 5dailyData 6quarterlyData
+select.data<-4 # 1others 2BankofJapan 3yearlyData 4monthlyData 5dailyData 6quarterlyData
 exe<-1
 monthly<-1 # 0 or 1
 plot.type<-1
@@ -347,8 +347,8 @@ fun.yeartoyear()
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-0 # 0 or 1
-plot.type<-1
+monthly<-1 # 0 or 1
+plot.type<-2
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
@@ -356,9 +356,7 @@ if(exe==1){
   ts.source<-list()
   ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100")
   ts.source[[1]]<-c("FRED",1,"DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ")
-# UNRATE CPIAUCSL HOUSTNSA EXJPUS 
-#  ts.source[[1]]<-c("FRED",1,"M2V","A191RL1Q225SBEA")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
-#  ts.source[[1]]<-c("FRED",1,"EXJPUS")# M2V A191RL1Q225SBEA CP0000EZ17M086NEST CPIAUCSL "PAYEMS","MANEMP","UNRATE" "AMBNS","UNRATENSA" CPIAUCNS HOUSTNSA
+  ts.source[[1]]<-c("FRED",1,"PAYEMS","MANEMP","UNRATE","CPIAUCNS","HOUSTNSA","A191RL1Q225SBEA","AMBNS","M2V","CP0000EZ17M086NEST","EXJPUS")
   for(lll in 1:length(ts.source)){
     if(2<length(ts.source[[lll]])){
       for(iii in 3:length(ts.source[[lll]])){
@@ -374,7 +372,6 @@ if(exe==1){
 }
 fun.convert()
 fun.yeartoyear()
-dataset.type<-0 #0:single,1:multi 
 ```
 
 ```{r}
@@ -395,6 +392,8 @@ if(exe==1){
     fun.individual(tmp,monthly)
   }
 }
+fun.convert()
+fun.yeartoyear()
 ```
 
 ```{r}
@@ -439,7 +438,6 @@ if(exe==1){
 js.title[[1]]<-"JAPANESEGOVERNMENTBOND10YEAR"
 fun.convert()
 fun.yeartoyear()
-dataset.type<-0 #0:single,1:multi 
 ```
 
 ```{r}
@@ -954,7 +952,6 @@ if(exe.msm==1){
 if(ppp==1){
 bbbb<-9
 buf.html<-outputhtml[uuuu,bbbb]    
-cat("<div align=\"center\"><b>Markov Switching Models\npowered by R package 'MSwM' - msmFit()\n",file=buf.html,append=T)
 x<-seq(1:nrow(tmp.1))    
 tmp.msm<-data.frame(x,y=tmp.1[,2])
 tmp.msm.lm<-lm(y~x,tmp.msm)
@@ -988,7 +985,6 @@ if(class(either.error)!="try-error"){
  goahead<-0                        
 }  
 if(goahead==1){  
- cat("<div align=\"center\"><b>Self-Exciting Threshold AutoRegressive models\npowered by R package 'tsDyn' - setar()<b></div>\n",file=buf.html,append=T)
  cat("Caution:\nThe time series data may have unit roots.\n",file=buf.html,append=T)
  cat(paste("\n<div align=\"center\"><b>",gettitle,"</b></div>"),file=buf.html,append=T)      
  png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,".png",sep="")
@@ -1013,40 +1009,37 @@ if(goahead==1){
 
 ```{r}
 #MULTIVARIATEDATAANALYSIS
+colnames(all.data[[1]])
 setwd(pathOutput)
 ######################################引数設定パート######################################    
+title.no<-6
+explanatory<-59 #column
+objective<-60 #column
 ttt.range<-c(1:2)
 analysis.id<-"MULTIVARIATEDATAANALYSIS"
-title.no<-3
-js.title<-c("MANETARYBASEANDUNEMPLOYMENTRATEJAPAN","MANETARYBASEANDUNEMPLOYMENTRATEUSA","MANETARYBASEANDUSDJPY")
+js.title<-c("ManetaryBaseANDMoneyStock","ManetaryBaseANDUsdJpy","ManetaryBaseANDUnemploymentrate","ManetaryBaseANDNikkei225","ManetaryBaseANDCoreCPI","UsdJpyANDNikkei225")
 priod.y<-100 #year
-explanatory<-3 #column
-objective<-2 #column
-#multianalysis.html<-paste(js.title[title.no],id,".html",sep="")
 multianalysis.html<-paste(js.title[title.no],".html",sep="")
 cat("",file=multianalysis.html,append=F)
-#first.date<-c("2001-4-26","1946-6-1","1993-1-20","1987-8-11")
 if(ttt.range[1]==1){
-  ttt.diff<-3
+ ttt.diff<-3
 }else{
-  ttt.diff<-1
+ ttt.diff<-1
 }
 ppp<-1
 chk<-0
-iii<-1
-obj<-c(1)
+iii<-cnt+1
+obj<-c(obj,iii)
 ######################################引数設定パート###################################### 
-dataset[[obj[iii]]]<-tail(na.omit(all.data[[1]]),priod.y*12)
+dataset[[obj[iii]]]<-tail(na.omit(all.data[[1]][,c(1,explanatory,objective)]),priod.y*12)
 fun.withkeyposition()
 tmp.1<-tmp.0[,c(1,2,3,5)]
+explanatory<-2 #column
+objective<-3 #column
 for(uuu in 1:length(unique(tmp.1[,4]))){
 objectDataset<-subset(tmp.1,tmp.1[,4]==unique(tmp.1[,4])[uuu])
 date.f<-format(objectDataset[1,1],"%Y-%m")
 date.e<-format(objectDataset[nrow(objectDataset),1],"%Y-%m")
-graph.title1<-colnames(objectDataset)[explanatory]
-colnames(objectDataset)[explanatory]<-graph.title1
-graph.title2<-colnames(objectDataset)[objective]
-colnames(objectDataset)[objective]<-graph.title2
 keyposition.id<-paste(colnames(objectDataset)[4],":",unique(tmp.1[,4])[uuu],sep="")  
 ######################################cointegパート ######################################    
 cat("<div align=\"center\"><b>Co-integration test\n\n",file=multianalysis.html,append=T)
@@ -1134,6 +1127,7 @@ cat(paste("<hr>\n<div align=\"center\">\n<b>Orthogonal Impulse Response\nfrom",o
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n\n<hr>\n",sep=""),file=multianalysis.html,append=T)
 ######################################  var  パート ######################################    
 }
+obj<-obj[-length(obj)]
 #javascript part    
 js.file.name<-paste(js.title[title.no],analysis.id,".js",sep="")
 data.id<-analysis.id

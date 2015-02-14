@@ -18,9 +18,9 @@ path<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path)
 for(iii in 1:length(file.name)){
   url[[iii]]<-paste(base.url,file.name[iii],".csv",sep="")
-  js.file[[iii]]<-paste("USAbond",iii,".js",sep="")
+  js.file[[iii]]<-"MajorForeignHoldersOfTreasurySecurities.external01.js"
   cat("",file=js.file[[iii]],append=F)
-  js.file.list[[iii]]<-paste("USAbondlist",iii,".js",sep="")
+  js.file.list[[iii]]<-"MajorForeignHoldersOfTreasurySecurities.tablelist.js"
   cat("",file=js.file.list[[iii]],append=F)
   if(grepl("mfhhis01.csv",url[[iii]])==T){
     dataset[[iii]]<-read.csv(url[[iii]],header=F,skip=0,stringsAsFactor=F)
