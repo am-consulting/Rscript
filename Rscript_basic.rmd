@@ -272,7 +272,7 @@ for(ttt in ttt.range){
 }
 ####################################################### functions #######################################################
 ####################################################### argument  #######################################################
-
+boj.dir<-"BankofJapan" #日本銀行データディレクトリ
 ####################################################### argument  #######################################################
 ```
 
@@ -285,27 +285,29 @@ ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
-  folder.path<-file.path(pathInput)
-  setwd(folder.path)
-  tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
-  folder.path<-paste("C:/Users/",username,tmp[2,2],sep="")
-  setwd(folder.path)
-  if(length(dir(folder.path))!=0){
-    for(fff in 1:length(dir(folder.path))){
-      cnt.start<-cnt+1
-      tmp<-read.csv(file=dir(folder.path)[fff],header=T,as.is=T,skip=1,na.strings=c("", "NA"))
-      colnames(tmp)<-paste(colnames(tmp),".",tmp[2,],sep="")
-      tmp<-tmp[-c(1:12),]
-      if(monthly==1){
-        tmp[,1]<-paste(tmp[,1],"/1",sep="")
-        tmp[,1]<-as.Date(tmp[,1])
-      }
-      fun.individual(tmp,monthly)
-      for(zzz in cnt.start:cnt){
-        js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[fff])
-      }  
-    }
+ folder.path<-file.path(pathInput)
+ setwd(folder.path)
+ tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+ dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+ setwd(dir.list)
+ folder.path<-paste(dir.list,boj.dir,sep="")
+ setwd(folder.path)
+ if(length(dir(folder.path))!=0){
+  for(fff in 1:length(dir(folder.path))){
+   cnt.start<-cnt+1
+   tmp<-read.csv(file=dir(folder.path)[fff],header=T,as.is=T,skip=1,na.strings=c("", "NA"))
+   colnames(tmp)<-paste(colnames(tmp),".",tmp[2,],sep="")
+   tmp<-tmp[-c(1:12),]
+   if(monthly==1){
+    tmp[,1]<-paste(tmp[,1],"/1",sep="")
+    tmp[,1]<-as.Date(tmp[,1])
+   }
+   fun.individual(tmp,monthly)
+   for(zzz in cnt.start:cnt){
+    js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[fff])
+   }  
   }
+ }
 }
 fun.convert()
 fun.yeartoyear()
@@ -313,32 +315,38 @@ fun.yeartoyear()
 
 ```{r}
 #read various sorts of data of which class is data frame
-select.data<-4 # 1others 2BankofJapan 3yearlyData 4monthlyData 5dailyData 6quarterlyData
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-1
+plot.type<-2 #当面固定とする
 ttt.range<-c(1:2)
 yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
-  folder.path<-file.path(pathInput)
-  setwd(folder.path)
-  tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
-  folder.path<-paste("C:/Users/",username,tmp[select.data,2],sep="")
-  setwd(folder.path)
-  if(length(dir(folder.path))!=0){
+ folder.path<-file.path(pathInput)
+ setwd(folder.path)
+ tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+ dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+ setwd(dir.list)
+ folder.name<-dir()[file.info(dir())$isdir==TRUE]
+ for(ffff in 1:length(folder.name)){
+  if(folder.name[ffff]!=boj.dir){
+   folder.path<-paste(dir.list,folder.name[ffff],sep="")
+   setwd(folder.path)
+   if(length(dir(folder.path))!=0){
     for(iii in 1:length(dir(folder.path))){
-      cnt.start<-cnt+1
-      tmp<-read.table(file=dir(folder.path)[iii],header=TRUE,sep=",",na.strings=c("NA","-",""))
-      tmp[,1]<-as.Date(tmp[,1])
-      FUN.1<-function(x) as.numeric(gsub("[( | ) | -+ | , | < | >]","",x))
-      tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
-      fun.individual(tmp,monthly)
-      for(zzz in cnt.start:cnt){
-        js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[iii])
-      }  
+     cnt.start<-cnt+1
+     tmp<-read.table(file=dir(folder.path)[iii],header=TRUE,sep=",",na.strings=c("NA","-",""))
+     tmp[,1]<-as.Date(tmp[,1])
+     FUN.1<-function(x) as.numeric(gsub("[( | ) | -+ | , | < | >]","",x))
+     tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
+     fun.individual(tmp,monthly)
+     for(zzz in cnt.start:cnt){
+      js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[iii])
+     }  
     }
+   }
   }
+ }
 }
 fun.convert()
 fun.yeartoyear()
@@ -441,6 +449,7 @@ fun.yeartoyear()
 ```
 
 ```{r}
+######################################ファイル生成パート##################################    
 setwd(pathOutput)
 outputhtml<-data.frame()
 outputjs<-data.frame()
@@ -464,10 +473,11 @@ for(uuuu in 1:length(unique(js.title))){
   cat("\n});\n\n",file=outputjs[uuuu,bbbb],append=T)
  }
 }
-```
+######################################ファイル生成パート##################################    
+#```
 
-```{r}
-#時系列チャート作成チャンク
+#```{r}
+######################################時系列チャート###################################### 
 setwd(pathOutput)
 level.type<-1
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
@@ -538,6 +548,7 @@ for(uuuu in 1:length(unique(js.title))){
   } 
  }
 }
+######################################時系列チャート###################################### 
 ```
 
 ```{r}
@@ -570,19 +581,19 @@ for(uuuu in 1:length(unique(js.title))){
  for(iii in 1:length(obj)){
   if(as.character(unique(js.title)[uuuu])==as.character(js.title[iii])){
    count<-count+1
-  for(ppp in 1:plot.type){
-   chk<-0#tttループ内で2回以上tmp.0を作成しないため
+   for(ppp in 1:plot.type){
+    chk<-0#tttループ内で2回以上tmp.0を作成しないため
 ###################################### 共 通 パート ######################################
-   fun.withkeyposition()
-   if(tmp0==1){#条件分岐001
-    row.names(tmp.0)<-NULL
-    tmp.1<-tmp.0[,c(1:4)]
-    switch(ppp,
-     multi<-(10^level.multi),
-     multi<-1
-    )
-    tmp.1[,2]<-tmp.1[,2]*multi
-    fun.gettitle()
+    fun.withkeyposition()
+    if(tmp0==1){#条件分岐001
+     row.names(tmp.0)<-NULL
+     tmp.1<-tmp.0[,c(1:4)]
+     switch(ppp,
+      multi<-(10^level.multi),
+      multi<-1
+     )
+     tmp.1[,2]<-tmp.1[,2]*multi
+     fun.gettitle()
 ###################################### 共 通 パート ######################################
 ###################################### table パート ######################################
 if(exe.table==1){#なおtmp.table[,2]<-format(tmp.table[,2],big.mark=",",scientific=F)とするとcsvのseparating commaを誤認識する
@@ -756,7 +767,7 @@ if(monthly==1){
  date.f<-format(tmp.forecast[1,1],"%Y-%m-%d")
  date.e<-format(tmp.forecast[nrow(tmp.forecast),1],"%Y-%m-%d")
 }     
-result.arima<-auto.arima(tmp.forecast[,2],ic="aic",trace=T,stepwise=T)
+result.arima<-auto.arima(tmp.forecast[,2],ic="aic",trace=F,stepwise=T)
 result.forecast<-forecast(result.arima,level=c(50,75,95),h=forecast.interval)  
 chart.title<-paste("Forecasts from",result.forecast$method,"\n",colnames(tmp.forecast)[2],"\n",date.f,"-",date.e)  
 plot(result.forecast,main=chart.title,ylab="",lwd="4")  
@@ -954,18 +965,29 @@ bbbb<-9
 buf.html<-outputhtml[uuuu,bbbb]    
 x<-seq(1:nrow(tmp.1))    
 tmp.msm<-data.frame(x,y=tmp.1[,2])
-tmp.msm.lm<-lm(y~x,tmp.msm)
-result.msm<-msmFit(tmp.msm.lm,k=2,p=0,sw=rep(T,length(tmp.msm)+1))# k(example bull or bear)   
-cat(paste("\n<div align=\"center\"><b>",gettitle,"</b></div>"),file=buf.html,append=T)      
-for(qqqq in 2:(length(tmp.msm)+1)){#1は一旦中止
- png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,qqqq,".png",sep="")
- png(file=png.file,width=1400,height=1200)
- par(ps=40)
- par(mar=c(9, 7, 15, 4))
- plotProb(result.msm,which=qqqq)
- dev.off() 
- cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=buf.html,append=T)
+fun.calc.msm<-function(){
+ tmp.msm.lm<-lm(y~x,tmp.msm)
+ result.msm<-msmFit(tmp.msm.lm,k=2,p=0,sw=rep(T,length(tmp.msm)+1))# k(example bull or bear)   
+ result.msm<<-result.msm
 }
+either.error<-try(fun.calc.msm(),silent=FALSE)
+if(class(either.error)!="try-error"){
+ goahead<-1                        
+}else{
+ goahead<-0                        
+}  
+if(goahead==1){ 
+ cat(paste("\n<div align=\"center\"><b>",gettitle,"</b></div>"),file=buf.html,append=T)      
+ for(qqqq in 2:(length(tmp.msm)+1)){#1は一旦中止
+  png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,qqqq,".png",sep="")
+  png(file=png.file,width=1400,height=1200)
+  par(ps=40)
+  par(mar=c(9, 7, 15, 4))
+  plotProb(result.msm,which=qqqq)
+  dev.off() 
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=buf.html,append=T)
+ }
+} 
 }
 }
 ##################################マルコフ転換モデル###################################### 
