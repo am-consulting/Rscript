@@ -4,12 +4,23 @@ library(ggplot2)
 library(scales)
 library(gridExtra)
 library(knitr)
-```
-
-```{r}
+library(lubridate)
+add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 username<-Sys.info()['user']
 path01<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path01)
+dataTime<-Sys.time()
+output.download.html<-"ssn.download.html"
+cat("",file=output.download.html,append=F) 
+cat(paste("<div align=\"center\"><b>The SSN data was downloaded on\n",dataTime,"(JST)</b></div>\n"),file=output.download.html,append=T) 
+js.file.name<-"ssn.download.js"
+cat("",file=js.file.name,append=F) 
+data.id<-"download"
+cat("\n\n$(function() {",file=js.file.name,append=T)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output.download.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T) 
 ssn<-list()
 url<-c(
 "http://solarscience.msfc.nasa.gov/greenwch/spot_num.txt",
@@ -40,8 +51,10 @@ for(iii in 1:length(url)){
 ```
 
 ```{r}
-plots<-list()
-n.col<-2
+setwd(path01)
+output1.html<-"ssn.image.html"
+cat("",file=output1.html,append=F)
+cat(paste("<div align=\"center\"><b>The SSN data was downloaded on\n",dataTime,"(JST)</b></div>\n"),file=output1.html,append=T) 
 for(ppp in 1:2){
   for(iii in 1:(length(url))){
     tmp<-ssn[[iii]]
@@ -53,11 +66,13 @@ for(ppp in 1:2){
       g<-g+geom_line()
       g<-g+geom_point()
       g<-g+scale_x_date(labels=date_format("%Y/%m"))
+      plot.title<-"Time Series-"
     }else{
       g<-ggplot(tmp,aes(x=value))
       g<-g+geom_histogram(binwidth=10,fill="grey",alpha=0.5,color="black")
+      plot.title<-"Histogram-"
     }
-    g<-g+ggtitle(paste(colnames(ssn[[iii]])[2],"\n",date.s,"-",date.e))
+    g<-g+ggtitle(paste(plot.title,colnames(ssn[[iii]])[2],"\n",date.s,"-",date.e,sep=""))
     g<-g+theme(axis.text=element_text(size=30))
     g<-g+theme(axis.title=element_text(size=50,face="bold"))
     g<-g+theme(title=element_text(size=60,face="bold"))
@@ -66,58 +81,74 @@ for(ppp in 1:2){
     g<-g+theme(legend.title=element_text(colour="white",size=1,face="bold"))
     g<-g+xlab("")+ylab("")
     png.file<-paste(colnames(ssn[[iii]])[2],ppp,".png",sep="")
-    html.file.name<-"ssn.image.html"
-    png(file=png.file,width=1400,height=800) 
+    png(file=png.file,width=1400,height=1200) 
     print(g)
     dev.off()
-    if(ppp==1 && iii==1){
-      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=html.file.name,append=F)
-    }else{
-      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=html.file.name,append=T)
-    }    
+    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output1.html,append=T)
+    cat("<hr>",file=output1.html,append=T)
   }
 }
+js.file.name<-paste("ssn.external01.js",sep="")
+part.id<-"tschart"
+cat("\n\n$(function() {",file=js.file.name,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output1.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",part.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T) 
 ```
 
 ```{r}
+setwd(path01)
+output2.html<-"acf.ssn.image.html"
+cat("",file=output2.html,append=F)
+cat(paste("<div align=\"center\"><b>The SSN data was downloaded on\n",dataTime,"(JST)</b></div>\n"),file=output2.html,append=T) 
 for(ppp in 1:(length(url))){
   tmp<-na.omit(ssn[[ppp]])
   png.file<-paste("acf.",colnames(tmp)[2],ppp,".png",sep="")
-  html.file.name<-"acf.ssn.image.html"
-  png(file=png.file,width=1400,height=800)
+  png(file=png.file,width=1400,height=1200)
   par(cex.main=4,cex.axis=2,cex.lab=2,cex.sub=1,mar=c(6,6,5,2))
   date.s<-format(tmp[,1][1],"%Y/%m")
   date.e<-format(tmp[,1][nrow(tmp)],"%Y/%m")
-  acf(tmp[,2],type="correlation",main=paste("\n\nACF of",colnames(tmp)[2],"",date.s,"-",date.e),lag=240,ci=c(0.9,0.95))
+  acf(tmp[,2],type="correlation",main=paste("\n\nACF of",colnames(tmp)[2],"",date.s,"-",date.e),lag=1200,ci=c(0.9,0.95))
   dev.off()
-  if(ppp==1){
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=html.file.name,append=F)
-  }else{
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=html.file.name,append=T)
-  }    
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output2.html,append=T)
+  cat("<hr>",file=output2.html,append=T)
 }
+js.file.name<-paste("ssn.external02.js",sep="")
+part.id<-"acf"
+cat("\n\n$(function() {",file=js.file.name,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output2.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",part.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T) 
 ```
 
 ```{r}
-tmp<-ssn[[length(url)+1]]
+table.js<-"ssn.table.js"
+tablelist.js<-"ssn.tablelist.js"
+cat("",file=table.js,append=F)     
+cat("",file=tablelist.js,append=F)     
+for(sss in 1:length(url)){
+tmp<-ssn[[sss]]
 tmp[,1]<-format(tmp[,1],"%Y-%m")
-#    rownames(tmp)<-NULL
-csv.file.name<-"ssn.csv"
-write.csv(tmp,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
-html.file.name<-"ssn.table.html"
-cat("$(function(){",file=html.file.name,append=F)     
-cat(gsub(" ","",paste("\n","$('#ssn').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=html.file.name,append=T)     
-cat("\nfunction(){",file=html.file.name,append=T)
-cat(gsub(" ","",paste("\n$('#ssn').find('TABLE').dataTable(")),file=html.file.name,append=T)
-cat("\n{",file=html.file.name,append=T)    
-cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=html.file.name,append=T) 
-cat("\n\"order\": [[ 0,\"desc\"]],",file=html.file.name,append=T)			
-cat("\n\"bFilter\":false,",file=html.file.name,append=T)
-cat("\n\"paging\":true,",file=html.file.name,append=T)
-cat("\n\"info\":true",file=html.file.name,append=T)
-cat("\n}",file=html.file.name,append=T)    
-cat("\n);",file=html.file.name,append=T)
-cat("\n});;",file=html.file.name,append=T)    
-cat("\n});\n\n",file=html.file.name,append=T)
-cat("<div id=\"ssn\"></div>",file=html.file.name,append=T)
+csv.file.name<-paste("ssn",sss,".csv",sep="")
+write.csv(tail(tmp,12),csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+cat("$(function(){",file=table.js,append=T)     
+cat(gsub(" ","",paste("\n","$('#ssn",sss,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=table.js,append=T)     
+cat("\nfunction(){",file=table.js,append=T)
+cat(gsub(" ","",paste("\n$('#ssn",sss,"').find('TABLE').dataTable(")),file=table.js,append=T)
+cat("\n{",file=table.js,append=T)    
+cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=table.js,append=T) 
+cat("\n\"order\": [[ 0,\"desc\"]],",file=table.js,append=T)			
+cat("\n\"bFilter\":false,",file=table.js,append=T)
+cat("\n\"paging\":true,",file=table.js,append=T)
+cat("\n\"columnDefs\":[{\"width\":\"30%\",\"targets\":0}],",file=table.js,append=T) 
+cat("\n\"info\":true",file=table.js,append=T)
+cat("\n}",file=table.js,append=T)    
+cat("\n);",file=table.js,append=T)
+cat("\n});;",file=table.js,append=T)    
+cat("\n});\n\n",file=table.js,append=T)
+cat(paste("document.write('<div id=\"ssn",sss,"\"></div>\');\n",sep=""),file=tablelist.js,append=T)
+cat(paste("document.write('<br><hr><br>\');\n",sep=""),file=tablelist.js,append=T)
+}
 ```
