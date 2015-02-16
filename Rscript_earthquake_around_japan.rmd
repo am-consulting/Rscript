@@ -19,7 +19,9 @@ dataTime<-Sys.time()
 path02<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(path02)
 output.html<-"earthquake.html"
+output.download.html<-"earthquake.download.html"
 cat("",file=output.html,append=F) 
+cat("",file=output.download.html,append=F) 
 data.location<-2 #1:local 2:web
 data.file<-"all_month.csv"
 if(data.location==1){
@@ -53,7 +55,8 @@ for(mmm in 1:length(dataset.j[,1])){
 }
 date.f<-dataset.j$jst[1]
 date.e<-dataset.j$jst[nrow(dataset.j)]
-cat(paste("<div align=\"center\"><b>",date.e,"-",date.f,"\nThe earthquake data was downloaded on\n",dataTime,"</b></div>\n"),file=output.html,append=T) 
+cat(paste("<div align=\"center\"><b>",date.e,"-",date.f,"\nThe earthquake data was downloaded on\n",dataTime,"(JST)</b></div>\n"),file=output.html,append=T) 
+cat(paste("<div align=\"center\"><b>",date.e,"-",date.f,"\nThe earthquake data was downloaded on\n",dataTime,"(JST)</b></div>\n"),file=output.download.html,append=T) 
 xxx<-0
 ################################################## map1 html ##################################################
 if(xxx==1){
@@ -113,6 +116,7 @@ ang<-c(110) # angle
 z.border<-4
 z.min<-floor(max(floor(min(Magnitude)),z.border))
 z.max<-ceiling(max(Magnitude))
+z.max<-max(Magnitude)
 ddd<-1
 map2d<-map(xlim=c(lon.range[1],lon.range[2]),ylim=c(lat.range[1],lat.range[2]))
 map2d<-as.data.frame(map2d[c("x","y")])
@@ -161,14 +165,14 @@ earthquake.point<-scatterplot3d(
   lwd="3",
   scale.y=1,
   color=4,
-#  main=paste("In the past 30days.over M",z.border,".確認日時:",dataTime,sep=""),
+#  main=paste("Over Magnitude ",z.border,sep=""),
   xlim=c(lon.range[1],lon.range[2]),
   ylim=c(lat.range[1],lat.range[2]),
   zlim=c(z.min,z.max),pch=" "
 )
 dev.off()
-cat("Earthquake 3-D Map\n",file=output.html,append=T)   
-cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
+cat(paste("Earthquake 3-D Map ","(Magnitude Over ",z.border,")",sep=""),file=output.html,append=T)   
+cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)   
 cat("\n<hr>\n",file=output.html,append=T)
 ################################################## histogram ##################################################
 PlotTitle<-"Japan"
@@ -234,12 +238,12 @@ attach(dataset.j)
 class(jst)
 png.file<-"earthquakejapan100.png"
 png(file=png.file,width=1400,height=1200)
-par(mar=c(10,6,6,6))
-plot(jst,mag,type="h",xlab="",ylab="Magnitude",xaxt="n",col=4,lwd=2,cex.main=3,cex.legend=3,cex.lab=3,cex.axis=3)
+par(mar=c(20,8,6,6))
+plot(jst,mag,type="h",xlab="",ylab="Magnitude",xaxt="n",col=4,lwd=2,cex.main=3,cex.legend=3,cex.lab=4,cex.axis=4)
 par(new=T)
 plot(jst,mag,type="p",xlab="",ylab="",xaxt="n",yaxt="n",col=4,pch=1)
 r=as.POSIXct(round(range(jst),"hours"))
-axis.POSIXct(1,at=seq(r[1],r[2],by="24 hours"),format="%m-%d %Hh",las=2,cex.axis=2)
+axis.POSIXct(1,at=seq(r[1],r[2],by="24 hours"),format="%m-%d %Hh",las=2,cex.axis=4)
 dev.off()
 #time series html
 cat("Time Series Plot\n",file=output.html,append=T)   
@@ -250,6 +254,14 @@ js.file.name<-"earthquakejapan.graph.js"
 data.id<-"graph"
 cat("\n\n$(function() {",file=js.file.name,append=F)
 cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T) 
+###########################
+js.file.name<-"earthquakejapan.download.js"
+data.id<-"download"
+cat("\n\n$(function() {",file=js.file.name,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output.download.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
 cat(paste("\n$('#",data.id,"').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
 cat("\n});",file=js.file.name,append=T)
 cat("\n});\n\n",file=js.file.name,append=T) 

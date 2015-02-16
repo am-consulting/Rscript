@@ -30,6 +30,7 @@ all.data.xts.yy<-list()
 timeline<-list()
 dataset.tm<-list()
 js.title<-list()
+yy.type<-list()
 #parameter
 username<-Sys.info()['user']
 path<-paste("C:/Users/",username,"/Desktop",sep="")
@@ -198,13 +199,11 @@ fun.yeartoyear<-function(){
   if(plot.type==2){
     for(ddd in 1:cnt){
       tmp<-na.omit(dataset.xts[[ddd]])
-      if(yy.type<=nrow(tmp)){
-        tmp<-round(diff(tmp,lag=yy.type)/lag(tmp,yy.type)*100,2)[-1]
-        
+      if(yy.type[[ddd]]<=nrow(tmp)){
+        tmp<-round(diff(tmp,lag=yy.type[[ddd]])/lag(tmp,yy.type[[ddd]])*100,2)[-1]
         tmp<-subset(tmp,is.infinite(tmp[,1])==F)
         tmp<-subset(tmp,is.na(tmp[,1])==F)
         tmp<-subset(tmp,is.nan(tmp[,1])==F)
-        
         dataset.xts.yy[[ddd]]<-tmp
         colnames(dataset.xts.yy[[ddd]])<-paste("YoY_pc_",colnames(dataset.xts.yy[[ddd]]),sep="")
         dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
@@ -273,6 +272,7 @@ for(ttt in ttt.range){
 ####################################################### functions #######################################################
 ####################################################### argument  #######################################################
 boj.dir<-"BankofJapan" #日本銀行データディレクトリ
+quarter.dir<-"quarterlyData"
 ####################################################### argument  #######################################################
 ```
 
@@ -282,7 +282,7 @@ exe<-1
 monthly<-1 # 0 or 1
 plot.type<-2
 ttt.range<-c(1:2)
-yy.type<-12 #12 month,4 period
+tmp.yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
  folder.path<-file.path(pathInput)
@@ -305,6 +305,7 @@ if(exe==1){
    fun.individual(tmp,monthly)
    for(zzz in cnt.start:cnt){
     js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[fff])
+    yy.type[[zzz]]<-tmp.yy.type
    }  
   }
  }
@@ -319,7 +320,6 @@ exe<-1
 monthly<-1 # 0 or 1
 plot.type<-2 #当面固定とする
 ttt.range<-c(1:2)
-yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
  folder.path<-file.path(pathInput)
@@ -332,6 +332,11 @@ if(exe==1){
   if(folder.name[ffff]!=boj.dir){
    folder.path<-paste(dir.list,folder.name[ffff],sep="")
    setwd(folder.path)
+   if(folder.name[ffff]!=quarter.dir){
+    tmp.yy.type<-12
+   }else{   
+    tmp.yy.type<-4 
+   }
    if(length(dir(folder.path))!=0){
     for(iii in 1:length(dir(folder.path))){
      cnt.start<-cnt+1
@@ -342,6 +347,7 @@ if(exe==1){
      fun.individual(tmp,monthly)
      for(zzz in cnt.start:cnt){
       js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[iii])
+      yy.type[[zzz]]<-tmp.yy.type
      }  
     }
    }
@@ -358,7 +364,7 @@ exe<-1
 monthly<-1 # 0 or 1
 plot.type<-2
 ttt.range<-c(1:2)
-yy.type<-12 #12 month,4 period
+tmp.yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
   ts.source<-list()
@@ -374,6 +380,7 @@ if(exe==1){
         tmp<-data.frame(date=index(tmp),tmp, row.names=NULL)
         fun.individual(tmp,monthly)
         js.title[[cnt]]<-ts.source[[1]][iii]
+        yy.type[[cnt]]<-tmp.yy.type
       }
     }
   }
@@ -384,21 +391,29 @@ fun.yeartoyear()
 
 ```{r}
 #read nikkei225 as data frame
+cnt.start<-cnt+1
 exe<-1
-monthly<-1
+monthly<-1 # 0 or 1
+plot.type<-2
+ttt.range<-c(1:2)
+tmp.yy.type<-12
 if(monthly==0){url.period<-"daily"}else{url.period<-"monthly"}
 if(exe==1){
-  url<-c(
+ url<-c(
   paste("http://indexes.nikkei.co.jp/nkave/historical/nikkei_stock_average_",url.period,"_en.csv",sep="")
-  )
-  for(iii in 1:length(url)){
-    tmp<-read.csv(url[iii],header=T,skip=0,stringsAsFactor=F)
-    tmp[,1]<-as.Date(tmp[,1])
-    if(grepl("nikkei",url[iii])==T){
-      colnames(tmp)[-1]<-paste("Nikkei.",colnames(tmp)[-1],sep="")
-    }
-    fun.individual(tmp,monthly)
+ )
+ for(iii in 1:length(url)){
+  tmp<-read.csv(url[iii],header=T,skip=0,stringsAsFactor=F)
+  tmp[,1]<-as.Date(tmp[,1])
+  if(grepl("nikkei",url[iii])==T){
+   colnames(tmp)[-1]<-paste("Nikkei.",colnames(tmp)[-1],sep="")
   }
+  fun.individual(tmp,monthly)
+  for(zzz in cnt.start:cnt){
+   js.title[[zzz]]<-"Nikkei225"
+   yy.type[[zzz]]<-tmp.yy.type
+ }  
+ }
 }
 fun.convert()
 fun.yeartoyear()
@@ -430,6 +445,7 @@ monthly<-0
 plot.type<-1
 ttt.range<-c(1:2)
 level.multi<-0
+tmp.yy.type<-12
 if(exe==1){
   url<-c(
   "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
@@ -443,7 +459,8 @@ if(exe==1){
   tmp<-tmp[,c(1,11)]#10年物のみを抽出
   fun.individual(tmp,monthly)
 }
-js.title[[1]]<-"JAPANESEGOVERNMENTBOND10YEAR"
+js.title[[cnt]]<-"JAPANESEGOVERNMENTBOND10YEAR"
+yy.type[[cnt]]<-tmp.yy.type
 fun.convert()
 fun.yeartoyear()
 ```
