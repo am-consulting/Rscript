@@ -487,14 +487,14 @@ outputhtml<-data.frame()
 outputjs<-data.frame()
 tablelistbasejs<-data.frame()
 tablelistjs<-data.frame()
-data.id<-c("tschart","boxplot","unitroot","acf","forecast","return","rank","garch","msm","setar")
+data.id<-c("tschart","boxplot","unitroot","acf","forecast","return","rank","garch","msm","setar","seasonplot")
 for(uuuu in 1:length(unique(js.title))){
  fileCommonName<-unique(js.title)[uuuu]  
  tablelistjs[uuuu,1]<-paste(fileCommonName,".tablelist.js",sep="")
  cat("\n",file=tablelistjs[uuuu,1],append=F)  
  tablelistbasejs[uuuu,1]<-paste(fileCommonName,".tablelistbase.js",sep="")  
  cat("\n",file=tablelistbasejs[uuuu,1],append=F)
- for(bbbb in 1:10){
+ for(bbbb in 1:length(data.id)){
   outputjs[uuuu,bbbb]<-paste(fileCommonName,".external0",bbbb,".js",sep="")  
   outputhtml[uuuu,bbbb]<-paste(fileCommonName,data.id[bbbb],".html",sep="")
   cat("",file=outputhtml[uuuu,bbbb],append=F) 
@@ -511,7 +511,7 @@ for(uuuu in 1:length(unique(js.title))){
 #```{r}
 ######################################時系列チャート###################################### 
 setwd(pathOutput)
-level.type<-1
+level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 bbbb<-1
 for(uuuu in 1:length(unique(js.title))){
@@ -520,7 +520,7 @@ for(uuuu in 1:length(unique(js.title))){
  for(iii in 1:length(obj)){
   if(as.character(unique(js.title)[uuuu])==as.character(js.title[iii])){
    count<-count+1
-   for(ppp in 1:plot.type){
+   for(ppp in 1:plot.type[[iii]]){
     for(ttt in ttt.range){
      fun.common(ppp,iii,ttt)
      if(nrow(tmp.1)!=0){
@@ -585,16 +585,17 @@ for(uuuu in 1:length(unique(js.title))){
 
 ```{r}
 ######################################引数設定パート######################################    
-exe.table<-1
-exe.boxplot<-1
-exe.unitroot<-1
-exe.acf<-1
-exe.forecast<-1
-exe.return<-1
-exe.rank<-1
-exe.garch<-1
-exe.msm<-1
-exe.setar<-1
+exe.table<-0
+exe.boxplot<-0
+exe.unitroot<-0
+exe.acf<-0
+exe.forecast<-0
+exe.return<-0
+exe.rank<-0
+exe.garch<-0
+exe.msm<-0
+exe.setar<-0
+exe.seasonplot<-1
 setwd(pathOutput)
 if(monthly==1){
  acf.lag<-12*5#オリジナルデータの長さに注意
@@ -613,7 +614,7 @@ for(uuuu in 1:length(unique(js.title))){
  for(iii in 1:length(obj)){
   if(as.character(unique(js.title)[uuuu])==as.character(js.title[iii])){
    count<-count+1
-   for(ppp in 1:plot.type){
+   for(ppp in 1:plot.type[[iii]]){
     chk<-0#tttループ内で2回以上tmp.0を作成しないため
 ###################################### 共 通 パート ######################################
     fun.withkeyposition()
@@ -662,7 +663,7 @@ cat("\n});;",file=tablelistbasejs[uuuu,1],append=T)
 cat("\n});\n\n",file=tablelistbasejs[uuuu,1],append=T)
 #csv表示仕樣の出力 
 } 
-###################################### table パート ######################################    
+###################################### table パート ######################################
 ###################################### boxplotパート######################################
 if(exe.boxplot==1){
 bbbb<-2 
@@ -697,6 +698,22 @@ if(monthly==1){
  tmp.1<-subset(tmp.1,data.lag<=tmp.1[,1])  
 }   
 fun.gettitle()
+###################################### seasonplot   ######################################    
+if(exe.seasonplot==1){
+bbbb<-11
+buf.html<-outputhtml[uuuu,bbbb]
+png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,".png",sep="")    
+png(file=png.file,width=1400,height=1200)
+par(mar=c(5, 5, 12, 5))
+par(ps=40) 
+par(cex.main=1.5,cex.lab=1,cex.axis=0.8)
+tmp.seasonplot<-tail(tmp.1,60) 
+tmp.seasonplot<-ts(tmp.seasonplot[,2], freq=12, start=c(year(tmp.seasonplot[1,1]), month(tmp.seasonplot[1,1]))) 
+seasonplot(tmp.seasonplot,col=palette(),year.labels=TRUE,lwd="4",main=paste(gettitle)) 
+dev.off()
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=buf.html,append=T)
+}
+###################################### seasonplot   ######################################    
 ######################################unitrootパート######################################    
 if(exe.unitroot==1){ 
 bbbb<-3 
