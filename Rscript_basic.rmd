@@ -27,6 +27,7 @@ all.data<-list()
 all.data.yy<-list()
 all.data.xts<-list()
 all.data.xts.yy<-list()
+all.data.xts.yy<-NULL
 timeline<-list()
 dataset.tm<-list()
 js.title<-list()
@@ -197,28 +198,29 @@ fun.convert<-function(){
 }
 #year-to-year change
 fun.yeartoyear<-function(){
-  if(plot.type==2){
-    for(ddd in 1:cnt){
-      tmp<-na.omit(dataset.xts[[ddd]])
-      if(yy.type[[ddd]]<=nrow(tmp)){
-        tmp<-round(diff(tmp,lag=yy.type[[ddd]])/lag(tmp,yy.type[[ddd]])*100,2)[-1]
-        tmp<-subset(tmp,is.infinite(tmp[,1])==F)
-        tmp<-subset(tmp,is.na(tmp[,1])==F)
-        tmp<-subset(tmp,is.nan(tmp[,1])==F)
-        dataset.xts.yy[[ddd]]<-tmp
-        colnames(dataset.xts.yy[[ddd]])<-paste("YoY_pc_",colnames(dataset.xts.yy[[ddd]]),sep="")
-        dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
-        if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
-        colnames(all.data.xts.yy[[1]])<-paste("YoY_pc_",colnames(all.data.xts.yy[[1]]),sep="")
-        dataset.xts.yy[[ddd]]<<-dataset.xts.yy[[ddd]]
-        colnames(dataset.yy[[ddd]])[1]<-"Date"
-        dataset.yy[[ddd]]<<-dataset.yy[[ddd]]
-      }
-    }
-    all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
-    all.data.yy[[1]]<<-all.data.yy[[1]]
-    all.data.xts.yy[[1]]<<-all.data.xts.yy[[1]]
+for(ddd in 1:cnt){
+ if(plot.type[[ddd]]==2){
+  tmp<-na.omit(dataset.xts[[ddd]])
+  if(yy.type[[ddd]]<=nrow(tmp)){
+  tmp<-round(diff(tmp,lag=yy.type[[ddd]])/lag(tmp,yy.type[[ddd]])*100,2)[-1]
+  tmp<-subset(tmp,is.infinite(tmp[,1])==F)
+  tmp<-subset(tmp,is.na(tmp[,1])==F)
+  tmp<-subset(tmp,is.nan(tmp[,1])==F)
+  dataset.xts.yy[[ddd]]<-tmp
+  colnames(dataset.xts.yy[[ddd]])<-paste("YoY_pc_",colnames(dataset.xts.yy[[ddd]]),sep="")
+  dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
+#  if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
+  all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)
+  colnames(all.data.xts.yy[[1]])<-paste("YoY_pc_",colnames(all.data.xts.yy[[1]]),sep="")
+  dataset.xts.yy[[ddd]]<<-dataset.xts.yy[[ddd]]
+  colnames(dataset.yy[[ddd]])[1]<-"Date"
+  dataset.yy[[ddd]]<<-dataset.yy[[ddd]]
   }
+ }
+}
+all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
+all.data.yy[[1]]<<-all.data.yy[[1]]
+all.data.xts.yy[[1]]<<-all.data.xts.yy[[1]]
 }
 
 fun.gettitle<-function(){
@@ -281,7 +283,6 @@ quarter.dir<-"quarterlyData"
 #read data from bank of japan as data frame
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-2
 ttt.range<-c(1:2)
 tmp.yy.type<-12 #12 month,4 period
 level.multi<-(0)
@@ -306,7 +307,7 @@ if(exe==1){
    fun.individual(tmp,monthly)
    for(zzz in cnt.start:cnt){
     js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[fff])
-    plot.type[[zzz]]<-substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]]))
+    plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))
     js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
     yy.type[[zzz]]<-tmp.yy.type
    }  
@@ -321,7 +322,6 @@ fun.yeartoyear()
 #read various sorts of data of which class is data frame
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-2 #当面固定とする
 ttt.range<-c(1:2)
 level.multi<-(0)
 if(exe==1){
@@ -350,6 +350,8 @@ if(exe==1){
      fun.individual(tmp,monthly)
      for(zzz in cnt.start:cnt){
       js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[iii])
+      plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))
+      js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
       yy.type[[zzz]]<-tmp.yy.type
      }  
     }
@@ -364,29 +366,41 @@ fun.yeartoyear()
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
 exe<-1
-monthly<-0 # 0 or 1
-plot.type<-1
 ttt.range<-c(1:2)
-tmp.yy.type<-12 #12 month,4 period
 level.multi<-(0)
 if(exe==1){
-  ts.source<-list()
-#  ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100")
-  ts.source[[1]]<-c("FRED",1,"DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ")
-#  ts.source[[1]]<-c("FRED",1,"PAYEMS","MANEMP","UNRATE","CPIAUCNS","HOUSTNSA","A191RL1Q225SBEA","AMBNS","M2V","CP0000EZ17M086NEST","EXJPUS")
-  for(lll in 1:length(ts.source)){
-    if(2<length(ts.source[[lll]])){
-      for(iii in 3:length(ts.source[[lll]])){
-        item<- ts.source[[lll]][iii]
-        tmp<-getSymbols(item,src=ts.source[[lll]][1],auto.assign=FALSE)
-        tmp<-tmp[,as.double(ts.source[[lll]][2])]
-        tmp<-data.frame(date=index(tmp),tmp, row.names=NULL)
-        fun.individual(tmp,monthly)
-        js.title[[cnt]]<-ts.source[[1]][iii]
-        yy.type[[cnt]]<-tmp.yy.type
-      }
-    }
+ts.source<-list()
+ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100")
+ts.source[[2]]<-c("FRED",1,"DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ")
+ts.source[[3]]<-c("FRED",1,"PAYEMS","MANEMP","UNRATE","CPIAUCNS","HOUSTNSA","A191RL1Q225SBEA","AMBNS","M2V","CP0000EZ17M086NEST","EXJPUS")
+for(lll in 1:length(ts.source)){
+ if(lll==3){
+  monthly<-1
+ }else{
+  monthly<-0
+ }
+ if(2<length(ts.source[[lll]])){
+  for(iii in 3:length(ts.source[[lll]])){
+   item<- ts.source[[lll]][iii]
+   tmp<-getSymbols(item,src=ts.source[[lll]][1],auto.assign=FALSE)
+   tmp<-tmp[,as.double(ts.source[[lll]][2])]
+   tmp<-data.frame(date=index(tmp),tmp, row.names=NULL)
+   fun.individual(tmp,monthly)
+   js.title[[cnt]]<-ts.source[[lll]][iii]
+   if(js.title[[cnt]]=="A191RL1Q225SBEA"){
+    tmp.yy.type<-4
+   }else{
+    tmp.yy.type<-12
+   }
+   yy.type[[cnt]]<-tmp.yy.type
+   if(js.title[[cnt]]!="UNRATE" && js.title[[cnt]]!="A191RL1Q225SBEA" && js.title[[cnt]]!="M2V"  && lll==1 && lll==2){  
+    plot.type[[cnt]]<-2
+   }else{
+    plot.type[[cnt]]<-1
+   }
   }
+ }
+}
 }
 fun.convert()
 fun.yeartoyear()
@@ -397,9 +411,7 @@ fun.yeartoyear()
 cnt.start<-cnt+1
 exe<-1
 monthly<-1 # 0 or 1
-plot.type<-2
 ttt.range<-c(1:2)
-tmp.yy.type<-12
 if(monthly==0){url.period<-"daily"}else{url.period<-"monthly"}
 if(exe==1){
  url<-c(
@@ -414,8 +426,9 @@ if(exe==1){
   fun.individual(tmp,monthly)
   for(zzz in cnt.start:cnt){
    js.title[[zzz]]<-"Nikkei225"
-   yy.type[[zzz]]<-tmp.yy.type
- }  
+   yy.type[[zzz]]<-12
+   plot.type[[zzz]]<-2
+  }  
  }
 }
 fun.convert()
@@ -445,25 +458,24 @@ if(exe==1){
 #Japanese Government Bonds as data frame
 exe<-1
 monthly<-0
-plot.type<-1
 ttt.range<-c(1:2)
 level.multi<-0
-tmp.yy.type<-12
 if(exe==1){
-  url<-c(
-  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
-  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
-  )
-  tmp<-rbind(read.csv(url[1],header=T,skip=0,stringsAsFactor=F),read.csv(url[2],header=T,skip=0,stringsAsFactor=F))
-  tmp[,1]<-as.Date(tmp[,1])
-  FUN.1<-function(x) as.numeric(x)
-  tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
-  colnames(tmp)[2:length(tmp)]<-paste("JGB.",gsub("X","",colnames(tmp)[2:length(tmp)]),"year",sep="")
-  tmp<-tmp[,c(1,11)]#10年物のみを抽出
-  fun.individual(tmp,monthly)
+url<-c(
+ "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
+ "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
+)
+tmp<-rbind(read.csv(url[1],header=T,skip=0,stringsAsFactor=F),read.csv(url[2],header=T,skip=0,stringsAsFactor=F))
+tmp[,1]<-as.Date(tmp[,1])
+FUN.1<-function(x) as.numeric(x)
+tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
+colnames(tmp)[2:length(tmp)]<-paste("JGB.",gsub("X","",colnames(tmp)[2:length(tmp)]),"year",sep="")
+tmp<-tmp[,c(1,11)]#10年物のみを抽出
+fun.individual(tmp,monthly)
 }
 js.title[[cnt]]<-"JAPANESEGOVERNMENTBOND10YEAR"
-yy.type[[cnt]]<-tmp.yy.type
+yy.type[[cnt]]<-12
+plot.type[[zzz]]<-1
 fun.convert()
 fun.yeartoyear()
 ```
