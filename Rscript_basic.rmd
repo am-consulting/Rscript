@@ -221,14 +221,20 @@ for(ttt in ttt.range){
     chk<-1
   }
   if(nrow(tmp.0)!=0){
-    for(jjj in 1:nrow(tmp.0)){
-      for(kkk in seq(nrow(dataset.tm[[ttt]]),1,by=-1)){
+##################################### apply非適用パート、確認用   
+    kkk.start<-nrow(dataset.tm[[ttt]]) #誤って一方だけをグローバル化しないこと。
+    for(jjj in nrow(tmp.0):1){
+      for(kkk in seq(kkk.start,1,by=-1)){
         if(dataset.tm[[ttt]][kkk,1]<=tmp.0[jjj,1] & tmp.0[jjj,1]<=dataset.tm[[ttt]][kkk,2]){
           tmp.0[jjj,ttt+ttt.diff]<-dataset.tm[[ttt]][kkk,3]
+          kkk.start<-kkk #誤って一方だけをグローバル化しないこと。
           break
         }  
       }
     }
+##################################### apply非適用パート、確認用     
+##################################### apply適用パート   
+##################################### apply適用パート   
     if(ttt==2){colnames(tmp.0)[ttt.diff+1]<-"PM";colnames(tmp.0)[ttt.diff+2]<-"BoJ"}
     if(ttt==4){colnames(tmp.0)[ttt.diff+3]<-"U.S.A";colnames(tmp.0)[ttt.diff+4]<-"FRB"}
     tmp0<-1
