@@ -17,7 +17,6 @@ library(fGarch)
 library(vars)
 library(MSwM)
 library(tsDyn)
-add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 #list
 dataset<-list()
 dataset.yy<-list()
@@ -27,18 +26,14 @@ all.data<-list()
 all.data.yy<-list()
 all.data.xts<-list()
 all.data.xts.yy<-list()
-all.data.xts.yy<-NULL
 timeline<-list()
 dataset.tm<-list()
 js.title<-list()
 yy.type<-list()
 plot.type<-list()
-#parameter
-username<-Sys.info()['user']
-path<-paste("C:/Users/",username,"/Desktop",sep="")
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
-pathInput<-paste("C:/Users/",username,"/Desktop/inputR/",sep="")
-cnt<-0
+monthly<-list()
+all.data.xts<-NULL
+all.data.xts.yy<-NULL
 ##make dataset.tm[[x]]
 timeline[[1]]<-c(
 "1946-5-22","吉田茂",
@@ -112,18 +107,19 @@ timeline[[4]]<-c(
 "2006-2-1","Ben S.Bernanke",
 "2014-2-1","Janet Yellen"
 )
-for(ttt in 1:4){
+for(ttt in 1:2){#当面日本のみとする
   tmp<-timeline[[ttt]]
   inaugural.date<-as.Date(tmp[seq(1,length(tmp),by=2)])
-  resignation.date<-c((inaugural.date-1)[-1],Sys.Date()+31)
+  resignation.date<-c((inaugural.date-1)[-1],Sys.Date()+31)#最後のSys.Date()+31は現職用
   Name<-tmp[seq(2,length(tmp),by=2)]
   dataset.tm[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
   dataset.tm[[ttt]][,3]<-ordered(dataset.tm[[ttt]][,3],levels=dataset.tm[[ttt]][,3][1:nrow(dataset.tm[[ttt]])])
   order(dataset.tm[[ttt]][,3])
 }
 ####################################################### functions #######################################################
+#######################################################   individual     ################################################
 ##separate data into individual datasets
-fun.individual<-function(tmp,monthly){
+fun.individual<-function(tmp){
   for(ccc in 2:ncol(tmp)){
     cnt<<-cnt+1 #caution.gloval variable
     dataset[[cnt]]<-tmp[,c(1,ccc)]
@@ -131,122 +127,96 @@ fun.individual<-function(tmp,monthly){
     dataset[[cnt]]<-subset(dataset[[cnt]],dataset[[cnt]][,2]!="") #remove blank row
     dataset[[cnt]][,2]<-as.double(dataset[[cnt]][,2])
     colnames(dataset[[cnt]])[1]<-"Date"
-    if(monthly==1){#月次データの日付は月末に変更
-      dataset[[cnt]][,1]<-as.Date(paste(year(dataset[[cnt]][,1]),"-",month(dataset[[cnt]][,1]),"-",days_in_month(dataset[[cnt]][,1]),sep=""))
-    }
     #omit part  
     dataset[[cnt]]<-subset(dataset[[cnt]],is.infinite(dataset[[cnt]][,2])!=T) 
     dataset[[cnt]]<-na.omit(dataset[[cnt]])  
     #omit part  
-    #共通列名変更  
+    #列名変更  
     colnames(dataset[[cnt]])[2]<-gsub("\\.億円","",colnames(dataset[[cnt]])[2], perl=T)  
     colnames(dataset[[cnt]])[2]<-gsub("\\.q\\.","",colnames(dataset[[cnt]])[2], perl=T)#ETF購入 
     colnames(dataset[[cnt]])[2]<-gsub("\\.\\.","\\.",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
     colnames(dataset[[cnt]])[2]<-gsub("X\\.","",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
-    #共通列名変更  
+    #列名変更  
     dataset[[cnt]]<<-dataset[[cnt]] #caution.gloval variable
-    print(head(dataset[[cnt]],2))
     print(tail(dataset[[cnt]],2))
   }
 }
-##calculate for tmp.0,tmp.1 and tmp.date
-fun.common<-function(ppp,iii,ttt){#現在、時系列チャートチャンクのみで利用
-  if(ppp==1){
-    tmp.date<-max(as.Date(first.date[ttt]),na.omit(dataset[[obj[iii]]])[1,1])
-    tmp.1<-na.omit(subset(dataset[[obj[iii]]],tmp.date<=dataset[[obj[iii]]][,1]))
-  }else{
-    tmp.date<-max(as.Date(first.date[ttt]),na.omit(dataset.yy[[obj[iii]]])[1,1])
-    tmp.1<-na.omit(subset(dataset.yy[[obj[iii]]],tmp.date<=dataset.yy[[obj[iii]]][,1]))
-  }
-  for(kkk in seq(1,nrow(dataset.tm[[ttt]]),by=1)){
-    if(dataset.tm[[ttt]][kkk,1]<=tmp.date & tmp.date<=dataset.tm[[ttt]][kkk,2]){break}  
-  }
-  tmp.0<-dataset.tm[[ttt]][c(kkk:nrow(dataset.tm[[ttt]])),]
-  if(nrow(tmp.0)!=0){
-    tmp.0[1,1]<-tmp.date
-    tmp.0[nrow(tmp.0),2]<-last(tmp.1)[1]
-  }else{
-    tmp.0<-last(dataset.tm[[ttt]])
-    tmp.0[1,1]<-tmp.date
-    tmp.0[1,2]<-last(tmp.1)[1]
-  }
-  tmp.1<<-tmp.1 #caution
-  tmp.0<<-tmp.0 #caution
-  tmp.date<<-tmp.date #caution
-}
-#Convert dataframe to xts
+#######################################################   individual     ################################################
+#######################################################    convert       ################################################
+#Convert dataframe to xts and merge all datasets
 fun.convert<-function(){
   for(iii in 1:cnt){
-    cat(paste(iii,colnames(dataset[[iii]])[2],"\n")) 
+    cat(paste(iii,colnames(dataset[[iii]])[2],"\n"))#確認用としてのみ 
     dataset.xts[[iii]]<-as.xts(dataset[[iii]][,-1],order.by=as.Date(dataset[[iii]][,1]))
     colnames(dataset.xts[[iii]])[1]<-colnames(dataset[[iii]])[2]
     dataset.xts[[iii]]<<-dataset.xts[[iii]]
+    all.data.xts[[1]]<-merge.xts(all.data.xts[[1]],dataset.xts[[iii]],all=T)
   }
-  #merge all datasets
-  obj<-c(1:length(dataset.xts))
-  for(iii in 1:length(obj)){
-    if(iii==1){
-      all.data.xts[[1]]<-dataset.xts[[obj[iii]]]
-    }else{
-      all.data.xts[[1]]<-merge.xts(all.data.xts[[1]],dataset.xts[[obj[iii]]],all=T)
+#  obj<-c(1:length(dataset.xts))
+#  for(iii in 1:length(obj)){
+#    all.data.xts[[1]]<-merge.xts(all.data.xts[[1]],dataset.xts[[obj[iii]]],all=T)
+#  }
+  all.data[[1]]<-data.frame(date=index(all.data.xts[[1]]),all.data.xts[[1]],row.names=NULL)
+  all.data[[1]]<<-all.data[[1]] #gloval
+  all.data.xts[[1]]<<-all.data.xts[[1]] #gloval
+#  obj<<-obj #gloval
+}
+#######################################################    convert       ################################################
+####################################################### yeartoyear       ################################################
+fun.yeartoyear<-function(){
+  for(zzz in 1:cnt){
+    if(plot.type[[zzz]]==2){
+      tmp<-na.omit(dataset.xts[[zzz]])
+      if(yy.type[[zzz]]<=nrow(tmp)){
+        tmp<-round(diff(tmp,lag=yy.type[[zzz]])/lag(tmp,yy.type[[zzz]])*100,2)#[-1]
+        tmp<-subset(tmp,is.infinite(tmp[,1])==F)
+        tmp<-subset(tmp,is.na(tmp[,1])==F)
+        tmp<-subset(tmp,is.nan(tmp[,1])==F)
+        dataset.xts.yy[[zzz]]<-tmp
+        colnames(dataset.xts.yy[[zzz]])<-paste("YoY_pc_",colnames(dataset.xts.yy[[zzz]]),sep="")
+        dataset.yy[[zzz]]<-data.frame(date=index(dataset.xts.yy[[zzz]]),dataset.xts.yy[[zzz]],row.names=NULL)
+        colnames(dataset.yy[[zzz]])[1]<-"Date"
+        all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],dataset.xts.yy[[zzz]],all=T)
+        colnames(all.data.xts.yy[[1]])<-paste("YoY_pc_",colnames(all.data.xts.yy[[1]]),sep="")
+        dataset.xts.yy[[zzz]]<<-dataset.xts.yy[[zzz]] #gloval
+        dataset.yy[[zzz]]<<-dataset.yy[[zzz]] #gloval
+      }
     }
   }
-  all.data[[1]]<-data.frame(date=index(all.data.xts[[1]]),all.data.xts[[1]],row.names=NULL)
-  all.data[[1]]<<-all.data[[1]]
-  all.data.xts[[1]]<<-all.data.xts[[1]]
-  obj<<-obj
+  all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
+  all.data.yy[[1]]<<-all.data.yy[[1]] #gloval
+  all.data.xts.yy[[1]]<<-all.data.xts.yy[[1]] #gloval
 }
-#year-to-year change
-fun.yeartoyear<-function(){
-for(ddd in 1:cnt){
- if(plot.type[[ddd]]==2){
-  tmp<-na.omit(dataset.xts[[ddd]])
-  if(yy.type[[ddd]]<=nrow(tmp)){
-  tmp<-round(diff(tmp,lag=yy.type[[ddd]])/lag(tmp,yy.type[[ddd]])*100,2)[-1]
-  tmp<-subset(tmp,is.infinite(tmp[,1])==F)
-  tmp<-subset(tmp,is.na(tmp[,1])==F)
-  tmp<-subset(tmp,is.nan(tmp[,1])==F)
-  dataset.xts.yy[[ddd]]<-tmp
-  colnames(dataset.xts.yy[[ddd]])<-paste("YoY_pc_",colnames(dataset.xts.yy[[ddd]]),sep="")
-  dataset.yy[[ddd]]<-data.frame(date=index(dataset.xts.yy[[ddd]]),dataset.xts.yy[[ddd]],row.names=NULL)
-#  if(ddd==1){all.data.xts.yy[[1]]<-tmp}else{all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)}
-  all.data.xts.yy[[1]]<-merge.xts(all.data.xts.yy[[1]],tmp,all=T)
-  colnames(all.data.xts.yy[[1]])<-paste("YoY_pc_",colnames(all.data.xts.yy[[1]]),sep="")
-  dataset.xts.yy[[ddd]]<<-dataset.xts.yy[[ddd]]
-  colnames(dataset.yy[[ddd]])[1]<-"Date"
-  dataset.yy[[ddd]]<<-dataset.yy[[ddd]]
-  }
- }
-}
-all.data.yy[[1]]<-data.frame(date=index(all.data.xts.yy[[1]]),all.data.xts.yy[[1]],row.names=NULL)
-all.data.yy[[1]]<<-all.data.yy[[1]]
-all.data.xts.yy[[1]]<<-all.data.xts.yy[[1]]
-}
-
+####################################################### yeartoyear       ################################################
+####################################################### gettitle         ################################################
 fun.gettitle<-function(){
   gettitle<-colnames(tmp.1)[2]
   gettitle<-gsub("YoYchange.percent.","YoYchange.percent\n",gettitle, perl=T)
   gettitle<-sub("\\.", "\n", gettitle)#最初のドットのみとする
-  if(monthly==1){
+  if(monthly[[iii]]==1){
     gettitle<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",gettitle)
   }else{
     gettitle<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",gettitle)
   }
   gettitle<<-gettitle
 }
+####################################################### gettitle         ################################################
+#######################################################     omit         ################################################
 fun.omit<-function(tmp.omit){#都度必要に応じて利用
   tmp.omit<-subset(tmp.omit,is.infinite(tmp.omit[,2])!=T) 
   tmp.omit<-na.omit(tmp.omit)
   tmp.omit<<-tmp.omit
 }  
+#######################################################     omit         ################################################
+####################################################### withkeyposition  ################################################
 fun.withkeyposition<-function(){
 #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
 for(ttt in ttt.range){
   if(chk==0){
     if(ppp==1){
-      tmp.0<-dataset[[obj[iii]]]
+      tmp.0<-dataset[[iii]]
     }else{
-      tmp.0<-dataset.yy[[obj[iii]]]
+      tmp.0<-dataset.yy[[iii]]
     }
     chk<-1
   }
@@ -272,168 +242,175 @@ for(ttt in ttt.range){
 }
 #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
 }
+####################################################### withkeyposition  ################################################
+####################################################### changeDateformat ################################################
+fun.changeDateformat<-function(){
+  if(monthly[[zzz]]==1){#月次データの日付は月末に変更
+    dataset[[zzz]][,1]<-as.Date(paste(year(dataset[[zzz]][,1]),"-",month(dataset[[zzz]][,1]),"-",days_in_month(dataset[[zzz]][,1]),sep=""))
+  }else{
+    dataset[[zzz]][,1]<-as.Date(dataset[[zzz]][,1])
+  }  
+  dataset[[zzz]]<<-dataset[[zzz]]#function内の変数は都度、グローバル化が必要
+}
+####################################################### changeDateformat ################################################
 ####################################################### functions #######################################################
 ####################################################### argument  #######################################################
+SD<-Sys.Date()
+ST<-Sys.time()  
+add.ver<-gsub("\\.","",paste("?var=",year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 boj.dir<-"BankofJapan" #日本銀行データディレクトリ
 quarter.dir<-"quarterlyData"
+username<-Sys.info()['user']
+path<-paste("C:/Users/",username,"/Desktop",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+pathInput<-paste("C:/Users/",username,"/Desktop/inputR/",sep="")
+cnt<-0
+data.id<-c("tschart","boxplot","unitroot","acf","forecast","return","rank","garch","msm","setar","seasonplot")
 ####################################################### argument  #######################################################
 ```
 
 ```{r}
 #read data from bank of japan as data frame
-exe<-1
-monthly<-1 # 0 or 1
 ttt.range<-c(1:2)
 tmp.yy.type<-12 #12 month,4 period
 level.multi<-(0)
-if(exe==1){
- folder.path<-file.path(pathInput)
- setwd(folder.path)
- tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
- dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
- setwd(dir.list)
- folder.path<-paste(dir.list,boj.dir,sep="")
- setwd(folder.path)
- if(length(dir(folder.path))!=0){
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+setwd(dir.list)
+folder.path<-paste(dir.list,boj.dir,sep="")
+setwd(folder.path)
+if(length(dir(folder.path))!=0){
   for(fff in 1:length(dir(folder.path))){
-   cnt.start<-cnt+1
-   tmp<-read.csv(file=dir(folder.path)[fff],header=T,as.is=T,skip=1,na.strings=c("", "NA"))
-   colnames(tmp)<-paste(colnames(tmp),".",tmp[2,],sep="")
-   tmp<-tmp[-c(1:12),]
-   if(monthly==1){
-    tmp[,1]<-paste(tmp[,1],"/1",sep="")
-    tmp[,1]<-as.Date(tmp[,1])
-   }
-   fun.individual(tmp,monthly)
-   for(zzz in cnt.start:cnt){
-    js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[fff])
-    plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))
-    js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
-    yy.type[[zzz]]<-tmp.yy.type
-   }  
+    cnt.start<-cnt+1
+    tmp<-read.csv(file=dir(folder.path)[fff],header=T,as.is=T,skip=1,na.strings=c("", "NA"))
+    colnames(tmp)<-paste(colnames(tmp),".",tmp[2,],sep="")
+    tmp<-tmp[-c(1:12),]
+    fun.individual(tmp)
+    for(zzz in cnt.start:cnt){
+      js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[fff])
+      js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
+      plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]])-1,nchar(js.title[[zzz]])-1))#1 no YoY,,2 with YoY
+      monthly[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))#0 daily,1 monthly,2 quarterly,
+      yy.type[[zzz]]<-tmp.yy.type
+      if(monthly[[zzz]]==1){
+        dataset[[zzz]][,1]<-paste(dataset[[zzz]][,1],"/1",sep="")
+        dataset[[zzz]][,1]<-as.Date(dataset[[zzz]][,1])
+        fun.changeDateformat()
+      }
+    }  
   }
- }
 }
-fun.convert()
-fun.yeartoyear()
 ```
 
 ```{r}
 #read various sorts of data of which class is data frame
-exe<-1
-monthly<-1 # 0 or 1
 ttt.range<-c(1:2)
 level.multi<-(0)
-if(exe==1){
- folder.path<-file.path(pathInput)
- setwd(folder.path)
- tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
- dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
- setwd(dir.list)
- folder.name<-dir()[file.info(dir())$isdir==TRUE]
- for(ffff in 1:length(folder.name)){
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+setwd(dir.list)
+folder.name<-dir()[file.info(dir())$isdir==TRUE]
+for(ffff in 1:length(folder.name)){
   if(folder.name[ffff]!=boj.dir){
-   folder.path<-paste(dir.list,folder.name[ffff],sep="")
-   setwd(folder.path)
-   if(folder.name[ffff]!=quarter.dir){
-    tmp.yy.type<-12
-   }else{   
-    tmp.yy.type<-4 
-   }
-   if(length(dir(folder.path))!=0){
-    for(iii in 1:length(dir(folder.path))){
-     cnt.start<-cnt+1
-     tmp<-read.table(file=dir(folder.path)[iii],header=TRUE,sep=",",na.strings=c("NA","-",""))
-     tmp[,1]<-as.Date(tmp[,1])
-     FUN.1<-function(x) as.numeric(gsub("[( | ) | -+ | , | < | >]","",x))
-     tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
-     fun.individual(tmp,monthly)
-     for(zzz in cnt.start:cnt){
-      js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[iii])
-      plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))
-      js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
-      yy.type[[zzz]]<-tmp.yy.type
-     }  
+    folder.path<-paste(dir.list,folder.name[ffff],sep="")
+    setwd(folder.path)
+    if(folder.name[ffff]!=quarter.dir){
+      tmp.yy.type<-12
+    }else{   
+      tmp.yy.type<-4 
     }
-   }
+    if(length(dir(folder.path))!=0){
+      for(iii in 1:length(dir(folder.path))){
+        cnt.start<-cnt+1
+        tmp<-read.table(file=dir(folder.path)[iii],header=TRUE,sep=",",na.strings=c("NA","-",""))
+        tmp[,1]<-as.Date(tmp[,1])
+        FUN.1<-function(x) as.numeric(gsub("[( | ) | -+ | , | < | >]","",x))
+        tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
+        fun.individual(tmp)
+        for(zzz in cnt.start:cnt){
+          js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[iii])
+          js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
+          yy.type[[zzz]]<-tmp.yy.type
+          monthly[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))#0 daily,1 monthly,2 quarterly,
+          plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]])-1,nchar(js.title[[zzz]])-1))#1 no YoY,,2 with YoY
+        }  
+      }
+    }
   }
- }
 }
-fun.convert()
-fun.yeartoyear()
 ```
 
 ```{r}
 #read data from fred by quantmod as xts,after that, convert to data frame
-exe<-1
 ttt.range<-c(1:2)
 level.multi<-(0)
-if(exe==1){
 ts.source<-list()
 ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100")
 ts.source[[2]]<-c("FRED",1,"DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ")
 ts.source[[3]]<-c("FRED",1,"PAYEMS","MANEMP","UNRATE","CPIAUCNS","HOUSTNSA","A191RL1Q225SBEA","AMBNS","M2V","CP0000EZ17M086NEST","EXJPUS")
 for(lll in 1:length(ts.source)){
- if(lll==3){
-  monthly<-1
- }else{
-  monthly<-0
- }
- if(2<length(ts.source[[lll]])){
-  for(iii in 3:length(ts.source[[lll]])){
-   item<- ts.source[[lll]][iii]
-   tmp<-getSymbols(item,src=ts.source[[lll]][1],auto.assign=FALSE)
-   tmp<-tmp[,as.double(ts.source[[lll]][2])]
-   tmp<-data.frame(date=index(tmp),tmp, row.names=NULL)
-   fun.individual(tmp,monthly)
-   js.title[[cnt]]<-ts.source[[lll]][iii]
-   if(js.title[[cnt]]=="A191RL1Q225SBEA"){
-    tmp.yy.type<-4
-   }else{
-    tmp.yy.type<-12
-   }
-   yy.type[[cnt]]<-tmp.yy.type
-   if(js.title[[cnt]]!="UNRATE" && js.title[[cnt]]!="A191RL1Q225SBEA" && js.title[[cnt]]!="M2V"  && lll==1 && lll==2){  
-    plot.type[[cnt]]<-2
-   }else{
-    plot.type[[cnt]]<-1
-   }
+  if(2<length(ts.source[[lll]])){
+    for(iii in 3:length(ts.source[[lll]])){
+      item<- ts.source[[lll]][iii]
+      tmp<-getSymbols(item,src=ts.source[[lll]][1],auto.assign=FALSE)
+      tmp<-tmp[,as.double(ts.source[[lll]][2])]
+      tmp<-data.frame(date=index(tmp),tmp, row.names=NULL)
+      fun.individual(tmp)
+      js.title[[cnt]]<-ts.source[[lll]][iii]
+      if(lll==3){
+        monthly[[cnt]]<-1
+      }else{
+        monthly[[cnt]]<-0
+      }
+      if(js.title[[cnt]]=="A191RL1Q225SBEA"){
+        tmp.yy.type<-4
+      }else{
+        tmp.yy.type<-12
+      }
+      yy.type[[cnt]]<-tmp.yy.type
+      if(js.title[[cnt]]!="UNRATE" && js.title[[cnt]]!="A191RL1Q225SBEA" && js.title[[cnt]]!="M2V"  && lll==1 && lll==2){  
+        plot.type[[cnt]]<-2
+      }else{
+        plot.type[[cnt]]<-1
+      }
+    }
   }
- }
 }
-}
-fun.convert()
-fun.yeartoyear()
 ```
 
 ```{r}
 #read nikkei225 as data frame
 cnt.start<-cnt+1
-exe<-1
-monthly<-1 # 0 or 1
+nikkei.type<-1
 ttt.range<-c(1:2)
 level.multi<-0
-if(monthly==0){url.period<-"daily"}else{url.period<-"monthly"}
-if(exe==1){
- url<-c(
-  paste("http://indexes.nikkei.co.jp/nkave/historical/nikkei_stock_average_",url.period,"_en.csv",sep="")
- )
- for(iii in 1:length(url)){
+if(nikkei.type==0){url.period<-"daily"}else{url.period<-"monthly"}
+url<-c(
+paste("http://indexes.nikkei.co.jp/nkave/historical/nikkei_stock_average_",url.period,"_en.csv",sep="")
+)
+for(iii in 1:length(url)){
   tmp<-read.csv(url[iii],header=T,skip=0,stringsAsFactor=F)
   tmp[,1]<-as.Date(tmp[,1])
   if(grepl("nikkei",url[iii])==T){
-   colnames(tmp)[-1]<-paste("Nikkei.",colnames(tmp)[-1],sep="")
+    colnames(tmp)[-1]<-paste("Nikkei.",colnames(tmp)[-1],sep="")
   }
-  fun.individual(tmp,monthly)
+  fun.individual(tmp)
   for(zzz in cnt.start:cnt){
-   js.title[[zzz]]<-"Nikkei225"
-   yy.type[[zzz]]<-12
-   plot.type[[zzz]]<-2
+    js.title[[zzz]]<-"Nikkei225"
+    yy.type[[zzz]]<-12
+    if(nikkei.type==0){
+      plot.type[[zzz]]<-1
+      monthly[[zzz]]<-0
+    }else{
+      plot.type[[zzz]]<-2
+      monthly[[zzz]]<-1
+    }
   }  
- }
 }
-fun.convert()
-fun.yeartoyear()
 ```
 
 ```{r}
@@ -457,11 +434,8 @@ if(exe==1){
 
 ```{r}
 #Japanese Government Bonds as data frame
-exe<-1
-monthly<-0
 ttt.range<-c(1:2)
 level.multi<-0
-if(exe==1){
 url<-c(
  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
@@ -472,23 +446,22 @@ FUN.1<-function(x) as.numeric(x)
 tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
 colnames(tmp)[2:length(tmp)]<-paste("JGB.",gsub("X","",colnames(tmp)[2:length(tmp)]),"year",sep="")
 tmp<-tmp[,c(1,11)]#10年物のみを抽出
-fun.individual(tmp,monthly)
-}
+fun.individual(tmp)
 js.title[[cnt]]<-"JAPANESEGOVERNMENTBOND10YEAR"
 yy.type[[cnt]]<-12
 plot.type[[cnt]]<-1
-fun.convert()
-fun.yeartoyear()
+monthly[[cnt]]<-0
 ```
 
 ```{r}
+fun.convert()
+fun.yeartoyear()
 ######################################ファイル生成パート##################################    
 setwd(pathOutput)
 outputhtml<-data.frame()
 outputjs<-data.frame()
 tablelistbasejs<-data.frame()
 tablelistjs<-data.frame()
-data.id<-c("tschart","boxplot","unitroot","acf","forecast","return","rank","garch","msm","setar","seasonplot")
 for(uuuu in 1:length(unique(js.title))){
  fileCommonName<-unique(js.title)[uuuu]  
  tablelistjs[uuuu,1]<-paste(fileCommonName,".tablelist.js",sep="")
@@ -507,98 +480,113 @@ for(uuuu in 1:length(unique(js.title))){
  }
 }
 ######################################ファイル生成パート##################################    
-#```
+```
 
-#```{r}
+```{r}
 ######################################時系列チャート###################################### 
 setwd(pathOutput)
 level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
 first.date<-c("2001-4-26","1998-3-20","1993-1-20","1987-8-11")
 bbbb<-1
+if(ttt.range[1]==1){
+ ttt.diff<-2
+}else{
+ ttt.diff<-0
+}
 for(uuuu in 1:length(unique(js.title))){
- buf.html<-outputhtml[uuuu,bbbb]
- count<-0
- for(iii in 1:length(obj)){
-  if(as.character(unique(js.title)[uuuu])==as.character(js.title[iii])){
-   count<-count+1
-   for(ppp in 1:plot.type[[iii]]){
-    for(ttt in ttt.range){
-     fun.common(ppp,iii,ttt)
-     if(nrow(tmp.1)!=0){
-      fun.gettitle()
-      switch(ppp,
-      multi<-(10^level.multi),
-      multi<-1
-      )
-      colnames(tmp.1)[2]<-"value"
-      tmp.1[,2]<-tmp.1[,2]*multi 
-      if(nrow(tmp.0)!=0){
-       x0<-tmp.0$inaugural.date[seq(1,length(tmp.0$inaugural.date),by=2)]
-       x1<-tmp.0$resignation.date[seq(1,length(tmp.0$resignation.date),by=2)]
-      }else{
-       x0<-tmp.0[1,1]
-       x1<-tmp.0[1,2]
+  buf.html<-outputhtml[uuuu,bbbb]
+  count<-0
+  for(iii in 1:cnt){
+    if(as.character(unique(js.title)[uuuu])==as.character(js.title[iii])){
+      count<-count+1
+      for(ppp in 1:plot.type[[iii]]){
+        chk<-0#tttループ内で2回以上tmp.0を作成しないため
+        fun.withkeyposition()
+        for(ttt in ttt.range){
+          if(tmp0!=0){
+            row.names(tmp.0)<-NULL
+            tmp.1<-tmp.0[,c(1:4)]
+            tmp.date<-max(as.Date(first.date[ttt]),na.omit(tmp.1)[1,1])
+            tmp.1<-na.omit(subset(tmp.1,tmp.date<=tmp.1[,1]))
+            fun.gettitle()
+            switch(ppp,
+            multi<-(10^level.multi),
+            multi<-1
+            )
+            colnames(tmp.1)[2]<-"value"
+            tmp.1[,2]<-tmp.1[,2]*multi 
+            fun.omit(tmp.1)
+            tmp.1<-tmp.omit
+            for(kkk in seq(1,nrow(dataset.tm[[ttt]]),by=1)){
+              if(dataset.tm[[ttt]][kkk,1]<=tmp.date & tmp.date<=dataset.tm[[ttt]][kkk,2]){break}  
+            }
+            tmp.segment<-dataset.tm[[ttt]][c(kkk:nrow(dataset.tm[[ttt]])),]
+            if(nrow(tmp.segment)!=0){
+              tmp.segment[1,1]<-tmp.date
+              tmp.segment[nrow(tmp.segment),2]<-last(tmp.1)[1]
+            }else{
+              tmp.segment<-last(dataset.tm[[ttt]])
+              tmp.segment[1,1]<-tmp.date
+              tmp.segment[1,2]<-last(tmp.1)[1]
+            }           
+            x0<-tmp.segment$inaugural.date[seq(1,length(tmp.segment$inaugural.date),by=2)]
+            x1<-tmp.segment$resignation.date[seq(1,length(tmp.segment$resignation.date),by=2)]
+            y0<-min(tmp.1[,2])
+            if(0<y0 && ppp==2){y0<-0}
+            y1<-max(tmp.1[,2])
+            shade<-data.frame(x0,x1,y0,y1)
+            shade<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
+            value.y<-median(tmp.1[,2]) #value.y<-mean(tmp.1[,2]) 
+            png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,ttt,".png",sep="")
+            png(file=png.file,width=1400,height=1200)  
+            g<-ggplot()
+            g<-g+geom_segment(data=tmp.segment,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=10)
+            g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
+            if(ppp==1){
+              if(level.type==1){
+                g<-g+geom_line(data=tmp.1,aes(x=Date,y=value),size=2)
+              }else{
+                g<-g+geom_bar(data=tmp.1,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+              } #geom_bar:データが全てプラス値の場合、表示されない←y0<-0で解決
+            }else{
+              g<-g+geom_bar(data=tmp.1,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+            }
+            g<-g+geom_smooth(data=tmp.1,aes(x=Date,y=value),method=lm)
+            g<-g+geom_smooth(data=tmp.1,aes(x=Date,y=value),method=loess,color="red")
+            g<-g+ggtitle(gettitle)+xlab("")+ylab("") 
+            g<-g+ylim(y0,y1)
+            g<-g+theme(axis.text=element_text(size=30),
+            axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"),
+            legend.position="top",legend.text=element_text(colour="black",size=25,face="bold"),
+            legend.title=element_text(colour="white",size=1,face="bold"))          
+            g<-g+scale_x_date(labels=date_format("%y/%m"))
+            print(g)
+            dev.off() 
+            cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=buf.html,append=T)
+          }
+        }
       }
-      fun.omit(tmp.1)
-      tmp.1<-tmp.omit
-      y0<-min(tmp.1[,2])
-      if(0<y0 && ppp==2){
-       y0<-0
-      }
-      y1<-max(tmp.1[,2])
-      shade<-data.frame(x0,x1,y0,y1)
-      shade<<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
-      value.y<<-median(tmp.1[,2]) #value.y<<-mean(tmp.1[,2]) 
-      png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,ttt,".png",sep="")
-      png(file=png.file,width=1400,height=1200)  
-      g<-ggplot()
-      g<-g+geom_segment(data=tmp.0,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=10)
-      g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
-      if(ppp==1){
-       if(level.type==1){
-        g<-g+geom_line(data=tmp.1,aes(x=Date,y=value),size=2)
-       }else{
-        g<-g+geom_bar(data=tmp.1,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
-       } #geom_bar:データが全てプラス値の場合、表示されない←y0<-0で解決
-      }else{
-       g<-g+geom_bar(data=tmp.1,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
-      }
-      g<-g+geom_smooth(data=tmp.1,aes(x=Date,y=value),method=lm)
-      g<-g+geom_smooth(data=tmp.1,aes(x=Date,y=value),method=loess,color="red")
-      g<-g+ggtitle(gettitle)+xlab("")+ylab("") 
-      g<-g+ylim(y0,y1)
-      g<-g+theme(axis.text=element_text(size=30),
-      axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"),
-      legend.position="top",legend.text=element_text(colour="black",size=25,face="bold"),
-      legend.title=element_text(colour="white",size=1,face="bold"))          
-      g<-g+scale_x_date(labels=date_format("%y/%m"))
-      print(g)
-      dev.off() 
-      cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=buf.html,append=T)
-     }
-    }
-   }
-  } 
- }
+    } 
+  }
 }
 ######################################時系列チャート###################################### 
 ```
 
 ```{r}
 ######################################引数設定パート######################################    
-exe.table<-0
-exe.boxplot<-0
-exe.unitroot<-0
-exe.acf<-0
-exe.forecast<-0
-exe.return<-0
-exe.rank<-0
-exe.garch<-0
-exe.msm<-0
-exe.setar<-0
+exe.table<-1
+exe.boxplot<-1
+exe.unitroot<-1
+exe.acf<-1
+exe.forecast<-1
+exe.return<-1
+exe.rank<-1
+exe.garch<-1
+exe.msm<-1
+exe.setar<-1
 exe.seasonplot<-1
 setwd(pathOutput)
-if(monthly==1){
+if(monthly[[iii]]==1){
  acf.lag<-12*5#オリジナルデータの長さに注意
 }else{
  acf.lag<-365*10
@@ -612,7 +600,7 @@ if(ttt.range[1]==1){
 ######################################引数設定パート###################################### 
 for(uuuu in 1:length(unique(js.title))){
  count<-0 
- for(iii in 1:length(obj)){
+ for(iii in 1:cnt){
   if(as.character(unique(js.title)[uuuu])==as.character(js.title[iii])){
    count<-count+1
    for(ppp in 1:plot.type[[iii]]){
@@ -637,7 +625,7 @@ tmp.table<-tmp.omit
 tmp.table<-tmp.table[order(tmp.table$Date,decreasing=T),]
 tmp.table<-head(tmp.table,24) # 180 365
 rownames(tmp.table)<-NULL    
-if(monthly==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
+if(monthly[[iii]]==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
 #個別csvデータの出力
 csv.file.name<-paste(js.title[[iii]],ppp,count,".csv",sep="")    
 write.csv(tmp.table[,1:2],csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
@@ -691,7 +679,7 @@ for(ttt in ttt.range){
 } 
 ###################################### boxplotパート######################################
 #以降で適用するデータフレーム  
-if(monthly==1){
+if(monthly[[iii]]==1){
  data.lag<-12*20#オリジナルデータの長さに注意
  tmp.1<-tail(tmp.1,data.lag)  
 }else{
@@ -710,11 +698,11 @@ par(mar=c(5, 5, 14, 5))
 par(ps=40) 
 par(cex.main=1.5,cex.lab=1,cex.axis=0.8)
 tmp.seasonplot<-tmp.1[,c(1:2)] 
-if(monthly==1){
- data.lag<-12*7#オリジナルデータの長さに注意
+if(monthly[[iii]]==1){
+ data.lag<-12*6#オリジナルデータの長さに注意
  tmp.seasonplot<-tail(tmp.seasonplot,data.lag)  
 }else{
- data.lag<-as.Date(paste(year(Sys.Date())-7,"-",month(Sys.Date()),"-1",sep=""))#データの最終日付からでは無いことに注意
+ data.lag<-as.Date(paste(year(Sys.Date())-6,"-",month(Sys.Date()),"-1",sep=""))#データの最終日付からでは無いことに注意
  tmp.seasonplot<-subset(tmp.seasonplot,data.lag<=tmp.seasonplot[,1])  
 }  
 tmp.seasonplot.xts<-as.xts(tmp.seasonplot[,-1],order.by=as.Date(tmp.seasonplot$Date)) 
@@ -739,7 +727,7 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
  date.e.l<-as.Date(tmp.unitroot[nrow(tmp.unitroot),1])
  date.f.d<-as.Date(tmp.unitroot[2,1])
  date.e.d<-date.e.l
- if(monthly==1){
+ if(monthly[[iii]]==1){
   date.f.l<-format(date.f.l,"%Y-%m")
   date.e.l<-format(date.e.l,"%Y-%m")
   date.f.d<-format(date.f.d,"%Y-%m")
@@ -769,7 +757,7 @@ if(nrow(subset(tmp.unitroot,tmp.unitroot[,2]!=0))!=0){
  png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,".png",sep="")    
  png(file=png.file,width=1400,height=1200)
  par(mar=c(7, 5, 5, 5))
- if(monthly==1){
+ if(monthly[[iii]]==1){
   maintitle.first<-format(first(index(tmp.unitroot.xts)),"%Y-%m")
   maintitle.last<-format(last(index(tmp.unitroot.xts)),"%Y-%m")
  }else{
@@ -796,7 +784,7 @@ png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,".png",sep="")
 png(file=png.file,width=1400,height=1200) 
 par(mar=c(9, 7, 15, 4))
 par(cex.main=4,cex.lab=2,cex.axis=2)
-if(monthly==1){
+if(monthly[[iii]]==1){
  date.f<-format(tmp.acf[1,1],"%Y-%m")
  date.e<-format(tmp.acf[nrow(tmp.acf),1],"%Y-%m")
 }else{
@@ -822,7 +810,7 @@ png.file<-paste(js.title[[iii]],data.id[bbbb],"future",ppp,count,".png",sep="")
 png(file=png.file,width=1400,height=1200) 
 par(mar=c(5, 7, 15, 4))
 par(cex.main=4,cex.lab=2,cex.axis=2)
-if(monthly==1){
+if(monthly[[iii]]==1){
  date.f<-format(tmp.forecast[1,1],"%Y-%m")
  date.e<-format(tmp.forecast[nrow(tmp.forecast),1],"%Y-%m")
 }else{
@@ -843,7 +831,7 @@ png(file=png.file,width=1400,height=1200)
 par(mar=c(5, 7, 18, 4))
 par(cex.main=4,cex.lab=2,cex.axis=2)
 tmp.forecast.test<-tmp.forecast[1:(nrow(tmp.forecast)-forecast.interval),]  
-if(monthly==1){
+if(monthly[[iii]]==1){
  date.f<-format(tmp.forecast.test[1,1],"%Y-%m")
  date.e<-format(tmp.forecast.test[nrow(tmp.forecast.test),1],"%Y-%m")
 }else{
@@ -874,7 +862,7 @@ fun.omit(tmp.fitting.return)
 tmp.fitting.return<-tmp.omit  
 #caution 分母がゼロの場合のエスケープを挟むこと
 colnames(tmp.fitting.return)<-c("Date","value")
-if(monthly==1){
+if(monthly[[iii]]==1){
  date.f<-format(tmp.fitting.return[1,1],"%Y-%m")
  date.e<-format(tmp.fitting.return[nrow(tmp.fitting.return),1],"%Y-%m")
 }else{
@@ -920,7 +908,7 @@ bbbb<-7
 buf.html<-outputhtml[uuuu,bbbb]   
 tmp.return.rank.table<-tmp.fitting.return
 tmp.return.rank.table[,1]<-as.factor(tmp.return.rank.table[,1])      
-if(monthly==1){
+if(monthly[[iii]]==1){
  tmp.return.rank.table[,1]<-substr(tmp.return.rank.table[,1],1,7)  
 }  
 return.rank<-order(tmp.return.rank.table[,2])      
@@ -966,7 +954,7 @@ if(exe.garch==1){
 if(ppp==1){ 
 bbbb<-8
 buf.html<-outputhtml[uuuu,bbbb]     
-if(monthly==1){
+if(monthly[[iii]]==1){
  fit.ahead=12
 }else{
  fit.ahead=90
@@ -1006,7 +994,7 @@ if(goahead==1){
  #11# ACF of Squared Standardized Residuals 
  #12# Cross Correlation between r^2 and r      
  #13# QQ-Plot of Standardized Residuals 
- if(monthly==1){
+ if(monthly[[iii]]==1){
   date.f<-format(tmp.garch[1,1],"%Y-%m")
   date.e<-format(tmp.garch[nrow(tmp.garch),1],"%Y-%m")
  }else{
@@ -1211,7 +1199,7 @@ cat(paste("<hr>\n<div align=\"center\">\n<b>Orthogonal Impulse Response\nfrom",o
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n\n<hr>\n",sep=""),file=multianalysis.html,append=T)
 ######################################  var  パート ######################################    
 }
-obj<-obj[-length(obj)]
+obj<-obj[-cnt]
 #javascript part    
 js.file.name<-paste(js.title[title.no],analysis.id,".js",sep="")
 data.id<-analysis.id
