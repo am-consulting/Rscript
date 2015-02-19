@@ -36,6 +36,16 @@ all.data.xts<-NULL
 all.data.xts.yy<-NULL
 ##make dataset.tm[[x]]
 timeline[[1]]<-c(
+"1937-6-4","近衛文麿",
+"1939-1-5","平沼騏一郎",
+"1939-8-30","阿部信行",
+"1940-1-16","米内光政",
+"1940-7-22","近衛文麿",
+"1941-10-18","東條英機",
+"1944-7-22","小磯國昭",
+"1945-4-7","鈴木貫太郎",
+"1945-8-17","東久邇宮稔彦王",
+"1945-10-9","幣原喜重郎",
 "1946-5-22","吉田茂",
 "1947-5-24","片山哲",
 "1948-3-10","芦田均",
@@ -71,6 +81,9 @@ timeline[[1]]<-c(
 "2012-12-26","安倍晋三(2次-)"
 )
 timeline[[2]]<-c(
+"1937-7-27","結城豊太郎",
+"1944-3-18","渋沢敬三",
+"1945-10-9","新木榮吉",
 "1946-6-1","一万田尚登",
 "1954-12-11","新木榮吉",
 "1956-11-30","山際正道",
@@ -210,18 +223,20 @@ fun.omit<-function(tmp.omit){#都度必要に応じて利用
 #######################################################     omit         ################################################
 ####################################################### withkeyposition  ################################################
 fun.withkeyposition<-function(){
-#本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
+buf.tmp.0<-NULL
+buf.tmp.1<-NULL
+sw.keyposition<-2  
+if(ppp==1){
+  tmp.0<-dataset[[iii]]
+}else{
+  tmp.0<-dataset.yy[[iii]]
+}
+tmp.0<-subset(tmp.0,border.date<=tmp.0[,1])  
+if(nrow(tmp.0)!=0){
+##本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
 for(ttt in ttt.range){
-  if(chk==0){
-    if(ppp==1){
-      tmp.0<-dataset[[iii]]
-    }else{
-      tmp.0<-dataset.yy[[iii]]
-    }
-    chk<-1
-  }
-  if(nrow(tmp.0)!=0){
-##################################### apply非適用パート、確認用   
+##################################### apply非適用パート、確認用
+    if(sw.keyposition==1){
     kkk.start<-nrow(dataset.tm[[ttt]]) #誤って一方だけをグローバル化しないこと。
     for(jjj in nrow(tmp.0):1){
       for(kkk in seq(kkk.start,1,by=-1)){
@@ -232,20 +247,41 @@ for(ttt in ttt.range){
         }  
       }
     }
+    }  
 ##################################### apply非適用パート、確認用     
-##################################### apply適用パート   
+##################################### apply適用パート、PMとBoJは長さの異なる個別のデータとして流用することが出来る様、最後にmergeする。
+    if(sw.keyposition==2){
+    for(nnn in 1:nrow(dataset.tm[[ttt]])){  
+      if(ttt==1 | ttt==3){  
+        subset.tmp.0<-subset(tmp.0,dataset.tm[[ttt]]$inaugural.date[nnn]<=tmp.0$Date & tmp.0$Date<=dataset.tm[[ttt]]$resignation.date[nnn])
+        if(nrow(subset.tmp.0)!=0){
+          subset.tmp.0$p1<-dataset.tm[[ttt]]$Name[nnn]
+          buf.tmp.0<-rbind(buf.tmp.0,subset.tmp.0)    
+        }
+      }else{
+        subset.tmp.1<-subset(tmp.0,dataset.tm[[ttt]]$inaugural.date[nnn]<=tmp.0$Date & tmp.0$Date<=dataset.tm[[ttt]]$resignation.date[nnn])
+        if(nrow(subset.tmp.1)!=0){
+          subset.tmp.1$p2<-dataset.tm[[ttt]]$Name[nnn]
+          buf.tmp.1<-rbind(buf.tmp.1,subset.tmp.1)    
+        }  
+      }  
+    }
+    if(ttt==2 | ttt==4){  
+      tmp.0<-merge(buf.tmp.0,buf.tmp.1)    
+    }  
+    }
 ##################################### apply適用パート   
     if(ttt==2){colnames(tmp.0)[ttt.diff+1]<-"PM";colnames(tmp.0)[ttt.diff+2]<-"BoJ"}
     if(ttt==4){colnames(tmp.0)[ttt.diff+3]<-"U.S.A";colnames(tmp.0)[ttt.diff+4]<-"FRB"}
-    tmp0<-1
-  }else{
-    tmp0<-0
-  }
-  tmp.0<-na.omit(tmp.0)
-  tmp.0<<-tmp.0  
-  tmp0<<-tmp0 
-  ttt<<-ttt
 }
+tmp0<-1
+}else{
+  tmp0<-0
+}
+tmp.0<-na.omit(tmp.0)
+tmp.0<<-tmp.0  
+tmp0<<-tmp0 
+ttt<<-ttt
 #本ループで日付、データ値、PM(USA)、BOJ(FRB)のデータフレーム作成
 }
 ####################################################### withkeyposition  ################################################
@@ -272,6 +308,7 @@ pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 pathInput<-paste("C:/Users/",username,"/Desktop/inputR/",sep="")
 cnt<-0
 data.id<-c("tschart","boxplot","unitroot","acf","forecast","return","rank","garch","msm","setar","seasonplot")
+border.date<-as.Date(max(dataset.tm[[1]][1,1],dataset.tm[[2]][1,1]))
 ####################################################### argument  #######################################################
 ```
 
@@ -378,7 +415,7 @@ for(lll in 1:length(ts.source)){
         tmp.yy.type<-12
       }
       yy.type[[cnt]]<-tmp.yy.type
-      if(js.title[[cnt]]!="UNRATE" && js.title[[cnt]]!="A191RL1Q225SBEA" && js.title[[cnt]]!="M2V"  && lll==1 && lll==2){  
+      if(js.title[[cnt]]!="UNRATE" & js.title[[cnt]]!="A191RL1Q225SBEA" & js.title[[cnt]]!="M2V"  & lll==3){  
         plot.type[[cnt]]<-2
       }else{
         plot.type[[cnt]]<-1
@@ -506,7 +543,6 @@ for(uuuu in 1:length(unique(js.title))){
     if(as.character(unique(js.title)[uuuu])==as.character(js.title[iii])){
       count<-count+1
       for(ppp in 1:plot.type[[iii]]){
-        chk<-0#tttループ内で2回以上tmp.0を作成しないため
         fun.withkeyposition()
         for(ttt in ttt.range){
           if(tmp0!=0){
@@ -538,7 +574,7 @@ for(uuuu in 1:length(unique(js.title))){
             x0<-tmp.segment$inaugural.date[seq(1,length(tmp.segment$inaugural.date),by=2)]
             x1<-tmp.segment$resignation.date[seq(1,length(tmp.segment$resignation.date),by=2)]
             y0<-min(tmp.1[,2])
-            if(0<y0 && ppp==2){y0<-0}
+            if(0<y0 & ppp==2){y0<-0}
             y1<-max(tmp.1[,2])
             shade<-data.frame(x0,x1,y0,y1)
             shade<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
@@ -610,7 +646,6 @@ for(uuuu in 1:length(unique(js.title))){
   if(as.character(unique(js.title)[uuuu])==as.character(js.title[iii])){
    count<-count+1
    for(ppp in 1:plot.type[[iii]]){
-    chk<-0#tttループ内で2回以上tmp.0を作成しないため
 ###################################### 共 通 パート ######################################
     fun.withkeyposition()
     if(tmp0==1){#条件分岐001
@@ -1105,7 +1140,6 @@ if(ttt.range[1]==1){
  ttt.diff<-1
 }
 ppp<-1
-chk<-0
 iii<-cnt+1
 obj<-c(obj,iii)
 ######################################引数設定パート###################################### 
