@@ -145,7 +145,7 @@ fun.individual<-function(tmp){
     dataset[[cnt]]<-na.omit(dataset[[cnt]])  
     #omit part  
     #列名変更  
-    colnames(dataset[[cnt]])[2]<-gsub("\\.億円","",colnames(dataset[[cnt]])[2], perl=T)  
+#    colnames(dataset[[cnt]])[2]<-gsub("\\.億円","",colnames(dataset[[cnt]])[2], perl=T)  
     colnames(dataset[[cnt]])[2]<-gsub("\\.q\\.","",colnames(dataset[[cnt]])[2], perl=T)#ETF購入 
     colnames(dataset[[cnt]])[2]<-gsub("\\.\\.","\\.",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
     colnames(dataset[[cnt]])[2]<-gsub("X\\.","",colnames(dataset[[cnt]])[2], perl=T)#国内企業物価指数 
@@ -333,10 +333,10 @@ if(length(dir(folder.path))!=0){
     fun.individual(tmp)
     for(zzz in cnt.start:cnt){
       js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[fff])
-      js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
       plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]])-1,nchar(js.title[[zzz]])-1))#1 no YoY,,2 with YoY
       monthly[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))#0 daily,1 monthly,2 quarterly,
       yy.type[[zzz]]<-tmp.yy.type
+      js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
       if(monthly[[zzz]]==1){
         dataset[[zzz]][,1]<-paste(dataset[[zzz]][,1],"/1",sep="")
         dataset[[zzz]][,1]<-as.Date(dataset[[zzz]][,1])
@@ -376,10 +376,10 @@ for(ffff in 1:length(folder.name)){
         fun.individual(tmp)
         for(zzz in cnt.start:cnt){
           js.title[[zzz]]<-gsub("\\.csv","",dir(folder.path)[iii])
-          js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
           yy.type[[zzz]]<-tmp.yy.type
           monthly[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))#0 daily,1 monthly,2 quarterly,
           plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]])-1,nchar(js.title[[zzz]])-1))#1 no YoY,,2 with YoY
+          js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
         }  
       }
     }
@@ -1125,9 +1125,9 @@ if(goahead==1){
 colnames(all.data[[1]])
 setwd(pathOutput)
 ######################################引数設定パート######################################    
-title.no<-6
-explanatory<-59 #column
-objective<-60 #column
+title.no<-1
+explanatory<-6 #column
+objective<-8 #column
 ttt.range<-c(1:2)
 analysis.id<-"MULTIVARIATEDATAANALYSIS"
 js.title<-c("ManetaryBaseANDMoneyStock","ManetaryBaseANDUsdJpy","ManetaryBaseANDUnemploymentrate","ManetaryBaseANDNikkei225","ManetaryBaseANDCoreCPI","UsdJpyANDNikkei225")
@@ -1141,9 +1141,9 @@ if(ttt.range[1]==1){
 }
 ppp<-1
 iii<-cnt+1
-obj<-c(obj,iii)
 ######################################引数設定パート###################################### 
-dataset[[obj[iii]]]<-tail(na.omit(all.data[[1]][,c(1,explanatory,objective)]),priod.y*12)
+dataset[[iii]]<-tail(na.omit(all.data[[1]][,c(1,explanatory,objective)]),priod.y*12)
+colnames(dataset[[iii]])[1]<-"Date"
 fun.withkeyposition()
 tmp.1<-tmp.0[,c(1,2,3,5)]
 explanatory<-2 #column
@@ -1239,7 +1239,6 @@ cat(paste("<hr>\n<div align=\"center\">\n<b>Orthogonal Impulse Response\nfrom",o
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n\n<hr>\n",sep=""),file=multianalysis.html,append=T)
 ######################################  var  パート ######################################    
 }
-obj<-obj[-cnt]
 #javascript part    
 js.file.name<-paste(js.title[title.no],analysis.id,".js",sep="")
 data.id<-analysis.id
