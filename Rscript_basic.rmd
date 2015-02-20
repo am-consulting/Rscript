@@ -23,8 +23,8 @@ dataset.yy<-list()
 dataset.xts<-list()
 dataset.xts.yy<-list()
 all.data<-list()
-all.data.yy<-list()
 all.data.xts<-list()
+all.data.yy<-list()
 all.data.xts.yy<-list()
 timeline<-list()
 dataset.tm<-list()
@@ -32,8 +32,6 @@ js.title<-list()
 yy.type<-list()
 plot.type<-list()
 monthly<-list()
-all.data.xts<-NULL
-all.data.xts.yy<-NULL
 ##make dataset.tm[[x]]
 timeline[[1]]<-c(
 "1937-6-4","近衛文麿",
@@ -155,9 +153,14 @@ fun.individual<-function(tmp){
   }
 }
 #######################################################   individual     ################################################
+
+
+
 #######################################################    convert       ################################################
 #Convert dataframe to xts and merge all datasets
 fun.convert<-function(){
+  all.data<-NULL
+  all.data.xts<-NULL
   for(iii in 1:cnt){
     cat(paste(iii,colnames(dataset[[iii]])[2],"\n"))#確認用としてのみ 
     dataset.xts[[iii]]<-as.xts(dataset[[iii]][,-1],order.by=as.Date(dataset[[iii]][,1]))
@@ -165,18 +168,15 @@ fun.convert<-function(){
     dataset.xts[[iii]]<<-dataset.xts[[iii]]
     all.data.xts[[1]]<-merge.xts(all.data.xts[[1]],dataset.xts[[iii]],all=T)
   }
-#  obj<-c(1:length(dataset.xts))
-#  for(iii in 1:length(obj)){
-#    all.data.xts[[1]]<-merge.xts(all.data.xts[[1]],dataset.xts[[obj[iii]]],all=T)
-#  }
   all.data[[1]]<-data.frame(date=index(all.data.xts[[1]]),all.data.xts[[1]],row.names=NULL)
   all.data[[1]]<<-all.data[[1]] #gloval
   all.data.xts[[1]]<<-all.data.xts[[1]] #gloval
-#  obj<<-obj #gloval
 }
 #######################################################    convert       ################################################
 ####################################################### yeartoyear       ################################################
 fun.yeartoyear<-function(){
+  all.data.yy<-NULL
+  all.data.xts.yy<-NULL
   for(zzz in 1:cnt){
     if(plot.type[[zzz]]==2){
       tmp<-na.omit(dataset.xts[[zzz]])
@@ -1119,6 +1119,103 @@ if(goahead==1){
  }
 }
 ```
+
+
+```{r}
+###################################### chart part ######################################## 
+#他のパートと異なる点があるためコードを流用しないこと
+setwd(pathOutput)
+fun.convert()
+data.id<-"Correlations"
+first.date<-as.Date(paste(year(Sys.Date())-5,"-",month(Sys.Date()),"-",day(Sys.Date()),sep=""))
+colnames(all.data.xts[[1]])
+buf<-all.data.xts[[1]][,c(1:4,6,9,10,12,28)]
+buf<-na.omit(buf[paste(first.date,"::",sep="")])
+output.html<-paste(data.id,".html",sep="")
+cat("",file=output.html,append=F)
+for(ooo in 1:2){
+  png.file<-paste(data.id,ooo,".png",sep="")
+  png(file=png.file,width=1400,height=1200)    
+  par(mar=c(7, 7, 25, 7))
+  par(ps=30)
+  if(ooo==1){
+    buf.corr<-buf
+    f.date<-first(index(buf.corr))
+    e.date<-last(index(buf.corr))
+    maintitle<-paste("Level.",f.date,"-",e.date,sep="")
+  }else{
+    buf.corr<-na.omit(diff(buf))
+    f.date<-first(index(buf.corr))
+    e.date<-last(index(buf.corr))
+    maintitle<-paste("1st Difference.",f.date,"-",e.date,sep="")
+  }
+  chart.Correlation(buf.corr,method="pearson",main=maintitle,cex.main=1)
+  dev.off()
+  cat(paste("<div style=\"text-align: center\"><b>",maintitle,"</b></div>\n",sep=""),file=output.html,append=T)
+  cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)
+  cat(paste("<br><hr><br>\n",sep=""),file=output.html,append=T)
+}
+dev.off() 
+#javascript for html    
+js.file.name<-paste(data.id,".external01.js",sep="")
+cat("\n\n$(function() {",file=js.file.name,append=F)
+cat(paste("\n$.get('http://archive.am-consulting.co.jp/",output.html,add.ver,"', function(data) {",sep=""),file=js.file.name,append=T)
+cat(paste("\n$('#","corrcoef","').html('<pre>' + data + '</pre>');",sep=""),file=js.file.name,append=T)
+cat("\n});",file=js.file.name,append=T)
+cat("\n});\n\n",file=js.file.name,append=T)
+###################################### chart part ########################################  
+######################################  csv part  ########################################  
+js.file.table.list<-paste(data.id,".tablelist.js",sep="")
+cat("",file=js.file.table.list,append=F) 
+js.file.name<-paste(data.id,".external02.js",sep="")
+cat("",file=js.file.name,append=F) 
+buf<-all.data.xts[[1]][,c(1:17,28)]
+buf<-na.omit(buf[paste(first.date,"::",sep="")])
+for(iii in 1:2){
+  grand.result<-NULL
+  if(iii==1){  
+    result.cor<-round(cor(buf,method="pearson"),3)
+    f.date<-first(index(buf))
+    e.date<-last(index(buf))
+    chart.title<-paste("Correlation:Level<br>",f.date,"-",e.date,sep="")
+  }else{
+    result.cor<-round(cor(na.omit(diff(buf)),method="pearson"),3)
+    f.date<-first(index(na.omit(diff(buf))))
+    e.date<-last(index(na.omit(diff(buf))))
+    chart.title<-paste("Correlation:1st difference<br>",f.date,"-",e.date,sep="")
+  }
+  for(ccc in 1:ncol(result.cor)){
+    temp.1<-paste(row.names(result.cor),"-",row.names(result.cor)[ccc],sep="")
+    temp.df<-data.frame(temp.1[-(1:ccc)],result.cor[-(1:ccc),ccc],row.names=NULL)
+    grand.result<-rbind(grand.result,temp.df)
+  }
+  colnames(grand.result)<-c("Pair","Corr")
+  csv.file.name<-paste(data.id,iii,".csv",sep="")
+  write.csv(grand.result,csv.file.name,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+  csv.id<-paste("chartmulticorrelation",iii,sep="")
+  cat(paste("document.write(\"<b>",chart.title,"</b>\");\n",sep=""),file=js.file.table.list,append=T)  
+  cat(paste("document.write('<div id=\"",csv.id,"\"></div>\');\n",sep=""),file=js.file.table.list,append=T)
+  cat("document.write('<br><hr><br>');\n\n",file=js.file.table.list,append=T)
+  cat("$(function(){",file=js.file.name,append=T)
+  cat(gsub("\\s","",paste("\n","$('#",csv.id,"').CSVToTable('http://archive.am-consulting.co.jp/",csv.file.name,add.ver,"',{startLine:0}).bind(\"loadComplete\",",sep="")),file=js.file.name,append=T)     
+  cat("\nfunction(){",file=js.file.name,append=T)
+  cat(gsub("\\s","",paste("\n$('#",csv.id,"').find('TABLE').dataTable(",sep="")),file=js.file.name,append=T)
+  cat("\n{",file=js.file.name,append=T)    
+  cat("\n\"lengthMenu\": [[5,-1], [5,\"All\"]],",file=js.file.name,append=T) 
+  cat("\n\"order\": [[ 1,\"desc\"]],",file=js.file.name,append=T)      
+  cat("\n\"bFilter\":false,",file=js.file.name,append=T)
+  cat("\n\"paging\":true,",file=js.file.name,append=T)
+  cat("\n\"columnDefs\":[{\"width\":\"70%\",\"targets\":0}],",file=js.file.name,append=T) 
+  cat("\n\"info\":true",file=js.file.name,append=T)
+  cat("\n}",file=js.file.name,append=T)    
+  cat("\n);",file=js.file.name,append=T)
+  cat("\n});;",file=js.file.name,append=T)    
+  cat("\n});\n\n",file=js.file.name,append=T)
+}
+######################################  csv part  ########################################  
+```
+
+
 
 ```{r}
 #MULTIVARIATEDATAANALYSIS
