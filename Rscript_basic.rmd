@@ -388,7 +388,8 @@ for(ffff in 1:length(folder.name)){
 ```
 
 ```{r}
-#read data from fred by quantmod as xts,after that, convert to data frame
+##################################################### from FRED part ####################################################
+current.cnt<-cnt+1
 ttt.range<-c(1:2)
 level.multi<-(0)
 ts.source<-list()
@@ -423,6 +424,41 @@ for(lll in 1:length(ts.source)){
     }
   }
 }
+##################################################### from FRED part ####################################################
+#```
+#```{r}
+#####################################################    JGB part    ####################################################
+ttt.range<-c(1:2)
+level.multi<-0
+url<-c(
+ "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
+ "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
+)
+tmp<-rbind(read.csv(url[1],header=T,skip=0,stringsAsFactor=F),read.csv(url[2],header=T,skip=0,stringsAsFactor=F))
+tmp[,1]<-as.Date(tmp[,1])
+FUN.1<-function(x) as.numeric(x)
+tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
+colnames(tmp)[2:length(tmp)]<-paste("JGB.",gsub("X","",colnames(tmp)[2:length(tmp)]),"year",sep="")
+tmp<-tmp[,c(1,11)]#10年物のみを抽出
+fun.individual(tmp)
+js.title[[cnt]]<-"JAPANESEGOVERNMENTBOND10YEAR"
+yy.type[[cnt]]<-12
+plot.type[[cnt]]<-1
+monthly[[cnt]]<-0
+#####################################################    JGB part    ####################################################
+##################################################### interest spread ###################################################
+if(colnames(dataset[[current.cnt]])[2]=="DGS10"){
+  end.cnt<-cnt
+  cnt<-end.cnt+1
+  dataset[[cnt]]<-merge(dataset[[current.cnt]],dataset[[end.cnt]])
+  dataset[[cnt]]$InterestSpread<-(dataset[[cnt]][,2]-dataset[[cnt]][,3])
+  dataset[[cnt]]<-dataset[[cnt]][,-(2:3)]
+  js.title[[cnt]]<-"10yearInterestSpread"
+  yy.type[[cnt]]<-12
+  plot.type[[cnt]]<-1
+  monthly[[cnt]]<-0
+}
+##################################################### interest spread ###################################################
 ```
 
 ```{r}
@@ -473,27 +509,6 @@ if(exe==1){
     fun.individual(tmp,monthly)
   }
 }
-```
-
-```{r}
-#Japanese Government Bonds as data frame
-ttt.range<-c(1:2)
-level.multi<-0
-url<-c(
- "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
- "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
-)
-tmp<-rbind(read.csv(url[1],header=T,skip=0,stringsAsFactor=F),read.csv(url[2],header=T,skip=0,stringsAsFactor=F))
-tmp[,1]<-as.Date(tmp[,1])
-FUN.1<-function(x) as.numeric(x)
-tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
-colnames(tmp)[2:length(tmp)]<-paste("JGB.",gsub("X","",colnames(tmp)[2:length(tmp)]),"year",sep="")
-tmp<-tmp[,c(1,11)]#10年物のみを抽出
-fun.individual(tmp)
-js.title[[cnt]]<-"JAPANESEGOVERNMENTBOND10YEAR"
-yy.type[[cnt]]<-12
-plot.type[[cnt]]<-1
-monthly[[cnt]]<-0
 ```
 
 ```{r}
