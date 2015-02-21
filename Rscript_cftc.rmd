@@ -75,7 +75,7 @@ output2.html<-"cftcoutput02.html" #corre
 js.title<-"IMMpositions"
 js.file.table.list<-paste(js.title,".tablelist.js",sep="")
 #javascript part  
-diff.date<-365*10
+diff.date<-365*5
 first.date<-Sys.Date()-diff.date
 dataset<-list()
 cnt<-0
