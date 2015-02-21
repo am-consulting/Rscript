@@ -306,7 +306,7 @@ username<-Sys.info()['user']
 path<-paste("C:/Users/",username,"/Desktop",sep="")
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 pathInput<-paste("C:/Users/",username,"/Desktop/inputR/",sep="")
-cnt<-0
+cnt<<-0
 data.id<-c("tschart","boxplot","unitroot","acf","forecast","return","rank","garch","msm","setar","seasonplot")
 border.date<-as.Date(max(dataset.tm[[1]][1,1],dataset.tm[[2]][1,1]))
 ####################################################### argument  #######################################################
@@ -449,7 +449,7 @@ monthly[[cnt]]<-0
 ##################################################### interest spread ###################################################
 if(colnames(dataset[[current.cnt]])[2]=="DGS10"){
   end.cnt<-cnt
-  cnt<-end.cnt+1
+  cnt<<-end.cnt+1
   dataset[[cnt]]<-merge(dataset[[current.cnt]],dataset[[end.cnt]])
   dataset[[cnt]]$InterestSpread<-(dataset[[cnt]][,2]-dataset[[cnt]][,3])
   dataset[[cnt]]<-dataset[[cnt]][,-(2:3)]
@@ -1144,7 +1144,7 @@ fun.convert()
 data.id<-"Correlations"
 first.date<-as.Date(paste(year(Sys.Date())-5,"-",month(Sys.Date()),"-",day(Sys.Date()),sep=""))
 colnames(all.data.xts[[1]])
-buf<-all.data.xts[[1]][,c(1:4,6,9,10,12,28)]
+buf<-all.data.xts[[1]][,c(1:4,6,9,10,12,28,29)]
 buf<-na.omit(buf[paste(first.date,"::",sep="")])
 output.html<-paste(data.id,".html",sep="")
 cat("",file=output.html,append=F)
@@ -1184,7 +1184,7 @@ js.file.table.list<-paste(data.id,".tablelist.js",sep="")
 cat("",file=js.file.table.list,append=F) 
 js.file.name<-paste(data.id,".external02.js",sep="")
 cat("",file=js.file.name,append=F) 
-buf<-all.data.xts[[1]][,c(1:17,28)]
+buf<-all.data.xts[[1]][,c(1:17,28:29)]
 buf<-na.omit(buf[paste(first.date,"::",sep="")])
 for(iii in 1:2){
   grand.result<-NULL
