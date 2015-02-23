@@ -153,9 +153,6 @@ fun.individual<-function(tmp){
   }
 }
 #######################################################   individual     ################################################
-
-
-
 #######################################################    convert       ################################################
 #Convert dataframe to xts and merge all datasets
 fun.convert<-function(){
@@ -380,6 +377,9 @@ for(ffff in 1:length(folder.name)){
           monthly[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]]),nchar(js.title[[zzz]])))#0 daily,1 monthly,2 quarterly,
           plot.type[[zzz]]<-as.numeric(substr(js.title[[zzz]],nchar(js.title[[zzz]])-1,nchar(js.title[[zzz]])-1))#1 no YoY,,2 with YoY
           js.title[[zzz]]<-gsub("[(?<=_)](.*)","",js.title[[zzz]])
+          if(monthly[[zzz]]==1){
+            fun.changeDateformat()
+          }
         }  
       }
     }
@@ -420,6 +420,10 @@ for(lll in 1:length(ts.source)){
         plot.type[[cnt]]<-2
       }else{
         plot.type[[cnt]]<-1
+      }
+      if(monthly[[cnt]]==1){
+        zzz<-cnt
+        fun.changeDateformat()
       }
     }
   }
@@ -487,6 +491,9 @@ for(iii in 1:length(url)){
     }else{
       plot.type[[zzz]]<-2
       monthly[[zzz]]<-1
+    }
+    if(monthly[[zzz]]==1){
+      fun.changeDateformat()
     }
   }  
 }
@@ -1234,12 +1241,13 @@ for(iii in 1:2){
 
 ```{r}
 #MULTIVARIATEDATAANALYSIS
-colnames(all.data[[1]])
 setwd(pathOutput)
+fun.convert()
+colnames(all.data[[1]])
 ######################################引数設定パート######################################    
-title.no<-1
-explanatory<-6 #column
-objective<-8 #column
+title.no<-6
+explanatory<-83 #column Date列分1を加える
+objective<-86 #column Date列分1を加える
 ttt.range<-c(1:2)
 analysis.id<-"MULTIVARIATEDATAANALYSIS"
 js.title<-c("ManetaryBaseANDMoneyStock","ManetaryBaseANDUsdJpy","ManetaryBaseANDUnemploymentrate","ManetaryBaseANDNikkei225","ManetaryBaseANDCoreCPI","UsdJpyANDNikkei225")
