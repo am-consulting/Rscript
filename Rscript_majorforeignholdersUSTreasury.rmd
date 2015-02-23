@@ -28,9 +28,9 @@ for(iii in 1:length(file.name)){
       end.ccc<-13
       start.ccc<-end.ccc
       if(yyy==1){
-        start.rrr<-9
+        start.rrr<-8###############################################################毎回確認が必要
       }else{
-        start.rrr<-59
+        start.rrr<-58###############################################################毎回確認が必要
       }  
       while(dataset[[iii]][start.rrr,start.ccc]!="" && start.ccc!=1){
         start.ccc<-start.ccc-1      
