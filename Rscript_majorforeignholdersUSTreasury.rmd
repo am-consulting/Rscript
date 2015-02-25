@@ -32,7 +32,7 @@ for(iii in 1:length(file.name)){
       }else{
         start.rrr<-58###############################################################毎回確認が必要
       }  
-      while(dataset[[iii]][start.rrr,start.ccc]!="" && start.ccc!=1){
+      while(dataset[[iii]][start.rrr,start.ccc]!="" & start.ccc!=1){
         start.ccc<-start.ccc-1      
       }
       if(start.ccc<=0){start.ccc<-1}  

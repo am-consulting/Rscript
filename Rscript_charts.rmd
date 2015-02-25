@@ -54,9 +54,49 @@ for(zzz in 2:length(dataset)){
     g<-g+xlab("")
   }  
   g<-g+ylab("") 
+  g<-g+scale_y_continuous(labels=comma)
   print(g)
   dev.off()
 }  
 dev.off()      
 ########################################## time series ##########################################
+```
+
+```{r}
+##########################################  bar chart  ##########################################
+if(colnames(dataset)[1]=="date"){dataset[,1]<-as.Date(dataset[,1])}
+buf.colnames<-colnames(dataset)
+buf.dataset<-dataset
+SD<-Sys.Date()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1500,height=1000)
+mainTitle<-buf.colnames[2]
+mainTitle<-gsub("source","\nData Source:",mainTitle)
+mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
+mainTitle<-gsub("割合","割合(%)",mainTitle)
+colnames(buf.dataset)<-c("xvalue","yvalue")
+rrr<-order(buf.dataset[,2],decreasing=FALSE)
+buf.dataset<-buf.dataset[rrr,]
+buf.dataset[,1]<-ordered(buf.dataset[,1],levels=buf.dataset[,1][1:length(buf.dataset[,1])])
+g<-ggplot()
+switch(chartType,  
+  g<-g+geom_line(data=buf.dataset,aes(x=xvalue,y=yvalue),size=2),
+  g<-g+geom_bar(data=buf.dataset,aes(x=xvalue,y=yvalue),stat="identity",position="identity",fill="orange",alpha=0.2,color="black")
+)
+g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
+g<-g+theme(axis.title.x=element_text(size=20),axis.title.y=element_text(size=20)) 
+g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1),axis.text.y=element_text(size=30)) 
+g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
+if(colnames(dataset)[1]=="date" & regexpr("\\.月次",buf.colnames[2])!=-1){  
+  g<-g+scale_x_date(labels=date_format("%Y-%m"))  
+}  
+g<-g+scale_y_continuous(labels=comma)
+g<-g+xlab("")
+g<-g+ylab("") 
+print(g)
+dev.off()
+##########################################  bar chart  ##########################################
 ```
