@@ -15,9 +15,11 @@ fitType<-2 #1:lm , 2:loess
 ```
 
 ```{r}
-dataset<-read.table("clipboard",header=TRUE,sep="\t")
+fun.readData<-function(){
+dataset<<-read.table("clipboard",header=TRUE,sep="\t")
 head(dataset)
 tail(dataset)
+}  
 ```
 
 ```{r}
@@ -64,7 +66,8 @@ dev.off()
 
 ```{r}
 ##########################################  bar chart  ##########################################
-orderType<-1 # 1:as is , 2:xvalue , 3:yvalue
+fun.readData()
+orderType<-3 # 1:as is , 2:xvalue , 3:yvalue
 if(colnames(dataset)[1]=="date"){dataset[,1]<-as.Date(dataset[,1])}
 buf.colnames<-colnames(dataset)
 buf.dataset<-dataset
@@ -78,11 +81,12 @@ mainTitle<-buf.colnames[2]
 mainTitle<-gsub("source","\nData Source:",mainTitle)
 mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
 mainTitle<-gsub("割合","割合(%)",mainTitle)
+mainTitle<-gsub("break","\n",mainTitle)
 colnames(buf.dataset)<-c("xvalue","yvalue")
 if(orderType==1){
 rownames(buf.dataset)<-c(1:nrow(buf.dataset))
 }else{
-rrr<-order(buf.dataset[,orderType],decreasing=FALSE)
+rrr<-order(buf.dataset[,(orderType-1)],decreasing=FALSE)
 buf.dataset<-buf.dataset[rrr,]
 }  
 buf.dataset[,1]<-ordered(buf.dataset[,1],levels=buf.dataset[,1][1:length(buf.dataset[,1])])
