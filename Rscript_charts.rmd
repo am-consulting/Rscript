@@ -5,6 +5,9 @@ library(scales)
 library(maps)
 library(maptools)
 library(RColorBrewer)
+library(fields)
+library(rworldmap)
+library(classInt)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
 pathJmap<<-paste("C:/Users/",username,"/Desktop/jpn/",sep="")
@@ -268,61 +271,144 @@ for(iii in 2:length(tmp.0)){
 
 ```{r}
 ##########################################  World Map  ##########################################
-#######################  Read a ShapeData and create a merged data frame ########################
-setwd(pathWmap)
+##########################################  common part  ########################################
+mapType<-2 # 1:shape data , 2:library(rworldmap)
+classType<-2 # 1:auto break , 2:manual break
+brew<-2 # 1:brewer , 2:auto(colorful)
+mainTitle<-colnames(dataset)[2]
+mainTitle<-gsub("source","\nData Source:",mainTitle)
+mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
+mainTitle<-gsub("割合","割合(%)",mainTitle)
+mainTitle<-gsub("break","\n",mainTitle)
+SD<-Sys.Date()
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
+merge.by<-colnames(countryDataset)[1]
 dataset[,2]<-as.numeric(dataset[,2])
-merge.by<-"ISO"
+buf.dataColname<-colnames(dataset)[2]
+mergeDataset<-merge(countryDataset,dataset,by=merge.by)
+colnames(mergeDataset)[3]<-"value"
+if(mapType==1){
+  valueForNA<-min(na.omit(mergeDataset[,3]))-10 ########## 要改良
+  if(classType==1){
+    n<-8  
+    classInt<-NULL
+    catMethod<-NULL
+    classInt<-classIntervals(na.omit(mergeDataset[["value"]]),n=n,style="jenks")
+    catMethod<-c(valueForNA,classInt[["brks"]])
+    catMethod<-catMethod[-length(catMethod)]
+    mergeDataset[,3][is.na(mergeDataset[,3])]<-valueForNA
+  }else{  
+    catMethod<-NULL
+    catMethod<-c(valueForNA , min(na.omit(mergeDataset[,3])) , 2 , 4 , 6 , 8 , 10 , 15 , 20)
+    n<-length(catMethod)
+    mergeDataset[,3][is.na(mergeDataset[,3])]<-valueForNA
+  }
+  colourPalette<-c("black",brewer.pal(n-0,'RdPu'))
+}else{
+  n<-9  
+  classInt<-NULL
+  catMethod<-NULL
+  classInt<-classIntervals(mergeDataset[["value"]],n=n,style="jenks") #,style="fixed",fixedBreaks=fiedBr ) #caution max(n)=9 
+  colourPalette<-brewer.pal(n,"RdPu")
+  catMethod<-classInt[["brks"]]
+}  
+##########################################  common part  ########################################
+#######################  Read a ShapeData and create a merged data frame ########################
+if(mapType==1){
+setwd(pathWmap)
 file.name<-dir(pathWmap,pattern=".shp")
 map.obj<-readShapeSpatial(file.name)
 names(map.obj)
 plot(map.obj)
 map.df<-fortify(map.obj,region="iso_a3")
 colnames(map.df)[7]<-merge.by
-mergeDataset<-merge(countryDataset,dataset,by=merge.by)
 mapData<-merge(map.df,mergeDataset,by=merge.by)
-colnames(mapData)[ncol(mapData)]<-"value"
 mapData<-mapData[order(mapData$order),]
-#######################  Read a ShapeData and create a merged data frame ########################
-###################################### make a chart #############################################
-brew<-0
+tmp.0<-findInterval(mapData$value,catMethod) #findIntervalはA1<= x1 < A2,classIntはA1< x1 <= A2のため注意すること
+mapData$classfied<-catMethod[tmp.0]
 setwd(pathOutput)                         
 SD<-Sys.Date()
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
 png.file<-paste(addVer,".png",sep="")      
 png(file=png.file,width=1500,height=1000) 
 par(mar=c(0,0,12,0),ps=40)
-mainTitle<-colnames(dataset)[2]
-mainTitle<-gsub("source","\nData Source:",mainTitle)
-mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
-mainTitle<-gsub("割合","割合(%)",mainTitle)
-mainTitle<-gsub("break","\n",mainTitle)
-for(uuu in 9:20){
-t<-vector()
-t<-NULL
-interval<-floor((max(mapData$value)-min(mapData$value))/uuu)
-for(ttt in 1:uuu){
-  t<-c(t,interval*ttt)
-}
-mapData$classfied<-(findInterval(mapData$value,t)+1)*interval
-if(6<=length(unique(mapData$classfied))){break}
-}  
 q<-ggplot(mapData)
 q<-q+aes(long,lat,group=group)+geom_polygon(aes(fill=factor(classfied)))+geom_path(color="white")+coord_equal()
-########## patern brewer
 if(brew==1){
-choroplethColor<-brewer.pal(uuu,"Blues")
-q<-q+scale_fill_manual("Population\n",values=choroplethColor,guide="legend")+geom_path(color="white")+coord_equal()
+  q<-q+scale_fill_manual(name="",values=colourPalette,guide="legend",labels=c("NA",paste(catMethod[-1],"～")))
+}else{
+  q<-q+scale_fill_discrete(name="",labels=c("NA",paste(catMethod[-1],"～")))
 }  
-########## patern brewer
+q<-q+xlab("")+ylab("")
 q<-q+ggtitle(paste(mainTitle,"\n",creationDate))
 q<-q+theme(axis.text=element_text(size=30),axis.title=element_text(colour="white",size=1,face="bold"))   
-q<-q+theme(title=element_text(size=40,face="bold"),legend.position="right")   
+q<-q+theme(title=element_text(size=40,face="bold"),legend.position="bottom")   
 q<-q+theme(legend.text=element_text(colour="black",size=40,face="bold"))   
 q<-q+theme(legend.title=element_text(colour="white",size=40,face="bold"))   
 print(q)
 dev.off()
+################################# 確認用ループ。出力との直接の関係は無い ########################
+for(zzz in 1:(length(catMethod))){
+  if(zzz==1){  
+    buf<-subset(mapData,catMethod[zzz]<=mapData$value & mapData$value<catMethod[zzz+1]) 
+    cat(catMethod[zzz],"-",catMethod[zzz+1],"\n")  
+  }else if(zzz==2){  
+    buf<-subset(mapData,catMethod[zzz]<=mapData$value & mapData$value<=catMethod[zzz+1]) 
+    cat(catMethod[zzz],"-",catMethod[zzz+1],"\n")  
+  }else if(zzz!=(length(catMethod))){  
+    buf<-subset(mapData,catMethod[zzz]<mapData$value & mapData$value<=catMethod[zzz+1]) 
+    cat(catMethod[zzz],"-",catMethod[zzz+1],"\n")  
+  }else{
+    buf<-subset(mapData,catMethod[zzz]<mapData$value) 
+    cat(catMethod[zzz],"-","\n")  
+  }  
+  print(unique(buf$cName))
+  print(length(unique(buf$cName)))
+  cat("\n\n")  
+}  
+for(zzz in 1:(length(unique(mapData$classfied)))){
+  buf<-subset(mapData,catMethod[zzz]==mapData$classfied) 
+  print(unique(buf$cName))
+  print(length(unique(buf$cName)))
+  cat("\n\n")  
+}  
+################################# 確認用ループ。出力との直接の関係は無い ########################
+}  
+#######################  Read a ShapeData and create a merged data frame ########################
+#######################  Create a merged data and a map by 'rworldmap' ########################
+if(mapType==2){
+mapData<-joinCountryData2Map(mergeDataset,joinCode="ISO3",nameJoinColumn=merge.by)  
+SD<-Sys.Date()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")      
+png(file=png.file,width=1500,height=1000) 
+par(mai=c(0,0,1,0),xaxs="i",yaxs="i",ps=40)
+buf.mapData<-mapCountryData(
+  mapData,
+  nameColumnToPlot="value",
+  addLegend=FALSE,
+  catMethod=catMethod,
+  colourPalette=colourPalette,
+  missingCountryCol="white",
+  borderCol="black",
+  oceanCol="lightblue",
+  mapTitle=paste("\n\n",mainTitle,"\n",creationDate)
+  )
+do.call(
+  addMapLegend,
+  c(
+    buf.mapData,
+    legendLabels="all",
+    legendIntervals="data",
+    legendWidth=1,
+    legendMar=2
+  )
+  )
+dev.off()  
+}  
+###################################### make a chart #############################################
 ##########################################  World Map  ##########################################
 ```
 
