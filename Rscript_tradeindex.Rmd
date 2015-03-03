@@ -25,7 +25,7 @@ add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.
 
 ```{r}
 #http://www.e-stat.go.jp/SG1/estat/OtherList.do?bid=000001008860&cycode=1
-year<-c(2009:2014)
+year<-c(2009:2015)
 month<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 area<-c("WORLD","USA","EU","ASIA","ASIA NIES","ASEAN","CHINA")
 data<-list()

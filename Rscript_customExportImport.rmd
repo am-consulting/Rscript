@@ -61,6 +61,13 @@ for(iii in 1:length(file.name)){
   dataset[[iii]][,1]<-as.Date(dataset[[iii]][,1])
   FUN.1<-function(x){as.numeric(x)/(10^5)}
   dataset[[iii]]<-cbind(dataset[[iii]][1],apply(dataset[[iii]][-1],2,FUN.1))
+########## 全系列ともゼロ値またはNAの行を削除(オリジナルデータは最新年の12月分まで枠が生成されている ##########
+  FUN.2<-function(x){all(x!=0)}
+  rowNotZero<-apply(dataset[[iii]][,-1],1,FUN.2)
+  dataset[[iii]]<-dataset[[iii]][rowNotZero,]
+  dataset[[iii]]<-na.omit(dataset[[iii]])
+########## 全系列ともゼロ値またはNAの行を削除(オリジナルデータは最新年の12月分まで枠が生成されている ##########
+  
 }
 username<-Sys.info()['user']
 path<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
