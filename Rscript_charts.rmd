@@ -8,10 +8,14 @@ library(RColorBrewer)
 library(fields)
 library(rworldmap)
 library(classInt)
+library(plotrix)
+library(HH)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
 pathJmap<<-paste("C:/Users/",username,"/Desktop/jpn/",sep="")
 pathWmap<<-paste("C:/Users/",username,"/Desktop/ne_50m_admin_0_countries/",sep="")
+SD<-Sys.Date()
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
 setwd(pathOutput)
 windowsFonts()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
@@ -219,7 +223,7 @@ color.set)                 # 各区分を塗る色
   }
   map(1:47, color=color.set[findInterval(x, t)+1])
 }
-#########The above source codes and comments are the copyright of http://aoki2.si.gunma-u.ac.jp/.  
+#########The above source codes and Japanese comments are the copyright of http://aoki2.si.gunma-u.ac.jp/.  
 ```
 
 ```{r}
@@ -610,3 +614,94 @@ cName<-countryName[seq(2,length(countryName),by=2)]
 countryDataset<-data.frame(ISO,cName)
 ##########################################  World Map  ##########################################
 ```
+
+```{r}
+########################################## pyramid plot #########################################
+plotType<-1
+setwd(pathOutput) 
+SD<-Sys.Date()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")      
+png(file=png.file,width=1500,height=1000) 
+par(ps=30)
+mainTitle<-paste("法人企業統計調査.金融業、保険業以外の業種(原数値)\nソフトウェアを除く設備投資(当期末新設固定資産).全規模.兆円","\n",creationDate)
+########################################## pyramid.plot() #######################################
+if(plotType==1){
+xlimit<-12 #改良余地在り
+xlabBy<-1  #改良余地在り　
+displayN<-50  
+lx<-tail(as.numeric(dataset[,2]),displayN)/10^0
+rx<-tail(as.numeric(dataset[,3]),displayN)/10^0
+labelsTitle<-tail(as.character(dataset[,1]),displayN)
+labelsText<-c(colnames(dataset)[2],colnames(dataset)[1],colnames(dataset)[3])
+unitText<-""
+par(
+  mar=pyramid.plot(
+    lx,
+    rx,
+    labels=labelsTitle,
+    top.labels=labelsText,
+    unit=unitText,
+    main=mainTitle,
+    lxcol="#e27272",
+    rxcol="#72aae2",
+    space=0.3,
+    ppmar=c(5,5,14,5),
+    labelcex=0.8,
+    xlim=c(xlimit,xlimit),
+    laxlab=seq(from = 0, to = xlimit, by = xlabBy), #改良余地在り
+    raxlab=seq(from = 0, to = xlimit, by = xlabBy), #改良余地在り
+    gap=2 #改良余地在り
+  )
+)
+}
+########################################## pyramid.plot() #######################################
+########################################## pyramidLikert() ######################################
+if(plotType==2){
+panelWidth<-0.4
+main.cex<-1.2
+xlab.cex<-1.5
+xlabTitle<-"百万円" #改良余地在り
+ylabTitle<-"期"     #改良余地在り
+buf.plot<-plot(
+  as.likert(dataset[,-1]),
+  scales=list(
+    y=list(
+      limits=c(0,nrow(dataset)+1),
+      at=seq(1,nrow(dataset),1),
+      labels=rev(dataset[,1]),
+      cex=1.2,
+      tck=0.5
+    ),
+    x=list(
+      cex=2,
+      tck=0.5
+    )
+  ),
+  main=list(
+    mainTitle,
+    cex=main.cex
+  ),
+  xlab=list(
+    xlabTitle,
+    cex=xlab.cex
+  ),  
+  ylab=list(
+    ylabTitle
+  )
+)
+as.pyramidLikert(
+  buf.plot,
+  px=list(
+    L=c(0, panelWidth),
+    R=c(1-panelWidth, 1),
+    M=c(panelWidth, 1-panelWidth)
+  )
+)
+}
+########################################## pyramidLikert ########################################
+dev.off()
+########################################## pyramid plot #########################################
+```
+
