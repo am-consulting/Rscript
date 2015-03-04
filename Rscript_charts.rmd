@@ -19,8 +19,6 @@ creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")
 setwd(pathOutput)
 windowsFonts()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
-chartType<-2 #1:line , 2:bar
-fitType<-2 #1:lm , 2:loess
 fun.readData<-function(){
   dataset<<-read.table("clipboard",header=TRUE,sep="\t")
   head(dataset)
@@ -34,6 +32,8 @@ fun.readData()
 
 ```{r}
 ########################################## time series ##########################################
+chartType<-2 #1:line , 2:bar
+fitType<-2 #1:lm , 2:loess
 setwd(pathOutput)
 if(colnames(dataset)[1]=="date"){dataset[,1]<-as.Date(dataset[,1])}
 buf.colnames<-colnames(dataset)
@@ -42,7 +42,6 @@ for(zzz in 2:length(dataset)){
   SD<-Sys.Date()
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1500,height=1000)
   mainTitle<-buf.colnames[zzz]
@@ -56,16 +55,16 @@ for(zzz in 2:length(dataset)){
   )
   switch(fitType,
     g<-g+geom_smooth(data=buf.dataset,aes(x=xvalue,y=yvalue),method=lm,lwd=2),
-    g<-g+geom_smooth(data=buf.dataset,aes(x=xvalue,y=yvalue),method=loess,color="red",lwd=2)
+    g<-g+geom_smooth(data=buf.dataset,aes(x=xvalue,y=yvalue,group=1),method=loess,color="red",lwd=2)
   )
   g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
   g<-g+theme(axis.title.x=element_text(size=20),axis.title.y=element_text(size=20)) 
-  g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1),axis.text.y=element_text(size=30)) 
+  g<-g+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5),axis.text.y=element_text(size=20)) 
   g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
   if(colnames(dataset)[1]=="date" & regexpr("\\.月次",buf.colnames[zzz])!=-1){  
     g<-g+scale_x_date(labels=date_format("%Y-%m"))  
-    g<-g+xlab("")
   }  
+  g<-g+xlab("")
   g<-g+ylab("") 
   g<-g+scale_y_continuous(labels=comma)
   print(g)
