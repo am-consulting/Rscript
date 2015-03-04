@@ -123,12 +123,8 @@ dev.off()
 
 ```{r}
 ##########################################  Japan Map  ##########################################
-fun.readData()
 color.set<-c("#f8f8fc","#f1f1f8","#e2e2f1","#c7c7e2","#aaaad5","#8d8dc7","#7272b8","#5555aa","#47478d","#383872","#2b2b55","#1d1d38")
 color.set<-c("#f8f8fc","#e2e2f1","#aaaad5","#7272b8","#47478d","#2b2b55")
-```
-
-```{r}
 #####The following source codes and Japanese comments are the copyright of http://aoki2.si.gunma-u.ac.jp/.
 # 塗り分け地図を描く
 map <- function(code.list,                  # 描画する都道府県コード
@@ -239,7 +235,7 @@ color.set)                 # 各区分を塗る色
 
 ```{r}
 fillType<-0
-magnify<-2
+magnify<-0.3
 tmp.0<-dataset 
 for(iii in 2:length(tmp.0)){
   q<-vector()
