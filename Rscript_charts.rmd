@@ -10,6 +10,7 @@ library(rworldmap)
 library(classInt)
 library(plotrix)
 library(HH)
+library(reshape)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
 pathJmap<<-paste("C:/Users/",username,"/Desktop/jpn/",sep="")
@@ -76,9 +77,10 @@ dev.off()
 
 ```{r}
 ##########################################  bar chart  ##########################################
-fun.readData()
+colorList<-c("blue","red") #改良余地あり
+titleCol<-1 
 setwd(pathOutput)
-orderType<-3 # 1:as is , 2:xvalue , 3:yvalue
+orderType<-1 # 1:as is , 2:xvalue , 3:yvalue
 if(colnames(dataset)[1]=="date"){dataset[,1]<-as.Date(dataset[,1])}
 buf.colnames<-colnames(dataset)
 buf.dataset<-dataset
@@ -88,27 +90,32 @@ addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),secon
 creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
 png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1500,height=1000)
-mainTitle<-buf.colnames[2]
+mainTitle<-buf.colnames[titleCol]
 mainTitle<-gsub("source","\nData Source:",mainTitle)
 mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
 mainTitle<-gsub("割合","割合(%)",mainTitle)
 mainTitle<-gsub("break","\n",mainTitle)
-colnames(buf.dataset)<-c("xvalue","yvalue")
 if(orderType==1){
-rownames(buf.dataset)<-c(1:nrow(buf.dataset))
+  rownames(buf.dataset)<-c(1:nrow(buf.dataset))
 }else{
-rrr<-order(buf.dataset[,(orderType-1)],decreasing=FALSE)
-buf.dataset<-buf.dataset[rrr,]
+  rrr<-order(buf.dataset[,(orderType-1)],decreasing=FALSE)
+  buf.dataset<-buf.dataset[rrr,]
 }  
 buf.dataset[,1]<-ordered(buf.dataset[,1],levels=buf.dataset[,1][1:length(buf.dataset[,1])])
-g<-ggplot()
-switch(chartType,  
-  g<-g+geom_line(data=buf.dataset,aes(x=xvalue,y=yvalue),size=2),
+if(ncol(buf.dataset)<3){
+  colnames(buf.dataset)<-c("xvalue","yvalue")
+  g<-ggplot()
   g<-g+geom_bar(data=buf.dataset,aes(x=xvalue,y=yvalue),stat="identity",position="identity",fill="orange",alpha=0.2,color="black")
-)
+}else{
+  melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])  
+  g<-ggplot(melt.dataset,aes(x=melt.dataset[,1],y=value,fill=variable))+geom_bar(stat="identity",alpha=0.3)  
+  g<-g+theme(legend.text=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
+  g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))   
+  g<-g+scale_fill_manual(values=colorList)  
+}  
 g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
 g<-g+theme(axis.title.x=element_text(size=20),axis.title.y=element_text(size=20)) 
-g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1),axis.text.y=element_text(size=30)) 
+g<-g+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5),axis.text.y=element_text(size=20)) 
 g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
 if(colnames(dataset)[1]=="date" & regexpr("\\.月次",buf.colnames[2])!=-1){  
   g<-g+scale_x_date(labels=date_format("%Y-%m"))  
