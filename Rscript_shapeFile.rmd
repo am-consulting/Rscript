@@ -1,0 +1,58 @@
+
+```{r}
+library(ggplot2)
+library(lubridate)
+library(maptools)
+SD<-Sys.Date()
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+shapeFolder<-"shapeFile" # ne_50m_admin_0_countries shapeFile ne_50m_urban_areas
+pathShapeFile<-paste("C:/Users/",username,"/Desktop/",shapeFolder,"/",sep="")
+```
+
+```{r}
+mainTitle<-"worldmap"
+regionName<-c("ID") # "iso_a3","area_sqkm","ID","GRIDCODE"
+adaptRange<-0
+lonRange<-c(-180,180)
+latRange<-c(-90,90)
+fillType<-c(1,0) # 1:filled by id , 0:not filled
+setwd(pathShapeFile)
+file.name<-dir(pathShapeFile,pattern=".shp")
+q<-ggplot()
+for(iii in 1:length(file.name)){
+  map.obj<-readShapeSpatial(file.name[iii])
+  print(names(map.obj));print(ncol(map.obj));print(class(map.obj))
+  plot(map.obj)
+  map.df<-fortify(map.obj,region=regionName[iii])
+  print(head(map.df));print(tail(map.df));print(unique(map.df[,ncol(map.df)]))
+  if(adaptRange==1){
+    map.df<-subset(map.df,lonRange[1]<=map.df$long & map.df$long<=lonRange[2])
+    map.df<-subset(map.df,latRange[1]<=map.df$lat & map.df$lat<=latRange[2])
+  }
+  mapData<-map.df[order(map.df$order),]
+  if(fillType[iii]==0){  
+    q<-q+geom_polygon(data=mapData,aes(long,lat,group=group),alpha=0.0,colour="black")
+  }else{
+    q<-q+geom_polygon(data=mapData,aes(long,lat,group=group,fill=id),alpha=0.5,colour="black")
+  }  
+}  
+q<-q+coord_equal()
+q<-q+xlab("")+ylab("")
+q<-q+ggtitle(paste(mainTitle,"\n",creationDate))
+q<-q+theme(axis.text=element_text(size=30))   
+q<-q+theme(axis.title=element_text(colour="white",size=1,face="bold"))   
+q<-q+theme(title=element_text(size=40,face="bold"))   
+q<-q+theme(legend.position="bottom")   
+q<-q+theme(legend.text=element_text(colour="black",size=40,face="bold"))   
+q<-q+theme(legend.title=element_text(colour="white",size=0,face="bold"))   
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1500,height=1000)
+par(mar=c(0,0,12,0),ps=40)
+print(q)
+dev.off()
+```
