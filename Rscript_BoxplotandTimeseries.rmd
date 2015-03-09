@@ -1,0 +1,268 @@
+```{r}
+library(ggplot2)
+library(lubridate)
+library(scales)
+library(quantmod) # last()
+library(reshape)
+successiveCabinets<-list()
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+SD<-Sys.Date()
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
+setwd(pathOutput)
+windowsFonts()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+fun.readData<-function(){
+  dataset<-read.table("clipboard",header=TRUE,sep="\t")
+  dataset[,1]<-as.Date(dataset[,1])
+  dataset<<-dataset # caution
+  head(dataset)
+  tail(dataset)
+}
+fun.readData()
+```
+
+```{r}
+funSuccessiveCabinets()
+for(ccc in 2:ncol(dataset)){
+  tmp.dataset<-dataset[,c(1,ccc)]  
+  funBase()
+  funBoxplot()
+  funTimeseries()  
+}  
+```
+
+```{r}
+funSuccessiveCabinets<-function(){
+successiveCabinets[[1]]<-c(
+"1937-6-4","近衛文麿",
+"1939-1-5","平沼騏一郎",
+"1939-8-30","阿部信行",
+"1940-1-16","米内光政",
+"1940-7-22","近衛文麿",
+"1941-10-18","東條英機",
+"1944-7-22","小磯國昭",
+"1945-4-7","鈴木貫太郎",
+"1945-8-17","東久邇宮稔彦王",
+"1945-10-9","幣原喜重郎",
+"1946-5-22","吉田茂",
+"1947-5-24","片山哲",
+"1948-3-10","芦田均",
+"1948-10-15","吉田茂",
+"1954-12-10","鳩山一郎",
+"1956-12-23","石橋湛山",
+"1957-2-25","岸信介",
+"1960-7-19","池田勇人",
+"1964-11-9","佐藤栄作",
+"1972-7-7","田中角栄",
+"1974-12-9","三木武夫",
+"1976-12-24","福田赳夫",
+"1978-12-7","大平正芳",
+"1980-7-17","鈴木善幸",
+"1982-11-27","中曽根康弘",
+"1987-11-6","竹下登",
+"1989-6-3","宇野宗佑",
+"1989-8-10","海部俊樹",
+"1991-11-5","宮沢喜一",
+"1993-8-9","細川護熙",
+"1994-4-28","羽田孜",
+"1994-6-30","村山富市",
+"1996-1-11","橋本龍太郎",
+"1998-7-30","小渕恵三",
+"2000-4-5","森喜朗",
+"2001-4-26","小泉純一郎",
+"2006-9-26","安倍晋三",
+"2007-9-26","福田康夫",
+"2008-9-24","麻生太郎",
+"2009-9-16","鳩山由紀夫",
+"2010-6-8","菅直人",
+"2011-9-2","野田佳彦",
+"2012-12-26","安倍晋三(2次-)"
+)
+successiveCabinets[[2]]<-c(
+"1937-7-27","結城豊太郎",
+"1944-3-18","渋沢敬三",
+"1945-10-9","新木榮吉",
+"1946-6-1","一万田尚登",
+"1954-12-11","新木榮吉",
+"1956-11-30","山際正道",
+"1964-12-17","宇佐美洵",
+"1969-12-17","佐々木直",
+"1974-12-17","森永貞一郎",
+"1979-12-17","前川春雄",
+"1984-12-17","澄田智",
+"1989-12-17","三重野康",
+"1994-12-17","松下康雄",
+"1998-3-20","速水優",
+"2003-3-20","福井俊彦",
+"2008-4-9","白川方明",
+"2013-3-20","黒田東彦"
+)
+successiveCabinets[[3]]<-c(
+"1949-1-20","Harry S. Truman",
+"1953-1-20","Dwight David Eisenhower",
+"1961-1-20","John Fitzgerald Kennedy",
+"1963-11-22","Lyndon Baines Johnson",
+"1969-1-20","Richard Milhouse Nixon",
+"1974-8-9","Gerald Rudolph Ford Jr.",
+"1977-1-20","James Earl Carter",
+"1981-1-20","Ronald Wilson Reagan",
+"1989-1-20","George H.W Bush",
+"1993-1-20","Bill Clinton",
+"2001-1-20","George W. Bush",
+"2009-1-20","Barack Obama"
+)
+successiveCabinets[[4]]<-c(
+"1970-2-1","Arthur F.Burns",
+"1978-3-8","G.William Miller",
+"1987-8-11","Alan Greenspan",
+"2006-2-1","Ben S.Bernanke",
+"2014-2-1","Janet Yellen"
+)
+for(ttt in 1:length(successiveCabinets)){
+  tmp<-successiveCabinets[[ttt]]
+  inaugural.date<-as.Date(tmp[seq(1,length(tmp),by=2)])
+  resignation.date<-c((inaugural.date-1)[-1],Sys.Date()+31) # 最後のSys.Date()+31は現職用
+  Name<-tmp[seq(2,length(tmp),by=2)]
+  successiveCabinets[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
+  successiveCabinets[[ttt]][,3]<-ordered(successiveCabinets[[ttt]][,3],levels=successiveCabinets[[ttt]][,3][1:nrow(successiveCabinets[[ttt]])])
+  order(successiveCabinets[[ttt]][,3])
+  successiveCabinets[[ttt]]<<-successiveCabinets[[ttt]] #caution
+}
+}  
+#```
+
+#```{r}
+######################################時系列チャート###################################### 
+funTimeseries<-function(){
+setwd(pathOutput)
+level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
+first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
+monthly<-1
+for(ttt in 1:2){
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  mainTitle<-colnames(tmp.dataset)[2]
+  mainTitle<-gsub("source","\nData Source:",mainTitle)
+  mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
+  mainTitle<-gsub("割合","割合(%)",mainTitle)
+  mainTitle<-gsub("break","\n",mainTitle)
+  row.names(tmp.dataset)<-NULL
+  tmp.timeseries<-tmp.dataset[,c(1:4)]
+  tmp.date<-max(as.Date(first.date[ttt]),na.omit(tmp.timeseries)[1,1])
+  tmp.timeseries<-na.omit(subset(tmp.timeseries,tmp.date<=tmp.timeseries[,1]))
+  colnames(tmp.timeseries)[2]<-"value"
+  for(kkk in seq(1,nrow(successiveCabinets[[ttt]]),by=1)){
+    if(successiveCabinets[[ttt]][kkk,1]<=tmp.date & tmp.date<=successiveCabinets[[ttt]][kkk,2]){break}  
+  }
+  tmp.segment<-successiveCabinets[[ttt]][c(kkk:nrow(successiveCabinets[[ttt]])),]
+  if(nrow(tmp.segment)!=0){
+    tmp.segment[1,1]<-tmp.date
+    tmp.segment[nrow(tmp.segment),2]<-last(tmp.timeseries)[1]
+  }else{
+    tmp.segment<-last(successiveCabinets[[ttt]])
+    tmp.segment[1,1]<-tmp.date
+    tmp.segment[1,2]<-last(tmp.timeseries)[1]
+  }           
+  x0<-tmp.segment$inaugural.date[seq(1,length(tmp.segment$inaugural.date),by=2)]
+  x1<-tmp.segment$resignation.date[seq(1,length(tmp.segment$resignation.date),by=2)]
+  y0<-min(tmp.timeseries[,2])
+  if(0<y0){y0<-0}
+  y1<-max(tmp.timeseries[,2])
+  shade<-data.frame(x0,x1,y0,y1)
+  shade<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
+  value.y<-median(tmp.timeseries[,2]) #value.y<-mean(tmp.timeseries[,2])
+  value.y<<-value.y #caution
+  g<-ggplot()
+  g<-g+geom_segment(data=tmp.segment,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=10)
+  g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
+  if(level.type==1){
+    g<-g+geom_line(data=tmp.timeseries,aes(x=Date,y=value),size=2)
+  }else{
+    g<-g+geom_bar(data=tmp.timeseries,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+  } 
+  g<-g+geom_smooth(data=tmp.timeseries,aes(x=Date,y=value),method=lm)
+  g<-g+geom_smooth(data=tmp.timeseries,aes(x=Date,y=value),method=loess,color="red")
+  g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
+  g<-g+xlab("") 
+  g<-g+ylab("") 
+  g<-g+ylim(y0,y1)
+  g<-g+theme(axis.text=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.title=element_text(size=50,face="bold",family="Meiryo"))          
+  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(legend.position="right",legend.text=element_text(colour="black",size=25,face="bold",family="Meiryo"),legend.title=element_text(colour="white",size=0,face="bold"))          
+  if(monthly==1){
+    g<-g+scale_x_date(labels=date_format("%Y/%m"))
+  }else{
+    g<-g+scale_x_date(labels=date_format("%Y/%m/%d"))
+  } 
+  g<-g+scale_y_continuous(labels=comma)
+  print(g)
+  dev.off() 
+}
+}  
+######################################時系列チャート###################################### 
+#```
+
+#```{r}
+###################################### boxplotパート######################################
+funBoxplot<-function(){
+setwd(pathOutput)
+for(ttt in 1:2){    
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  mainTitle<-colnames(tmp.dataset)[2]
+  mainTitle<-gsub("source","\nData Source:",mainTitle)
+  mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
+  mainTitle<-gsub("割合","割合(%)",mainTitle)
+  mainTitle<-gsub("break","\n",mainTitle)
+  tmp.boxplot<-tmp.dataset[,c(2,2+ttt)]
+  colnames(tmp.boxplot)[2]<-"Person"  
+  tmp.boxplot<-melt(tmp.boxplot,id="Person")
+  tmp.boxplot<-tmp.boxplot[,-2]
+  tmp.boxplot[,2]<-as.numeric(tmp.boxplot[,2])
+  colnames(tmp.boxplot)[1]<-"variable"
+  g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
+  g<-g+geom_boxplot(lwd=2)
+  g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
+  g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo"),axis.text.y=element_text(size=30,family="Meiryo")) 
+  g<-g+theme(axis.title=element_text(size=20,face="bold")) 
+  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo")) 
+  g<-g+xlab("")
+  g<-g+ylab("") 
+  g<-g+scale_y_continuous(labels=comma)
+  print(g)
+  dev.off()
+}
+}  
+###################################### boxplotパート######################################
+#```
+
+#```{r}
+funBase<-function(){
+border.date<-as.Date(max(successiveCabinets[[1]][1,1],successiveCabinets[[2]][1,1]))
+tmp.dataset<-subset(tmp.dataset,border.date<=tmp.dataset[,1])
+buf<-list()
+cnt<-0
+for(ttt in 1:2){ #目的に応じて変更
+  cnt<-cnt+1
+  for(nnn in 1:nrow(successiveCabinets[[ttt]])){  
+    tmp<-subset(tmp.dataset,successiveCabinets[[ttt]]$inaugural.date[nnn]<=tmp.dataset$Date & tmp.dataset$Date<=successiveCabinets[[ttt]]$resignation.date[nnn])
+    if(nnn==1){buf[[cnt]]<-head(tmp,0)} #Error in buf[[cnt]] : subscript out of bounds
+    if(nrow(tmp)!=0){
+      tmp[,3]<-successiveCabinets[[ttt]]$Name[nnn]
+      colnames(tmp)[3]<-ttt
+      buf[[cnt]]<-rbind(buf[[cnt]],tmp)    
+    }    
+  }
+}
+tmp.dataset<-merge(buf[[1]],buf[[2]],all=T) #PM(USA)とBoJ(FRB)は長さの異なる個別のデータとして流用することが出来る様、最後にmergeする。    
+if(ttt==2){colnames(tmp.dataset)[3]<-"PM";colnames(tmp.dataset)[4]<-"BoJ"}
+if(ttt==4){colnames(tmp.dataset)[3]<-"U.S.A";colnames(tmp.dataset)[4]<-"FRB"}
+tmp.dataset<<-tmp.dataset  
+}  
+```
