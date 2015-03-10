@@ -150,7 +150,7 @@ color=NULL)                                 # 塗り分けに使用する色
       addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
       creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
       png.file<-paste(addVer,".png",sep="")      
-      png(file=png.file,width=1500,height=1000) 
+      png(file=png.file,width=1400,height=900) 
       par(mar=c(6,0,12,0),ps=40)
     ### The above codes are added by AMCC.
     continue <- apply(data, 1, any)         # 経度と緯度が共に 0 が描画の区切り
@@ -183,7 +183,9 @@ color=NULL)                                 # 塗り分けに使用する色
         start <- i+1
       }
     }
-    text(lon.center,lat.center,plotValue,cex=0.5,col="black",font=2) # This code is added by AMCC.         
+    if(textPlot==1){
+      text(lon.center,lat.center,plotValue,cex=0.5,col="black",font=2) # This code is added by AMCC.         
+    }
     ### The following codes are added by AMCC. Reference http://ds0.cc.yamaguchi-u.ac.jp/~fukuyo/r-map.html
       if(fillType==1){
       heightPoly<-30
@@ -243,9 +245,15 @@ color.set)                 # 各区分を塗る色
 ```
 
 ```{r}
+nSplit<-6
+textPlot<-0
 fillType<-1
 magnify<-1
+roundType<-1
 classStyle<-c("sd", "equal", "quantile", "kmeans", "hclust", "fisher")
+classStyleJ<-c("標準偏差", "等間隔", "等量", "非階層クラスタリング", "階層クラスタリング", "Fisherの最適化")
+classStyle<-c("equal", "quantile", "fisher")
+classStyleJ<-c("等間隔", "等量", "Fisherの最適化")
 tmp.0<-dataset 
 for(iii in 2:length(tmp.0)){
   q<-vector()
@@ -270,12 +278,16 @@ for(iii in 2:length(tmp.0)){
 # use nclass{grDevices} or n
 # http://www.inside-r.org/packages/cran/classInt/docs/classIntervals    
     for(zzz in 1:length(classStyle)){
-      t<-round((classIntervals(tmp.0[,iii],style=classStyle[zzz],n=5))$brks,2)
+      t<-(classIntervals(tmp.0[,iii],style=classStyle[zzz],n=nSplit))$brks
+      switch(roundType,
+      t<-round(t,-(floor(log10(t))-1)), # t=10^log10(t)の場合の処理を挟むこと
+      t<-format(t,digits=2) #改良余地あり
+      )  
       t<-t[-1]
       t<-t[-length(t)]    
-      color.set<-brewer.pal(length(t)+1,"Oranges")
+      color.set<-brewer.pal(length(t)+1,"Blues")
       tmp.mainTitle<-mainTitle
-      mainTitle<-paste(mainTitle,", 分類方法:",classStyle[zzz])
+      mainTitle<-paste(mainTitle,", 分類方法:",classStyleJ[zzz])
       color.map3(tmp.1,t,color.set)
       mainTitle<-tmp.mainTitle
     }  
