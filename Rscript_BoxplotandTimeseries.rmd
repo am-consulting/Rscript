@@ -20,6 +20,16 @@ fun.readData<-function(){
   tail(dataset)
 }
 fun.readData()
+
+funMaintitle<-function(){
+  mainTitle<-colnames(tmp.dataset)[2]
+  mainTitle<-gsub("\\.\\.","\\.",mainTitle)
+  mainTitle<-gsub("source","\nData Source:",mainTitle)
+  mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
+  mainTitle<-gsub("割合","割合(%)",mainTitle)
+  mainTitle<-gsub("break","\n",mainTitle)
+  mainTitle<<-mainTitle
+}
 ```
 
 ```{r}
@@ -27,6 +37,7 @@ funSuccessiveCabinets()
 for(ccc in 2:ncol(dataset)){
   tmp.dataset<-dataset[,c(1,ccc)]  
   funBase()
+  funMaintitle()
   funBoxplot()
   funTimeseries()  
 }  
@@ -144,11 +155,6 @@ for(ttt in 1:2){
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1400,height=900)
-  mainTitle<-colnames(tmp.dataset)[2]
-  mainTitle<-gsub("source","\nData Source:",mainTitle)
-  mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
-  mainTitle<-gsub("割合","割合(%)",mainTitle)
-  mainTitle<-gsub("break","\n",mainTitle)
   row.names(tmp.dataset)<-NULL
   tmp.timeseries<-tmp.dataset[,c(1:4)]
   tmp.date<-max(as.Date(first.date[ttt]),na.omit(tmp.timeseries)[1,1])
@@ -215,11 +221,6 @@ for(ttt in 1:2){
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1400,height=900)
-  mainTitle<-colnames(tmp.dataset)[2]
-  mainTitle<-gsub("source","\nData Source:",mainTitle)
-  mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
-  mainTitle<-gsub("割合","割合(%)",mainTitle)
-  mainTitle<-gsub("break","\n",mainTitle)
   tmp.boxplot<-tmp.dataset[,c(2,2+ttt)]
   colnames(tmp.boxplot)[2]<-"Person"  
   tmp.boxplot<-melt(tmp.boxplot,id="Person")

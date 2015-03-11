@@ -1,0 +1,139 @@
+
+```{r}
+library(quantmod)
+library(PerformanceAnalytics)
+library(lubridate)
+library(ggplot2)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+SD<-Sys.Date()
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
+setwd(pathOutput)
+windowsFonts()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+ts.source<-list()
+dataset<-list()
+reference<-list()
+allData<-xts()
+ts.source[[1]]<-c("yahoo",4,"https://www.yahoo.com/","^N225","^HSI","^AXJO","^GSPC","NDX","^RUT","^FTSE")
+ts.source[[2]]<-c("yahoo",4,"https://www.yahoo.com/","^STI","^KS11","^TWII","^GDAXI","^FCHI","^BVSP")
+ts.source[[3]]<-c("oanda",1,"http://www.oanda.com/","AUD","JPY","EUR","GBP","NZD","ZAR","CHF","CAD","XAU","BRL","KRW","RUB")
+cnt<-0
+for(lll in 1:length(ts.source)){
+  for(iii in 4:length(ts.source[[lll]])){
+    cnt<-cnt+1
+    if(ts.source[[lll]][1]=="oanda"){
+      if(ts.source[[lll]][iii]=="JPY" | ts.source[[lll]][iii]=="CHF" | ts.source[[lll]][iii]=="ZAR" | ts.source[[lll]][iii]=="KRW"){
+        item<-paste("USD/",ts.source[[lll]][iii],sep="")
+      }else{
+        item<-paste(ts.source[[lll]][iii],"/USD",sep="")
+      }
+    }
+    else{
+      item<- ts.source[[lll]][iii]
+    }
+    dataset[[cnt]]<-getSymbols(item,src=ts.source[[lll]][1],auto.assign=FALSE)
+    dataset[[cnt]]<-dataset[[cnt]][,as.double(ts.source[[lll]][2])]
+    allData<-merge(allData,dataset[[cnt]])
+    dataset[[cnt]]<-na.omit(dataset[[cnt]])
+    dataset[[cnt]]<-merge.xts(dataset[[cnt]],INDEX=c(1:length(dataset[[cnt]])))
+    reference[[cnt]]<-ts.source[[lll]][3]
+  }
+}
+```
+
+```{r}
+setwd(pathOutput)
+lag<-28
+firstDate<-Sys.Date()
+year(firstDate)<-year(firstDate)-1
+for(iii in 1:cnt){
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  par(mar=c(5,5,10,5))
+  tmp<-dataset[[iii]][paste(firstDate,"::",sep="")]
+  mainTitle<-paste("ローリング回帰 トレンドの期間:",lag,"(日間)\n",head(index(tmp),1),"-",tail(index(tmp),1),"\nData Source:",reference[[iii]])
+  chart.RollingCorrelation(tmp[,2],tmp[,1],legend.loc="bottomleft",width=lag,main=mainTitle,type="h",col=grey(0.5),cex.legend=3,cex.axis=3,cex.main=3,ylab="")
+  par(new=T)
+  chart.TimeSeries(tmp[,1],main="",yaxis.right=T,xaxis=F,legend.loc="topleft",lwd=3,cex.legend=3,cex.axis=3,col="blue",grid.color="blue",ylab="") #共に,ylab=""とする。
+  dev.off()
+}
+```
+
+```{r}
+setwd(pathOutput)
+tmp.allData<-list()
+tmp.allData[[1]]<-na.omit(allData)
+tmp.allData[[2]]<-diff(tmp.allData[[1]],lag=1,diff=1)
+corrMethod<-c("pearson", "kendall", "spearman")
+for(iii in 1:2){
+  if(iii==1){dataType="Level"}else{dataType="1stDifference"}  
+  for(mmm in 1:length(corrMethod)){
+    ST<-Sys.time()  
+    addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+    png.file<-paste(addVer,".png",sep="")
+    png(file=png.file,width=1400,height=900)
+    mainTitle<-paste(dataType,"Method:",toupper(corrMethod[mmm]),format(head(index(tmp.allData[[iii]]),1),"%Y-%m-%d"),"-",format(tail(index(tmp.allData[[iii]]),1),"%Y-%m-%d"))
+    chart.Correlation(tmp.allData[[iii]],histogram=F,method=corrMethod[mmm],main=mainTitle,cex.main=2,cex.text=2)
+    dev.off()
+  }
+}
+```
+
+```{r}
+setwd(pathOutput)
+corrMethod<-"spearman"
+for(iii in 1:2){
+  grand.result<-NULL
+  if(iii==1){
+    buf<-na.omit(allData)
+    chart.title<-"Correlation:Level"
+  }else{
+    buf<-na.omit(diff(buf,lag=1,diff=1))
+    chart.title<-"Correlation:1stDifference"
+  }  
+  result.cor<-cor(buf,method=corrMethod)
+  f.date<-format(first(index(buf)),"%Y-%m-%d")
+  e.date<-format(last(index(buf)),"%Y-%m-%d")
+  mainTitle<-paste(chart.title,f.date,"-",e.date)
+  for(ccc in 1:ncol(result.cor)){
+    tmp<-paste(row.names(result.cor),"-",row.names(result.cor)[ccc],sep="")
+    tmp.df<-data.frame(tmp[-(1:ccc)],result.cor[-(1:ccc),ccc],row.names=NULL)
+    grand.result<-rbind(grand.result,tmp.df)
+  }
+  rrr<-order(grand.result[,2],decreasing=T)
+  grand.result<-grand.result[rrr,]
+  grand.result[,1]<-ordered(grand.result[,1],levels=grand.result[,1][1:length(grand.result[,1])])
+  colnames(grand.result)<-c("xvalue","yvalue")
+  for(ppp in 1:2){
+    if(ppp==1){
+      data<-head(grand.result,35)
+      fillCol<-"blue"
+    }else{
+      data<-tail(grand.result,35)
+      fillCol<-"red"
+    } 
+    ST<-Sys.time()  
+    addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+    png.file<-paste(addVer,".png",sep="")
+    png(file=png.file,width=1400,height=900)
+    g<-ggplot()
+    g<-g+geom_bar(data=data,aes(x=xvalue,y=yvalue),stat="identity",position="identity",fill=fillCol,alpha=0.2,color="black")
+    g<-g+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5)) 
+    g<-g+theme(axis.text.y=element_text(size=20))
+    g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
+    g<-g+theme(axis.title.x=element_text(size=20,family="Meiryo")) 
+    g<-g+theme(axis.title.y=element_text(size=20,family="Meiryo")) 
+    g<-g+ggtitle(paste(toupper(corrMethod),mainTitle))
+    g<-g+xlab("")
+    g<-g+ylab("") 
+    print(g)
+    dev.off()
+  }
+}
+```
