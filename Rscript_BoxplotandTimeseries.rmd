@@ -147,7 +147,7 @@ for(ttt in 1:length(successiveCabinets)){
 ######################################時系列チャート###################################### 
 funTimeseries<-function(){
 setwd(pathOutput)
-level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
+level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
 first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
 monthly<-1
 for(ttt in 1:2){
@@ -175,7 +175,7 @@ for(ttt in 1:2){
   x0<-tmp.segment$inaugural.date[seq(1,length(tmp.segment$inaugural.date),by=2)]
   x1<-tmp.segment$resignation.date[seq(1,length(tmp.segment$resignation.date),by=2)]
   y0<-min(tmp.timeseries[,2])
-  if(0<y0){y0<-0}
+  if(0<y0 & level.type==2){y0<-0}
   y1<-max(tmp.timeseries[,2])
   shade<-data.frame(x0,x1,y0,y1)
   shade<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
