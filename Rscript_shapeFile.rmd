@@ -56,7 +56,7 @@ for(mmm in floor(min(dataset.j$mag)):floor(max(dataset.j$mag))){
   mainTitle<-paste("過去30日間において日本周辺に発生した地震\n",date.e,"から",date.f,"\nマグニチュード",mmm,"以上",mmm+1,"未満\nソースデータ確認日時:",dataTime,"ソースデータ:http://earthquake.usgs.gov/")
   g<-q+geom_polygon(data=earthquakeList,aes(earthquakeList$x,earthquakeList$y,group=earthquakeList$id),alpha=0.1,colour="blue")
   g<-g+geom_point(data=tmp,aes(x=longitude, y=latitude),col="red") #aes(,size=tmp$mag)
-  g<-g+geom_text(data=tmp,aes(x=longitude, y=latitude,label=mag),size=8,family="Meiryo")
+  g<-g+geom_text(data=tmp,aes(x=longitude, y=latitude,label=paste(magType,":",mag,sep="")),size=7,family="Meiryo")
   g<-g+theme(legend.position="none")
   g<-g+coord_equal()
   g<-g+xlab("")+ylab("")
@@ -96,7 +96,7 @@ for(pppp in 1:2){
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1200,height=900)
   par(mar=c(10,0,12,0),ps=40)
-  tmp<-data.frame(paste(dataset.j[,17],"/",dataset.j[,14],sep=""),dataset.j[,objectCol])
+  tmp<-data.frame(paste(dataset.j[,17],"/",dataset.j[,14],"(",dataset.j[,6],")",sep=""),dataset.j[,objectCol])
   colnames(tmp)<-c("xvalue","yvalue")
   rrr<-order(tmp[,2],decreasing=F)
   tmp<-tmp[rrr,]
