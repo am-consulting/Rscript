@@ -1,0 +1,90 @@
+```{r}
+period<-c("02/23～02/27","03/02～03/06")
+dataType<-2 # 1売買代金,2株数
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(lubridate)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+if(dataType==1){
+  mainTitle<-"投資部門別売買状況.株券.二市場一･二部等全51社.億円\nData Source:株式会社東京証券取引所"
+  dataPower<-10^-5
+}else{
+  mainTitle<-"投資部門別売買状況.株券.二市場一･二部等全51社.億株\nData Source:株式会社東京証券取引所"
+  dataPower<-10^-5
+}
+fun.readData<-function(){
+  origData<<-read.table("clipboard",header=F,sep="\t")
+  head(origData)
+  tail(origData)
+}
+fun.readData()
+origData<-origData*dataPower
+```
+
+```{r}
+investor<-c("自己計","委託計","総計","法人","個人","海外投資家","証券会社","投資信託","事業法人","その他法人等","金融機関","生保・損保","都銀・地銀等","信託銀行","その他金融機関")
+invClass<-c(1,1,1,2,2,2,2,3,3,3,3,4,4,4,4)
+dataset<-as.matrix(origData)
+colnames(dataset)<-c("lastWeek","thisWeek")
+diff.dataset<-diff(dataset,lag=1,diff=1)
+for(ppp in 1:3){
+  if(ppp==1){
+    balance.dataset<-diff.dataset[seq(1,nrow(diff.dataset),by=3),]
+    subTitle<-"差引き"
+  }else if(ppp==2){
+    balance.dataset<-dataset[seq(1,nrow(dataset),by=3),]
+    subTitle<-"売り"
+  }else if(ppp==3){
+    balance.dataset<-dataset[seq(2,nrow(dataset),by=3),]
+    subTitle<-"買い"
+  }  
+  balance.dataset<-data.frame(investor,balance.dataset,invClass)
+  rrr<-order(balance.dataset[,1])
+  balance.dataset[,1]<-ordered(balance.dataset[,1],levels=balance.dataset[,1][1:length(balance.dataset[,1])])
+  ymax<-max(abs(balance.dataset[,c(2,3)]))
+  tmp.1<-floor(log10(ymax))
+  tmp.2<-ceiling(ymax/10^tmp.1)
+  ymax<-tmp.2*10^tmp.1
+  ymin<--1*ymax
+  if(ppp!=1){
+    ymin<-0
+  }  
+  g1<-ggplot()
+  g1<-g1+geom_bar(data=balance.dataset,aes(x=investor,y=lastWeek),stat="identity",position="identity",fill=invClass,alpha=0.2,color="black")
+  g1<-g1+geom_text(data=balance.dataset,aes(x=investor,y=lastWeek,label=round(lastWeek,2)),angle=90,vjust=0.5,hjust=0,size=6,family="Meiryo") 
+  g1<-g1+coord_cartesian(ylim = c(ymin, ymax))
+  g1<-g1+scale_y_continuous(labels=comma)
+  g1<-g1+theme(plot.title=element_text(size=20,family="Meiryo"))
+  g1<-g1+theme(axis.title.x=element_text(size=20,family="Meiryo")) 
+  g1<-g1+theme(axis.title.y=element_text(size=20,family="Meiryo")) 
+  g1<-g1+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5,family="Meiryo")) 
+  g1<-g1+theme(axis.text.y=element_text(size=20,family="Meiryo")) 
+  g1<-g1+ggtitle(paste(period[1],":",subTitle))
+  g1<-g1+xlab("")
+  g1<-g1+ylab("") 
+  g2<-ggplot()
+  g2<-g2+geom_bar(data=balance.dataset,aes(x=investor,y=thisWeek),stat="identity",position="identity",fill=invClass,alpha=0.2,color="black")
+  g2<-g2+geom_text(data=balance.dataset,aes(x=investor,y=thisWeek,label=round(thisWeek,2)),angle=90,vjust=0.5,hjust=0,size=6,family="Meiryo") 
+  g2<-g2+coord_cartesian(ylim = c(ymin, ymax))
+  g2<-g2+scale_y_continuous(labels=comma)
+  g2<-g2+theme(plot.title=element_text(size=20,family="Meiryo"))
+  g2<-g2+theme(axis.title.x=element_text(size=20,family="Meiryo")) 
+  g2<-g2+theme(axis.title.y=element_text(size=20,family="Meiryo")) 
+  g2<-g2+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5,family="Meiryo")) 
+  g2<-g2+theme(axis.text.y=element_text(size=20,family="Meiryo")) 
+  g2<-g2+ggtitle(paste(period[2],":",subTitle))
+  g2<-g2+xlab("")
+  g2<-g2+ylab("") 
+  setwd(pathOutput)
+  SD<-Sys.Date()  
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=30, fontfamily="Meiryo")))
+  dev.off()
+}
+```
