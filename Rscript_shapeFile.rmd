@@ -4,7 +4,6 @@ library(ggplot2)
 library(lubridate)
 library(maptools)
 SD<-Sys.Date()
-creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
 shapeFolder<-"ne_50m_admin_0_countries" # ne_50m_admin_0_countries shapeFile ne_50m_urban_areas
@@ -22,111 +21,8 @@ circleFun <- function(center = c(0,0),diameter = 1, npoints = 100){
 ```
 
 ```{r}
-data.location<-2 #1:local 2:web
-data.file<-"all_month.csv"
-if(data.location==1){
-  pathEarthquake<-paste("C:/Users/",username,"/Desktop/Earthquake_Data/",sep="")
-  dataset<-read.table(file=paste(pathEarthquake,data.file,sep=""),sep=",",header=T,as.is=T,skip=0)
-}else{
-  dataTime<-Sys.time()
-  dataset<-read.csv(
-    paste("http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/",data.file,sep=""),
-    header=T,
-    as.is=T,
-    skip=0
-  ) 
-}
-dataset.j<-dataset[grep("Japan",dataset[,14]),]
-dataset.j$latlong<-paste(dataset.j$latitude,dataset.j$longitude,sep=":")
-dataset.j$JST<-as.POSIXct(sub("Z","",sub("T"," ",dataset.j$time)))+3600*9 #UTC+9
-dataset.j$Energy.GJ<-round(10^((dataset.j$mag)*1.5+4.8)*(10^-9),4)
-date.f<-head(dataset.j$JST)[1]
-date.e<-tail(dataset.j$JST)[1]
-```
-
-```{r}
-for(mmm in floor(min(dataset.j$mag)):floor(max(dataset.j$mag))){
-  earthquakeList<-NULL
-  tmp<-subset(dataset.j,mmm<=(dataset.j$mag) & (dataset.j$mag)<(mmm+1))
-  for(rrr in 1:nrow(tmp)){
-    dat<-circleFun(c(tmp$longitude[rrr],tmp$latitude[rrr]),2,100)
-    dat<-cbind(dat,id=rrr)  
-    earthquakeList<-rbind(earthquakeList,dat)
-  }
-  mainTitle<-paste("過去30日間において日本周辺に発生した地震\n",date.e,"から",date.f,"\nマグニチュード",mmm,"以上",mmm+1,"未満\nソースデータ確認日時:",dataTime,"ソースデータ:http://earthquake.usgs.gov/")
-  g<-q+geom_polygon(data=earthquakeList,aes(earthquakeList$x,earthquakeList$y,group=earthquakeList$id),alpha=0.1,colour="blue")
-  g<-g+geom_point(data=tmp,aes(x=longitude, y=latitude),col="red") #aes(,size=tmp$mag)
-  g<-g+geom_text(data=tmp,aes(x=longitude, y=latitude,label=paste(magType,":",mag,sep="")),size=7,family="Meiryo")
-  g<-g+theme(legend.position="none")
-  g<-g+coord_equal()
-  g<-g+xlab("")+ylab("")
-  g<-g+ggtitle(mainTitle)
-  g<-g+theme(axis.text=element_text(size=30,family="Meiryo"))   
-  g<-g+theme(axis.title=element_text(colour="white",size=1,face="bold",family="Meiryo"))   
-  g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo"))   
-  g<-g+theme(legend.position="bottom")   
-  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
-  g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold",family="Meiryo"))   
-  setwd(pathOutput)
-  ST<-Sys.time()  
-  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1200,height=900)
-  par(mar=c(0,0,12,0),ps=40)
-  print(g)
-  dev.off()
-}
-```
-
-```{r}
-for(pppp in 1:2){
-  if(pppp==1){
-    mainTitle<-paste("過去30日間において日本周辺に発生した地震\n",date.e,"から",date.f,"\nマグニチュード降順(上位20)\nソースデータ確認日時:",dataTime,"\nソースデータ:http://earthquake.usgs.gov/")
-    barColor<-"blue"
-    objectCol<-5
-    ylabTitle<-"マグニチュード"
-  }else{
-    mainTitle<-paste("過去30日間において日本周辺に発生した地震\n",date.e,"から",date.f,"\nエネルギー降順(上位20)\nソースデータ確認日時:",dataTime,"\nソースデータ:http://earthquake.usgs.gov/")
-    barColor<-"red"  
-    objectCol<-18
-    ylabTitle<-"エネルギー(GJ)\n(注)本チャートではマグニチュードタイプ(Mb,Mw等)に関らず\nE(GJ)=10^(マグニチュード*1.5+4.8)*(10^-9)としています"
-  }  
-  ST<-Sys.time()  
-  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1200,height=900)
-  par(mar=c(10,0,12,0),ps=40)
-  tmp<-data.frame(paste(dataset.j[,17],"/",dataset.j[,14],"(",dataset.j[,6],")",sep=""),dataset.j[,objectCol])
-  colnames(tmp)<-c("xvalue","yvalue")
-  rrr<-order(tmp[,2],decreasing=F)
-  tmp<-tmp[rrr,]
-  tmp[,1]<-ordered(tmp[,1],levels=tmp[,1][1:length(tmp[,1])])
-  tmp<-tail(tmp,20)
-  setwd(pathOutput)
-  g<-ggplot()
-  g<-g+geom_bar(data=tmp,aes(x=xvalue,y=yvalue),stat="identity",position="identity",fill=barColor,alpha=0.2,color="black")
-  g<-g+coord_flip()
-  g<-g+xlab("")+ylab(ylabTitle)
-  g<-g+ggtitle(mainTitle)
-  g<-g+theme(axis.text=element_text(size=15,family="Meiryo"))   
-  g<-g+theme(axis.title=element_text(colour="black",size=20,face="bold",family="Meiryo"))   
-  g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo"))   
-  g<-g+theme(legend.position="bottom")   
-  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
-  g<-g+theme(legend.title=element_text(colour="white",size=20,face="bold",family="Meiryo"))
-  if(pppp==1){  
-    g<-g+geom_text(data=tmp,aes(x=xvalue,y=yvalue,label=yvalue),vjust=0.5,hjust=2,size=8,face="bold",family="Meiryo") 
-  }
-  print(g)
-  dev.off()
-}  
-```
-
-```{r}
-selectedCountry<-c("JPN") # "entireworld" ,"KOR","TWN","PRK"
+selectedCountry<-c("JPN") # "entireworld" ,"KOR","TWN","PRK","JPN"
 regionName<-c("iso_a3") # "iso_a3","area_sqkm","ID","GRIDCODE"
-lonRange<-c(120,140)
-latRange<-c(30,50)
 fillType<-c(0,0) # 1:filled by id , 0:not filled
 setwd(pathShapeFile)
 file.name<-dir(pathShapeFile,pattern=".shp")
@@ -152,4 +48,108 @@ for(iii in 1:length(file.name)){
     q<-q+geom_polygon(data=selectedMap,aes(long,lat,group=group,fill=id),alpha=0.5,colour="black")
   }  
 }
+```
+
+```{r}
+data.location<-2 #1:local 2:web
+data.file<-"all_month.csv"
+if(data.location==1){
+  pathEarthquake<-paste("C:/Users/",username,"/Desktop/Earthquake_Data/",sep="")
+  dataset<-read.table(file=paste(pathEarthquake,data.file,sep=""),sep=",",header=T,as.is=T,skip=0)
+}else{
+  dataTime<-Sys.time()
+  dataset<-read.csv(paste("http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/",data.file,sep=""),header=T,as.is=T,skip=0) 
+}
+if(selectedCountry[1]=="JPN"){
+  datasetMap<-dataset[grep("Japan",dataset$place),]
+  subTitle<-"過去30日間において日本周辺に発生した地震\n"
+  diameter<-2
+}else if(selectedCountry[1]=="entireworld"){
+  datasetMap<-subset(dataset,5<=dataset$mag)
+  subTitle<-"過去30日間において発生したマグニチュード5.0以上の地震\n"
+  diameter<-8
+}
+sourceURL<-"\nソースデータ:http://earthquake.usgs.gov/"
+datasetMap$JST<-as.POSIXct(sub("Z","",sub("T"," ",datasetMap$time)))+3600*9 #UTC+9
+datasetMap$Energy.GJ<-round(10^((datasetMap$mag)*1.5+4.8)*(10^-9),4)
+date.f<-head(datasetMap$JST)[1]
+date.e<-tail(datasetMap$JST)[1]
+```
+
+```{r}
+for(mmm in floor(min(datasetMap$mag)):floor(max(datasetMap$mag))){
+  earthquakeList<-NULL
+  tmp<-subset(datasetMap,mmm<=(datasetMap$mag) & (datasetMap$mag)<(mmm+1))
+  for(rrr in 1:nrow(tmp)){
+    dat<-circleFun(c(tmp$longitude[rrr],tmp$latitude[rrr]),diameter,100)
+    dat<-cbind(dat,id=rrr)  
+    earthquakeList<-rbind(earthquakeList,dat)
+  }
+  mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード",mmm,"以上",mmm+1,"未満\nソースデータ確認日時:",dataTime,sourceURL)
+  g<-q+geom_polygon(data=earthquakeList,aes(earthquakeList$x,earthquakeList$y,group=earthquakeList$id),alpha=0.1,colour="blue")
+  g<-g+geom_point(data=tmp,aes(x=longitude, y=latitude),col="red") #aes(,size=tmp$mag)
+  g<-g+geom_text(data=tmp,aes(x=longitude, y=latitude,label=paste(magType,":",mag,sep="")),size=7,family="Meiryo")
+  g<-g+theme(legend.position="none")
+  g<-g+coord_equal()
+  g<-g+xlab("")+ylab("")
+  g<-g+ggtitle(mainTitle)
+  g<-g+theme(axis.text=element_text(size=20,family="Meiryo"))   
+  g<-g+theme(axis.title=element_text(colour="white",size=1,face="bold",family="Meiryo"))   
+  g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo"))   
+  g<-g+theme(legend.position="bottom")   
+  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
+  g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold",family="Meiryo"))   
+  setwd(pathOutput)
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1200,height=900)
+  par(mar=c(0,0,12,0),ps=40)
+  print(g)
+  dev.off()
+}
+```
+
+```{r}
+for(pppp in 1:2){
+  if(pppp==1){
+    mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード降順(上位20)\nソースデータ確認日時:",dataTime,sourceURL)
+    barColor<-"blue"
+    objectCol<-grep("mag",colnames(datasetMap))
+    ylabTitle<-"マグニチュード"
+  }else{
+    mainTitle<-paste(subTitle,date.e,"から",date.f,"\nエネルギー降順(上位20)\nソースデータ確認日時:",dataTime,sourceURL)
+    barColor<-"red"  
+    objectCol<-grep("Energy.GJ",colnames(datasetMap))
+    ylabTitle<-"エネルギー(GJ)\n(注)本チャートではマグニチュードタイプ(Mb,Mw等)に関らず\nE(GJ)=10^(マグニチュード*1.5+4.8)*(10^-9)"
+  }
+  colnames(datasetMap)
+  tmp<-data.frame(paste(datasetMap$JST,"\n",datasetMap$place,sep=""),datasetMap[,objectCol],datasetMap$magType)
+  rrr<-order(tmp[,2],decreasing=F)
+  tmp<-tmp[rrr,]
+  tmp[,1]<-ordered(tmp[,1],levels=tmp[,1][1:length(tmp[,1])])
+  tmp<-tail(tmp,20)
+  setwd(pathOutput)
+  g<-ggplot()
+  g<-g+geom_bar(data=tmp,aes(x=tmp[,1],y=tmp[,2]),stat="identity",position="identity",fill=barColor,alpha=0.2,color="black")
+  g<-g+coord_flip()
+  g<-g+xlab("")+ylab(ylabTitle)
+  g<-g+ggtitle(mainTitle)
+  g<-g+theme(axis.text=element_text(size=15,family="Meiryo"))   
+  g<-g+theme(axis.title=element_text(colour="black",size=20,face="bold",family="Meiryo"))   
+  g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo"))   
+  g<-g+theme(legend.position="bottom")   
+  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
+  g<-g+theme(legend.title=element_text(colour="white",size=20,face="bold",family="Meiryo"))
+  if(pppp==1){  
+    g<-g+geom_text(data=tmp,aes(x=tmp[,1],y=tmp[,2],label=paste(tmp[,2],"(",tmp[,3],")",sep="")),vjust=0.5,hjust=2,size=5,face="bold",family="Meiryo") 
+  }
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1200,height=900)
+  par(mar=c(10,0,12,0),ps=40)
+  print(g)
+  dev.off()
+}  
 ```
