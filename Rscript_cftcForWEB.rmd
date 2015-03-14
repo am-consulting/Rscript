@@ -1,0 +1,180 @@
+```{r}
+library(xts)
+library(ggplot2)
+library(gridExtra)
+library(scales)
+library(lubridate)
+SD<-Sys.Date()
+year<-c((year(SD)-1):year(SD))
+username<-Sys.info()['user']
+pathCFTC<-paste("C:/Users/",username,"/Desktop/CFTC/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+setwd(pathCFTC)
+url<-"http://www.cftc.gov/files/dea/history/"
+cftcAll<-NULL
+for(iii in 1:length(year)){
+  filename<-paste("deacot",year[iii],".zip",sep="")
+  download.file(paste(url,"deacot",year[iii],".zip",sep=""),filename,mode="wb")
+  tmp<-read.table(unzip(filename),sep=",",header=T,as.is=T)
+  cftcAll<-rbind(cftcAll,tmp)
+}
+ccc01<-grep("Market.and.Exchange.Names", colnames(cftcAll))
+ccc02<-grep("As.of.Date.in.Form.YYYY.MM.DD", colnames(cftcAll))
+ccc03<-grep("Noncommercial.Positions.Long..All.", colnames(cftcAll))
+ccc04<-grep("Noncommercial.Positions.Short..All.", colnames(cftcAll))
+ccc05<-grep("Contract.Units", colnames(cftcAll))
+cftcAll$Noncommercial.Positions.Net<-cftcAll[,ccc03]-cftcAll[,ccc04]
+cftc<-cftcAll[,c(ccc01,ccc02,ccc03,ccc04,ccc05,ncol(cftcAll))]
+colnames(cftc)<-c("Names","Date","Long","Short","Unit","Net")
+cftc[,2]<-as.Date(cftc[,2])
+currency<-c(
+  "JAPANESE YEN - CHICAGO MERCANTILE EXCHANGE",
+  "EURO FX - CHICAGO MERCANTILE EXCHANGE",
+  "AUSTRALIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+  "BRITISH POUND STERLING - CHICAGO MERCANTILE EXCHANGE",
+  "SWISS FRANC - CHICAGO MERCANTILE EXCHANGE",
+  "NEW ZEALAND DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+  "CANADIAN DOLLAR - CHICAGO MERCANTILE EXCHANGE",
+  "RUSSIAN RUBLE - CHICAGO MERCANTILE EXCHANGE",
+  "MEXICAN PESO - CHICAGO MERCANTILE EXCHANGE",
+  "BRAZILIAN REAL - CHICAGO MERCANTILE EXCHANGE",
+  "GOLD - COMMODITY EXCHANGE INC."
+)
+unit<-c(
+  "(CONTRACTS OF JPY 12,500,000)",
+  "(CONTRACTS OF EUR 125,000)",
+  "(CONTRACTS OF AUD 100,000)",
+  "(CONTRACTS OF GBP 62,500)",
+  "(CONTRACTS OF CHF 125,000)",
+  "(CONTRACTS OF NZD 100,000)",
+  "(CONTRACTS OF CAD 100,000)",
+  "(CONTRACTS OF RUB 2,500,000)",
+  "(CONTRACTS OF MXN 500,000)",
+  "(CONTRACTS OF BRL 100,000)",
+  "(CONTRACTS OF 100 TROY OUNCES)"
+)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+plots<-list()
+dataset<-list()
+plotData<-list()
+setwd(pathOutput)
+diff.date<-365*5
+first.date<-Sys.Date()-diff.date
+cnt<-0
+for(ccc in 1:length(currency)){
+  plotCnt<-0
+  cnt<-cnt+1
+  dataset[[cnt]]<-cftc[grep(currency[ccc],cftc[,1]),]
+  dataset[[cnt]]<-dataset[[cnt]][grep(unit[ccc],dataset[[cnt]][,5]),]
+  dataset[[cnt]]<-dataset[[cnt]][,-c(1,5)]
+  colnames(dataset[[cnt]])<-paste(colnames(dataset[[cnt]]),":",currency[ccc],sep="")
+  rrr<-order(dataset[[cnt]][,1],decreasing=FALSE)
+  dataset[[cnt]]<-dataset[[cnt]][rrr,]
+  tmp<-na.omit(dataset[[cnt]])
+  tmp<-subset(tmp,first.date<=tmp[,1])
+  tmp<-tail(tmp,30)
+  for(bbb in 2:4){
+    for(uuu in 1:2){
+      plotCnt<-plotCnt+1
+      if(uuu==1){  
+        plotData[[plotCnt]]<-tmp[,c(1,bbb)]
+        barColor<-"blue"  
+      }else{
+        plotData[[plotCnt]]<-data.frame(plotData[[plotCnt-1]][-1,1],diff(plotData[[plotCnt-1]][,2])) 
+        barColor<-"red"  
+      }
+########## 以下、個々のチャートデータを識別されるためにplotData[[1]],plotData[[2]]..plotData[[6]],g1,g2..g6としているが冗長に過ぎるため改良すること      
+      if(plotCnt==1){
+        g1<-ggplot()
+        g1<-g1+geom_bar(aes(x=plotData[[1]][,1],y=plotData[[1]][,2]),stat="identity",position="identity",fill=barColor,alpha=0.1,color="black")
+        g1<-g1+geom_smooth(aes(x=plotData[[1]][,1],y=plotData[[1]][,2],group=1),method=loess,color="red")
+        g1<-g1+ggtitle(paste(colnames(tmp)[bbb],"\n",first(plotData[[1]][,1]),"-",last(plotData[[1]][,1])))
+        g1<-g1+xlab("")+ylab("")
+        g1<-g1+scale_x_date(labels=date_format("%y-%m"))
+        g1<-g1+theme(axis.text=element_text(size=10,family="Meiryo"))
+        g1<-g1+theme(axis.title=element_text(size=15,face="bold",family="Meiryo"))
+        g1<-g1+theme(title=element_text(size=10,face="bold",family="Meiryo"))
+        g1<-g1+scale_y_continuous(labels=comma)
+        g1<-g1+geom_text(aes(x=plotData[[1]][,1],y=plotData[[1]][,2]/2,label=plotData[[1]][,2]),angle=90,vjust=0.5,hjust=0,size=4,family="Meiryo") 
+        #print(g1)
+      }else if(plotCnt==2){
+        g2<-ggplot()
+        g2<-g2+geom_bar(aes(x=plotData[[2]][,1],y=plotData[[2]][,2]),stat="identity",position="identity",fill=barColor,alpha=0.1,color="black")
+        g2<-g2+geom_smooth(aes(x=plotData[[2]][,1],y=plotData[[2]][,2],group=1),method=loess,color="red")
+        g2<-g2+ggtitle(paste(colnames(tmp)[bbb],"\n",first(plotData[[2]][,1]),"-",last(plotData[[2]][,1])))
+        g2<-g2+xlab("")+ylab("")
+        g2<-g2+scale_x_date(labels=date_format("%y-%m"))
+        g2<-g2+theme(axis.text=element_text(size=10,family="Meiryo"))
+        g2<-g2+theme(axis.title=element_text(size=15,face="bold",family="Meiryo"))
+        g2<-g2+theme(title=element_text(size=10,face="bold",family="Meiryo"))
+        g2<-g2+scale_y_continuous(labels=comma)
+        g2<-g2+geom_text(aes(x=plotData[[2]][,1],y=plotData[[2]][,2]/2,label=plotData[[2]][,2]),angle=90,vjust=0.5,hjust=0,size=4,family="Meiryo") 
+        #print(g2)
+      }else if(plotCnt==3){
+        g3<-ggplot()
+        g3<-g3+geom_bar(aes(x=plotData[[3]][,1],y=plotData[[3]][,2]),stat="identity",position="identity",fill=barColor,alpha=0.1,color="black")
+        g3<-g3+geom_smooth(aes(x=plotData[[3]][,1],y=plotData[[3]][,2],group=1),method=loess,color="red")
+        g3<-g3+ggtitle(paste(colnames(tmp)[bbb],"\n",first(plotData[[3]][,1]),"-",last(plotData[[3]][,1])))
+        g3<-g3+xlab("")+ylab("")
+        g3<-g3+scale_x_date(labels=date_format("%y-%m"))
+        g3<-g3+theme(axis.text=element_text(size=10,family="Meiryo"))
+        g3<-g3+theme(axis.title=element_text(size=15,face="bold",family="Meiryo"))
+        g3<-g3+theme(title=element_text(size=10,face="bold",family="Meiryo"))
+        g3<-g3+scale_y_continuous(labels=comma)
+        g3<-g3+geom_text(aes(x=plotData[[3]][,1],y=plotData[[3]][,2]/2,label=plotData[[3]][,2]),angle=90,vjust=0.5,hjust=0,size=4,family="Meiryo") 
+        #print(g3)
+      }else if(plotCnt==4){
+        g4<-ggplot()
+        g4<-g4+geom_bar(aes(x=plotData[[4]][,1],y=plotData[[4]][,2]),stat="identity",position="identity",fill=barColor,alpha=0.1,color="black")
+        g4<-g4+geom_smooth(aes(x=plotData[[4]][,1],y=plotData[[4]][,2],group=1),method=loess,color="red")
+        g4<-g4+ggtitle(paste(colnames(tmp)[bbb],"\n",first(plotData[[4]][,1]),"-",last(plotData[[4]][,1])))
+        g4<-g4+xlab("")+ylab("")
+        g4<-g4+scale_x_date(labels=date_format("%y-%m"))
+        g4<-g4+theme(axis.text=element_text(size=10,family="Meiryo"))
+        g4<-g4+theme(axis.title=element_text(size=15,face="bold",family="Meiryo"))
+        g4<-g4+theme(title=element_text(size=10,face="bold",family="Meiryo"))
+        g4<-g4+scale_y_continuous(labels=comma)
+        g4<-g4+geom_text(aes(x=plotData[[4]][,1],y=plotData[[4]][,2]/2,label=plotData[[4]][,2]),angle=90,vjust=0.5,hjust=0,size=4,family="Meiryo") 
+        #print(g4)
+      }else if(plotCnt==5){
+        g5<-ggplot()
+        g5<-g5+geom_bar(aes(x=plotData[[5]][,1],y=plotData[[5]][,2]),stat="identity",position="identity",fill=barColor,alpha=0.1,color="black")
+        g5<-g5+geom_smooth(aes(x=plotData[[5]][,1],y=plotData[[5]][,2],group=1),method=loess,color="red")
+        g5<-g5+ggtitle(paste(colnames(tmp)[bbb],"\n",first(plotData[[5]][,1]),"-",last(plotData[[5]][,1])))
+        g5<-g5+xlab("")+ylab("")
+        g5<-g5+scale_x_date(labels=date_format("%y-%m"))
+        g5<-g5+theme(axis.text=element_text(size=10,family="Meiryo"))
+        g5<-g5+theme(axis.title=element_text(size=15,face="bold",family="Meiryo"))
+        g5<-g5+theme(title=element_text(size=10,face="bold",family="Meiryo"))
+        g5<-g5+scale_y_continuous(labels=comma)
+        g5<<-g5+geom_text(aes(x=plotData[[5]][,1],y=plotData[[5]][,2]/2,label=plotData[[5]][,2]),angle=90,vjust=0.5,hjust=0,size=4,family="Meiryo") 
+        #print(g5)
+      }else if(plotCnt==6){
+        g6<-ggplot()
+        g6<-g6+geom_bar(aes(x=plotData[[6]][,1],y=plotData[[6]][,2]),stat="identity",position="identity",fill=barColor,alpha=0.1,color="black")
+        g6<-g6+geom_smooth(aes(x=plotData[[6]][,1],y=plotData[[6]][,2],group=1),method=loess,color="red")
+        g6<-g6+ggtitle(paste(colnames(tmp)[bbb],"\n",first(plotData[[6]][,1]),"-",last(plotData[[6]][,1])))
+        g6<-g6+xlab("")+ylab("")
+        g6<-g6+scale_x_date(labels=date_format("%y-%m"))
+        g6<-g6+theme(axis.text=element_text(size=10,family="Meiryo"))
+        g6<-g6+theme(axis.title=element_text(size=15,face="bold",family="Meiryo"))
+        g6<-g6+theme(title=element_text(size=10,face="bold",family="Meiryo"))
+        g6<-g6+scale_y_continuous(labels=comma)
+        g6<<-g6+geom_text(aes(x=plotData[[6]][,1],y=plotData[[6]][,2]/2,label=plotData[[6]][,2]),angle=90,vjust=0.5,hjust=0,size=4,family="Meiryo") 
+        #print(g6)
+########## 以上、個々のチャートデータを識別されるためにplotData[[1]],plotData[[2]]..plotData[[6]],g1,g2..g6としているが冗長に過ぎるため改良すること      
+      }
+    }
+  }
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1600,height=900)
+  mainTitle<-paste(currency[ccc],":",unit[ccc],"\nThe upper row:Level , The lower row:1st difference , value:Contracts\nData Source:U.S.Commodity Futures Trading Commission")
+  grid.arrange(g1,g3,g5,g2,g4,g6,nrow=2,main=textGrob(mainTitle,gp=gpar(fontsize=20, fontfamily="Meiryo")))
+  dev.off()
+}
+```
