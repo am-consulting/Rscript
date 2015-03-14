@@ -1,15 +1,12 @@
 ```{r}
-library(knitr)
-library(maps)
-library(ggplot2)
-library(Imap)
-library(geosphere)
-library(xts)
-library(rgl)
-library(gridExtra)
-library(scatterplot3d)
-library(scales)
-library(lubridate)
+requiredPackageList<-c("knitr","maps","ggplot2","Imap","geosphere","xts","rgl","gridExtra","scatterplot3d","scales","lubridate")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to packageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 ```
 
