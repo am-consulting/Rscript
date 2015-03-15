@@ -1,0 +1,142 @@
+```{r}
+requiredPackageList<-c("tseries","ggplot2","scales","gridExtra","knitr","lubridate","reshape2","forecast")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+ssn<-list()
+url<-c(
+  "http://solarscience.msfc.nasa.gov/greenwch/spot_num.txt",
+  "http://solarscience.msfc.nasa.gov/greenwch/sunspot_area.txt",
+  "http://solarscience.msfc.nasa.gov/greenwch/sunspot_area_north.txt",
+  "http://solarscience.msfc.nasa.gov/greenwch/sunspot_area_south.txt"
+)
+chartTitle<-c(
+  "太陽黒点数(SSN)と標準偏差(DEV)",
+  "黒点総面積(単位:millionths of a hemisphere)",
+  "北半球黒点総面積(単位:millionths of a hemisphere)",
+  "南半球黒点総面積(単位:millionths of a hemisphere)"
+)  
+for(iii in 1:length(url)){
+  ssn[[iii]]<-read.table(url[[iii]],header=T,skip=0,as.is=T,stringsAsFactor=FALSE)
+  print(head(ssn[[iii]]))
+  if(grepl("_num",url[[iii]])==T){
+    ssn[[iii]]$date<-as.Date(paste(ssn[[iii]]$YEAR,"/",ssn[[iii]]$MON,"/1",sep=""))
+    ssn[[iii]]<-ssn[[iii]][,c(5,3,4)]
+  }
+  else{
+    ssn[[iii]]$date<-as.Date(paste(ssn[[iii]]$Year,"/",ssn[[iii]]$Mon,"/1",sep=""))
+    if(grepl("_north",url[[iii]])==T){
+      colnames(ssn[[iii]])[3]<-paste(colnames(ssn[[iii]])[3],".north",sep="")
+    }else if(grepl("_south",url[[iii]])==T){
+      colnames(ssn[[iii]])[3]<-paste(colnames(ssn[[iii]])[3],".south",sep="")
+    }  
+    else{
+      colnames(ssn[[iii]])[3]<-paste(colnames(ssn[[iii]])[3],".total",sep="")
+    }
+    ssn[[iii]]<-ssn[[iii]][,c(4,3)]
+  }
+  if(iii==1){ssn[[(length(url)+1)]]<-ssn[[iii]]}else{(ssn[[(length(url)+1)]]<-merge(ssn[[(length(url)+1)]],ssn[[iii]],by="date"))}
+}
+```
+
+```{r}
+setwd(pathOutput)
+subTitle<-"\n※1000(millionths of Hemisphere)は約3,000(million square kilometres)"
+datasourceURL<-"\nData Source http://solarscience.msfc.nasa.gov/"
+for(ppp in 1:3){
+  for(iii in 1:(length(url))){
+    mainTitle<-chartTitle[iii]
+    tmp<-ssn[[iii]]
+    if(ppp==3){tmp<-tail(tmp,240)}
+    date.s<-format(tmp[,1][1],"%Y/%m")
+    date.e<-format(tmp[,1][nrow(tmp)],"%Y/%m")
+    if(ppp==1 | ppp==3){
+      g<-ggplot()
+      if(iii==1){
+        ssnTS<-melt(tmp,id="date") 
+        g<-g+geom_line(data=ssnTS,aes(x=date,y=value,colour=variable),alpha=0.5)
+        g<-g+scale_colour_manual("時系列データ",values=c("blue","red"))
+        g<-g+geom_point(data=tmp,aes(x=tmp[,1],y=tmp[,3]),colour="red")
+      }else{
+      g<-g+geom_line(data=tmp,aes(x=tmp[,1],y=tmp[,2]),colour="blue",alpha=0.5)
+      }  
+      g<-g+geom_point(data=tmp,aes(x=tmp[,1],y=tmp[,2]),colour="blue")
+      g<-g+scale_x_date(labels=date_format("%Y/%m"))
+      plot.title<-"時系列チャート-"
+    }else{
+      g<-ggplot(data=tmp,aes(x=tmp[,2]))
+      g<-g+geom_histogram(binwidth=10,fill="blue",alpha=0.4,color="black")
+      plot.title<-"ヒストグラム-"
+      if(iii==1){mainTitle<-"太陽黒点数(SSN)"}
+    }
+    mainTitle<-paste(mainTitle,subTitle)
+    g<-g+ggtitle(paste(plot.title,mainTitle,"\n期間:",date.s,"-",date.e,datasourceURL,sep=""))
+    g<-g+theme(axis.text=element_text(size=20,family="Meiryo"))
+    g<-g+theme(axis.title=element_text(size=20,face="plain",family="Meiryo"))
+    g<-g+theme(title=element_text(size=20,face="plain",family="Meiryo"))
+    g<-g+theme(legend.position="top")
+    g<-g+theme(legend.text=element_text(colour="black",size=25,face="plain",family="Meiryo"))
+    g<-g+theme(legend.title=element_text(colour="black",size=20,face="plain",family="Meiryo"))
+    g<-g+xlab("")+ylab("")
+    ST<-Sys.time()  
+    addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+    png.file<-paste(addVer,".png",sep="")
+    png(file=png.file,width=1400,height=900)
+    print(g)
+    dev.off()
+  }
+}
+```
+
+```{r}
+setwd(pathOutput)
+for(ppp in 1:(length(url))){
+  mainTitle<-chartTitle[ppp]
+  if(ppp==1){mainTitle<-"太陽黒点数(SSN)"}
+  tmp<-na.omit(ssn[[ppp]])
+  date.s<-format(tmp[,1][1],"%Y/%m")
+  date.e<-format(tmp[,1][nrow(tmp)],"%Y/%m")
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  par(cex.main=2,cex.axis=2,cex.lab=2,cex.sub=1,mar=c(6,6,6,2))
+  MainTitle<-paste("\n自己相関関数-",mainTitle,"-期間:",date.s,"-",date.e,datasourceURL)
+  result<-acf(tmp[,2],type="correlation",main=MainTitle,lag=1200,ci=c(0.9,0.95),family="Meiryo")
+  dev.off()
+  resultDataframe<-data.frame(lag=result$lag,acf=result$acf)
+  rrr<-order(resultDataframe[,2],decreasing=F)
+  tmp<-resultDataframe[rrr,]
+  tmp[,1]<-ordered(tmp[,1],levels=tmp[,1][1:length(tmp[,1])])
+  tmp<-tail(tmp,30)
+  g<-ggplot()
+  g<-g+geom_bar(data=tmp,aes(x=tmp[,1],y=tmp[,2]),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+  g<-g+coord_flip()
+  g<-g+ylab("自己相関係数")+xlab("ラグ(ヶ月)")
+  g<-g+ggtitle(MainTitle)
+  g<-g+theme(axis.text=element_text(size=15,family="Meiryo"))   
+  g<-g+theme(axis.title=element_text(colour="black",size=20,face="plain",family="Meiryo"))   
+  g<-g+theme(title=element_text(size=20,face="plain",family="Meiryo"))   
+  g<-g+theme(legend.position="bottom")   
+  g<-g+theme(legend.text=element_text(colour="black",size=40,face="plain",family="Meiryo"))   
+  g<-g+theme(legend.title=element_text(colour="white",size=20,face="plain",family="Meiryo"))
+  g<-g+geom_text(data=tmp,aes(x=tmp[,1],y=tmp[,2],label=tmp[,2]),vjust=0.5,hjust=2,size=5,face="bold",family="Meiryo")
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  print(g)
+  dev.off()
+}
+```
