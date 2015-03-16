@@ -1,16 +1,18 @@
 
 ```{r}
-library(quantmod)
-library(PerformanceAnalytics)
-library(lubridate)
-library(ggplot2)
+requiredPackageList<-c("quantmod","PerformanceAnalytics","lubridate","ggplot2")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
 SD<-Sys.Date()
-creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
-setwd(pathOutput)
-windowsFonts()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
+setwd(pathOutput)
 ```
 
 ```{r}
@@ -20,7 +22,7 @@ reference<-list()
 allData<-xts()
 ts.source[[1]]<-c("yahoo",4,"https://www.yahoo.com/","^N225","^HSI","^AXJO","^GSPC","NDX","^RUT","^FTSE")
 ts.source[[2]]<-c("yahoo",4,"https://www.yahoo.com/","^STI","^KS11","^TWII","^GDAXI","^FCHI","^BVSP")
-ts.source[[3]]<-c("oanda",1,"http://www.oanda.com/","AUD","JPY","EUR","GBP","NZD","ZAR","CHF","CAD","XAU","BRL","KRW","RUB")
+ts.source[[3]]<-c("oanda",1,"http://www.oanda.com/","AUD","JPY","EUR","GBP","NZD","ZAR","CHF","CAD","XAU","BRL","KRW","RUB","CNY")
 cnt<-0
 for(lll in 1:length(ts.source)){
   for(iii in 4:length(ts.source[[lll]])){
@@ -57,8 +59,13 @@ for(iii in 1:cnt){
   png(file=png.file,width=1400,height=900)
   par(mar=c(5,5,10,5))
   tmp<-dataset[[iii]][paste(firstDate,"::",sep="")]
-  mainTitle<-paste("ローリング回帰 トレンドの期間:",lag,"(日間)\n",head(index(tmp),1),"-",tail(index(tmp),1),"\nData Source:",reference[[iii]])
-  chart.RollingCorrelation(tmp[,2],tmp[,1],legend.loc="bottomleft",width=lag,main=mainTitle,type="h",col=grey(0.5),cex.legend=3,cex.axis=3,cex.main=3,ylab="")
+  maxDate<-paste(index(subset(tmp,max(tmp[,1])==tmp[,1])),collapse=",")
+  maxValue<-unique(as.vector(subset(tmp,max(tmp[,1])==tmp[,1])[,1]))
+  minDate<-paste(index(subset(tmp,min(tmp[,1])==tmp[,1])),collapse=",")
+  minValue<-unique(as.vector(subset(tmp,min(tmp[,1])==tmp[,1])[,1]))
+  mainTitle<-paste("ローリング回帰 トレンドの期間:",lag,"(日間)\n",head(index(tmp),1),"-",
+    tail(index(tmp),1),"\nHighest:",maxDate,maxValue," , Lowest:",minDate,minValue,"\nData Source:",reference[[iii]])
+  chart.RollingCorrelation(tmp[,2],tmp[,1],legend.loc="bottomleft",width=lag,main=mainTitle,type="h",col=grey(0.5),cex.legend=3,cex.axis=3,cex.main=2,ylab="",sub="sub")
   par(new=T)
   chart.TimeSeries(tmp[,1],main="",yaxis.right=T,xaxis=F,legend.loc="topleft",lwd=3,cex.legend=3,cex.axis=3,col="blue",grid.color="blue",ylab="") #共に,ylab=""とする。
   dev.off()
