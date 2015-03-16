@@ -1,0 +1,77 @@
+```{r}
+requiredPackageList<-c("tseries","ggplot2","scales","gridExtra","knitr","lubridate","reshape2","forecast","xts")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+fun.readData<-function(){
+  origData<<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=FALSE)
+  print(head(origData))
+  print(tail(origData))
+}
+fun.readData()
+```
+
+```{r}
+power<-10^-4
+sourceURL<-"\nData Source http://www.boj.or.jp/index.html/"
+legendTitle<-"日銀当座預金.月末残高(兆円)"
+origData[,1]<-as.Date(origData[,1])
+tmp<-origData
+tmp[,-1]<-tmp[,-1]*power
+f.date<-format(first(tmp[,1]),"%Y/%m")
+l.date<-format(last(tmp[,1]),"%Y/%m")
+tmpMelt<-melt(tmp,id="Date")
+g1<-ggplot()
+g1<-g1+geom_line(data=tmpMelt,aes(x=tmpMelt[,1],y=value,colour=variable),alpha=1)
+g1<-g1+scale_colour_discrete(legendTitle) #g1<-g1+scale_linetype_discrete(legendTitle) g1<-g1+scale_shape_discrete(legendTitle)
+g1<-g1+geom_point(data=tmpMelt,aes(x=tmpMelt[,1],y=value,colour=variable))
+g1<-g1+geom_text(data=tmpMelt,aes(x=tmpMelt[,1],y=value,label=value),angle=90,vjust=0.5,hjust=0.5,size=4,face="bold",family="Meiryo")
+g1<-g1+theme(plot.title=element_text(size=20,family="Meiryo")) #maintitle
+g1<-g1+theme(axis.title.x=element_text(size=20,family="Meiryo"))
+g1<-g1+theme(axis.title.y=element_text(size=20,family="Meiryo"))
+g1<-g1+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5,family="Meiryo")) 
+g1<-g1+theme(axis.text.y=element_text(size=20,family="Meiryo")) 
+g1<-g1+theme(legend.text=element_text(size=12,family="Meiryo"))
+g1<-g1+theme(legend.title=element_text(size=12,family="Meiryo"))
+g1<-g1+ggtitle(paste(legendTitle))
+g1<-g1+scale_x_date(labels=date_format("%Y-%m"))  
+g1<-g1+scale_y_continuous(labels=comma)
+g1<-g1+xlab("")
+g1<-g1+ylab("")
+print(g1)
+g2<-ggplot()
+g2<-g2+geom_bar(data=tmpMelt,aes(x=tmpMelt[,1],y=value,fill=variable),alpha=0.6,position="stack",stat="identity")
+g2<-g2+scale_fill_discrete(legendTitle)
+g2<-g2+theme(plot.title=element_text(size=20,family="Meiryo"))
+g2<-g2+theme(axis.title.x=element_text(size=20,family="Meiryo"))
+g2<-g2+theme(axis.title.y=element_text(size=20,family="Meiryo"))
+g2<-g2+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5,family="Meiryo")) 
+g2<-g2+theme(axis.text.y=element_text(size=20,family="Meiryo")) 
+g2<-g2+theme(legend.text=element_text(size=12,family="Meiryo"))
+g2<-g2+theme(legend.title=element_text(size=12,family="Meiryo"))
+g2<-g2+ggtitle(paste(legendTitle))
+g2<-g2+scale_x_date(labels=date_format("%Y-%m"))  
+g2<-g2+scale_y_continuous(labels=comma)
+g2<-g2+xlab("")
+g2<-g2+ylab("")
+print(g2)
+setwd(pathOutput)
+SD<-Sys.Date()  
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1400,height=900)
+grid.arrange(g1,g2,ncol=2,main=textGrob(paste(legendTitle,"\n期間:",f.date,"-",l.date,sourceURL),gp=gpar(fontsize=20, fontfamily="Meiryo")))  
+dev.off()
+```
