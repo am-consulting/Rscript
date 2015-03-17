@@ -25,12 +25,16 @@ for(iii in 1:length(file.name)){
   if(grepl("mfhhis01.csv",url[[iii]])==T){
     dataset[[iii]]<-read.csv(url[[iii]],header=F,skip=0,stringsAsFactor=F)
     for(yyy in 1:2){
-      end.ccc<-13
+      end.ccc<-13     ###############################################################毎回確認が必要 1月の列
       start.ccc<-end.ccc
       if(yyy==1){
-        start.rrr<-8###############################################################毎回確認が必要
+        start.rrr<-9  ###############################################################毎回確認が必要 国名トップ行
+        diffYear<-3   ###############################################################毎回確認が必要 yearとのギャップ
+        diffMonth<-4  ###############################################################毎回確認が必要 monthとのギャップ  
       }else{
-        start.rrr<-58###############################################################毎回確認が必要
+        start.rrr<-58 ###############################################################毎回確認が必要 国名トップ行
+        diffYear<-2   ###############################################################毎回確認が必要 yearとのギャップ
+        diffMonth<-3  ###############################################################毎回確認が必要 monthとのギャップ  
       }  
       while(dataset[[iii]][start.rrr,start.ccc]!="" & start.ccc!=1){
         start.ccc<-start.ccc-1      
@@ -45,7 +49,7 @@ for(iii in 1:length(file.name)){
       Country<-gsub(",|/|\\s[0-9]?[0-9]","",dataset[[iii]][start.rrr:end.rrr,1])
       for(ccc in start.ccc:end.ccc){
         data.id<-iii*1000+ccc*10+yyy
-        obj.date[[data.id]]<-paste(dataset[[iii]][start.rrr-3,ccc],"-",dataset[[iii]][start.rrr-2,ccc],sep="")
+        obj.date[[data.id]]<-paste(dataset[[iii]][start.rrr-diffMonth,ccc],"-",dataset[[iii]][start.rrr-diffYear,ccc],sep="")
         Value<-as.numeric(dataset[[iii]][start.rrr:end.rrr,ccc])
         Ratio<-round(Value/as.numeric(dataset[[iii]][end.rrr,ccc])*100,2)
         countrydata[[data.id]]<-data.frame(Country,Value,Ratio)
