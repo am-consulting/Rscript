@@ -6,7 +6,7 @@ library(quantmod) # last()
 library(reshape)
 successiveCabinets<-list()
 username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 SD<-Sys.Date()
 creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
 setwd(pathOutput)
@@ -20,7 +20,6 @@ fun.readData<-function(){
   tail(dataset)
 }
 fun.readData()
-
 funMaintitle<-function(){
   mainTitle<-colnames(tmp.dataset)[2]
   mainTitle<-gsub("\\.\\.","\\.",mainTitle)
