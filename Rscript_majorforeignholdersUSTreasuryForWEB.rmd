@@ -1,0 +1,122 @@
+```{r}
+library(ggplot2)
+library(PerformanceAnalytics)
+library(lubridate)
+library(reshape2)
+library(scales)
+library(gridExtra)
+file.name<-"mfhhis01"
+base.url<-"http://www.treasury.gov/resource-center/data-chart-center/tic/Documents/"
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+SD<-Sys.Date()
+setwd(pathOutput)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+url<-paste(base.url,file.name,".csv",sep="")
+dataset<-read.csv(url,header=F,skip=0,stringsAsFactor=F)
+```
+
+```{r}
+maintitle<-"Major Foreign Holders of Treasury Securities"
+sourceURL<-"\nData Source http://www.treasury.gov/Pages/default.aspx"
+grandData<-list()
+for(ttt in 1:2){
+for(yyy in 1:3){
+  yearData<-NULL
+  end.ccc<-13      ####################################毎回確認が必要 1月の列
+  start.ccc<-end.ccc
+  if(yyy==1){
+    start.rrr<-9   ####################################毎回確認が必要 国名トップ行
+    diffYear<-3    ####################################毎回確認が必要 yearとのギャップ
+    diffMonth<-4   ####################################毎回確認が必要 monthとのギャップ  
+  }else if(yyy==2){
+    start.rrr<-58  ####################################毎回確認が必要 国名トップ行
+    diffYear<-2    ####################################毎回確認が必要 yearとのギャップ
+    diffMonth<-3   ####################################毎回確認が必要 monthとのギャップ  
+  }else{
+    start.rrr<-108 ####################################毎回確認が必要 国名トップ行
+    diffYear<-2    ####################################毎回確認が必要 yearとのギャップ
+    diffMonth<-3   ####################################毎回確認が必要 monthとのギャップ  
+  }  
+  while(dataset[start.rrr,start.ccc]!="" & start.ccc!=1){
+    start.ccc<-start.ccc-1      
+  }
+  if(start.ccc<=0){start.ccc<-1}  
+  start.ccc<-start.ccc+1
+  end.rrr<-start.rrr
+  while(dataset[end.rrr,1]!=""){
+    end.rrr<-end.rrr+1
+  }
+  end.rrr<-end.rrr-1
+  Country<-gsub(",|/|\\s[0-9]?[0-9]","",dataset[start.rrr:end.rrr,1])
+  for(ccc in start.ccc:end.ccc){
+    date<-as.Date(paste(dataset[start.rrr-diffYear,ccc],"-",match(dataset[start.rrr-diffMonth,ccc],month.abb),"-1",sep=""))
+    Value<-as.numeric(dataset[start.rrr:end.rrr,ccc])
+    if(ttt==1){
+      tmp<-t(data.frame(Value))
+      legendTitle<-"in billions of dollars"
+    }else{
+      Ratio<-round(Value/as.numeric(dataset[end.rrr,ccc])*100,2)
+      tmp<-t(data.frame(Ratio))
+      legendTitle<-"Ratio to Grand Total(%)"
+    }
+    tmp<-as.data.frame(tmp)
+    colnames(tmp)<-Country
+    rownames(tmp)<-NULL
+    tmp<-data.frame(date=date,tmp)
+    yearData<-rbind(yearData,tmp)
+  }
+  grandData[[yyy]]<-yearData
+}
+mergeData<-merge(grandData[[1]],grandData[[2]],all=T)
+mergeData<-merge(mergeData,grandData[[3]],all=T)
+colnames(mergeData)
+mergeData<-mergeData[,c("date","Japan","China.Mainland")]
+if(ttt==1){
+meltData1<-melt(data=mergeData,id.vars="date",variable.name="variable", value.name="value",na.rm=FALSE,factorsAsStrings=TRUE)
+g1<-ggplot()  
+g1<-g1+geom_line(data=meltData1,aes(x=date,y=value,colour=variable))
+g1<-g1+geom_point(data=meltData1,aes(x=date,y=value,colour=variable))
+#g1<-g1+geom_text(data=meltData,aes(x=date,y=value,label=value),angle=0,vjust=0.5,hjust=0.5,size=3,face="bold",family="Meiryo")
+g1<-g1+scale_x_date(labels=date_format("%Y-%m"))  
+g1<-g1+scale_y_continuous(labels=comma)
+g1<-g1+ggtitle(legendTitle)
+g1<-g1+scale_colour_discrete("")
+g1<-g1+xlab("")+ylab("")
+g1<-g1+theme(plot.title=element_text(size=20,family="Meiryo")) #maintitle
+g1<-g1+theme(axis.title.x=element_text(size=20,family="Meiryo"))
+g1<-g1+theme(axis.title.y=element_text(size=20,family="Meiryo"))
+g1<-g1+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5,family="Meiryo")) 
+g1<-g1+theme(axis.text.y=element_text(size=20,family="Meiryo")) 
+g1<-g1+theme(legend.text=element_text(size=12,family="Meiryo"))
+g1<-g1+theme(legend.title=element_text(size=12,family="Meiryo"))
+print(g1)
+}else{
+meltData2<-melt(data=mergeData,id.vars="date",variable.name="variable", value.name="value",na.rm=FALSE,factorsAsStrings=TRUE)
+g2<-ggplot()  
+g2<-g2+geom_line(data=meltData2,aes(x=date,y=value,colour=variable))
+g2<-g2+geom_point(data=meltData2,aes(x=date,y=value,colour=variable))
+#g2<-g2+geom_text(data=meltData,aes(x=date,y=value,label=value),angle=0,vjust=0.5,hjust=0.5,size=3,face="bold",family="Meiryo")
+g2<-g2+scale_x_date(labels=date_format("%Y-%m"))  
+g2<-g2+scale_y_continuous(labels=comma)
+g2<-g2+ggtitle(legendTitle)
+g2<-g2+scale_colour_discrete("")
+g2<-g2+xlab("")+ylab("")
+g2<-g2+theme(plot.title=element_text(size=20,family="Meiryo")) #maintitle
+g2<-g2+theme(axis.title.x=element_text(size=20,family="Meiryo"))
+g2<-g2+theme(axis.title.y=element_text(size=20,family="Meiryo"))
+g2<-g2+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5,family="Meiryo")) 
+g2<-g2+theme(axis.text.y=element_text(size=20,family="Meiryo")) 
+g2<-g2+theme(legend.text=element_text(size=12,family="Meiryo"))
+g2<-g2+theme(legend.title=element_text(size=12,family="Meiryo"))
+print(g2)
+}  
+}
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1400,height=900)
+grid.arrange(g1,g2,ncol=2,main=textGrob(paste(maintitle,sourceURL),gp=gpar(fontsize=20, fontfamily="Meiryo")))  
+dev.off()
+```
