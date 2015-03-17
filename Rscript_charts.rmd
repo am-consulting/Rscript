@@ -1,16 +1,12 @@
 ```{r}
-library(ggplot2)
-library(lubridate)
-library(scales)
-library(maps)
-library(maptools)
-library(RColorBrewer)
-library(fields)
-library(rworldmap)
-library(classInt)
-library(plotrix)
-library(HH)
-library(reshape)
+requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
 pathJmap<<-paste("C:/Users/",username,"/Desktop/jpn/",sep="")
@@ -184,7 +180,7 @@ color=NULL)                                 # 塗り分けに使用する色
       }
     }
     if(textPlot==1){
-      text(lon.center,lat.center,plotValue,cex=0.5,col="black",font=2) # This code is added by AMCC.         
+      text(lon.center,lat.center,plotValue,cex=textSize,col="black",font=2) # This code is added by AMCC.         
     }
     ### The following codes are added by AMCC. Reference http://ds0.cc.yamaguchi-u.ac.jp/~fukuyo/r-map.html
       if(fillType==1){
@@ -245,8 +241,9 @@ color.set)                 # 各区分を塗る色
 ```
 
 ```{r}
+textSize<-0.3
 nSplit<-6
-textPlot<-0
+textPlot<-1
 fillType<-1
 magnify<-1
 roundType<-1
