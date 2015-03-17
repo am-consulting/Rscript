@@ -9,7 +9,7 @@ lapply(requiredPackageList,require,character.only=T)
 #http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 SD<-Sys.Date()
 username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 shapeFolder<-"ne_50m_admin_0_countries" # ne_50m_admin_0_countries shapeFile ne_50m_urban_areas
 pathShapeFile<-paste("C:/Users/",username,"/Desktop/",shapeFolder,"/",sep="")
 windowsFonts(Meiryo=windowsFont("Meiryo"))
@@ -25,7 +25,7 @@ circleFun <- function(center = c(0,0),diameter = 1, npoints = 100){
 ```
 
 ```{r}
-selectedCountry<-c("entireworld") # "entireworld" ,"KOR","TWN","PRK","JPN"
+selectedCountry<-c("JPN") # "entireworld" ,"KOR","TWN","PRK","JPN"
 regionName<-c("iso_a3") # "iso_a3","area_sqkm","ID","GRIDCODE"
 fillType<-c(0,0) # 1:filled by id , 0:not filled
 setwd(pathShapeFile)
