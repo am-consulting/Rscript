@@ -8,7 +8,7 @@ lapply(requiredPackageList,require,character.only=T)
 #http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
 #http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 pathJmap<<-paste("C:/Users/",username,"/Desktop/jpn/",sep="")
 pathWmap<<-paste("C:/Users/",username,"/Desktop/ne_50m_admin_0_countries/",sep="")
 SD<-Sys.Date()
@@ -152,7 +152,7 @@ color=NULL)                                 # 塗り分けに使用する色
     continue <- apply(data, 1, any)         # 経度と緯度が共に 0 が描画の区切り
     plot(lon, lat, type = "n", axes=FALSE,  # 大枠を決める
     xlab="", ylab="", bty="n", asp=1,
-    main=paste(mainTitle,"\n",creationDate),cex.main="1.0",cex.sub="0.5",family="Meiryo",sub="Choropleth map Powered by http://aoki2.si.gunma-u.ac.jp/") # This code is added by AMCC.
+    main=paste(mainTitle,"\n",creationDate),cex.main="1.0",cex.sub="0.5",family="Meiryo",sub="Choropleth map Powered by http://aoki2.si.gunma-u.ac.jp/ - Script:map.R") # This code is added by AMCC.
     start <- 1
     k <- 0
     for (i in 2:nrow(data)) {
@@ -180,7 +180,7 @@ color=NULL)                                 # 塗り分けに使用する色
       }
     }
     if(textPlot==1){
-      text(lon.center,lat.center,plotValue,cex=textSize,col="black",font=2) # This code is added by AMCC.         
+      text(lon.center,lat.center,round(plotValue,2),cex=textSize,col="black",font=2) # This code is added by AMCC.         
     }
     ### The following codes are added by AMCC. Reference http://ds0.cc.yamaguchi-u.ac.jp/~fukuyo/r-map.html
       if(fillType==1){
@@ -247,6 +247,7 @@ textPlot<-1
 fillType<-1
 magnify<-1
 roundType<-1
+Nsmall<-2
 classStyle<-c("sd", "equal", "quantile", "kmeans", "hclust", "fisher")
 classStyleJ<-c("標準偏差", "等間隔", "等量", "非階層クラスタリング", "階層クラスタリング", "Fisherの最適化")
 classStyle<-c("equal", "quantile", "fisher")
