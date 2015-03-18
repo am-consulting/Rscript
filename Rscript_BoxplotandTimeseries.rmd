@@ -180,13 +180,18 @@ for(ttt in 1:2){
   shade<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
   value.y<-median(tmp.timeseries[,2]) #value.y<-mean(tmp.timeseries[,2])
   value.y<<-value.y #caution
+  if(length((tmp.timeseries$value)[tmp.timeseries$value<0])!=0){
+    level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
+  }else{
+    level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
+  }
   g<-ggplot()
   g<-g+geom_segment(data=tmp.segment,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=8)
   g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
   if(level.type==1){
     g<-g+geom_line(data=tmp.timeseries,aes(x=Date,y=value),size=2)
   }else{
-    g<-g+geom_bar(data=tmp.timeseries,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2,color="black")
+    g<-g+geom_bar(data=tmp.timeseries,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.5)#,color="black"
   } 
   g<-g+geom_smooth(data=tmp.timeseries,aes(x=Date,y=value),method=lm)
   g<-g+geom_smooth(data=tmp.timeseries,aes(x=Date,y=value),method=loess,color="red")
@@ -282,6 +287,8 @@ if(monthly==1){latestDate<<-format(latestDate,"%Y/%m")}
 latestValue<<-last(tmp.dataset[,2])
 latestPM<<-last(tmp.dataset[,3])
 latestBoJ<<-last(tmp.dataset[,4])
-plotText<<-paste("\nHighest ",maxDate,":",maxValue,":",maxPM,":",maxBoJ,"\nLowest",minDate,":",minValue,":",minPM,":",minBoJ,"\nLatest",latestDate,":",latestValue,":",latestPM,":",latestBoJ)  
+firstDate<<-as.Date(first(tmp.dataset[,1]))  
+if(monthly==1){firstDate<<-format(firstDate,"%Y/%m")}  
+plotText<<-paste("Period:",firstDate,"-",latestDate,"\nHighest ",maxDate,":",maxValue,":",maxPM,":",maxBoJ,"\nLowest",minDate,":",minValue,":",minPM,":",minBoJ,"\nLatest",latestDate,":",latestValue,":",latestPM,":",latestBoJ)  
 }  
 ```
