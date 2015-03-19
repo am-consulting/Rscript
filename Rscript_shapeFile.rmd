@@ -25,7 +25,7 @@ circleFun <- function(center = c(0,0),diameter = 1, npoints = 100){
 ```
 
 ```{r}
-selectedCountry<-c("JPN") # "entireworld" ,"KOR","TWN","PRK","JPN"
+selectedCountry<-c("entireworld") # "entireworld" ,"KOR","TWN","PRK","JPN"
 regionName<-c("iso_a3") # "iso_a3","area_sqkm","ID","GRIDCODE"
 fillType<-c(0,0) # 1:filled by id , 0:not filled
 setwd(pathShapeFile)
@@ -73,7 +73,7 @@ if(selectedCountry[1]=="JPN"){
   subTitle<-"過去30日間において発生したマグニチュード5.0以上の地震\n"
   diameter<-8
 }
-sourceURL<-"\nソースデータ:http://earthquake.usgs.gov/"
+sourceURL<-"ソースデータ:http://earthquake.usgs.gov/"
 datasetMap$JST<-as.POSIXct(sub("Z","",sub("T"," ",datasetMap$time)))+3600*9 #UTC+9
 datasetMap$Energy.GJ<-round(10^((datasetMap$mag)*1.5+4.8)*(10^-9),4)
 date.f<-head(datasetMap$JST)[1]
@@ -82,7 +82,7 @@ date.e<-tail(datasetMap$JST)[1]
 
 ```{r}
 MagBy<-0.5
-tohokuRegion<-1
+tohokuRegion<-0
 if(tohokuRegion==1){
   MagBy<-0.1
   subTitle<-"過去30日間において東北地方(緯度:35度-41度,経度:139度以東)に発生した地震\n"
@@ -99,7 +99,7 @@ for(mmm in seq(floor(min(datasetMap$mag)),floor(max(datasetMap$mag)),by=MagBy)){
     dat<-cbind(dat,id=rrr)  
     earthquakeList<-rbind(earthquakeList,dat)
   }
-  mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード",mmm,"以上",mmm+MagBy,"未満.地震数計=",nrow(tmp),"\nソースデータ確認日時:",dataTime,sourceURL)
+  mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード",mmm,"以上",mmm+MagBy,"未満.地震数計=",nrow(tmp),"\nソースデータ確認日時:",dataTime," , ",sourceURL)
   g<-q+geom_polygon(data=earthquakeList,aes(earthquakeList$x,earthquakeList$y,group=earthquakeList$id),alpha=0.1,colour="blue")
   g<-g+geom_point(data=tmp,aes(x=longitude, y=latitude),col="red") #aes(,size=tmp$mag)
   if(tohokuRegion!=1){  
@@ -132,12 +132,12 @@ for(mmm in seq(floor(min(datasetMap$mag)),floor(max(datasetMap$mag)),by=MagBy)){
 ```{r}
 for(pppp in 1:2){
   if(pppp==1){
-    mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード降順(上位20)\nソースデータ確認日時:",dataTime,sourceURL)
+    mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード降順(上位20)\nソースデータ確認日時:",dataTime,"\n",sourceURL)
     barColor<-"blue"
     objectCol<-grep("mag",colnames(datasetMap)) #magとmagTypeの両方が選択される
     ylabTitle<-"マグニチュード"
   }else{
-    mainTitle<-paste(subTitle,date.e,"から",date.f,"\nエネルギー降順(上位20)\nソースデータ確認日時:",dataTime,sourceURL)
+    mainTitle<-paste(subTitle,date.e,"から",date.f,"\nエネルギー降順(上位20)\nソースデータ確認日時:",dataTime,"\n",sourceURL)
     barColor<-"red"  
     objectCol<-grep("Energy.GJ",colnames(datasetMap))
     ylabTitle<-"エネルギー(GJ)\n(注)本チャートではマグニチュードタイプ(Mb,Mw等)に関らず\nE(GJ)=10^(マグニチュード*1.5+4.8)*(10^-9)"
@@ -145,7 +145,9 @@ for(pppp in 1:2){
   colnames(datasetMap)
   if(tohokuRegion==1){
     tmp<-subset(datasetMap,36<=(datasetMap$latitude) & (datasetMap$latitude)<=41 & 139<=datasetMap$longitude)
-  }
+  }else{
+    tmp<-datasetMap
+  }  
   tmp<-data.frame(paste(tmp$JST,"\n",tmp$place,sep=""),tmp[,objectCol],tmp$depth,tmp$latitude,tmp$longitude)
   rrr<-order(tmp[,2],decreasing=F)
   tmp<-tmp[rrr,]
@@ -159,7 +161,7 @@ for(pppp in 1:2){
   g<-g+ggtitle(mainTitle)
   g<-g+theme(axis.text=element_text(size=15,family="Meiryo"))   
   g<-g+theme(axis.title=element_text(colour="black",size=20,face="bold",family="Meiryo"))   
-  g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo"))   
+  g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo",hjust=0.5))   
   g<-g+theme(legend.position="bottom")   
   g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
   g<-g+theme(legend.title=element_text(colour="white",size=20,face="bold",family="Meiryo"))
