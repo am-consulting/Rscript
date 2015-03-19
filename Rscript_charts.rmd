@@ -32,10 +32,11 @@ fun.readData()
 chartType<-2 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess
 setwd(pathOutput)
+tailNumber<-50
 if(colnames(dataset)[1]=="date"){dataset[,1]<-as.Date(dataset[,1])}
 buf.colnames<-colnames(dataset)
 for(zzz in 2:length(dataset)){
-  buf.dataset<-dataset[,c(1,zzz)]  
+  buf.dataset<-tail(dataset[,c(1,zzz)],tailNumber)  
   SD<-Sys.Date()
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
@@ -48,13 +49,13 @@ for(zzz in 2:length(dataset)){
   g<-ggplot()
   switch(chartType,  
     g<-g+geom_line(data=buf.dataset,aes(x=xvalue,y=yvalue),size=2),
-    g<-g+geom_bar(data=buf.dataset,aes(x=xvalue,y=yvalue),stat="identity",position="identity",fill="orange",alpha=0.2,color="black")
+    g<-g+geom_bar(data=buf.dataset,aes(x=xvalue,y=yvalue),stat="identity",position="identity",fill="blue",alpha=0.1,color="black")
   )
   switch(fitType,
     g<-g+geom_smooth(data=buf.dataset,aes(x=xvalue,y=yvalue),method=lm,lwd=2),
     g<-g+geom_smooth(data=buf.dataset,aes(x=xvalue,y=yvalue,group=1),method=loess,color="red",lwd=2)
   )
-  g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
+  g<-g+theme(plot.title=element_text(size=20,family="Meiryo"))
   g<-g+theme(axis.title.x=element_text(size=20),axis.title.y=element_text(size=20)) 
   g<-g+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5),axis.text.y=element_text(size=20)) 
   g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
@@ -67,7 +68,6 @@ for(zzz in 2:length(dataset)){
   print(g)
   dev.off()
 }  
-dev.off()      
 ########################################## time series ##########################################
 ```
 
