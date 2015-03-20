@@ -11,17 +11,55 @@ username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 SD<-Sys.Date()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
+origData<-list()
+title<-list()
+tempAnomalyDF<-list()
 ```
 
 ```{r}
+#綾里及び南鳥島は欠損があるため当面与那国島のみとする
+omitNA<-1
+pattern<-1
+sourceURL<-"\nhttp://ds.data.jma.go.jp/ghg/kanshi/info_co2.html"
+url<-c(
+  "http://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_ryo.csv",
+  "http://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_mnm.csv",
+  "http://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_yon.csv"
+)
+title[[1]]<-"二酸化炭素濃度の月平均値(ppm):綾里"
+title[[2]]<-"二酸化炭素濃度の月平均値(ppm):南鳥島"
+title[[3]]<-"二酸化炭素濃度の月平均値(ppm):与那国島"
+for(rrr in 1:length(url)){
+  switch(rrr,
+    station<-"Ryori",
+    station<-"Minamitorishima",
+    station<-"Yonagunijima"
+  )  
+  tmp<-read.csv(url[rrr],header=T,skip=0,stringsAsFactor=F)
+  tmp<-tmp[,-(4:5)]
+  tmp[,3]<-as.numeric(tmp[,3])
+  tmp<-subset(tmp,tmp[,2]!="NA")
+  tmp<-data.frame(Date=as.Date(paste(tmp[,1],"-",tmp[,2],"-1",sep="")),co2=tmp[,3])
+  if(omitNA==1){tmp<-na.omit(tmp)}
+  origData[[rrr]]<-tmp
+  colnames(origData[[rrr]])[2]<-paste(station,".co2",sep="")
+  print(head(origData[[rrr]]))
+  print(tail(origData[[rrr]]))
+}  
+```
+
+
+```{r}
+pattern<-2
 sourceURL<-"\nData Source http://www.data.jma.go.jp/cpdinfo/temp/list/mon_wld.html"
 sourceURL<-"\nData Source http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html"
-title<-"世界の月平均気温偏差(摂氏,度,基準値:1981-2010年の30年平均値)"
-title<-"エルニーニョ監視海域(NINO.3)海面水温値"
+title[[1]]<-"世界の月平均気温偏差(摂氏,度,基準値:1981-2010年の30年平均値)"
+title[[1]]<-"エルニーニョ監視海域(NINO.3)海面水温値"
+rrr<-1
 fun.readData<-function(){
-  origData<<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=FALSE,na.strings=c("na","NA",99.9)) # 99.9をNAとはしていないソースか否か注意
-  print(head(origData))
-  print(tail(origData))
+  origData[[1]]<<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=FALSE,na.strings=c("na","NA",99.9)) # 99.9をNAとはしていないソースか否か注意
+  print(head(origData[[1]]))
+  print(tail(origData[[1]]))
 }
 fun.readData()
 ```
@@ -29,57 +67,66 @@ fun.readData()
 ```{r}
 ########## seasonplot
 setwd(pathOutput)
-start<-as.numeric(gsub("年","",origData[1,1]))
-tmp.value<-as.numeric(gsub("\\*","",na.omit(as.vector(t(origData[,-1])))))
-tmp.date<-seq(as.Date(paste(start,"/1/1",sep="")),by="month",length.out=length(tmp.value))
-tempAnomalyDF<-data.frame(Date=tmp.date,TemperatureAnomaly=tmp.value)
-tempAnomalyXTS<-as.xts(tempAnomalyDF[,-1],order.by=as.Date(tempAnomalyDF$Date))
-tmp<-subset(tempAnomalyDF,(year(last(tempAnomalyDF[,1]))-5)<=year(tempAnomalyDF[,1]))
-tempAnomalyTS<-ts(tmp[,2],freq=12,start=c(year(tmp[1,1]),month(tmp[1,1]))) 
-f.date<-format(first(tmp[,1]),"%Y/%m")
-e.date<-format(last(tmp[,1]),"%Y/%m")
-mainTitle<-paste(title,"\n期間",f.date,"-",e.date,sourceURL)
-ST<-Sys.time() 
-addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-png.file<-paste(addVer,".png",sep="")
-png(file=png.file,width=1400,height=900)
-par(mar=c(5,6,8,2),ps=30)
-seasonplot(tempAnomalyTS,col=rainbow_hcl(6,c=150),year.labels=TRUE,lwd="2",main=mainTitle,family="Meiryo",ylab=title,cex.main=1,cex.lab=1,cex.axis=1) 
-dev.off()
+for(rrr in 1:length(origData)){
+  if(pattern==2){  
+    start<-as.numeric(gsub("年","",origData[[rrr]][1,1]))
+    tmp.value<-as.numeric(gsub("\\*","",na.omit(as.vector(t(origData[[rrr]][,-1])))))
+    tmp.date<-seq(as.Date(paste(start,"/1/1",sep="")),by="month",length.out=length(tmp.value))
+    tempAnomalyDF[[rrr]]<-data.frame(Date=tmp.date,value=tmp.value)
+  }else{
+    tempAnomalyDF[[rrr]]<-origData[[rrr]]
+    colnames(tempAnomalyDF[[rrr]])[2]<-"value" #冗長であるが当面挟むこと
+  }  
+  tempAnomalyXTS<-as.xts(tempAnomalyDF[[rrr]][,-1],order.by=as.Date(tempAnomalyDF[[rrr]]$Date))
+  tmp<-subset(tempAnomalyDF[[rrr]],(year(last(tempAnomalyDF[[rrr]][,1]))-5)<=year(tempAnomalyDF[[rrr]][,1]))
+  tempAnomalyTS<-ts(tmp[,2],freq=12,start=c(year(tmp[1,1]),month(tmp[1,1]))) 
+  f.date<-format(first(tmp[,1]),"%Y/%m")
+  e.date<-format(last(tmp[,1]),"%Y/%m")
+  mainTitle<-paste(title[[rrr]],"\n期間",f.date,"-",e.date,sourceURL)
+  ST<-Sys.time() 
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  par(mar=c(5,6,8,2),ps=30)
+  seasonplot(tempAnomalyTS,col=rainbow_hcl(6,c=150),year.labels=TRUE,lwd="2",main=mainTitle,family="Meiryo",ylab=title[[rrr]],cex.main=1,cex.lab=1,cex.axis=1) 
+  dev.off()
+}
 ########## seasonplot
 ```
 
 ```{r}
 ########## timeseries
 setwd(pathOutput)
-f.date<-format(first(tempAnomalyDF[,1]),"%Y/%m")
-e.date<-format(last(tempAnomalyDF[,1]),"%Y/%m")
-mainTitle<-paste(title,"\n期間",f.date,"-",e.date,sourceURL)
-g<-ggplot()
-if(length((tempAnomalyDF$TemperatureAnomaly)[tempAnomalyDF$TemperatureAnomaly<0])!=0){
-  level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
-}else{
-  level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
+for(rrr in 1:length(origData)){
+  f.date<-format(first(tempAnomalyDF[[rrr]][,1]),"%Y/%m")
+  e.date<-format(last(tempAnomalyDF[[rrr]][,1]),"%Y/%m")
+  mainTitle<-paste(title[[rrr]],"\n期間",f.date,"-",e.date,sourceURL)
+  g<-ggplot()
+  if(length((tempAnomalyDF[[rrr]]$value)[tempAnomalyDF[[rrr]]$value<0])!=0){
+    level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
+  }else{
+    level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
+  }
+  if(level.type==2){
+    g<-g+geom_bar(data=tempAnomalyDF[[rrr]],aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.2)
+  }else{
+    g<-g+geom_line(data=tempAnomalyDF[[rrr]],aes(x=Date,y=value),size=1,colour="blue",alpha=0.5)
+  }
+  g<-g+geom_smooth(data=tempAnomalyDF[[rrr]],aes(x=Date,y=value,group=1),method=loess,color="red",lwd=1)
+  g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
+  g<-g+theme(axis.title.x=element_text(size=20),axis.title.y=element_text(size=20)) 
+  g<-g+theme(axis.text.x=element_text(size=20,angle=0,hjust=0.5,vjust=0.5),axis.text.y=element_text(size=20)) 
+  g<-g+ggtitle(paste(mainTitle))
+  g<-g+scale_x_date(labels=date_format("%Y-%m"))  
+  g<-g+xlab("")
+  g<-g+ylab(title[[rrr]]) 
+  ST<-Sys.time() 
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  print(g)
+  dev.off()
 }
-if(level.type==2){
-  g<-g+geom_bar(data=tempAnomalyDF,aes(x=Date,y=TemperatureAnomaly),stat="identity",position="identity",fill="blue",alpha=0.2)
-}else{
-  g<-g+geom_line(data=tempAnomalyDF,aes(x=Date,y=TemperatureAnomaly),size=1,colour="blue",alpha=0.5)
-}
-g<-g+geom_smooth(data=tempAnomalyDF,aes(x=Date,y=TemperatureAnomaly,group=1),method=loess,color="red",lwd=1)
-g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
-g<-g+theme(axis.title.x=element_text(size=20),axis.title.y=element_text(size=20)) 
-g<-g+theme(axis.text.x=element_text(size=20,angle=0,hjust=0.5,vjust=0.5),axis.text.y=element_text(size=20)) 
-g<-g+ggtitle(paste(mainTitle))
-g<-g+scale_x_date(labels=date_format("%Y-%m"))  
-g<-g+xlab("")
-g<-g+ylab(title) 
-ST<-Sys.time() 
-addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-png.file<-paste(addVer,".png",sep="")
-png(file=png.file,width=1400,height=900)
-print(g)
-dev.off()
 ########## timeseries
 ```
 
@@ -87,20 +134,28 @@ dev.off()
 ########## arima
 setwd(pathOutput)
 forecast.interval<-24
-result.arima<-auto.arima(tempAnomalyDF[,2],ic="aic",trace=F,stepwise=T)
-result.forecast<-forecast(result.arima,level=c(90,95,99),h=forecast.interval) 
-caution<-paste("注意:本チャートは",f.date,"から",e.date,"の",title,"データにARIMAモデルを適用し、\n", gsub(" ","",result.forecast$method),"の下(信頼区間:90%,95%,99%)、",forecast.interval,",ヶ月分を単純に外挿したものであり、\nモデル採択に関してその統計学的適否(分散の時間依存の有無,残差の正規性その他)は検討していない。\nまた同外挿に際して",title,"に対する人為的背景(二酸化炭素排出その他)や\n非人為的背景(二酸化炭素、海流、水蒸気、太陽活動その他)は考慮しておらず、\nさらにそれら背景が",title,"の変動に影響を与えるのか否かも検討していない。",sep="")
-subTitle<-paste("\n\n予測範囲:",format(last(tempAnomalyDF[,1])+months(1),"%Y/%m"),"-",format(last(tempAnomalyDF[,1])+months(forecast.interval),"%Y/%m"),sep="")
-ST<-Sys.time() 
-addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-png.file<-paste(addVer,".png",sep="")
-png(file=png.file,width=1400,height=900)
-par(mar=c(3,5,10,2),ps=20)
-ymin<-min(min(tail(tempAnomalyDF[,2],360)),min(result.forecast$lower[,3]))
-ymax<-max(max(tail(tempAnomalyDF[,2],360)),max(result.forecast$upper[,3]))
-plot(result.forecast,main=paste(mainTitle,subTitle),lwd="1",xlim=c(nrow(tempAnomalyDF)-360,nrow(tempAnomalyDF)+forecast.interval),ylim=c(ymin,ymax),cex.main=1,family="Meiryo",ylab=title,cex.lab=4,cex.axis=4,cex.sub=1)  
-text(x=nrow(tempAnomalyDF)-360+10,y=ymax*0.95,caution,cex=0.8,adj=0)
-dev.off()
-f.date
+forecastFoward<-nrow(tempAnomalyDF[[rrr]])
+for(rrr in 1:length(origData)){
+  f.date<-format(first(tempAnomalyDF[[rrr]][,1]),"%Y/%m")
+  e.date<-format(last(tempAnomalyDF[[rrr]][,1]),"%Y/%m")
+  mainTitle<-paste(title[[rrr]],"\n期間",f.date,"-",e.date,sourceURL)
+  result.arima<-auto.arima(tempAnomalyDF[[rrr]][,2],ic="aic",trace=F,stepwise=T)
+  result.forecast<-forecast(result.arima,level=c(90,95,99),h=forecast.interval) 
+  switch(pattern,
+  caution<-paste("注意:本チャートは",f.date,"から",e.date,"の",title[[rrr]],"データにARIMAモデルを適用し、\n", gsub(" ","",result.forecast$method),"の下(信頼区間:90%,95%,99%)、",forecast.interval,",ヶ月分を単純に外挿したものであり、\nモデル採択に関してその統計学的適否(分散の時間依存の有無,残差の正規性その他)は検討していない。\nまた同外挿に際して",title[[rrr]],"に対する人為的背景(工業活動その他に伴う二酸化炭素排出その他)や\n非人為的背景(海洋からの排出、大気温度その他)は考慮しておらず、\nさらにそれら背景が",title[[rrr]],"の変動に影響を与えるのか否かも検討していない。",sep=""),
+  caution<-paste("注意:本チャートは",f.date,"から",e.date,"の",title[[rrr]],"データにARIMAモデルを適用し、\n", gsub(" ","",result.forecast$method),"の下(信頼区間:90%,95%,99%)、",forecast.interval,",ヶ月分を単純に外挿したものであり、\nモデル採択に関してその統計学的適否(分散の時間依存の有無,残差の正規性その他)は検討していない。\nまた同外挿に際して",title[[rrr]],"に対する人為的背景(工業活動その他に伴う二酸化炭素排出その他)や\n非人為的背景(二酸化炭素、海流、水蒸気、太陽活動その他)は考慮しておらず、\nさらにそれら背景が",title[[rrr]],"の変動に影響を与えるのか否かも検討していない。",sep="")
+  )
+  subTitle<-paste("\n\n予測範囲:",format(last(tempAnomalyDF[[rrr]][,1])+months(1),"%Y/%m"),"-",format(last(tempAnomalyDF[[rrr]][,1])+months(forecast.interval),"%Y/%m"),sep="")
+  ST<-Sys.time() 
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  par(mar=c(3,5,10,2),ps=20)
+  ymin<-min(min(tail(tempAnomalyDF[[rrr]][,2],forecastFoward)),min(result.forecast$lower[,3]))
+  ymax<-max(max(tail(tempAnomalyDF[[rrr]][,2],forecastFoward)),max(result.forecast$upper[,3]))
+  plot(result.forecast,main=paste(mainTitle,subTitle),lwd="1",xlim=c(nrow(tempAnomalyDF[[rrr]])-forecastFoward,nrow(tempAnomalyDF[[rrr]])+forecast.interval),ylim=c(ymin,ymax),cex.main=1,family="Meiryo",ylab=title[[rrr]],cex.lab=4,cex.axis=4,cex.sub=1)  
+  text(x=nrow(tempAnomalyDF[[rrr]])-forecastFoward,y=ymax*0.95,caution,cex=0.8,adj=0)
+  dev.off()
+}  
 ########## arima
 ```
