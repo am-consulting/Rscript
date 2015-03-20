@@ -9,7 +9,7 @@ lapply(requiredPackageList,require,character.only=T)
 #http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
 #http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 SD<-Sys.Date()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 setwd(pathOutput)
