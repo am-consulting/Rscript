@@ -8,7 +8,7 @@ SD<-Sys.Date()
 year<-c((year(SD)-1):year(SD))
 username<-Sys.info()['user']
 pathCFTC<-paste("C:/Users/",username,"/Desktop/CFTC/",sep="")
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 setwd(pathCFTC)
 url<-"http://www.cftc.gov/files/dea/history/"
 cftcAll<-NULL
