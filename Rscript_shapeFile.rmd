@@ -25,7 +25,7 @@ circleFun <- function(center = c(0,0),diameter = 1, npoints = 100){
 ```
 
 ```{r}
-selectedCountry<-c("entireworld") # "entireworld" ,"KOR","TWN","PRK","JPN"
+selectedCountry<-c("JPN") # "entireworld" ,"KOR","TWN","PRK","JPN"
 regionName<-c("iso_a3") # "iso_a3","area_sqkm","ID","GRIDCODE"
 fillType<-c(0,0) # 1:filled by id , 0:not filled
 setwd(pathShapeFile)
@@ -82,7 +82,7 @@ date.e<-tail(datasetMap$JST)[1]
 
 ```{r}
 MagBy<-0.5
-tohokuRegion<-0
+tohokuRegion<-1
 if(tohokuRegion==1){
   MagBy<-0.1
   subTitle<-"過去30日間において東北地方(緯度:35度-41度,経度:139度以東)に発生した地震\n"
