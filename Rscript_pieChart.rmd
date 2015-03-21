@@ -1,0 +1,40 @@
+```{r}
+requiredPackageList<-c("ggplot2","lubridate","maptools","RColorBrewer")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+SD<-Sys.Date()
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+fun.readData<-function(){
+  dataset<-read.table("clipboard",header=T,sep="\t",stringsAsFactors=F)
+  dataset<<-dataset # caution
+  head(dataset)
+  tail(dataset)
+}
+fun.readData()
+ncol(dataset)
+```
+
+```{r}
+mfrowTYpe<-c(2,3)
+setwd(pathOutput)
+subtitle<-"\nインターネットの利用状況"
+dataSource<-"\nデータ出所:社会意識に関する世論調査.H26年1月調査(内閣府)"
+overallTitle<-paste(colnames(dataset)[1],subtitle,dataSource,sep="")
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1400,height=900)
+par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(1,1,5,1),cex.main=1.2,cex.lab=1,cex.axis=0.1)
+for(ccc in 2:ncol(dataset)){
+  pie(x=dataset[,ccc],labels=paste(dataset[,1],"\n",dataset[,ccc],"%"),main=paste(colnames(dataset)[ccc]),family="Meiryo",col=brewer.pal(nrow(dataset),"Blues"),cex=0.8)
+}
+title(overallTitle,outer=TRUE,cex.main=1.5,family="Meiryo")
+dev.off()
+```
