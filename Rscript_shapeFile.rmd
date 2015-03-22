@@ -25,33 +25,15 @@ circleFun <- function(center = c(0,0),diameter = 1, npoints = 100){
 ```
 
 ```{r}
-selectedCountry<-c("JPN") # "entireworld" ,"KOR","TWN","PRK","JPN"
-regionName<-c("iso_a3") # "iso_a3","area_sqkm","ID","GRIDCODE"
-fillType<-c(0,0) # 1:filled by id , 0:not filled
+regionName<-"iso_a3"
 setwd(pathShapeFile)
 file.name<-dir(pathShapeFile,pattern=".shp")
-q<-ggplot()
-for(iii in 1:length(file.name)){
-  map.obj<-readShapeSpatial(file.name[iii])
-  print(names(map.obj));print(ncol(map.obj));print(class(map.obj))
-  plot(map.obj)
-  map.df<-fortify(map.obj,region=regionName[iii])
-  print(head(map.df));print(tail(map.df));print(unique(map.df[,ncol(map.df)]))
-  mapData<-map.df[order(map.df$order),]
-  selectedMap<-NULL
-  if(selectedCountry[1]=="entireworld"){
-    selectedMap<-mapData  
-  }else{
-    for(aaa in 1:length(selectedCountry)){
-      selectedMap<-rbind(selectedMap,subset(mapData,mapData$id==selectedCountry[aaa]))
-    }
-  }  
-  if(fillType[iii]==0){  
-    q<-q+geom_polygon(data=selectedMap,aes(long,lat,group=group),alpha=0.0,colour="black")
-  }else{
-    q<-q+geom_polygon(data=selectedMap,aes(long,lat,group=group,fill=id),alpha=0.5,colour="black")
-  }  
-}
+map.obj<-readShapeSpatial(file.name)
+print(names(map.obj));print(ncol(map.obj));print(class(map.obj))
+plot(map.obj)
+map.df<-fortify(map.obj,region=regionName)
+print(head(map.df));print(tail(map.df));print(unique(map.df[,ncol(map.df)]))
+mapData<-map.df[order(map.df$order),]
 ```
 
 ```{r}
@@ -64,116 +46,147 @@ if(data.location==1){
   dataTime<-Sys.time()
   dataset<-read.csv(paste("http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/",data.file,sep=""),header=T,as.is=T,skip=0) 
 }
-if(selectedCountry[1]=="JPN"){
-  datasetMap<-dataset[grep("Japan",dataset$place),]
-  subTitle<-"過去30日間において日本周辺に発生した地震\n"
-  diameter<-2
-}else if(selectedCountry[1]=="entireworld"){
-  datasetMap<-subset(dataset,5<=dataset$mag)
-  subTitle<-"過去30日間において発生したマグニチュード5.0以上の地震\n"
-  diameter<-8
-}
+dataset$JST<-as.POSIXct(sub("Z","",sub("T"," ",dataset$time)))+3600*9 #UTC+9
+dataset$Energy.GJ<-round(10^((dataset$mag)*1.5+4.8)*(10^-9),4)
+```
+
+```{r}
 sourceURL<-"ソースデータ:http://earthquake.usgs.gov/"
-datasetMap$JST<-as.POSIXct(sub("Z","",sub("T"," ",datasetMap$time)))+3600*9 #UTC+9
-datasetMap$Energy.GJ<-round(10^((datasetMap$mag)*1.5+4.8)*(10^-9),4)
-date.f<-head(datasetMap$JST)[1]
-date.e<-tail(datasetMap$JST)[1]
-```
-
-```{r}
-MagBy<-0.5
-tohokuRegion<-1
-if(tohokuRegion==1){
-  MagBy<-0.1
-  subTitle<-"過去30日間において東北地方(緯度:35度-41度,経度:139度以東)に発生した地震\n"
-}  
-for(mmm in seq(floor(min(datasetMap$mag)),floor(max(datasetMap$mag)),by=MagBy)){
-  earthquakeList<-NULL
-  tmp<-subset(datasetMap,mmm<=(datasetMap$mag) & (datasetMap$mag)<(mmm+MagBy))
-  if(tohokuRegion==1){
-    tmp<-subset(tmp,36<=(tmp$latitude) & (tmp$latitude)<=41 & 139<=tmp$longitude)
+selectedCountry<-c("JPN","JPN","entireworld")
+selectedRegion<-c("","tohoku","")
+for(eee in 1:length(selectedCountry)){
+  if(selectedCountry[eee]=="JPN"){
+    datasetMap<-dataset[grep("Japan",dataset$place),]
+    subTitle<-"過去30日間において日本周辺に発生した地震\n"
+    diameter<-2
+    MagBy<-0.5
+    tohokuRegion<-0
+    if(selectedRegion[eee]=="tohoku"){
+      datasetMap<-subset(datasetMap,36<=(datasetMap$latitude) & (datasetMap$latitude)<=41 & 139<=datasetMap$longitude)
+      subTitle<-"過去30日間において東北地方(緯度:35度-41度,経度:139度以東)に発生した地震\n"
+      MagBy<-0.1
+      tohokuRegion<-1
+    }  
+  }else if(selectedCountry[eee]=="entireworld"){
+    datasetMap<-subset(dataset,5<=dataset$mag)
+    subTitle<-"過去30日間において発生したマグニチュード5.0以上の地震\n"
+    diameter<-8
+    MagBy<-0.5
+    tohokuRegion<-0
   }
-  if(nrow(tmp)!=0){
-  for(rrr in 1:nrow(tmp)){
-    dat<-circleFun(c(tmp$longitude[rrr],tmp$latitude[rrr]),diameter,100)
-    dat<-cbind(dat,id=rrr)  
-    earthquakeList<-rbind(earthquakeList,dat)
-  }
-  mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード",mmm,"以上",mmm+MagBy,"未満.地震数計=",nrow(tmp),"\nソースデータ確認日時:",dataTime," , ",sourceURL)
-  g<-q+geom_polygon(data=earthquakeList,aes(earthquakeList$x,earthquakeList$y,group=earthquakeList$id),alpha=0.1,colour="blue")
-  g<-g+geom_point(data=tmp,aes(x=longitude, y=latitude),col="red") #aes(,size=tmp$mag)
-  if(tohokuRegion!=1){  
-    g<-g+geom_text(data=tmp,aes(x=longitude, y=latitude,label=paste(magType,":",mag,"\nDepth(km):",depth,sep="")),hjust=0.5,size=4,family="Meiryo")
+  date.f<-head(datasetMap$JST)[1]
+  date.e<-tail(datasetMap$JST)[1]
+##### making a map part  
+  q<-ggplot()
+  selectedMap<-NULL
+  if(selectedCountry[eee]=="entireworld"){
+    selectedMap<-mapData  
   }else{
-    g<-g+geom_text(data=tmp,aes(x=longitude, y=latitude,label=paste("Mag(",magType,"):",mag,"\nDepth(km):",depth,"\n",JST,sep="")),hjust=0.5,size=4,family="Meiryo")
+    selectedMap<-subset(mapData,mapData$id==selectedCountry[eee])
   }  
-  g<-g+theme(legend.position="none")
-  g<-g+coord_equal()
-  g<-g+xlab("")+ylab("")
-  g<-g+ggtitle(mainTitle)
-  g<-g+theme(axis.text=element_text(size=20,family="Meiryo"))   
-  g<-g+theme(axis.title=element_text(colour="white",size=1,face="bold",family="Meiryo"))   
-  g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo"))   
-  g<-g+theme(legend.position="bottom")   
-  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
-  g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold",family="Meiryo"))   
-  setwd(pathOutput)
-  ST<-Sys.time()  
-  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1200,height=900)
-  par(mar=c(0,0,12,0),ps=40)
-  print(g)
-  dev.off()
-  }  
+  q<-q+geom_polygon(data=selectedMap,aes(long,lat,group=group),alpha=0.0,colour="black")
+##### making a map part  
+  for(mmm in seq(floor(min(datasetMap$mag)),floor(max(datasetMap$mag)),by=MagBy)){
+    earthquakeList<-NULL
+    tmp<-subset(datasetMap,mmm<=(datasetMap$mag) & (datasetMap$mag)<(mmm+MagBy))
+    if(nrow(tmp)!=0){
+      for(rrr in 1:nrow(tmp)){
+        dat<-circleFun(c(tmp$longitude[rrr],tmp$latitude[rrr]),diameter,100)
+        dat<-cbind(dat,id=rrr)  
+        earthquakeList<-rbind(earthquakeList,dat)
+      }
+      mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード",mmm,"以上",mmm+MagBy,"未満.地震数計=",nrow(tmp),"\nソースデータ確認日時:",dataTime," , ",sourceURL)
+      g<-q+geom_polygon(data=earthquakeList,aes(earthquakeList$x,earthquakeList$y,group=earthquakeList$id),alpha=0.1,colour="blue")
+      g<-g+geom_point(data=tmp,aes(x=longitude, y=latitude),col="red") #aes(,size=tmp$mag)
+      g<-g+geom_text(data=tmp,aes(x=longitude, y=latitude,label=paste("Mag(",magType,"):",mag,"\nDepth(km):",depth,"\n",JST,sep="")),hjust=0.5,size=4,family="Meiryo")
+      g<-g+theme(legend.position="none")
+      g<-g+coord_equal()
+      g<-g+xlab("")+ylab("")
+      g<-g+ggtitle(mainTitle)
+      g<-g+theme(axis.text=element_text(size=20,family="Meiryo"))   
+      g<-g+theme(axis.title=element_text(colour="white",size=1,face="bold",family="Meiryo"))   
+      g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo"))   
+      g<-g+theme(legend.position="bottom")   
+      g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
+      g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold",family="Meiryo"))   
+      setwd(pathOutput)
+      ST<-Sys.time()  
+      addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+      if(selectedRegion[eee]=="tohoku"){
+        addVer<-paste("TOHOKU",addVer,sep="")
+      }  
+      png.file<-paste(addVer,".png",sep="")
+      png(file=png.file,width=1200,height=900)
+      par(mar=c(0,0,12,0),ps=40)
+      print(g)
+      dev.off()
+    }  
+  }
 }
 ```
 
 ```{r}
-for(pppp in 1:2){
-  if(pppp==1){
-    mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード降順(上位20)\nソースデータ確認日時:",dataTime,"\n",sourceURL)
-    barColor<-"blue"
-    objectCol<-grep("mag",colnames(datasetMap)) #magとmagTypeの両方が選択される
-    ylabTitle<-"マグニチュード"
-  }else{
-    mainTitle<-paste(subTitle,date.e,"から",date.f,"\nエネルギー降順(上位20)\nソースデータ確認日時:",dataTime,"\n",sourceURL)
-    barColor<-"red"  
-    objectCol<-grep("Energy.GJ",colnames(datasetMap))
-    ylabTitle<-"エネルギー(GJ)\n(注)本チャートではマグニチュードタイプ(Mb,Mw等)に関らず\nE(GJ)=10^(マグニチュード*1.5+4.8)*(10^-9)"
+for(eee in 1:length(selectedCountry)){
+  if(selectedCountry[eee]=="JPN"){
+    datasetMap<-dataset[grep("Japan",dataset$place),]
+    subTitle<-"過去30日間において日本周辺に発生した地震\n"
+    tohokuRegion<-0
+    if(selectedRegion[eee]=="tohoku"){
+      datasetMap<-subset(datasetMap,36<=(datasetMap$latitude) & (datasetMap$latitude)<=41 & 139<=datasetMap$longitude)
+      subTitle<-"過去30日間において東北地方(緯度:35度-41度,経度:139度以東)に発生した地震\n"
+      tohokuRegion<-1
+    }  
+  }else if(selectedCountry[eee]=="entireworld"){
+    datasetMap<-subset(dataset,5<=dataset$mag)
+    subTitle<-"過去30日間において発生したマグニチュード5.0以上の地震\n"
+    tohokuRegion<-0
   }
-  colnames(datasetMap)
-  if(tohokuRegion==1){
-    tmp<-subset(datasetMap,36<=(datasetMap$latitude) & (datasetMap$latitude)<=41 & 139<=datasetMap$longitude)
-  }else{
+  date.f<-head(datasetMap$JST)[1]
+  date.e<-tail(datasetMap$JST)[1]
+  for(pppp in 1:2){
     tmp<-datasetMap
-  }  
-  tmp<-data.frame(paste(tmp$JST,"\n",tmp$place,sep=""),tmp[,objectCol],tmp$depth,tmp$latitude,tmp$longitude)
-  rrr<-order(tmp[,2],decreasing=F)
-  tmp<-tmp[rrr,]
-  tmp[,1]<-ordered(tmp[,1],levels=tmp[,1][1:length(tmp[,1])])
-  tmp<-tail(tmp,20)
-  setwd(pathOutput)
-  g<-ggplot()
-  g<-g+geom_bar(data=tmp,aes(x=tmp[,1],y=tmp[,2]),stat="identity",position="identity",fill=barColor,alpha=0.2,color="black")
-  g<-g+coord_flip()
-  g<-g+xlab("")+ylab(ylabTitle)
-  g<-g+ggtitle(mainTitle)
-  g<-g+theme(axis.text=element_text(size=15,family="Meiryo"))   
-  g<-g+theme(axis.title=element_text(colour="black",size=20,face="bold",family="Meiryo"))   
-  g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo",hjust=0.5))   
-  g<-g+theme(legend.position="bottom")   
-  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
-  g<-g+theme(legend.title=element_text(colour="white",size=20,face="bold",family="Meiryo"))
-  if(pppp==1){  
-    g<-g+geom_text(data=tmp,aes(x=tmp[,1],y=tmp[,2],label=paste("Mag(",tmp[,3],"):",tmp[,2],",Depth(km):",tmp[,4],",lat:",tmp[,5],",lon:",tmp[,6],sep="")),vjust=0.5,hjust=1,size=5,face="bold",family="Meiryo") 
+    if(pppp==1){
+      mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード降順(上位20)\nソースデータ確認日時:",dataTime,"\n",sourceURL)
+      barColor<-"blue"
+      objectCol<-grep("mag",colnames(datasetMap)) #magとmagTypeの両方が選択される
+      ylabTitle<-"マグニチュード"
+    }else{
+      mainTitle<-paste(subTitle,date.e,"から",date.f,"\nエネルギー降順(上位20)\nソースデータ確認日時:",dataTime,"\n",sourceURL)
+      barColor<-"red"  
+      objectCol<-grep("Energy.GJ",colnames(datasetMap))
+      ylabTitle<-"エネルギー(GJ)\n(注)本チャートではマグニチュードタイプ(Mb,Mw等)に関らず\nE(GJ)=10^(マグニチュード*1.5+4.8)*(10^-9)"
+    }
+    tmp<-data.frame(paste(tmp$JST,"\n",tmp$place,sep=""),tmp[,objectCol],tmp$depth,tmp$latitude,tmp$longitude)
+    rrr<-order(tmp[,2],decreasing=F)
+    tmp<-tmp[rrr,]
+    tmp[,1]<-ordered(tmp[,1],levels=tmp[,1][1:length(tmp[,1])])
+    tmp<-tail(tmp,20)
+    setwd(pathOutput)
+    g<-ggplot()
+    g<-g+geom_bar(data=tmp,aes(x=tmp[,1],y=tmp[,2]),stat="identity",position="identity",fill=barColor,alpha=0.2,color="black")
+    g<-g+coord_flip()
+    g<-g+xlab("")+ylab(ylabTitle)
+    g<-g+ggtitle(mainTitle)
+    g<-g+theme(axis.text=element_text(size=15,family="Meiryo"))   
+    g<-g+theme(axis.title=element_text(colour="black",size=20,face="bold",family="Meiryo"))   
+    g<-g+theme(title=element_text(size=20,face="bold",family="Meiryo",hjust=0.5))   
+    g<-g+theme(legend.position="bottom")   
+    g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))   
+    g<-g+theme(legend.title=element_text(colour="white",size=20,face="bold",family="Meiryo"))
+    if(pppp==1){  
+      g<-g+geom_text(data=tmp,aes(x=tmp[,1],y=tmp[,2],
+        label=paste("Mag(",tmp[,3],"):",tmp[,2],",Depth(km):",tmp[,4],",lat:",tmp[,5],",lon:",tmp[,6],sep="")),vjust=0.5,hjust=1,size=5,face="bold",family="Meiryo") 
+    }
+    ST<-Sys.time()  
+    addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+    if(selectedRegion[eee]=="tohoku"){
+      addVer<-paste("TOHOKU",addVer,sep="")
+    }  
+    png.file<-paste(addVer,".png",sep="")
+    png(file=png.file,width=1200,height=900)
+    par(mar=c(10,0,12,0),ps=40)
+    print(g)
+    dev.off()
   }
-  ST<-Sys.time()  
-  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1200,height=900)
-  par(mar=c(10,0,12,0),ps=40)
-  print(g)
-  dev.off()
 }  
 ```
