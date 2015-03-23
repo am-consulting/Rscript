@@ -24,6 +24,9 @@ fun.readData<-function(){
 fun.round<-function(buf){
   return.buf<<-round(buf/10^floor(log10(buf)),1)*10^floor(log10(buf))
 }  
+```
+
+```{r}
 fun.readData()
 ```
 
@@ -241,12 +244,13 @@ color.set)                 # 各区分を塗る色
 ```
 
 ```{r}
+#コロプレスマップの描画順序(k)とオリジナルデータの都道府県順序が一致しているか十分に気をつけること
 textSize<-0.3
 nSplit<-6
 textPlot<-1
 fillType<-1
 magnify<-1
-roundType<-1
+roundType<-2
 Nsmall<-2
 classStyle<-c("sd", "equal", "quantile", "kmeans", "hclust", "fisher")
 classStyleJ<-c("標準偏差", "等間隔", "等量", "非階層クラスタリング", "階層クラスタリング", "Fisherの最適化")
@@ -269,6 +273,7 @@ for(iii in 2:length(tmp.0)){
     mainTitle<-gsub("source","\nData Source:",mainTitle)
     mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
     mainTitle<-gsub("割合","割合(%)",mainTitle)
+    mainTitle<-gsub("パーセント","%",mainTitle)
     mainTitle<-gsub("break","\n",mainTitle)
 ##################分類・凡例パート 参考資料 古谷知之.『Rによる空間データの統計分析』.朝倉書店.2011.pp168 
 # fixed, sd, equal, pretty, quantile, kmeans, hclust, bclust, fisher, jenks  
@@ -280,7 +285,8 @@ for(iii in 2:length(tmp.0)){
       switch(roundType,
       t<-round(t,-(floor(log10(t))-1)), # t=10^log10(t)の場合の処理を挟むこと
       t<-format(t,digits=2) #改良余地あり
-      )  
+      )
+      t<-as.numeric(t)
       t<-t[-1]
       t<-t[-length(t)]    
       color.set<-brewer.pal(length(t)+1,"Blues")
