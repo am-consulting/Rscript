@@ -313,7 +313,7 @@ border.date<-as.Date(max(dataset.tm[[1]][1,1],dataset.tm[[2]][1,1]))
 #read data from bank of japan as data frame
 ttt.range<-c(1:2)
 tmp.yy.type<-12 #12 month,4 period
-level.multi<-(0)
+level.multi<-0
 folder.path<-file.path(pathInput)
 setwd(folder.path)
 tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
@@ -347,7 +347,7 @@ if(length(dir(folder.path))!=0){
 ```{r}
 #read various sorts of data of which class is data frame
 ttt.range<-c(1:2)
-level.multi<-(0)
+level.multi<-0
 folder.path<-file.path(pathInput)
 setwd(folder.path)
 tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
@@ -391,7 +391,7 @@ for(ffff in 1:length(folder.name)){
 ##################################################### from FRED part ####################################################
 current.cnt<-cnt+1
 ttt.range<-c(1:2)
-level.multi<-(0)
+level.multi<-0
 ts.source<-list()
 ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100")
 ts.source[[2]]<-c("FRED",1,"DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS","TEDRATE")
@@ -643,12 +643,12 @@ exe.boxplot<-1
 exe.unitroot<-1
 exe.acf<-1
 exe.forecast<-1
-exe.return<-1
-exe.rank<-1
-exe.garch<-1
-exe.msm<-1
-exe.setar<-1
-exe.seasonplot<-1
+exe.return<-0
+exe.rank<-0
+exe.garch<-0
+exe.msm<-0
+exe.setar<-0
+exe.seasonplot<-0
 setwd(pathOutput)
 if(monthly[[iii]]==1){
  acf.lag<-12*5#オリジナルデータの長さに注意
@@ -686,7 +686,7 @@ tmp.table<-tmp.1
 fun.omit(tmp.table)  
 tmp.table<-tmp.omit
 tmp.table<-tmp.table[order(tmp.table$Date,decreasing=T),]
-tmp.table<-head(tmp.table,24) # 180 365
+#tmp.table<-head(tmp.table,24) # 180 365
 rownames(tmp.table)<-NULL    
 if(monthly[[iii]]==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
 #個別csvデータの出力
@@ -741,12 +741,13 @@ for(ttt in ttt.range){
 }
 } 
 ###################################### boxplotパート######################################
-#以降で適用するデータフレーム  
+#以降で適用するデータフレーム
+#2015/03/25 全データを対象とする      
 if(monthly[[iii]]==1){
- data.lag<-12*20#オリジナルデータの長さに注意
+ data.lag<-12*200#オリジナルデータの長さに注意
  tmp.1<-tail(tmp.1,data.lag)  
 }else{
- data.lag<-as.Date(paste(year(Sys.Date())-5,"-",month(Sys.Date()),"-",day(Sys.Date()),sep=""))#データの最終日付からでは無いことに注意
+ data.lag<-as.Date(paste(year(Sys.Date())-1000,"-",month(Sys.Date()),"-",day(Sys.Date()),sep=""))#データの最終日付からでは無いことに注意
  tmp.1<-subset(tmp.1,data.lag<=tmp.1[,1])  
 }   
 fun.gettitle()
