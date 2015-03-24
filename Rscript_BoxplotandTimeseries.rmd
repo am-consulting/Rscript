@@ -19,7 +19,6 @@ fun.readData<-function(){
   head(dataset)
   tail(dataset)
 }
-fun.readData()
 funMaintitle<-function(){
   mainTitle<-colnames(tmp.dataset)[2]
   mainTitle<-gsub("\\.\\.","\\.",mainTitle)
@@ -32,6 +31,7 @@ funMaintitle<-function(){
 ```
 
 ```{r}
+fun.readData()
 monthly<-1
 funSuccessiveCabinets()
 for(ccc in 2:ncol(dataset)){
@@ -147,7 +147,7 @@ for(ttt in 1:length(successiveCabinets)){
 ######################################時系列チャート###################################### 
 funTimeseries<-function(){
 setwd(pathOutput)
-level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
+forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
 for(ttt in 1:2){
   ST<-Sys.time()  
@@ -174,17 +174,19 @@ for(ttt in 1:2){
   x0<-tmp.segment$inaugural.date[seq(1,length(tmp.segment$inaugural.date),by=2)]
   x1<-tmp.segment$resignation.date[seq(1,length(tmp.segment$resignation.date),by=2)]
   y0<-min(tmp.timeseries[,2])
+  if(length((tmp.timeseries$value)[tmp.timeseries$value<0])!=0){
+    level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
+  }else{
+    level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
+  }
+  if(forcedlevel.type!=0){level.type<-forcedlevel.type}
   if(0<y0 & level.type==2){y0<-0}
   y1<-max(tmp.timeseries[,2])
   shade<-data.frame(x0,x1,y0,y1)
   shade<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
   value.y<-median(tmp.timeseries[,2]) #value.y<-mean(tmp.timeseries[,2])
   value.y<<-value.y #caution
-  if(length((tmp.timeseries$value)[tmp.timeseries$value<0])!=0){
-    level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
-  }else{
-    level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
-  }
+  level.type<<-level.type #caution
   g<-ggplot()
   g<-g+geom_segment(data=tmp.segment,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=8)
   g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
