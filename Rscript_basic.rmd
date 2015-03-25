@@ -686,7 +686,14 @@ tmp.table<-tmp.1
 fun.omit(tmp.table)  
 tmp.table<-tmp.omit
 tmp.table<-tmp.table[order(tmp.table$Date,decreasing=T),]
-#tmp.table<-head(tmp.table,24) # 180 365
+#表示は5年分とする
+if(monthly[[iii]]==1){
+  data.lag<-12*5#オリジナルデータの長さに注意
+  tmp.table<-head(tmp.table,data.lag)
+}else{
+  data.lag<-as.Date(paste(year(Sys.Date())-5,"-",month(Sys.Date()),"-",day(Sys.Date()),sep=""))#データの最終日付からでは無いことに注意
+  tmp.table<-subset(tmp.table,data.lag<=tmp.table[,1])  
+}   
 rownames(tmp.table)<-NULL    
 if(monthly[[iii]]==1){tmp.table[,1]<-format(tmp.table[,1],"%Y-%m")}
 #個別csvデータの出力
@@ -742,9 +749,9 @@ for(ttt in ttt.range){
 } 
 ###################################### boxplotパート######################################
 #以降で適用するデータフレーム
-#2015/03/25 全データを対象とする      
+#2015/03/25 全データを対象とする
 if(monthly[[iii]]==1){
- data.lag<-12*200#オリジナルデータの長さに注意
+ data.lag<-12*1000#オリジナルデータの長さに注意
  tmp.1<-tail(tmp.1,data.lag)  
 }else{
  data.lag<-as.Date(paste(year(Sys.Date())-1000,"-",month(Sys.Date()),"-",day(Sys.Date()),sep=""))#データの最終日付からでは無いことに注意
@@ -862,7 +869,9 @@ cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\""
 ######################################  acf  パート ######################################    
 ######################################forecastパート###################################### 
 if(exe.forecast==1){ 
-if(ppp==1){  
+if(ppp==1){
+confidenceInterval<-c(50,75,95) 
+ci<-paste(confidenceInterval,"%",sep="",collapse=", ")   
 bbbb<-5
 buf.html<-outputhtml[uuuu,bbbb]  
 #future
@@ -882,8 +891,8 @@ if(monthly[[iii]]==1){
  date.e<-format(tmp.forecast[nrow(tmp.forecast),1],"%Y-%m-%d")
 }     
 result.arima<-auto.arima(tmp.forecast[,2],ic="aic",trace=F,stepwise=T)
-result.forecast<-forecast(result.arima,level=c(50,75,95),h=forecast.interval)  
-chart.title<-paste("Forecasts from",result.forecast$method,"\n",colnames(tmp.forecast)[2],"\n",date.f,"-",date.e)  
+result.forecast<-forecast(result.arima,level=confidenceInterval,h=forecast.interval)  
+chart.title<-paste("Forecasts from",result.forecast$method,"\n",colnames(tmp.forecast)[2],"\n",date.f,"-",date.e,"\nConfidence Interval:",ci)
 plot(result.forecast,main=chart.title,ylab="",lwd="4")  
 dev.off()
 cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=buf.html,append=T)
@@ -904,7 +913,7 @@ if(monthly[[iii]]==1){
 }     
 result.arima.test<-auto.arima(tmp.forecast.test[,2],ic="aic",trace=T,stepwise=T)       
 result.forecast.test<-forecast(result.arima.test,level=c(50,75,95),h=forecast.interval)  
-chart.title<-paste("Verification\nForecasts from",result.forecast.test$method,"\n",colnames(tmp.forecast.test)[2],"\n",date.f,"-",date.e)  
+chart.title<-paste("Verification\nForecasts from",result.forecast.test$method,"\n",colnames(tmp.forecast.test)[2],"\n",date.f,"-",date.e,"\nConfidence Interval:",ci)  
 plot(result.forecast.test,ylim=c(y.min,y.max),ylab="",main=chart.title,xlab="",lwd="4")   
 par(new=T)
 plot(tmp.forecast[,2],type="l",col="2", ylim=c(y.min,y.max),ylab="",xlab="",lwd="4")   
