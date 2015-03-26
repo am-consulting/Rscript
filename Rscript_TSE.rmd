@@ -1,5 +1,5 @@
 ```{r}
-period<-c("03/02～03/06","03/09～03/013")
+period<-c("03/09～03/13","03/16～03/20")
 dataType<-2 # 1売買代金,2株数
 library(ggplot2)
 library(gridExtra)
@@ -9,10 +9,10 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 if(dataType==1){
-  mainTitle<-"投資部門別売買状況.株券.二市場一･二部等全51社.億円\nData Source:株式会社東京証券取引所"
+  mainTitle<-"投資部門別売買状況.株券.二市場一･二部等全51社.億円\nData Source:株式会社日本取引所グループ"
   dataPower<-10^-5
 }else{
-  mainTitle<-"投資部門別売買状況.株券.二市場一･二部等全51社.億株\nData Source:株式会社東京証券取引所"
+  mainTitle<-"投資部門別売買状況.株券.二市場一･二部等全51社.億株\nData Source:株式会社日本取引所グループ"
   dataPower<-10^-5
 }
 fun.readData<-function(){
