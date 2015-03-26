@@ -36,7 +36,11 @@ chartType<-2 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess
 setwd(pathOutput)
 tailNumber<-50
-if(colnames(dataset)[1]=="date"){dataset[,1]<-as.Date(dataset[,1])}
+if(colnames(dataset)[1]=="date"){
+  dataset[,1]<-as.Date(dataset[,1])
+}else{
+  dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
+}
 buf.colnames<-colnames(dataset)
 for(zzz in 2:length(dataset)){
   buf.dataset<-tail(dataset[,c(1,zzz)],tailNumber)  
