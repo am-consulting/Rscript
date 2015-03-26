@@ -25,14 +25,13 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-tailNumber<-20
-needOrder<-0
+tailNumber<-200
 plotType<-2 #1:line , 2:bar
-overallTitle<-"対外及び対内証券売買契約等の状況(週次・指定報告機関ベース）(データ出所：財務省)"
-orderColumn<-0
+overallTitle<-"住民基本台帳人口移動報告 平成27年2月 年齢別転入超過数(データ出所：総務省統計局)"
+orderColumn<-1
 orderDirection<-"desc" #asc
 dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
-columnWidth<-"{\"width\":\"15%\",\"targets\":0}"
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 dateFormatType<-"%Y/%m"
 setwd(pathOutput)
 col<-list()
