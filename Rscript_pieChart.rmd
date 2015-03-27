@@ -17,15 +17,21 @@ fun.readData<-function(){
   head(dataset)
   tail(dataset)
 }
+```
+
+```{r}
 fun.readData()
 ncol(dataset)
 ```
 
 ```{r}
-mfrowTYpe<-c(2,3)
+mfrowTYpe<-c(3,5)
+subtitle<-"\nA:どんな場合でも暴力にあたると思う,B:暴力にあたる場合も、そうでない場合もあると思う,C:暴力にあたるとは思わない,D:無回答"
+dataSource<-"\nデータ出所:平成26年度男女間における暴力に関する調査集計結果統計表(内閣府)"
+```
+
+```{r}
 setwd(pathOutput)
-subtitle<-"\nインターネットの利用状況"
-dataSource<-"\nデータ出所:社会意識に関する世論調査.H26年1月調査(内閣府)"
 overallTitle<-paste(colnames(dataset)[1],subtitle,dataSource,sep="")
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
@@ -33,7 +39,8 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1400,height=900)
 par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(1,1,5,1),cex.main=1.2,cex.lab=1,cex.axis=0.1)
 for(ccc in 2:ncol(dataset)){
-  pie(x=dataset[,ccc],labels=paste(dataset[,1],"\n",dataset[,ccc],"%"),main=paste(colnames(dataset)[ccc]),family="Meiryo",col=brewer.pal(nrow(dataset),"Blues"),cex=0.8)
+  labelText<-paste(dataset[,1],"-",dataset[,ccc],"-",round(dataset[,ccc]/sum(dataset[,ccc])*100,1),"%",sep="")
+  pie(x=dataset[,ccc],labels=labelText,main=paste(colnames(dataset)[ccc]),family="Meiryo",col=brewer.pal(nrow(dataset),"Blues"),cex=0.7)
 }
 title(overallTitle,outer=TRUE,cex.main=1.5,family="Meiryo")
 dev.off()
