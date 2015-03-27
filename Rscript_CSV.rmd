@@ -25,14 +25,23 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-tailNumber<-200
-plotType<-2 #1:line , 2:bar
-overallTitle<-"住民基本台帳人口移動報告 平成27年2月 年齢別転入超過数(データ出所：総務省統計局)"
-orderColumn<-1
+overallTitle<-"日本の完全失業率他(データ出所：総務省統計局)"
+tailNumber<-2000
+plotType<-1 #1:line , 2:bar
+orderColumn<-0
 orderDirection<-"desc" #asc
-dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
-dateFormatType<-"%Y/%m"
+switch(dateFormat,
+  dateFormatType<-"",
+  dateFormatType<-"",
+  dateFormatType<-"%Y/%m",
+  dateFormatType<-"%Y/%m/%d",
+  dateFormatType<-"%Y"
+)  
+```
+
+```{r}
 setwd(pathOutput)
 col<-list()
 grandData<-NULL
@@ -66,9 +75,9 @@ for(ccc in 1:ncol(dataset)){
     switch(dateFormat,
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",dataset[,ccc],"</td>",sep=""),
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep=""),
-    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),"%Y/%m"),"</td>",sep=""),
-    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),"%Y/%m/%d"),"</td>",sep=""),
-    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),"%Y"),"</td>",sep="")
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep="")
     )
   }else{  
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
@@ -105,7 +114,6 @@ cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
 ```
 
 ```{r}
-overallTitle<-"日本の完全失業率(データ出所：総務省統計局)"
 setwd(pathOutput)
 cols<-c("red","black","blue")
 ltys<-c(1,1,1)
