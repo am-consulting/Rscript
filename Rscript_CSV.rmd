@@ -14,6 +14,11 @@ fun.readData<-function(){
 
 ```{r}
 fun.readData()#dataset<-dataset[order(dataset[,2],decreasing=T),]
+if(colnames(dataset)[1]=="date"){ #1列目が日付でない場合、強制的にオーダー化する
+  dataset[,1]<-as.Date(dataset[,1])
+}else{
+  dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
+}
 ```
 
 ```{r}
@@ -25,12 +30,12 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"日本の完全失業率他(データ出所：総務省統計局)"
-tailNumber<-2000
-plotType<-1 #1:line , 2:bar
-orderColumn<-0
+overallTitle<-"日本の消費者物価指数(データ出所：総務省統計局)"
+tailNumber<-24
+plotType<-2 #1:line , 2:bar
+orderColumn<-1
 orderDirection<-"desc" #asc
-dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
@@ -95,7 +100,7 @@ for(ccc in 1:ncol(dataset)){
       plot(plotX,tmp[,ccc],type="l",main=mainTitle,family="Meiryo",ylab="",xlab="")
     }else{
       barplot(names.arg=tmp[,1],tmp[,ccc],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col="blue",yaxt="n") 
-      axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="d", big.mark=','),las=2)
+      axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="g", big.mark=','),las=2)
     }  
     #plot part
   }  
