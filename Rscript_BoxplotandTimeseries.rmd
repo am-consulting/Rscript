@@ -15,6 +15,11 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
   dataset<-read.table("clipboard",header=TRUE,sep="\t")
   dataset[,1]<-as.Date(dataset[,1])
+  monthly<<-2
+  if(unique(day(dataset[,1]))==1){#月次データの日付は月末に変更
+    dataset[,1]<-as.Date(paste(year(dataset[,1]),"-",month(dataset[,1]),"-",days_in_month(dataset[,1]),sep=""))
+    monthly<<-1
+  }
   dataset<<-dataset # caution
   head(dataset)
   tail(dataset)
@@ -32,7 +37,11 @@ funMaintitle<-function(){
 
 ```{r}
 fun.readData()
-monthly<-1
+forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+switch(monthly,
+  dateFormat<-"%Y/%m",
+  dateFormat<-"%Y/%m/%d"
+)
 funSuccessiveCabinets()
 for(ccc in 2:ncol(dataset)){
   tmp.dataset<-na.omit(dataset[,c(1,ccc)])  
@@ -147,7 +156,6 @@ for(ttt in 1:length(successiveCabinets)){
 ######################################時系列チャート###################################### 
 funTimeseries<-function(){
 setwd(pathOutput)
-forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
 for(ttt in 1:2){
   ST<-Sys.time()  
@@ -207,7 +215,7 @@ for(ttt in 1:2){
   g<-g+theme(legend.position="right")          
   g<-g+theme(legend.text=element_text(colour="black",size=25,face="bold",family="Meiryo"))          
   g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold")) 
-  g<-g+annotate("text",x=tmp.timeseries[5,1],y=max(tmp.timeseries[,2])*0.9,label=plotText,size=7,family="Meiryo",hjust=0)
+  g<-g+annotate("text",x=tmp.timeseries[5,1],y=max(tmp.timeseries[,2])*0.95,label=plotText,size=5,family="Meiryo",hjust=0)
   if(monthly==1){
     g<-g+scale_x_date(labels=date_format("%Y/%m"))
   }else{
@@ -274,23 +282,21 @@ tmp.dataset<-merge(buf[[1]],buf[[2]],all=T) #PM(USA)とBoJ(FRB)は長さの異�
 if(ttt==2){colnames(tmp.dataset)[3]<-"PM";colnames(tmp.dataset)[4]<-"BoJ"}
 if(ttt==4){colnames(tmp.dataset)[3]<-"U.S.A";colnames(tmp.dataset)[4]<-"FRB"}
 tmp.dataset<<-tmp.dataset  
-maxDate<<-as.Date(paste((subset(tmp.dataset,max(tmp.dataset[,2])==tmp.dataset[,2])[,1]),collapse=","))
-if(monthly==1){maxDate<<-format(maxDate,"%Y/%m")}  
-maxValue<<-unique(as.vector(subset(tmp.dataset,max(tmp.dataset[,2])==tmp.dataset[,2])[,2]))
-maxPM<<-unique(as.vector(subset(tmp.dataset,max(tmp.dataset[,2])==tmp.dataset[,2])[,3]))
-maxBoJ<<-unique(as.vector(subset(tmp.dataset,max(tmp.dataset[,2])==tmp.dataset[,2])[,4]))
-minDate<<-as.Date(paste((subset(tmp.dataset,min(tmp.dataset[,2])==tmp.dataset[,2])[,1]),collapse=","))
-if(monthly==1){minDate<<-format(minDate,"%Y/%m")}  
-minValue<<-unique(as.vector(subset(tmp.dataset,min(tmp.dataset[,2])==tmp.dataset[,2])[,2]))
-minPM<<-unique(as.vector(subset(tmp.dataset,min(tmp.dataset[,2])==tmp.dataset[,2])[,3]))
-minBoJ<<-unique(as.vector(subset(tmp.dataset,min(tmp.dataset[,2])==tmp.dataset[,2])[,4]))
-latestDate<<-as.Date(last(tmp.dataset[,1]))
-if(monthly==1){latestDate<<-format(latestDate,"%Y/%m")}  
+subsetDataset<-subset(tmp.dataset,max(tmp.dataset[,2])==tmp.dataset[,2])  
+maxDate<<-paste((format(subsetDataset[,1],dateFormat)),collapse=",")
+maxValue<<-max(tmp.dataset[,2])
+maxPM<<-paste(subsetDataset[,3],collapse=",")
+maxBoJ<<-paste(subsetDataset[,4],collapse=",")
+subsetDataset<-subset(tmp.dataset,min(tmp.dataset[,2])==tmp.dataset[,2])  
+minDate<<-paste((format(subsetDataset[,1],dateFormat)),collapse=",")
+minValue<<-min(tmp.dataset[,2])
+minPM<<-paste(subsetDataset[,3],collapse=",")
+minBoJ<<-paste(subsetDataset[,4],collapse=",")
+latestDate<<-format(as.Date(last(tmp.dataset[,1])),dateFormat)
 latestValue<<-last(tmp.dataset[,2])
 latestPM<<-last(tmp.dataset[,3])
 latestBoJ<<-last(tmp.dataset[,4])
-firstDate<<-as.Date(first(tmp.dataset[,1]))  
-if(monthly==1){firstDate<<-format(firstDate,"%Y/%m")}  
+firstDate<<-format(as.Date(first(tmp.dataset[,1])),dateFormat)  
 plotText<<-paste("Period:",firstDate,"-",latestDate,"\nHighest ",maxDate,":",maxValue,":",maxPM,":",maxBoJ,"\nLowest",minDate,":",minValue,":",minPM,":",minBoJ,"\nLatest",latestDate,":",latestValue,":",latestPM,":",latestBoJ)  
 }  
 ```
