@@ -30,13 +30,13 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"日本の消費者物価指数(データ出所：総務省統計局)"
-tailNumber<-24
-plotType<-2 #1:line , 2:bar
-orderColumn<-2
+overallTitle<-"日本の鉱工業指数生産指数(季節調整値,データ出所：経済産業省)"
+tailNumber<-2400
+plotType<-1 #1:line , 2:bar
+orderColumn<-0
 orderDirection<-"desc" #asc
-dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
-columnWidth<-"{\"width\":\"50%\",\"targets\":0}"
+dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
   dateFormatType<-"",
@@ -153,7 +153,8 @@ dev.off()
 
 ```{r}
 setwd(pathOutput)
-overallTitle<-"民主党政権と自民党政権(第二次安倍政権以降)の比較:労働力調査(単位:万人,パーセント) データ出所：総務省統計局\n月次データの日付は次の例の通り:(例)2015年1月→2015年1月15日,2015年2月→2015年2月14日"
+chartLayout<-1
+overallTitle<-"民主党政権と自民党政権(第二次安倍政権以降)の比較:鉱工業生産指数 データ出所：経済産業省\n月次データの日付は次の例の通り:(例)2015年1月→2015年1月15日,2015年2月→2015年2月14日"
 labels<-c("民主党政権:2009/9/16-2012/12/25","自民党政権:2012/12/26-")
 labelValue<-0
 changePoint<-as.Date(c("2009/9/16","2012/12/26"))
@@ -180,7 +181,7 @@ ST<-Sys.time()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1400,height=900)
-mfrowTYpe<-c(2,ceiling((ncol(buf)-1)/2))
+mfrowTYpe<-c(chartLayout,ceiling((ncol(buf)-1)/chartLayout))
 par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(3,3,5,3),cex.main=1.2,cex.lab=1,cex.axis=1.0,family="Meiryo")  
 for(ccc in 2:ncol(buf)){
   ylimMin<-min(subset(buf,changePoint[1]<=buf[,1])[,ccc])
@@ -200,7 +201,6 @@ for(ccc in 2:ncol(buf)){
   }
   legend("topleft",legend=labels,col=cols,lty=ltys)
 }
-title(overallTitle,outer=TRUE,cex.main=1.5,family="Meiryo")
+title(overallTitle,outer=TRUE,cex.main=1.2,family="Meiryo")
 dev.off()
 ```
-
