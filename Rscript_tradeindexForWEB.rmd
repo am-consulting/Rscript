@@ -1,0 +1,82 @@
+```{r}
+options("getSymbols.warning4.0"=F)
+library(quantmod)
+library(knitr)
+library(xts)
+library(ggplot2)
+library(scales)
+library(stringr)
+library(lubridate)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+ts.data<-list()
+data<-list()
+username<-Sys.info()['user']
+folder.name<-c("TradeIndex")
+path<-paste("C:/Users/",username,"/Desktop",sep="")
+folder.path<-file.path(path,folder.name)
+setwd(folder.path)
+for(iii in 1:length(dir(folder.path))){
+  ts.data[[iii]]<-read.table(file=dir(folder.path)[iii],header=T,sep=",",as.is=T,skip=1,stringsAsFactor=F) 
+}
+```
+
+```{r}
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+setwd(pathOutput)
+SD<-Sys.Date()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+csvFile<-paste(addVer,".csv",sep="")    
+#http://www.e-stat.go.jp/SG1/estat/OtherList.do?bid=000001008860&cycode=1
+year<-c(2009:2015)
+month<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+area<-c("WORLD","USA","EU","ASIA","ASIA NIES","ASEAN","CHINA")
+cnt<-0
+tmp<-0
+buf<-NULL
+grandData<-NULL
+for(iii in 1:length(ts.data)){  
+  for(yyyy in 1:length(year)){
+    for(mm in 1:length(month)){
+      tmp<-subset(ts.data[[iii]],match(ts.data[[iii]][,1],paste(year[yyyy]," ",month[mm],".",sep=""))!=0)
+      if(nrow(tmp)==0){
+        break
+      }else{
+        tmp[,1]<-as.Date(paste(year[yyyy],"-",mm,"-1",sep=""))#月の初日とするコードは残しておくこと
+        tmp[,1]<-as.Date(paste(year(tmp[,1]),"-",month(tmp[,1]),"-",days_in_month(tmp[,1]),sep=""))
+        buf<-rbind(buf,tmp)
+      }
+    }
+  }
+}
+for(aaa in 1:length(area)){
+  data[[aaa]]<-subset(buf,match(buf[,2],area[aaa])!=0)
+  colnames(data[[aaa]])[1]<-"Date"
+  grandData<-rbind(grandData,data[[aaa]])
+}
+colnames(data[[1]])
+length(data)
+write.csv(grandData,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+```
+
+```{r}
+setwd(pathOutput)
+for(ddd in 1:length(data)){
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1400,height=900)
+  mfrowTYpe<-c(2,3)
+  par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(7,3,7,3),cex.main=1.2,cex.lab=1,cex.axis=1.0,family="Meiryo")  
+  for(ccc in 9:14){
+    tmp<-tail(data[[ddd]][,c(1,2,ccc)],24)
+    mainTitle<-paste(colnames(tmp)[3])
+    tmp$color<-"blue"
+    tmp[tmp[,3]<0,ncol(tmp)]<-"red"
+    barplot(names.arg=format(tmp[,1],"%Y/%m"),tmp[,3],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp$color,yaxt="n") 
+    axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="g", big.mark=','),las=2)
+  }
+  title(paste("Area:",tmp[1,2],"\n期間:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m")),outer=TRUE,cex.main=1.5,family="Meiryo")
+  dev.off()
+}  
+```
