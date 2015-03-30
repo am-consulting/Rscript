@@ -24,9 +24,6 @@ for(iii in 1:length(dir(folder.path))){
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 setwd(pathOutput)
 SD<-Sys.Date()
-ST<-Sys.time()  
-addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-csvFile<-paste(addVer,".csv",sep="")    
 #http://www.e-stat.go.jp/SG1/estat/OtherList.do?bid=000001008860&cycode=1
 year<-c(2009:2015)
 month<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
@@ -43,7 +40,7 @@ for(iii in 1:length(ts.data)){
         break
       }else{
         tmp[,1]<-as.Date(paste(year[yyyy],"-",mm,"-1",sep=""))#月の初日とするコードは残しておくこと
-        tmp[,1]<-as.Date(paste(year(tmp[,1]),"-",month(tmp[,1]),"-",days_in_month(tmp[,1]),sep=""))
+        #tmp[,1]<-as.Date(paste(year(tmp[,1]),"-",month(tmp[,1]),"-",days_in_month(tmp[,1]),sep=""))
         buf<-rbind(buf,tmp)
       }
     }
@@ -51,12 +48,20 @@ for(iii in 1:length(ts.data)){
 }
 for(aaa in 1:length(area)){
   data[[aaa]]<-subset(buf,match(buf[,2],area[aaa])!=0)
-  colnames(data[[aaa]])[1]<-"Date"
+  tmp<-data[[aaa]]
+  colnames(tmp)<-paste(tmp[1,2],".",colnames(tmp),sep="")
+  colnames(tmp)[1]<-colnames(data[[aaa]])[1]<-"Date"
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  csvFile<-paste(addVer,".csv",sep="")    
+  write.csv(tmp[,c(1,4,7,10,13)],csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
   grandData<-rbind(grandData,data[[aaa]])
 }
 colnames(data[[1]])
-length(data)
-write.csv(grandData,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+csvFile<-paste(addVer,".csv",sep="")    
+#write.csv(grandData,csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
 ```
 
 ```{r}
