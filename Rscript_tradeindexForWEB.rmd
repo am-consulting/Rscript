@@ -73,8 +73,9 @@ for(ddd in 1:length(data)){
     mainTitle<-paste(colnames(tmp)[3])
     tmp$color<-"blue"
     tmp[tmp[,3]<0,ncol(tmp)]<-"red"
-    barplot(names.arg=format(tmp[,1],"%Y/%m"),tmp[,3],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp$color,yaxt="n") 
+    xxx<-barplot(names.arg=format(tmp[,1],"%Y/%m"),tmp[,3],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp$color,yaxt="n") 
     axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="g", big.mark=','),las=2)
+    text(xxx,y=tmp[,3],labels=paste(tmp[,3],sep=""),srt=90,cex=0.8,adj=c(-0.1,0.5),col="black",family="Meiryo")
   }
   title(paste("Area:",tmp[1,2],"\n期間:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m")),outer=TRUE,cex.main=1.5,family="Meiryo")
   dev.off()
