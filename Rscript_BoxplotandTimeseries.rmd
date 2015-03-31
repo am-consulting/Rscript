@@ -8,27 +8,24 @@ successiveCabinets<-list()
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 SD<-Sys.Date()
-creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
 setwd(pathOutput)
-windowsFonts()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
-  dataset<-read.table("clipboard",header=TRUE,sep="\t")
+  dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F)
   dataset[,1]<-as.Date(dataset[,1])
-  monthly<<-2
-  if(unique(day(dataset[,1]))==1){#月次データの日付は月末に変更
-    dataset[,1]<-as.Date(paste(year(dataset[,1]),"-",month(dataset[,1]),"-",days_in_month(dataset[,1]),sep=""))
-    monthly<<-1
+  monthly<<-2 #日次
+  if(unique(day(dataset[,1]))==1){#月次データの日付は月中に変更
+    dataset[,1]<-as.Date(paste(year(dataset[,1]),"-",month(dataset[,1]),"-",floor(days_in_month(dataset[,1])/2),sep=""))
+    monthly<<-1 #月次
   }
+  print(head(dataset),3)
+  print(tail(dataset),3)
   dataset<<-dataset # caution
-  head(dataset)
-  tail(dataset)
 }
 funMaintitle<-function(){
   mainTitle<-colnames(tmp.dataset)[2]
   mainTitle<-gsub("\\.\\.","\\.",mainTitle)
-  mainTitle<-gsub("source","\nData Source:",mainTitle)
-  mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
+  mainTitle<-gsub("前年同月比","前年同月比(%)",mainTitle)
   mainTitle<-gsub("割合","割合(%)",mainTitle)
   mainTitle<-gsub("break","\n",mainTitle)
   mainTitle<<-mainTitle
@@ -37,6 +34,11 @@ funMaintitle<-function(){
 
 ```{r}
 fun.readData()
+```
+
+```{r}
+commonTitle<-"建築着工統計調査:"
+dataSource<-"\nデータ出所:国土交通省"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 switch(monthly,
   dateFormat<-"%Y/%m",
@@ -47,8 +49,8 @@ for(ccc in 2:ncol(dataset)){
   tmp.dataset<-na.omit(dataset[,c(1,ccc)])  
   funBase()
   funMaintitle()
-  funBoxplot()
   funTimeseries()  
+  funBoxplot()
 }  
 ```
 
@@ -150,20 +152,16 @@ for(ttt in 1:length(successiveCabinets)){
   successiveCabinets[[ttt]]<<-successiveCabinets[[ttt]] #caution
 }
 }  
-#```
-
-#```{r}
 ######################################時系列チャート###################################### 
 funTimeseries<-function(){
 setwd(pathOutput)
 first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
-for(ttt in 1:2){
+for(ttt in 1:2){ #ttt 1:首相 2:日銀総裁
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1400,height=900)
-  row.names(tmp.dataset)<-NULL
-  tmp.timeseries<-tmp.dataset[,c(1:4)]
+  png(file=png.file,width=1920,height=1080)
+  tmp.timeseries<-tmp.dataset
   tmp.date<-max(as.Date(first.date[ttt]),na.omit(tmp.timeseries)[1,1])
   tmp.timeseries<-na.omit(subset(tmp.timeseries,tmp.date<=tmp.timeseries[,1]))
   colnames(tmp.timeseries)[2]<-"value"
@@ -171,33 +169,26 @@ for(ttt in 1:2){
     if(successiveCabinets[[ttt]][kkk,1]<=tmp.date & tmp.date<=successiveCabinets[[ttt]][kkk,2]){break}  
   }
   tmp.segment<-successiveCabinets[[ttt]][c(kkk:nrow(successiveCabinets[[ttt]])),]
-  if(nrow(tmp.segment)!=0){
-    tmp.segment[1,1]<-tmp.date
-    tmp.segment[nrow(tmp.segment),2]<-last(tmp.timeseries)[1]
-  }else{
-    tmp.segment<-last(successiveCabinets[[ttt]])
-    tmp.segment[1,1]<-tmp.date
-    tmp.segment[1,2]<-last(tmp.timeseries)[1]
-  }           
+  tmp.segment[1,1]<-tmp.date
+  tmp.segment[nrow(tmp.segment),2]<-last(tmp.timeseries)[1]
   x0<-tmp.segment$inaugural.date[seq(1,length(tmp.segment$inaugural.date),by=2)]
   x1<-tmp.segment$resignation.date[seq(1,length(tmp.segment$resignation.date),by=2)]
   y0<-min(tmp.timeseries[,2])
-  if(length((tmp.timeseries$value)[tmp.timeseries$value<0])!=0){
-    level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
+  if(length((tmp.timeseries$value)[tmp.timeseries$value<0])!=0 & length((tmp.timeseries$value)[0<tmp.timeseries$value])!=0){
+    level.type<-2 #データがプラス値とマイナス値からなる場合はバーチャートとする
   }else{
-    level.type<-1#レベル系列のチャートタイプ　1はライン、2はバー
+    level.type<-1 #データがプラス値のみ又はマイナス値のみの場合はラインチャートとする
   }
   if(forcedlevel.type!=0){level.type<-forcedlevel.type}
   if(0<y0 & level.type==2){y0<-0}
   y1<-max(tmp.timeseries[,2])
   shade<-data.frame(x0,x1,y0,y1)
-  shade<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
   value.y<-median(tmp.timeseries[,2]) #value.y<-mean(tmp.timeseries[,2])
   value.y<<-value.y #caution
   level.type<<-level.type #caution
   g<-ggplot()
+  g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.5)
   g<-g+geom_segment(data=tmp.segment,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=8)
-  g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
   if(level.type==1){
     g<-g+geom_line(data=tmp.timeseries,aes(x=Date,y=value),size=2)
   }else{
@@ -205,31 +196,27 @@ for(ttt in 1:2){
   } 
   g<-g+geom_smooth(data=tmp.timeseries,aes(x=Date,y=value),method=lm)
   g<-g+geom_smooth(data=tmp.timeseries,aes(x=Date,y=value),method=loess,color="red")
-  g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
+  g<-g+ggtitle(paste(commonTitle,mainTitle,dataSource))
   g<-g+xlab("") 
   g<-g+ylab("") 
-  g<-g+ylim(y0,y1)
-  g<-g+theme(axis.text=element_text(size=30,face="bold",family="Meiryo"))          
-  g<-g+theme(axis.title=element_text(size=50,face="bold",family="Meiryo"))          
-  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.text=element_text(size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.title=element_text(size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(title=element_text(size=40,face="bold",family="Meiryo"))          
   g<-g+theme(legend.position="right")          
-  g<-g+theme(legend.text=element_text(colour="black",size=25,face="bold",family="Meiryo"))          
+  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))          
   g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold")) 
-  g<-g+annotate("text",x=tmp.timeseries[5,1],y=max(tmp.timeseries[,2])*0.95,label=plotText,size=5,family="Meiryo",hjust=0)
-  if(monthly==1){
-    g<-g+scale_x_date(labels=date_format("%Y/%m"))
-  }else{
-    g<-g+scale_x_date(labels=date_format("%Y/%m/%d"))
-  } 
-  g<-g+scale_y_continuous(labels=comma)
+  g<-g+annotate("text",x=tmp.timeseries[1,1],y=y1-(y1-y0)/6,label=plotText,size=10,family="Meiryo",hjust=0)
+  g<-g+scale_x_date(labels=date_format(dateFormat))
+  g<-g+scale_y_continuous(labels=comma,limits=c(y0,y1))
   print(g)
   dev.off() 
 }
+#以下はデータ確認用にグローバル化する
+tmp.segment<<-tmp.segment  
+tmp.timeseries<<-tmp.timeseries
+shade<<-shade  
 }  
 ######################################時系列チャート###################################### 
-#```
-
-#```{r}
 ###################################### boxplotパート######################################
 funBoxplot<-function(){
 setwd(pathOutput)
@@ -237,8 +224,12 @@ for(ttt in 1:2){
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1400,height=900)
-  tmp.boxplot<-tmp.dataset[,c(2,2+ttt)]
+  png(file=png.file,width=1920,height=1080)
+  if(ttt<=2){
+    tmp.boxplot<-tmp.dataset[,c(2,2+ttt)]
+  }else{
+    tmp.boxplot<-tmp.dataset[,c(2,ttt)]
+  }  
   colnames(tmp.boxplot)[2]<-"Person"  
   tmp.boxplot<-melt(tmp.boxplot,id="Person")
   tmp.boxplot<-tmp.boxplot[,-2]
@@ -246,27 +237,26 @@ for(ttt in 1:2){
   colnames(tmp.boxplot)[1]<-"variable"
   g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
   g<-g+geom_boxplot(lwd=2)
-  g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
-  g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo"),axis.text.y=element_text(size=30,family="Meiryo")) 
-  g<-g+theme(axis.title=element_text(size=20,face="bold")) 
-  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo")) 
+  g<-g+ggtitle(paste(commonTitle,mainTitle,dataSource))
+  g<-g+theme(axis.text.x=element_text(size=40,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo")) 
+  g<-g+theme(axis.text.y=element_text(size=40,family="Meiryo")) 
+  g<-g+theme(axis.title=element_text(size=40,face="bold")) 
+  g<-g+theme(title=element_text(size=40,face="bold",family="Meiryo")) 
   g<-g+xlab("")
   g<-g+ylab("") 
   g<-g+scale_y_continuous(labels=comma)
   print(g)
   dev.off()
 }
+tmp.boxplot<<-tmp.boxplot #確認用にグローバル化する  
 }  
 ###################################### boxplotパート######################################
-#```
-
-#```{r}
 funBase<-function(){
 border.date<-as.Date(max(successiveCabinets[[1]][1,1],successiveCabinets[[2]][1,1]))
 tmp.dataset<-subset(tmp.dataset,border.date<=tmp.dataset[,1])
 buf<-list()
 cnt<-0
-for(ttt in 1:2){ #目的に応じて変更
+for(ttt in 1:2){ #目的に応じて変更 1:2 or 3:4
   cnt<-cnt+1
   for(nnn in 1:nrow(successiveCabinets[[ttt]])){  
     tmp<-subset(tmp.dataset,successiveCabinets[[ttt]]$inaugural.date[nnn]<=tmp.dataset$Date & tmp.dataset$Date<=successiveCabinets[[ttt]]$resignation.date[nnn])
@@ -297,6 +287,11 @@ latestValue<<-last(tmp.dataset[,2])
 latestPM<<-last(tmp.dataset[,3])
 latestBoJ<<-last(tmp.dataset[,4])
 firstDate<<-format(as.Date(first(tmp.dataset[,1])),dateFormat)  
-plotText<<-paste("Period:",firstDate,"-",latestDate,"\nHighest ",maxDate,":",maxValue,":",maxPM,":",maxBoJ,"\nLowest",minDate,":",minValue,":",minPM,":",minBoJ,"\nLatest",latestDate,":",latestValue,":",latestPM,":",latestBoJ)  
+plotText<<-paste(
+  "Period:",firstDate,"-",latestDate,
+  "\nHighest",maxDate,":",maxValue,":",maxPM,"&",maxBoJ,
+  "\nLowest",minDate,":",minValue,":",minPM,"&",minBoJ,
+  "\nLatest",latestDate,":",latestValue,":",latestPM,"&",latestBoJ
+)  
 }  
 ```
