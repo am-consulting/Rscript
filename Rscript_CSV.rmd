@@ -35,7 +35,7 @@ tailNumber<-2400
 plotType<-1 #1:line , 2:bar
 orderColumn<-0
 orderDirection<-"desc" #asc
-dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
