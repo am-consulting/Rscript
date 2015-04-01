@@ -31,8 +31,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"ドル円為替レート:"
-dataSource<-"\nデータ出所:日本銀行"
+commonTitle<-"住宅着工統計:"
+dataSource<-"\nデータ出所:国土交通省"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -52,7 +52,7 @@ labelValue<-0
 data<-list()
 periodResult<-list()
 setwd(pathOutput)
-cols<-c("red","black","blue")
+cols<-c("red","green","blue")
 ltys<-c(1,1,1)
 labels<-c("1989年4月消費税導入前後4年間","1997年4月消費税増税前後4年間","2014年4月消費税増税前後4年間")
 changePoint<-as.Date(c("1989/4/1","1997/4/1","2014/4/1"))
@@ -149,7 +149,7 @@ for(ccc in 2:ncol(dataset)){
     }
     text(tmp[1,1],tmp[1,3],labels=format(tmp[1,2],dateFormatType),srt=0,cex=1.2,adj=c(0,0),col="black",family="Meiryo")
     text(tmp[nrow(tmp),1],tmp[nrow(tmp),3],labels=format(tmp[nrow(tmp),2],dateFormatType),srt=0,cex=1.2,adj=c(1,0),col="black",family="Meiryo")
-    abline(lm(tmp[,3]~tmp[,1]),col=cols[mmm],lty="dashed")
+    abline(lm(tmp[,3]~tmp[,1]),col=cols[mmm],lty="dashed",lwd=3)
   }
   resultDPJ01<-format(mean(data[[1]][,2]),digits=3)
   resultDPJ02<-median(data[[1]][,2])  
