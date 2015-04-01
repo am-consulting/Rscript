@@ -31,8 +31,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"住宅着工統計:"
-dataSource<-"\nデータ出所:国土交通省"
+commonTitle<-"労働力調査:"
+dataSource<-"\nデータ出所:総務省統計局"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -76,7 +76,7 @@ for(ccc in 2:ncol(dataset)){
     ylimMax<-max(ylimMax,max(data[[mmm]][,2]))
   }
   ylimMax<-(ylimMax-ylimMin)/5+ylimMax
-  plot(0,0,type="n",xlim=c(-interval,interval),ylim=c(ylimMin,ylimMax),xlab="",ylab="",main=mainTitle,las=1)
+  plot(0,0,type="n",xlim=c(-interval,interval),ylim=c(ylimMin,ylimMax+(ylimMax-ylimMin)/5),xlab="",ylab="",main=mainTitle,las=1)
   for(mmm in 1:length(changePoint)){
     start<-nrow(subset(data[[mmm]],data[[mmm]][,1]<changePoint[mmm]))
     end<-nrow(subset(data[[mmm]],data[[mmm]][,1]>changePoint[mmm]))
@@ -89,10 +89,10 @@ for(ccc in 2:ncol(dataset)){
     if(labelValue==1){
       text(data[[mmm]][,3],data[[mmm]][,2],labels=paste(data[[mmm]][,2],sep=""),srt=90,cex=1.5,adj=0,col=cols[mmm],family="Meiryo")
     }
-    resultBefore<-lm(head(data[[mmm]][,2],start+1)~head(data[[mmm]][,3],start+1))
+    resultBefore<-lm(head(data[[mmm]][,2],start)~head(data[[mmm]][,3],start))
     x0<--start
     y0<-resultBefore$coe[1]+resultBefore$coe[2]*x0
-    x1<-0
+    x1<--1
     y1<-resultBefore$coe[1]+resultBefore$coe[2]*x1
     segments(x0,y0,x1,y1,col=cols[mmm],lty="dashed",lwd=3) 
     resultAfter<-lm(tail(data[[mmm]][,2],end+1)~tail(data[[mmm]][,3],end+1))
@@ -100,16 +100,25 @@ for(ccc in 2:ncol(dataset)){
     y0<-resultAfter$coe[1]+resultAfter$coe[2]*x1
     x1<-end
     y1<-resultAfter$coe[1]+resultAfter$coe[2]*x1
-    segments(x0,y0,x1,y1,col=cols[mmm],lty="dashed",lwd=3) 
-    result01<-format(mean(data[[mmm]][,2]),digits=3)
-    result02<-median(data[[mmm]][,2])  
-    result03<-max(data[[mmm]][,2])  
-    result04<-min(data[[mmm]][,2])
-    periodResult[[mmm]]<-paste("平均:",result01,",中央値:",result02,"最大値:",result03,"最小値:",result04,sep="")
+    segments(x0,y0,x1,y1,col=cols[mmm],lty="dashed",lwd=3)
+    #before 増税月は含まず
+    result01<-format(mean(head(data[[mmm]][,2],start)),digits=3)
+    result02<-median(head(data[[mmm]][,2],start))  
+    result03<-max(head(data[[mmm]][,2],start))  
+    result04<-min(head(data[[mmm]][,2],start))
+    result05<-format(var(head(data[[mmm]][,2],start)),digits=3)
+    #after 増税月は含まず
+    result06<-format(mean(tail(data[[mmm]][,2],end+1)),digits=3)
+    result07<-median(tail(data[[mmm]][,2],end+1))  
+    result08<-max(tail(data[[mmm]][,2],end+1))  
+    result09<-min(tail(data[[mmm]][,2],end+1))
+    result10<-format(var(tail(data[[mmm]][,2],end+1)),digits=3)
+    periodResult[[mmm]]<-paste("\n増税前-平均:",result01,",中央値:",result02,"最大値:",result03,"最小値:",result04,",不偏分散:",result05,
+      "\n増税後-平均:",result06,",中央値:",result07,"最大値:",result08,"最小値:",result09,",不偏分散:",result10,sep="")
     result<-c(result,periodResult[[mmm]])
   }
   outputlabels<-paste(labels,result)
-  legend("top",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.5)
+  legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.2,bty="n",x.intersp=0,y.intersp=3,lwd=3)
   dev.off()
 }
 ```
@@ -118,7 +127,7 @@ for(ccc in 2:ncol(dataset)){
 labelValue<-0
 data<-list()
 setwd(pathOutput)
-labels<-c("民主党政権:2009/9/16-2012/12/25","自民党政権:2012/12/26-")
+labels<-c("民主党政権:2009/9/16-2012/12/25\n","自民党政権:2012/12/26-\n")
 changePoint<-as.Date(c("2009/9/16","2012/12/26"))
 cols<-c("red","blue")
 ltys<-c(1,1)
@@ -139,7 +148,7 @@ for(ccc in 2:ncol(dataset)){
   ylimMin<-min(subset(buf,changePoint[1]<=buf[,1])[,2])
   ylimMax<-max(subset(buf,changePoint[1]<=buf[,1])[,2])
   ylimMax<-ylimMax+(ylimMax-ylimMin)/5
-  plot(0,0,type="n",xlim=c(1,xlimEnd),ylim=c(ylimMin,ylimMax),xlab="",ylab="",main=mainTitle,las=1)
+  plot(0,0,type="n",xlim=c(1,xlimEnd),ylim=c(ylimMin,ylimMax+(ylimMax-ylimMin)/5),xlab="",ylab="",main=mainTitle,las=1)
   for(mmm in 1:length(data)){
     tmp<-data.frame(id=c(1:nrow(data[[mmm]])),data[[mmm]])
     points(tmp[,1],tmp[,3],col=cols[mmm])
@@ -154,16 +163,18 @@ for(ccc in 2:ncol(dataset)){
   resultDPJ01<-format(mean(data[[1]][,2]),digits=3)
   resultDPJ02<-median(data[[1]][,2])  
   resultDPJ03<-max(data[[1]][,2])  
-  resultDPJ04<-min(data[[1]][,2])  
+  resultDPJ04<-min(data[[1]][,2])
+  resultDPJ05<-format(var(data[[1]][,2]),digits=3)
   resultLDP01<-format(mean(data[[2]][,2]),digits=3)
   resultLDP02<-median(data[[2]][,2])  
   resultLDP03<-max(data[[2]][,2])  
   resultLDP04<-min(data[[2]][,2])  
-  resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,"最大値:",resultDPJ03,"最小値:",resultDPJ04,sep="")
-  resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,"最大値:",resultLDP03,"最小値:",resultLDP04,sep="")
+  resultLDP05<-format(var(data[[2]][,2]),digits=3)  
+  resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,",最小値:",resultDPJ04,",不偏分散:",resultDPJ05,sep="")
+  resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,",最小値:",resultLDP04,",不偏分散:",resultLDP05,sep="")
   result<-c(resultDPJ,resultLDP)
-  outputlabels<-paste(labels,result)
-  legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.5)
+  outputlabels<-paste(labels,result,sep="")
+  legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.2,bty="n",x.intersp=0,y.intersp=3,lwd=3)
   dev.off()
 }
 ```
