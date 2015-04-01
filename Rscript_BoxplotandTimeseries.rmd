@@ -37,7 +37,7 @@ fun.readData()
 ```
 
 ```{r}
-commonTitle<-"建築着工統計調査:"
+commonTitle<-"住宅着工統計:"
 dataSource<-"\nデータ出所:国土交通省"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 switch(monthly,
@@ -205,9 +205,9 @@ for(ttt in 1:2){ #ttt 1:首相 2:日銀総裁
   g<-g+theme(legend.position="right")          
   g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))          
   g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold")) 
-  g<-g+annotate("text",x=tmp.timeseries[1,1],y=y1-(y1-y0)/6,label=plotText,size=10,family="Meiryo",hjust=0)
+  g<-g+annotate("text",x=tmp.timeseries[1,1],y=y1+(y1-y0)/5,label=plotText,size=10,family="Meiryo",hjust=0,vjust=0.9,col="black")
   g<-g+scale_x_date(labels=date_format(dateFormat))
-  g<-g+scale_y_continuous(labels=comma,limits=c(y0,y1))
+  g<-g+scale_y_continuous(labels=comma,limits=c(y0,(y1-y0)/5+y1))
   print(g)
   dev.off() 
 }
