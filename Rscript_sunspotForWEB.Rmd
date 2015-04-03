@@ -8,7 +8,7 @@ lapply(requiredPackageList,require,character.only=T)
 #http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
 #http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 SD<-Sys.Date()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 ```
@@ -65,34 +65,41 @@ for(ppp in 1:3){
       g<-ggplot()
       if(iii==1){
         ssnTS<-melt(tmp,id="date") 
-        g<-g+geom_line(data=ssnTS,aes(x=date,y=value,colour=variable),alpha=0.5)
-        g<-g+scale_colour_manual("時系列データ",values=c("blue","red"))
-        g<-g+geom_point(data=tmp,aes(x=tmp[,1],y=tmp[,3]),colour="red")
+        g<-g+geom_line(data=ssnTS,aes(x=date,y=value,colour=variable),alpha=0.5,size=1)
+        g<-g+scale_colour_manual("時系列データ",values=c("blue","black"))
+        g<-g+geom_point(data=tmp,aes(x=tmp[,1],y=tmp[,3]),colour="black",size=2)
+        g<-g+geom_smooth(data=tmp,aes(x=tmp[,1],y=tmp[,2]),method=loess,color="red")
+        g<-g+geom_smooth(data=tmp,aes(x=tmp[,1],y=tmp[,3]),method=loess,color="red")
       }else{
-      g<-g+geom_line(data=tmp,aes(x=tmp[,1],y=tmp[,2]),colour="blue",alpha=0.5)
+        g<-g+geom_line(data=tmp,aes(x=tmp[,1],y=tmp[,2]),colour="blue",alpha=0.5,size=1)
+        g<-g+geom_smooth(data=tmp,aes(x=tmp[,1],y=tmp[,2]),method=loess,color="red")
       }  
-      g<-g+geom_point(data=tmp,aes(x=tmp[,1],y=tmp[,2]),colour="blue")
+      g<-g+geom_point(data=tmp,aes(x=tmp[,1],y=tmp[,2]),colour="blue",size=2)
       g<-g+scale_x_date(labels=date_format("%Y/%m"))
       plot.title<-"時系列チャート-"
     }else{
       g<-ggplot(data=tmp,aes(x=tmp[,2]))
-      g<-g+geom_histogram(binwidth=10,fill="blue",alpha=0.4,color="black")
+      if(iii==1){
+        bw<-10  
+      }else{
+        bw<-100
+      }  
+      g<-g+geom_histogram(binwidth=bw,fill="blue",alpha=0.4,color="black")
       plot.title<-"ヒストグラム-"
       if(iii==1){mainTitle<-"太陽黒点数(SSN)"}
     }
-    mainTitle<-paste(mainTitle,subTitle)
-    g<-g+ggtitle(paste(plot.title,mainTitle,"\n期間:",date.s,"-",date.e,datasourceURL,sep=""))
-    g<-g+theme(axis.text=element_text(size=20,family="Meiryo"))
-    g<-g+theme(axis.title=element_text(size=20,face="plain",family="Meiryo"))
-    g<-g+theme(title=element_text(size=20,face="plain",family="Meiryo"))
+    g<-g+ggtitle(paste(plot.title,mainTitle," , 期間:",date.s,"-",date.e,subTitle,datasourceURL,sep=""))
+    g<-g+theme(axis.text=element_text(size=32,family="Meiryo"))
+    g<-g+theme(axis.title=element_text(size=32,face="plain",family="Meiryo"))
+    g<-g+theme(title=element_text(size=32,face="plain",family="Meiryo"))
     g<-g+theme(legend.position="top")
-    g<-g+theme(legend.text=element_text(colour="black",size=25,face="plain",family="Meiryo"))
-    g<-g+theme(legend.title=element_text(colour="black",size=20,face="plain",family="Meiryo"))
+    g<-g+theme(legend.text=element_text(colour="black",size=32,face="plain",family="Meiryo"))
+    g<-g+theme(legend.title=element_text(colour="black",size=32,face="plain",family="Meiryo"))
     g<-g+xlab("")+ylab("")
     ST<-Sys.time()  
     addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
     png.file<-paste(addVer,".png",sep="")
-    png(file=png.file,width=1400,height=900)
+    png(file=png.file,width=1920,height=1080)
     print(g)
     dev.off()
   }
@@ -110,9 +117,9 @@ for(ppp in 1:(length(url))){
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1400,height=900)
-  par(cex.main=2,cex.axis=2,cex.lab=2,cex.sub=1,mar=c(6,6,6,2))
-  MainTitle<-paste("\n自己相関関数-",mainTitle,"-期間:",date.s,"-",date.e,datasourceURL)
+  png(file=png.file,width=1920,height=1080)
+  par(cex.main=3,cex.axis=3,cex.lab=3,cex.sub=4,mar=c(8,8,8,2))
+  MainTitle<-paste("自己相関関数-",mainTitle,"-期間:",date.s,"-",date.e,datasourceURL)
   result<-acf(tmp[,2],type="correlation",main=MainTitle,lag=1200,ci=c(0.9,0.95),family="Meiryo")
   dev.off()
   resultDataframe<-data.frame(lag=result$lag,acf=result$acf)
@@ -125,9 +132,9 @@ for(ppp in 1:(length(url))){
   g<-g+coord_flip()
   g<-g+ylab("自己相関係数")+xlab("ラグ(ヶ月)")
   g<-g+ggtitle(MainTitle)
-  g<-g+theme(axis.text=element_text(size=15,family="Meiryo"))   
-  g<-g+theme(axis.title=element_text(colour="black",size=20,face="plain",family="Meiryo"))   
-  g<-g+theme(title=element_text(size=20,face="plain",family="Meiryo"))   
+  g<-g+theme(axis.text=element_text(size=30,family="Meiryo"))   
+  g<-g+theme(axis.title=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
+  g<-g+theme(title=element_text(size=30,face="plain",family="Meiryo"))   
   g<-g+theme(legend.position="bottom")   
   g<-g+theme(legend.text=element_text(colour="black",size=40,face="plain",family="Meiryo"))   
   g<-g+theme(legend.title=element_text(colour="white",size=20,face="plain",family="Meiryo"))
@@ -135,7 +142,7 @@ for(ppp in 1:(length(url))){
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1400,height=900)
+  png(file=png.file,width=1920,height=1080)
   print(g)
   dev.off()
 }
