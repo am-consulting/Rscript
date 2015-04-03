@@ -438,7 +438,12 @@ url<-c(
  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
 )
-tmp<-rbind(read.csv(url[1],header=T,skip=0,stringsAsFactor=F),read.csv(url[2],header=T,skip=0,stringsAsFactor=F))
+oldData<-read.csv(url[1],header=T,skip=0,stringsAsFactor=F)
+newData<-read.csv(url[2],header=T,skip=1,stringsAsFactor=F)
+colnames(oldData)
+colnames(newData)
+colnames(newData)<-gsub("Y","",colnames(newData))
+tmp<-rbind(oldData,newData)
 tmp[,1]<-as.Date(tmp[,1])
 FUN.1<-function(x) as.numeric(x)
 tmp<-data.frame(tmp[1],apply(tmp[-1],2,FUN.1))
@@ -1181,7 +1186,7 @@ for(ooo in 1:2){
     e.date<-last(index(buf.corr))
     maintitle<-paste("1st Difference.",f.date,"-",e.date,sep="")
   }
-  chart.Correlation(buf.corr,method="pearson",main=maintitle,cex.main=1)
+  chart.Correlation(buf.corr,method="pearson",main=maintitle,cex.main=1,histogram=F)
   dev.off()
   cat(paste("<div style=\"text-align: center\"><b>",maintitle,"</b></div>\n",sep=""),file=output.html,append=T)
   cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output.html,append=T)
@@ -1256,8 +1261,10 @@ fun.convert()
 colnames(all.data[[1]])
 ######################################引数設定パート######################################    
 title.no<-6
-explanatory<-83 #column Date列分1を加える
-objective<-86 #column Date列分1を加える
+explanatoryList<-c(3,3,3,3,3,46) #column Date列分1を加える
+objectiveList<-c(4,46,14,49,10,49) #column Date列分1を加える
+explanatory<-explanatoryList[title.no]
+objective<-objectiveList[title.no]
 ttt.range<-c(1:2)
 analysis.id<-"MULTIVARIATEDATAANALYSIS"
 js.title<-c("ManetaryBaseANDMoneyStock","ManetaryBaseANDUsdJpy","ManetaryBaseANDUnemploymentrate","ManetaryBaseANDNikkei225","ManetaryBaseANDCoreCPI","UsdJpyANDNikkei225")
