@@ -28,11 +28,11 @@ for(lll in 1:length(ts.source)){
   for(iii in 4:length(ts.source[[lll]])){
     cnt<-cnt+1
     if(ts.source[[lll]][1]=="oanda"){
-      if(ts.source[[lll]][iii]=="JPY" | ts.source[[lll]][iii]=="CHF" | ts.source[[lll]][iii]=="ZAR" | ts.source[[lll]][iii]=="KRW"){
-        item<-paste("USD/",ts.source[[lll]][iii],sep="")
-      }else{
+#      if(ts.source[[lll]][iii]=="JPY" | ts.source[[lll]][iii]=="CHF" | ts.source[[lll]][iii]=="ZAR" | ts.source[[lll]][iii]=="KRW"){
+#        item<-paste("USD/",ts.source[[lll]][iii],sep="")
+#      }else{
         item<-paste(ts.source[[lll]][iii],"/USD",sep="")
-      }
+#      }
     }
     else{
       item<- ts.source[[lll]][iii]
@@ -73,20 +73,24 @@ for(iii in 1:cnt){
 ```
 
 ```{r}
+selectedObject<-c(1,4,7,11,12,13,14,15,16,17,19,22)
 setwd(pathOutput)
 tmp.allData<-list()
 tmp.allData[[1]]<-na.omit(allData)
-tmp.allData[[2]]<-diff(tmp.allData[[1]],lag=1,diff=1)
-corrMethod<-c("pearson", "kendall", "spearman")
-for(iii in 1:2){
-  if(iii==1){dataType="Level"}else{dataType="1stDifference"}  
+tmp.allData[[2]]<-na.omit(diff(tmp.allData[[1]],lag=1,diff=1))
+#corrMethod<-c("pearson", "kendall", "spearman")
+corrMethod<-c("spearman") #当面スピアマンのみとする。ピアソンを適用する際はデータの正規性に注意すること
+for(iii in 2:2){ #一次階差のみとする
+  if(iii==1){dataType="Level"}else{dataType="1stDifference"}
+  selectedData<-tmp.allData[[iii]][,selectedObject]
   for(mmm in 1:length(corrMethod)){
     ST<-Sys.time()  
     addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
     png.file<-paste(addVer,".png",sep="")
-    png(file=png.file,width=1400,height=900)
-    mainTitle<-paste(dataType,"Method:",toupper(corrMethod[mmm]),format(head(index(tmp.allData[[iii]]),1),"%Y-%m-%d"),"-",format(tail(index(tmp.allData[[iii]]),1),"%Y-%m-%d"))
-    chart.Correlation(tmp.allData[[iii]],histogram=F,method=corrMethod[mmm],main=mainTitle,cex.main=2,cex.text=2)
+    png(file=png.file,width=1920,height=1080)
+    par(mar=c(10,10,10,10))
+    mainTitle<-paste("Data:",dataType," , Method:",toupper(corrMethod[mmm])," , Period:",format(head(index(selectedData),1),"%Y-%m-%d"),"-",format(tail(index(selectedData),1),"%Y-%m-%d"))
+    chart.Correlation(selectedData,histogram=F,method=corrMethod[mmm],main=mainTitle,cex.main=3,cex.text=5)
     dev.off()
   }
 }
@@ -95,19 +99,19 @@ for(iii in 1:2){
 ```{r}
 setwd(pathOutput)
 corrMethod<-"spearman"
-for(iii in 1:2){
+for(iii in 2:2){
   grand.result<-NULL
   if(iii==1){
     buf<-na.omit(allData)
-    chart.title<-"Correlation:Level"
+    chart.title<-"Data:Level"
   }else{
-    buf<-na.omit(diff(buf,lag=1,diff=1))
-    chart.title<-"Correlation:1stDifference"
+    buf<-na.omit(diff(na.omit(allData),lag=1,diff=1))
+    chart.title<-"Data:1stDifference"
   }  
   result.cor<-cor(buf,method=corrMethod)
   f.date<-format(first(index(buf)),"%Y-%m-%d")
   e.date<-format(last(index(buf)),"%Y-%m-%d")
-  mainTitle<-paste(chart.title,f.date,"-",e.date)
+#  mainTitle<-paste(chart.title,f.date,"-",e.date)
   for(ccc in 1:ncol(result.cor)){
     tmp<-paste(row.names(result.cor),"-",row.names(result.cor)[ccc],sep="")
     tmp.df<-data.frame(tmp[-(1:ccc)],result.cor[-(1:ccc),ccc],row.names=NULL)
@@ -128,15 +132,15 @@ for(iii in 1:2){
     ST<-Sys.time()  
     addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
     png.file<-paste(addVer,".png",sep="")
-    png(file=png.file,width=1400,height=900)
+    png(file=png.file,width=1920,height=1080)
     g<-ggplot()
     g<-g+geom_bar(data=data,aes(x=xvalue,y=yvalue),stat="identity",position="identity",fill=fillCol,alpha=0.2,color="black")
-    g<-g+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5)) 
-    g<-g+theme(axis.text.y=element_text(size=20))
+    g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5)) 
+    g<-g+theme(axis.text.y=element_text(size=30))
     g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
-    g<-g+theme(axis.title.x=element_text(size=20,family="Meiryo")) 
-    g<-g+theme(axis.title.y=element_text(size=20,family="Meiryo")) 
-    g<-g+ggtitle(paste(toupper(corrMethod),mainTitle))
+    g<-g+theme(axis.title.x=element_text(size=30,family="Meiryo")) 
+    g<-g+theme(axis.title.y=element_text(size=30,family="Meiryo")) 
+    g<-g+ggtitle(paste(chart.title," , Method:",toupper(corrMethod)," , Period:",f.date,"-",e.date))
     g<-g+xlab("")
     g<-g+ylab("") 
     print(g)
