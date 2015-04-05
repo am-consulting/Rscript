@@ -7,6 +7,7 @@ library(ggplot2)
 library(scales)
 library(stringr)
 library(lubridate)
+library(reshape)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 ts.data<-list()
 data<-list()
@@ -54,7 +55,7 @@ for(aaa in 1:length(area)){
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   csvFile<-paste(addVer,".csv",sep="")    
-  write.csv(tmp[,c(1,4,7,10,13)],csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
+#  write.csv(tmp[,c(1,4,7,10,13)],csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
   grandData<-rbind(grandData,data[[aaa]])
 }
 colnames(data[[1]])
@@ -65,14 +66,52 @@ csvFile<-paste(addVer,".csv",sep="")
 ```
 
 ```{r}
+colnames(grandData)
+lineColor<-c("blue","red","black","green")
+for(ccc in c(4,7,10,13)){
+  tmp<-grandData[,c(1,ccc,2)]
+  tmp<-subset(tmp,tmp$Area=="USA" | tmp$Area=="EU" | tmp$Area=="ASIA" | tmp$Area=="CHINA")  
+  title<-colnames(tmp)[2]
+  meltData<-melt(tmp,id=c("Date","Area"))
+  maxValue=max(meltData$value)
+  minValue=min(meltData$value)  
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1920,height=1080)
+  g<-ggplot()
+  g<-g+geom_line(data=meltData,aes(x=Date,y=value,color=Area),size=0.8)
+  g<-g+scale_colour_manual("財務省貿易統計",values=lineColor)  
+  g<-g+scale_y_continuous(labels=comma,limits=c(minValue,maxValue))
+  g<-g+scale_x_date(labels=date_format("%Y/%m"))
+  g<-g+ggtitle(title) 
+  g<-g+xlab("") 
+  g<-g+ylab("") 
+  g<-g+theme(axis.text=element_text(size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.title=element_text(size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(title=element_text(size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(legend.position="top")          
+  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))
+  if(ccc<=7){
+    g<-g+geom_smooth(data=meltData,aes(x=Date,y=value,color=Area),method=loess,linetype="dashed",size=2)
+  }
+  print(g)
+  dev.off()
+  print(subset(tmp,tmp[,2]==max(tmp[,2])))
+  cat("\n\n")
+}
+```
+
+```{r}
 setwd(pathOutput)
 for(ddd in 1:length(data)){
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1400,height=900)
+  png(file=png.file,width=1920,height=1080)
   mfrowTYpe<-c(2,3)
-  par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(7,3,7,3),cex.main=1.2,cex.lab=1,cex.axis=1.0,family="Meiryo")  
+  par(oma=c(3,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(10,3,7,3),cex.main=2,cex.lab=2,cex.axis=2,family="Meiryo")  
   for(ccc in 9:14){
     tmp<-tail(data[[ddd]][,c(1,2,ccc)],24)
     mainTitle<-paste(colnames(tmp)[3])
@@ -80,9 +119,27 @@ for(ddd in 1:length(data)){
     tmp[tmp[,3]<0,ncol(tmp)]<-"red"
     xxx<-barplot(names.arg=format(tmp[,1],"%Y/%m"),tmp[,3],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp$color,yaxt="n") 
     axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="g", big.mark=','),las=2)
-    text(xxx,y=tmp[,3],labels=paste(tmp[,3],sep=""),srt=90,cex=0.8,adj=c(-0.1,0.5),col="black",family="Meiryo")
+    text(xxx,y=tmp[,3],labels=paste(tmp[,3],sep=""),srt=90,cex=1,adj=c(-0.1,0.5),col="black",family="Meiryo")
+    print(subset(tmp,tmp[,3]==max(tmp[,3])))
   }
-  title(paste("Area:",tmp[1,2],"\n期間:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m")),outer=TRUE,cex.main=1.5,family="Meiryo")
+  cat("\n\n")
+  title(paste("Area:",tmp[1,2]," , 期間:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m")),outer=TRUE,cex.main=3,family="Meiryo")
   dev.off()
+}  
+```
+
+```{r}
+setwd(pathOutput)
+for(ccc in c(4,7,10,13)){
+  total<-NULL
+  for(ddd in c(2,3,4,7)){
+    tmp<-data[[ddd]][,c(1,2,ccc)]
+    extractData<-subset(tmp,tmp[,3]==max(tmp[,3]))
+    total<-rbind(total,extractData)
+  }
+  rownames(total)<-NULL
+  total[,1]<-format(total[,1],"%Y-%m")
+  print(total, row.names = FALSE)
+  cat("\n\n")
 }  
 ```
