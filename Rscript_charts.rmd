@@ -17,7 +17,7 @@ setwd(pathOutput)
 windowsFonts()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
-  dataset<<-read.table("clipboard",header=TRUE,sep="\t")
+  dataset<<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F)
   head(dataset)
   tail(dataset)
 }
