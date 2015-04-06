@@ -108,11 +108,11 @@ for(ccc in 2:ncol(dataset)){
     result04<-min(head(data[[mmm]][,2],start))
     result05<-format(var(head(data[[mmm]][,2],start)),digits=3)
     #after 増税月は含まず
-    result06<-format(mean(tail(data[[mmm]][,2],end+1)),digits=3)
-    result07<-median(tail(data[[mmm]][,2],end+1))  
-    result08<-max(tail(data[[mmm]][,2],end+1))  
-    result09<-min(tail(data[[mmm]][,2],end+1))
-    result10<-format(var(tail(data[[mmm]][,2],end+1)),digits=3)
+    result06<-format(mean(tail(data[[mmm]][,2],end)),digits=3)
+    result07<-median(tail(data[[mmm]][,2],end))  
+    result08<-max(tail(data[[mmm]][,2],end))  
+    result09<-min(tail(data[[mmm]][,2],end))
+    result10<-format(var(tail(data[[mmm]][,2],end)),digits=3)
     periodResult[[mmm]]<-paste("\n増税前-平均:",result01,",中央値:",result02,"最大値:",result03,"最小値:",result04,",不偏分散:",result05,
       "\n増税後-平均:",result06,",中央値:",result07,"最大値:",result08,"最小値:",result09,",不偏分散:",result10,sep="")
     result<-c(result,periodResult[[mmm]])
