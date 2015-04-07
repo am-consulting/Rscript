@@ -38,8 +38,8 @@ fun.readData()
 ```
 
 ```{r}
-commonTitle<-"外貨準備高:"
-dataSource<-"\nデータ出所:財務省"
+commonTitle<-"株式平均利回り:"
+dataSource<-"\nデータ出所:株式会社日本取引所グループ"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 switch(monthly,
   dateFormat<-"%Y/%m",
