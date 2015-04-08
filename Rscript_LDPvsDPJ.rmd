@@ -32,8 +32,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"株式平均利回り:"
-dataSource<-"\nデータ出所:株式会社日本取引所グループ"
+commonTitle<-"日本の国際収支:"
+dataSource<-"\nデータ出所:日本銀行"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -111,6 +111,8 @@ for(ccc in 2:ncol(dataset)){
     result05<-format(var(beforeData),digits=3)
     result11<-head(beforeData,1)
     result12<-tail(beforeData,1)
+    result13<-length(beforeData[beforeData<0])
+    result14<-length(beforeData[beforeData>=0])
     #after
     afterData<-tail(data[[mmm]][,2],end)
     result06<-format(mean(afterData),digits=3)
@@ -120,9 +122,13 @@ for(ccc in 2:ncol(dataset)){
     result10<-format(var(afterData),digits=3)
     result21<-head(afterData,1)
     result22<-tail(afterData,1)
+    result23<-length(afterData[afterData<0])
+    result24<-length(afterData[afterData>=0])
     periodResult[[mmm]]<-paste(
-      "\n増税前-平均:",result01,",中央値:",result02,"最大値:",result03,"最小値:",result04,",不偏分散:",result05,",開始:",result11,",終了:",result12,
-      "\n増税後-平均:",result06,",中央値:",result07,"最大値:",result08,"最小値:",result09,",不偏分散:",result10,",開始:",result21,",終了:",result22,
+      "\n増税前-平均:",result01,",中央値:",result02,"最大値:",result03,"最小値:",
+      result04,",不偏分散:",result05,",開始:",result11,",終了:",result12,"<0,",result13,"0<=",result14,
+      "\n増税後-平均:",result06,",中央値:",result07,"最大値:",result08,"最小値:",
+      result09,",不偏分散:",result10,",開始:",result21,",終了:",result22,"<0,",result23,"0<=",result24,
       sep="")
     result<-c(result,periodResult[[mmm]])
   }
@@ -177,6 +183,8 @@ for(ccc in 2:ncol(dataset)){
   resultDPJ05<-format(var(dpjData),digits=3)
   resultDPJ11<-head(dpjData,1)
   resultDPJ12<-tail(dpjData,1)
+  resultDPJ13<-length(dpjData[dpjData<0])
+  resultDPJ14<-length(dpjData[dpjData>=0])
   ldpData<-data[[2]][,2]
   resultLDP01<-format(mean(ldpData),digits=3)
   resultLDP02<-median(ldpData)  
@@ -185,8 +193,14 @@ for(ccc in 2:ncol(dataset)){
   resultLDP05<-format(var(ldpData),digits=3)
   resultLDP11<-head(ldpData,1)
   resultLDP12<-tail(ldpData,1)
-  resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,",最小値:",resultDPJ04,",不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,sep="")
-  resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,",最小値:",resultLDP04,",不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,sep="")
+  resultLDP13<-length(ldpData[ldpData<0])
+  resultLDP14<-length(ldpData[ldpData>=0])
+  resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,
+    ",最小値:",resultDPJ04,",不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,",<0:",resultDPJ13,",0<=:",resultDPJ14,
+    sep="")
+  resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,
+    ",最小値:",resultLDP04,",不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,",<0:",resultLDP13,",0<=:",resultLDP14,
+    sep="")
   result<-c(resultDPJ,resultLDP)
   outputlabels<-paste(labels,result,sep="")
   legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.2,bty="n",x.intersp=0,y.intersp=3,lwd=3)

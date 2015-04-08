@@ -38,8 +38,8 @@ fun.readData()
 ```
 
 ```{r}
-commonTitle<-"株式平均利回り:"
-dataSource<-"\nデータ出所:株式会社日本取引所グループ"
+commonTitle<-"日本の国際収支:"
+dataSource<-"\nデータ出所:日本銀行"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 switch(monthly,
   dateFormat<-"%Y/%m",
@@ -287,12 +287,16 @@ latestDate<<-format(as.Date(last(tmp.dataset[,1])),dateFormat)
 latestValue<<-last(tmp.dataset[,2])
 latestPM<<-last(tmp.dataset[,3])
 latestBoJ<<-last(tmp.dataset[,4])
-firstDate<<-format(as.Date(first(tmp.dataset[,1])),dateFormat)  
+firstDate<<-format(as.Date(first(tmp.dataset[,1])),dateFormat)
+underZero<-nrow(subset(tmp.dataset,tmp.dataset[,2]<0))
+overZero<-nrow(tmp.dataset)-underZero  
 plotText<<-paste(
   "Period:",firstDate,"-",latestDate,
   "\nHighest",maxDate,":",maxValue,":",maxPM,"&",maxBoJ,
   "\nLowest",minDate,":",minValue,":",minPM,"&",minBoJ,
-  "\nLatest",latestDate,":",latestValue,":",latestPM,"&",latestBoJ
+  "\nLatest",latestDate,":",latestValue,":",latestPM,"&",latestBoJ,
+  "\nn(<0):",underZero,
+  "\nn(0<=):",overZero
 )  
 }  
 ```
