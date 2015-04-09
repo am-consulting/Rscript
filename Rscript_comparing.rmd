@@ -1,0 +1,252 @@
+```{r}
+library(ggplot2)
+library(scales)
+library(lubridate)
+library(gridExtra)
+library(reshape)
+library(tseries)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+dataset<-list()
+fun.readData<-function(){
+  cnt<<-cnt+1
+  dataset[[cnt]]<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F)
+  print(head(dataset[[cnt]]))
+  print(tail(dataset[[cnt]]))
+  dataset[[cnt]]<<-dataset[[cnt]] # caution
+}
+funPreTitle<-function(){
+  preTitle<-colnames(buf)[2]
+  preTitle<-gsub("\\.\\.","\\.",preTitle)
+  preTitle<-gsub("前年同月比","前年同月比(%)",preTitle)
+  preTitle<-gsub("割合","割合(%)",preTitle)
+  preTitle<-gsub("break","\n",preTitle)
+  preTitle<-gsub("パーセント","%",preTitle)
+  preTitle<<-preTitle
+}
+cnt<-0
+```
+
+```{r}
+fun.readData()#dataset<-dataset[order(dataset[,2],decreasing=T),]
+if(colnames(dataset[[cnt]])[1]=="Date"){
+  dataset[[cnt]][,1]<-as.Date(dataset[[cnt]][,1])
+}else{
+  dataset[[cnt]][,1]<-ordered(dataset[[cnt]][,1],levels=dataset[[cnt]][,1][1:length(dataset[[cnt]][,1])]) #1列目が日付でない場合、強制的にオーダー化する
+}
+monthly<-2
+```
+
+```{r}
+allData<-dataset[[1]]
+for(ddd in 2:length(dataset)){
+  allData<-merge(allData,dataset[[ddd]],all=T)  
+  allData<-na.omit(allData)
+}
+head(allData)
+tail(allData)
+```
+
+```{r}
+mainTitle<-"比較"
+commonTitle<-"日本の国際収支:"
+dataSource<-"\nデータ出所:日本銀行"
+```
+
+```{r}
+mainTitle<-"\n原系列と単位根検定(calculated by adf.test{tseries}-R package)"
+plotText1<-NULL
+originalSeries<-allData[,2]
+result<-capture.output(adf.test(originalSeries))
+for(ttt in 1:length(result)){plotText1<-paste(plotText1,result[ttt],"\n")}
+y0<-min(originalSeries)
+y1<-max(originalSeries)
+#####################################
+g1<-ggplot()
+g1<-g1+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g1<-g1+geom_line(data=allData,aes(x=allData[,1],y=allData[,2]),size=1)
+g1<-g1+geom_smooth(data=allData,aes(x=allData[,1],y=allData[,2]),method=loess,color="red")
+g1<-g1+ggtitle(paste(colnames(allData)[2]))
+g1<-g1+xlab("") 
+g1<-g1+ylab("") 
+g1<-g1+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo",angle=90,hjust=0.5))          
+g1<-g1+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(title=element_text(size=40,face="bold",family="Meiryo"))          
+g1<-g1+scale_x_date(labels=date_format("%Y/%m"))
+g1<-g1+annotate("text",x=allData[1,1],y=y1+(y1-y0)/5,label=plotText1,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
+#####################################
+plotText2<-NULL
+originalSeries<-allData[,3]
+result<-capture.output(adf.test(originalSeries))
+for(ttt in 1:length(result)){plotText2<-paste(plotText2,result[ttt],"\n")}
+y0<-min(originalSeries)
+y1<-max(originalSeries)
+#####################################
+g2<-ggplot()
+g2<-g2+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g2<-g2+geom_line(data=allData,aes(x=allData[,1],y=allData[,3]),size=1)
+g2<-g2+geom_smooth(data=allData,aes(x=allData[,1],y=allData[,3]),method=loess,color="red")
+g2<-g2+ggtitle(paste(colnames(allData)[3]))
+g2<-g2+xlab("") 
+g2<-g2+ylab("") 
+g2<-g2+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo",angle=90,hjust=0.5))          
+g2<-g2+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(title=element_text(size=40,face="bold",family="Meiryo"))          
+g2<-g2+scale_x_date(labels=date_format("%Y/%m"))
+g2<-g2+annotate("text",x=allData[1,1],y=y1+(y1-y0)/5,label=plotText2,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
+dev.off()
+```
+
+```{r}
+mainTitle<-"\n1次階差(差分)と単位根検定(calculated by adf.test{tseries}-R package)"
+plotText1<-NULL
+firstDifference1<-na.omit(diff(allData[,2],lag=1,diff=1))
+result1<-capture.output(adf.test(firstDifference1))
+for(ttt in 1:length(result1)){plotText1<-paste(plotText1,result1[ttt],"\n")}
+y0<-min(firstDifference1)
+y1<-max(firstDifference1)
+#####################################
+g1<-ggplot()
+g1<-g1+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g1<-g1+geom_line(aes(x=allData[-1,1],y=firstDifference1),size=1)
+g1<-g1+ggtitle(paste(colnames(allData)[2]))
+g1<-g1+xlab("") 
+g1<-g1+ylab("") 
+g1<-g1+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo",angle=90,hjust=0.5))          
+g1<-g1+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(title=element_text(size=40,face="bold",family="Meiryo"))          
+g1<-g1+scale_x_date(labels=date_format("%Y/%m"))
+g1<-g1+annotate("text",x=allData[2,1],y=y1+(y1-y0)/5,label=plotText1,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
+#####################################
+plotText2<-NULL
+firstDifference2<-na.omit(diff(allData[,3],lag=1,diff=1))
+result2<-capture.output(adf.test(firstDifference2))
+for(ttt in 1:length(result2)){plotText2<-paste(plotText2,result2[ttt],"\n")}
+y0<-min(firstDifference2)
+y1<-max(firstDifference2)
+#####################################
+g2<-ggplot()
+g2<-g2+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g2<-g2+geom_line(aes(x=allData[-1,1],y=firstDifference2),size=1)
+g2<-g2+ggtitle(paste(colnames(allData)[3]))
+g2<-g2+xlab("") 
+g2<-g2+ylab("") 
+g2<-g2+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo",angle=90,hjust=0.5))          
+g2<-g2+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(title=element_text(size=40,face="bold",family="Meiryo"))          
+g2<-g2+scale_x_date(labels=date_format("%Y/%m"))
+g2<-g2+annotate("text",x=allData[2,1],y=y1+(y1-y0)/5,label=plotText2,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
+dev.off()
+```
+
+```{r}
+#正規化:平均=0,標準偏差=1
+colorList<-c("blue","red") #改良余地あり
+allDataNormal<-data.frame(Date=allData[,1],scale(allData[,-1]))
+plotText<-paste(
+  colnames(allDataNormal)[2],"\n平均=",mean(allDataNormal[,2]),",不偏分散=",var(allDataNormal[,2]),"\n\n",
+  colnames(allDataNormal)[3],"\n平均=",mean(allDataNormal[,3]),",不偏分散=",var(allDataNormal[,3]),
+  sep=""
+  )
+allDataNormalMelt<-melt(allDataNormal,id="Date")
+y0<-min(min(allDataNormal[,2]),min(allDataNormal[,3]))
+y1<-max(max(allDataNormal[,2]),max(allDataNormal[,3]))
+g<-ggplot()
+g<-g+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g<-g+geom_line(data=allDataNormalMelt,aes(x=Date,y=value,color=variable))
+g<-g+scale_color_manual(values=colorList) 
+g<-g+ggtitle(paste("正規化(平均=0,標準偏差=1)した時系列チャート\n",colnames(allDataNormal)[2],"×",colnames(allDataNormal)[3],"\n※両系列とも単位は無次元です"))
+g<-g+xlab("") 
+g<-g+ylab("") 
+g<-g+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+scale_x_date(labels=date_format("%Y/%m"))
+g<-g+theme(legend.position="top")          
+g<-g+theme(legend.text=element_text(colour="black",size=30,face="bold",family="Meiryo"))          
+g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))
+g<-g+annotate("text",x=allDataNormal[1,1],y=y1+(y1-y0)/5,label=plotText,size=10,family="Meiryo",hjust=0,vjust=0.9,col="black")
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+print(g)
+dev.off()
+```
+
+```{r}
+#正規化:開始地を1
+colorList<-c("blue","red") #改良余地あり
+tmp<-sweep(allData[,c(2,3)],2,as.vector(unlist(allData[1,c(2,3)])), "/")
+allDataNormal<-data.frame(Date=allData[,1],tmp)
+allDataNormalMelt<-melt(allDataNormal,id="Date")
+g<-ggplot()
+g<-g+geom_line(data=allDataNormalMelt,aes(x=Date,y=value,color=variable))
+g<-g+scale_color_manual(values=colorList) 
+g<-g+ggtitle(paste("正規化(開始値を1)した時系列チャート\n",colnames(allDataNormal)[2],"×",colnames(allDataNormal)[3],"\n※両系列とも単位は無次元です"))
+g<-g+xlab("") 
+g<-g+ylab("") 
+g<-g+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
+g<-g+scale_x_date(labels=date_format("%Y/%m"))
+g<-g+theme(legend.position="top")          
+g<-g+theme(legend.text=element_text(colour="black",size=30,face="bold",family="Meiryo"))          
+g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+print(g)
+dev.off()
+```
+
+```{r}
+setwd(pathOutput)
+title<-paste(
+  "1次階差(差分)の相互相関係数\n",
+  "説明変数:",
+  colnames(allData)[2],
+  " × 応答変数:",
+  colnames(allData)[3],
+  "\n対象期間:",
+  format(head(allData[,1],1),"%Y/%m"),
+  "-",
+  format(tail(allData[,1],1),"%Y/%m")
+)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+par(mar=c(8,8,12,2),ps=20,cex.axis=2,cex.lab=2,cex.main=2,cex.sub=1,family="Meiryo")
+ccf(firstDifference2,firstDifference1,lag.max=36,main=title,lwd="4")
+dev.off()
+```
