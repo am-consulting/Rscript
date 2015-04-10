@@ -18,7 +18,7 @@ fun.readData<-function(){
   dataset[[cnt]]<<-dataset[[cnt]] # caution
 }
 funPreTitle<-function(){
-  preTitle<-colnames(buf)[2]
+  preTitle<-tmpTitle
   preTitle<-gsub("\\.\\.","\\.",preTitle)
   preTitle<-gsub("前年同月比","前年同月比(%)",preTitle)
   preTitle<-gsub("割合","割合(%)",preTitle)
@@ -30,13 +30,12 @@ cnt<-0
 ```
 
 ```{r}
-fun.readData()#dataset<-dataset[order(dataset[,2],decreasing=T),]
+fun.readData()
 if(colnames(dataset[[cnt]])[1]=="Date"){
   dataset[[cnt]][,1]<-as.Date(dataset[[cnt]][,1])
 }else{
   dataset[[cnt]][,1]<-ordered(dataset[[cnt]][,1],levels=dataset[[cnt]][,1][1:length(dataset[[cnt]][,1])]) #1列目が日付でない場合、強制的にオーダー化する
 }
-monthly<-2
 ```
 
 ```{r}
@@ -47,12 +46,6 @@ for(ddd in 2:length(dataset)){
 }
 head(allData)
 tail(allData)
-```
-
-```{r}
-mainTitle<-"比較"
-commonTitle<-"日本の国際収支:"
-dataSource<-"\nデータ出所:日本銀行"
 ```
 
 ```{r}
@@ -68,7 +61,9 @@ g1<-ggplot()
 g1<-g1+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
 g1<-g1+geom_line(data=allData,aes(x=allData[,1],y=allData[,2]),size=1)
 g1<-g1+geom_smooth(data=allData,aes(x=allData[,1],y=allData[,2]),method=loess,color="red")
-g1<-g1+ggtitle(paste(colnames(allData)[2]))
+tmpTitle<-colnames(allData)[2]
+funPreTitle()
+g1<-g1+ggtitle(paste(preTitle))
 g1<-g1+xlab("") 
 g1<-g1+ylab("") 
 g1<-g1+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
@@ -90,7 +85,9 @@ g2<-ggplot()
 g2<-g2+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
 g2<-g2+geom_line(data=allData,aes(x=allData[,1],y=allData[,3]),size=1)
 g2<-g2+geom_smooth(data=allData,aes(x=allData[,1],y=allData[,3]),method=loess,color="red")
-g2<-g2+ggtitle(paste(colnames(allData)[3]))
+tmpTitle<-colnames(allData)[3]
+funPreTitle()
+g2<-g2+ggtitle(paste(preTitle))
 g2<-g2+xlab("") 
 g2<-g2+ylab("") 
 g2<-g2+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
@@ -242,11 +239,16 @@ title<-paste(
   "-",
   format(tail(allData[,1],1),"%Y/%m")
 )
+resultCCF<-ccf(firstDifference2,firstDifference1,lag.max=36)
+acf<-resultCCF$acf[,,1]
+lag<-resultCCF$lag[,,1]
+resultDF<-data.frame(acf,lag)
+resultMax<-resultDF[which.max(resultDF$acf),]
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1920,height=1080)
 par(mar=c(8,8,12,2),ps=20,cex.axis=2,cex.lab=2,cex.main=2,cex.sub=1,family="Meiryo")
-ccf(firstDifference2,firstDifference1,lag.max=36,main=title,lwd="4")
+resultCCF<-ccf(firstDifference2,firstDifference1,lag.max=36,main=paste(title," , Max:lag=",resultMax[2],",ACF=",resultMax[1]),lwd="4")
 dev.off()
 ```
