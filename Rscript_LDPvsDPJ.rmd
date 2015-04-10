@@ -32,7 +32,7 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"日本の国際収支:"
+commonTitle<-"貸出･預金動向.速報:"
 dataSource<-"\nデータ出所:日本銀行"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
@@ -73,12 +73,15 @@ for(ccc in 2:ncol(dataset)){
   tmp<-buf
   for(mmm in 1:length(changePoint)){
     data[[mmm]]<-subset(tmp,(changePoint[mmm]-months(interval))<=tmp[,1] & tmp[,1]<=(changePoint[mmm]+months(interval)))
+    if(nrow(data[[mmm]])!=0){
     ylimMin<-min(ylimMin,min(data[[mmm]][,2]))
     ylimMax<-max(ylimMax,max(data[[mmm]][,2]))
+    }
   }
   ylimMax<-(ylimMax-ylimMin)/5+ylimMax
   plot(0,0,type="n",xlim=c(-interval,interval),ylim=c(ylimMin,ylimMax+(ylimMax-ylimMin)/5),xlab="",ylab="",main=mainTitle,las=1)
   for(mmm in 1:length(changePoint)){
+    if(nrow(data[[mmm]])!=0){
     start<-nrow(subset(data[[mmm]],data[[mmm]][,1]<changePoint[mmm]))
     end<-nrow(subset(data[[mmm]],data[[mmm]][,1]>changePoint[mmm]))
     data[[mmm]]$monthID<-rep(-start:end,length=nrow(data[[mmm]]))
@@ -98,8 +101,8 @@ for(ccc in 2:ncol(dataset)){
     segments(x0,y0,x1,y1,col=cols[mmm],lty="dashed",lwd=3) 
     resultAfter<-lm(tail(data[[mmm]][,2],end)~tail(data[[mmm]][,3],end))
     x0<-0
-    y0<-resultAfter$coe[1]+resultAfter$coe[2]*x1
-    x1<-end
+    y0<-resultAfter$coe[1]+resultAfter$coe[2]*x0
+    x1<-end-1#endはIDゼロを含む行数。よってx=ゼロの分を一つ減じる。
     y1<-resultAfter$coe[1]+resultAfter$coe[2]*x1
     segments(x0,y0,x1,y1,col=cols[mmm],lty="dashed",lwd=3)
     #before 増税月は含まず
@@ -126,12 +129,15 @@ for(ccc in 2:ncol(dataset)){
     result24<-length(afterData[afterData>=0])
     periodResult[[mmm]]<-paste(
       "\n増税前-平均:",result01,",中央値:",result02,"最大値:",result03,"最小値:",
-      result04,",不偏分散:",result05,",開始:",result11,",終了:",result12,"<0,",result13,"0<=",result14,
+      result04,",不偏分散:",result05,",開始:",result11,",終了:",result12,",<0:",result13,",0<=:",result14,
       "\n増税後-平均:",result06,",中央値:",result07,"最大値:",result08,"最小値:",
-      result09,",不偏分散:",result10,",開始:",result21,",終了:",result22,"<0,",result23,"0<=",result24,
+      result09,",不偏分散:",result10,",開始:",result21,",終了:",result22,",<0:",result23,",0<=:",result24,
       sep="")
-    result<-c(result,periodResult[[mmm]])
+  }else{
+    periodResult[[mmm]]<-"\nNo Data"  
   }
+  result<-c(result,periodResult[[mmm]])
+  }  
   outputlabels<-paste(labels,result)
   legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.2,bty="n",x.intersp=0,y.intersp=3,lwd=3)
   dev.off()
