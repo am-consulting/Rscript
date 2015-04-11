@@ -34,12 +34,66 @@ funMaintitle<-function(){
 ```
 
 ```{r}
-fun.readData()
+commonTitle<-"日本国債金利情報･米国財務省証券金利･10年物金利差:"
+dataSource<-"\nデータ出所:財務省(日本国債),FRED(米国財務省証券)"
+monthly<-2
+#####################################################    JGB part    ####################################################
+url<-c(
+ "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
+ "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
+)
+oldData<-read.csv(url[1],header=T,skip=0,stringsAsFactor=F)
+newData<-read.csv(url[2],header=T,skip=1,stringsAsFactor=F)
+colnames(oldData)
+colnames(newData)
+colnames(newData)<-gsub("Y","",colnames(newData))
+tmp01<-rbind(oldData,newData)
+tmp01[,1]<-as.Date(tmp01[,1])
+FUN.1<-function(x) as.numeric(x)
+tmp01<-data.frame(tmp01[1],apply(tmp01[-1],2,FUN.1))
+colnames(tmp01)[2:length(tmp01)]<-paste("JGB.",gsub("X","",colnames(tmp01)[2:length(tmp01)]),"year",sep="")
+colnames(tmp01)[1]<-"Date"
+tmp01<-tmp01[,c(1,11)]#10年物のみを抽出
+head(tmp01)
+tail(tmp01)
+#####################################################    JGB part    ####################################################
+##################################################### from FRED part ####################################################
+monthly<-2
+ts.source<-list()
+ts.source[[1]]<-c("FRED",1,"DGS10")
+for(lll in 1:length(ts.source)){
+  if(2<length(ts.source[[lll]])){
+    for(iii in 3:length(ts.source[[lll]])){
+      item<- ts.source[[lll]][iii]
+      tmp02<-getSymbols(item,src=ts.source[[lll]][1],auto.assign=FALSE)
+      tmp02<-tmp02[,as.double(ts.source[[lll]][2])]
+      tmp02<-data.frame(date=index(tmp02),tmp02, row.names=NULL)
+      colnames(tmp02)[1]<-"Date"
+      head(tmp02)
+      tail(tmp02)
+    }
+  }
+}
+##################################################### from FRED part ####################################################
+dataset<-merge(tmp01,tmp02,all=T)
+dataset[,4]<-dataset[,3]-dataset[,2]
+colnames(dataset)[4]<-"10year.InterestSpread"
+head(dataset)
+tail(dataset)
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+csvFile<-paste(addVer,".csv",sep="")    
+write.csv(na.omit(dataset),csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 ```
 
 ```{r}
+fun.readData()
 commonTitle<-"貸出･預金動向.速報:"
 dataSource<-"\nデータ出所:日本銀行"
+```
+
+```{r}
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 switch(monthly,
   dateFormat<-"%Y/%m",
@@ -207,7 +261,8 @@ for(ttt in 1:2){ #ttt 1:首相 2:日銀総裁
   g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))          
   g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold")) 
   g<-g+annotate("text",x=tmp.timeseries[1,1],y=y1+(y1-y0)/5,label=plotText,size=10,family="Meiryo",hjust=0,vjust=0.9,col="black")
-  g<-g+scale_x_date(labels=date_format(dateFormat))
+#  g<-g+scale_x_date(labels=date_format(dateFormat))
+  g<-g+scale_x_date(labels=date_format("%Y-%m"))#当面日付タイプに係らず年-月とする
   g<-g+scale_y_continuous(labels=comma,limits=c(y0,(y1-y0)/5+y1))
   print(g)
   dev.off() 
@@ -292,9 +347,13 @@ underZero<-nrow(subset(tmp.dataset,tmp.dataset[,2]<0))
 overZero<-nrow(tmp.dataset)-underZero
 Vavg<-mean(tmp.dataset[,2])  
 Vmed<-median(tmp.dataset[,2])
-Vvar<-var(tmp.dataset[,2])  
+Vvar<-var(tmp.dataset[,2])
+switch(monthly,
+timeDiff<-paste(",Difference:",(as.yearmon(as.Date(latestDate))-as.yearmon(as.Date(firstDate)))*12,"months"),  
+timeDiff<-paste(",Difference:",(as.Date(latestDate)-as.Date(firstDate)),"days")  
+)  
 plotText<<-paste(
-  "Period:",firstDate,"-",latestDate,
+  "Period:",firstDate,"-",latestDate,timeDiff,
   "\nHighest:",maxDate,",",maxValue,",",maxPM,"&",maxBoJ,
   "\nLowest:",minDate,",",minValue,",",minPM,"&",minBoJ,
   "\nLatest:",latestDate,",",latestValue,",",latestPM,"&",latestBoJ,
