@@ -80,11 +80,16 @@ dataset[,4]<-dataset[,3]-dataset[,2]
 colnames(dataset)[4]<-"10year.InterestSpread"
 head(dataset)
 tail(dataset)
-setwd(pathOutput)
+pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+setwd(dir.list)
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-csvFile<-paste(addVer,".csv",sep="")    
-write.csv(na.omit(dataset),csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+csvFile<-paste("日米国債金利及び金利差",".csv",sep="")    
+write.csv(na.omit(dataset),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 ```
 
 ```{r}
@@ -94,6 +99,7 @@ dataSource<-"\nデータ出所:日本銀行"
 ```
 
 ```{r}
+setwd(pathOutput)
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 switch(monthly,
   dateFormat<-"%Y/%m",
