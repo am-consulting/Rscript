@@ -252,3 +252,66 @@ par(mar=c(8,8,12,2),ps=20,cex.axis=2,cex.lab=2,cex.main=2,cex.sub=1,family="Meir
 resultCCF<-ccf(firstDifference2,firstDifference1,lag.max=36,main=paste(title," , Max:lag=",resultMax[2],",ACF=",resultMax[1]),lwd="4")
 dev.off()
 ```
+
+```{r}
+setwd(pathOutput)
+plotText1<-NULL
+explanation<-allData[,2]
+response<-allData[,3]
+y0<-min(response)
+y1<-max(response)
+#####################################
+g1<-ggplot()
+g1<-g1+ggtitle(paste("ScatterPlot\nCoefficients:calculated by lm {stats}"))
+g1<-g1+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g1<-g1+scale_x_continuous(labels=comma)
+g1<-g1+geom_point(aes(x=explanation,y=response))
+g1<-g1+geom_abline(col="red",linetype="dashed",size=2)
+g1<-g1+xlab(colnames(allData)[2]) 
+g1<-g1+ylab(colnames(allData)[3])
+g1<-g1+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo",angle=90,hjust=0.5))          
+g1<-g1+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(title=element_text(size=28,face="bold",family="Meiryo")) 
+resultLm<-lm(response~explanation)
+result1<-capture.output(resultLm)
+for(ttt in 1:length(result1)){plotText1<-paste(plotText1,result1[ttt],"\n")}
+g1<-g1+annotate("text",x=min(explanation),y=y1+(y1-y0)/5,label=plotText1,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
+print(g1)
+#####################################
+plotText2<-NULL
+tmp<-data.frame(Date=allData[,1],Residual=resultLm$res)
+explanation.response<-allData[,2:3]
+resultCointeg<-po.test(explanation.response)
+y0<-min(resultLm$res)
+y1<-max(resultLm$res)
+#####################################
+g2<-ggplot()
+g2<-g2+geom_point(data=tmp,aes(x=tmp[,1],y=Residual),col="red")
+g2<-g2+ggtitle(paste("Residual:calculated by lm {stats}\nCo-integration test:calculated by po.test{tseries}\nadf:calculated by adf.test{tseries}"))
+g2<-g2+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g2<-g2+scale_x_date(labels=date_format("%Y/%m"))
+g2<-g2+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo",angle=90,hjust=0.5))          
+g2<-g2+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(title=element_text(size=28,face="bold",family="Meiryo"))
+g2<-g2+xlab("") 
+print(g2)
+result2<-capture.output(resultCointeg)
+for(ttt in 1:length(result2)){plotText2<-paste(plotText2,result2[ttt],"\n")}
+residual<-resultLm$res
+result2<-capture.output(adf.test(residual))
+for(ttt in 1:length(result2)){plotText2<-paste(plotText2,result2[ttt],"\n")}
+g2<-g2+annotate("text",x=head(tmp[,1],1),y=y1+(y1-y0)/5,label=plotText2,size=7,family="Meiryo",hjust=0,vjust=0.9,col="black")
+print(g2)
+#####################################
+mainTitle<-"\n散布図-線形結合-残差-共和分検定:calculated by R package"
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
+dev.off()
+```
