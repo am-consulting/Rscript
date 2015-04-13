@@ -94,8 +94,8 @@ write.csv(na.omit(tail(dataset,30)),csvFile,row.names=F,append=F,quote=F,fileEnc
 
 ```{r}
 fun.readData()
-commonTitle<-"機械受注統計調査:"
-dataSource<-"\nデータ出所:内閣府"
+commonTitle<-"米ドル-日本円購買力平価:"
+dataSource<-"\nデータ出所:公益社団法人国際通貨研究所"
 ```
 
 ```{r}
@@ -367,7 +367,9 @@ plotText<<-paste(
   "\nMedian:",Vmed,
   "\nVar:",Vvar,
   "\nn(<0):",underZero,
-  "\nn(0<=):",overZero
+  "\nn(0<=):",overZero,
+  "\nRatio(%,<0):",round(underZero/nrow(tmp.dataset)*100,2),
+  sep=""
 )  
 }  
 ```
