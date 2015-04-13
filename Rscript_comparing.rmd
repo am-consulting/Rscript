@@ -49,7 +49,7 @@ tail(allData)
 ```
 
 ```{r}
-mainTitle<-"\n原系列と単位根検定(calculated by adf.test{tseries}-R package)"
+mainTitle<-paste("\n原系列と単位根検定(calculated by adf.test{tseries}-R package)\n",format(head(allData[,1],1),"%Y/%m"),"-",format(tail(allData[,1],1),"%Y/%m"))
 plotText1<-NULL
 originalSeries<-allData[,2]
 result<-capture.output(adf.test(originalSeries))
@@ -107,7 +107,7 @@ dev.off()
 ```
 
 ```{r}
-mainTitle<-"\n1次階差(差分)と単位根検定(calculated by adf.test{tseries}-R package)"
+mainTitle<-paste("\n1次階差(差分)と単位根検定(calculated by adf.test{tseries}-R package)\n",format(head(allData[,1],1),"%Y/%m"),"-",format(tail(allData[,1],1),"%Y/%m"))
 plotText1<-NULL
 firstDifference1<-na.omit(diff(allData[,2],lag=1,diff=1))
 result1<-capture.output(adf.test(firstDifference1))
@@ -266,7 +266,6 @@ g1<-g1+ggtitle(paste("ScatterPlot\nCoefficients:calculated by lm {stats}"))
 g1<-g1+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
 g1<-g1+scale_x_continuous(labels=comma)
 g1<-g1+geom_point(aes(x=explanation,y=response))
-g1<-g1+geom_abline(col="red",linetype="dashed",size=2)
 g1<-g1+xlab(colnames(allData)[2]) 
 g1<-g1+ylab(colnames(allData)[3])
 g1<-g1+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
@@ -275,6 +274,7 @@ g1<-g1+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))
 g1<-g1+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
 g1<-g1+theme(title=element_text(size=28,face="bold",family="Meiryo")) 
 resultLm<-lm(response~explanation)
+g1<-g1+geom_abline(intercept=resultLm$coe[1],slope=resultLm$coe[2],col="red",linetype="dashed",size=2)
 result1<-capture.output(resultLm)
 for(ttt in 1:length(result1)){plotText1<-paste(plotText1,result1[ttt],"\n")}
 g1<-g1+annotate("text",x=min(explanation),y=y1+(y1-y0)/5,label=plotText1,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
