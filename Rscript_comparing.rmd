@@ -228,8 +228,18 @@ dev.off()
 
 ```{r}
 setwd(pathOutput)
+for(ppp in 1:2){
+if(ppp==1){
+  firstDifference1<-na.omit(diff(allData[,2],lag=1,diff=1))
+  firstDifference2<-na.omit(diff(allData[,3],lag=1,diff=1))
+  title0<-"1次階差(差分)の相互相関係数\n"
+}else{
+  firstDifference1<-na.omit(rank(diff(allData[,2],lag=1,diff=1)))
+  firstDifference2<-na.omit(rank(diff(allData[,3],lag=1,diff=1)))
+  title0<-"1次階差(差分後順位)の相互相関係数\n"
+}  
 title<-paste(
-  "1次階差(差分)の相互相関係数\n",
+  title0,
   "説明変数:",
   colnames(allData)[2],
   " × 応答変数:",
@@ -251,6 +261,7 @@ png(file=png.file,width=1920,height=1080)
 par(mar=c(8,8,12,2),ps=20,cex.axis=2,cex.lab=2,cex.main=2,cex.sub=1,family="Meiryo")
 resultCCF<-ccf(firstDifference2,firstDifference1,lag.max=36,main=paste(title," , Max:lag=",resultMax[2],",ACF=",resultMax[1]),lwd="4")
 dev.off()
+}
 ```
 
 ```{r}
