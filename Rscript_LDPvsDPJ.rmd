@@ -56,9 +56,9 @@ periodResult<-list()
 setwd(pathOutput)
 cols<-c("red","green","blue")
 ltys<-c(1,1,1)
-labels<-c("1989年4月消費税導入前後4年間","1997年4月消費税増税前後4年間","2014年4月消費税増税前後4年間")
+labels<-c("1989年4月消費税導入前後6年間","1997年4月消費税増税前後6年間","2014年4月消費税増税前後6年間")
 changePoint<-as.Date(c("1989/4/1","1997/4/1","2014/4/1"))
-interval<-24
+interval<-36
 for(ccc in 2:ncol(dataset)){
   ylimMin<-10^10
   ylimMax<-(-1)*10^10
@@ -133,6 +133,7 @@ for(ccc in 2:ncol(dataset)){
       result04,",不偏分散:",result05,",開始:",result11,",終了:",result12,",<0:",result13,",0<=:",result14,
       "\n増税後-平均:",result06,",中央値:",result07,"最大値:",result08,"最小値:",
       result09,",不偏分散:",result10,",開始:",result21,",終了:",result22,",<0:",result23,",0<=:",result24,
+      "\nマンホイットニU検定.p値:",(wilcox.exact(beforeData,afterData,paired=F))$p.value,
       sep="")
   }else{
     periodResult[[mmm]]<-"\nNo Data"  
@@ -194,6 +195,7 @@ for(ccc in 2:ncol(dataset)){
   resultDPJ14<-length(dpjData[dpjData>=0])
   resultDPJ15<-sum(dpjData)
   resultDPJ16<-(tail(dpjData,1)-head(dpjData,1))/length(dpjData)
+  resultDPJ17<-round((resultDPJ13/length(dpjData))*100,2)
   ldpData<-data[[2]][,2]
   resultLDP01<-format(mean(ldpData),digits=3)
   resultLDP02<-median(ldpData)  
@@ -206,18 +208,20 @@ for(ccc in 2:ncol(dataset)){
   resultLDP14<-length(ldpData[ldpData>=0])
   resultLDP15<-sum(ldpData)
   resultLDP16<-(tail(ldpData,1)-head(ldpData,1))/length(ldpData)
+  resultLDP17<-round((resultLDP13/length(ldpData))*100,2)
   resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,
     ",最小値:",resultDPJ04,",不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,
-    ",<0:",resultDPJ13,",0<=:",resultDPJ14,"\n合計:",resultDPJ15,",政権期間変化率(/月):",resultDPJ16,
+    ",<0:",resultDPJ13,",0<=:",resultDPJ14,"\n合計:",resultDPJ15,",政権期間変化率(/月):",resultDPJ16,",割合(<0,%):",resultDPJ17,
     sep="")
   resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,
     ",最小値:",resultLDP04,",不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,
-    ",<0:",resultLDP13,",0<=:",resultLDP14,"\n合計:",resultLDP15,",政権期間変化率(/月):",resultLDP16,
+    ",<0:",resultLDP13,",0<=:",resultLDP14,"\n合計:",resultLDP15,",政権期間変化率(/月):",resultLDP16,",割合(<0,%):",resultLDP17,
     sep="")
   result<-c(resultDPJ,resultLDP)
   outputlabels<-paste(labels,result,sep="")
   legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.2,bty="n",x.intersp=0,y.intersp=3,lwd=3)
 #Non-parametric Mann-Whitney's U test
+  text(0,ylimMax+(ylimMax-ylimMin)/5,labels=paste("マンホイットニU検定.p値:",(wilcox.exact(dpjData,ldpData,paired=F))$p.value),srt=0,cex=1.5,adj=c(0,0),family="Meiryo")
   print(wilcox.test(dpjData,ldpData))
   print(wilcox.exact(dpjData,ldpData,paired=F))
   dev.off()
