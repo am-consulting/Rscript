@@ -1,5 +1,6 @@
 ```{r}
 library(lubridate)
+library(exactRankTests)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 SD<-Sys.Date()
@@ -216,6 +217,9 @@ for(ccc in 2:ncol(dataset)){
   result<-c(resultDPJ,resultLDP)
   outputlabels<-paste(labels,result,sep="")
   legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.2,bty="n",x.intersp=0,y.intersp=3,lwd=3)
+#Non-parametric Mann-Whitney's U test
+  print(wilcox.test(dpjData,ldpData))
+  print(wilcox.exact(dpjData,ldpData,paired=F))
   dev.off()
 }
 ```
