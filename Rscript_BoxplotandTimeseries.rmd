@@ -34,7 +34,7 @@ funMaintitle<-function(){
 ```
 
 ```{r}
-commonTitle<-"日本国債金利情報･米国財務省証券金利･10年物金利差:"
+commonTitle<-"日本国債金利･米国財務省証券金利･10年物金利差):"
 dataSource<-"\nデータ出所:財務省(日本国債),FRED(米国財務省証券)"
 monthly<-2
 #####################################################    JGB part    ####################################################
@@ -94,8 +94,8 @@ write.csv(na.omit(tail(dataset,30)),csvFile,row.names=F,append=F,quote=F,fileEnc
 
 ```{r}
 fun.readData()
-commonTitle<-"貸出･預金動向.速報:"
-dataSource<-"\nデータ出所:日本銀行"
+commonTitle<-"機械受注統計調査:"
+dataSource<-"\nデータ出所:内閣府"
 ```
 
 ```{r}
@@ -355,7 +355,7 @@ Vavg<-mean(tmp.dataset[,2])
 Vmed<-median(tmp.dataset[,2])
 Vvar<-var(tmp.dataset[,2])
 switch(monthly,
-timeDiff<-paste(",Difference:",(as.yearmon(as.Date(latestDate))-as.yearmon(as.Date(firstDate)))*12,"months"),  
+timeDiff<-paste(",Difference:",nrow(tmp.dataset)-1,"months"),  
 timeDiff<-paste(",Difference:",(as.Date(latestDate)-as.Date(firstDate)),"days")  
 )  
 plotText<<-paste(
