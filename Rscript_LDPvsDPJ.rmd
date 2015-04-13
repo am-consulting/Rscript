@@ -32,8 +32,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"貸出･預金動向.速報:"
-dataSource<-"\nデータ出所:日本銀行"
+commonTitle<-"機械受注統計調査:"
+dataSource<-"\nデータ出所:内閣府"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -191,6 +191,8 @@ for(ccc in 2:ncol(dataset)){
   resultDPJ12<-tail(dpjData,1)
   resultDPJ13<-length(dpjData[dpjData<0])
   resultDPJ14<-length(dpjData[dpjData>=0])
+  resultDPJ15<-sum(dpjData)
+  resultDPJ16<-(tail(dpjData,1)-head(dpjData,1))/length(dpjData)
   ldpData<-data[[2]][,2]
   resultLDP01<-format(mean(ldpData),digits=3)
   resultLDP02<-median(ldpData)  
@@ -201,11 +203,15 @@ for(ccc in 2:ncol(dataset)){
   resultLDP12<-tail(ldpData,1)
   resultLDP13<-length(ldpData[ldpData<0])
   resultLDP14<-length(ldpData[ldpData>=0])
+  resultLDP15<-sum(ldpData)
+  resultLDP16<-(tail(ldpData,1)-head(ldpData,1))/length(ldpData)
   resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,
-    ",最小値:",resultDPJ04,",不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,",<0:",resultDPJ13,",0<=:",resultDPJ14,
+    ",最小値:",resultDPJ04,",不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,
+    ",<0:",resultDPJ13,",0<=:",resultDPJ14,"\n合計:",resultDPJ15,",政権期間変化率(/月):",resultDPJ16,
     sep="")
   resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,
-    ",最小値:",resultLDP04,",不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,",<0:",resultLDP13,",0<=:",resultLDP14,
+    ",最小値:",resultLDP04,",不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,
+    ",<0:",resultLDP13,",0<=:",resultLDP14,"\n合計:",resultLDP15,",政権期間変化率(/月):",resultLDP16,
     sep="")
   result<-c(resultDPJ,resultLDP)
   outputlabels<-paste(labels,result,sep="")
