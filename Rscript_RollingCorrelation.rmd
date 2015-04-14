@@ -20,19 +20,19 @@ ts.source<-list()
 dataset<-list()
 reference<-list()
 allData<-xts()
-ts.source[[1]]<-c("yahoo",4,"https://www.yahoo.com/","^N225","^HSI","^AXJO","^GSPC","NDX","^RUT","^FTSE")
+ts.source[[1]]<-c("yahoo",4,"https://www.yahoo.com/","^N225","^HSI","^AXJO","^GSPC","^RUT","^FTSE")#"NDX",
 ts.source[[2]]<-c("yahoo",4,"https://www.yahoo.com/","^STI","^KS11","^TWII","^GDAXI","^FCHI","^BVSP")
-ts.source[[3]]<-c("oanda",1,"http://www.oanda.com/","AUD","JPY","EUR","GBP","NZD","ZAR","CHF","CAD","XAU","BRL","KRW","RUB","CNY")
+ts.source[[3]]<-c("oanda",1,"http://www.oanda.com/","AUD","JPY","EUR","GBP","NZD","ZAR","CHF","CAD","XAU","BRL","RUB")#,"KRW","CNY"
 cnt<-0
 for(lll in 1:length(ts.source)){
   for(iii in 4:length(ts.source[[lll]])){
     cnt<-cnt+1
     if(ts.source[[lll]][1]=="oanda"){
-#      if(ts.source[[lll]][iii]=="JPY" | ts.source[[lll]][iii]=="CHF" | ts.source[[lll]][iii]=="ZAR" | ts.source[[lll]][iii]=="KRW"){
-#        item<-paste("USD/",ts.source[[lll]][iii],sep="")
-#      }else{
+      if(ts.source[[lll]][iii]=="JPY" | ts.source[[lll]][iii]=="CHF" | ts.source[[lll]][iii]=="ZAR" | ts.source[[lll]][iii]=="KRW"){
+        item<-paste("USD/",ts.source[[lll]][iii],sep="")
+      }else{
         item<-paste(ts.source[[lll]][iii],"/USD",sep="")
-#      }
+      }
     }
     else{
       item<- ts.source[[lll]][iii]
@@ -48,32 +48,57 @@ for(lll in 1:length(ts.source)){
 ```
 
 ```{r}
-setwd(pathOutput)
-lag<-28
+pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+cor.fun=function(x){cor(x)[1,2]}
 firstDate<-Sys.Date()
 year(firstDate)<-year(firstDate)-1
-for(iii in 1:cnt){
+for(iii in seq(1,cnt,by=2)){
+  setwd(pathOutput)
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1400,height=900)
-  par(mar=c(5,5,10,5))
-  tmp<-dataset[[iii]][paste(firstDate,"::",sep="")]
-  maxDate<-paste(index(subset(tmp,max(tmp[,1])==tmp[,1])),collapse=",")
-  maxValue<-unique(as.vector(subset(tmp,max(tmp[,1])==tmp[,1])[,1]))
-  minDate<-paste(index(subset(tmp,min(tmp[,1])==tmp[,1])),collapse=",")
-  minValue<-unique(as.vector(subset(tmp,min(tmp[,1])==tmp[,1])[,1]))
-  mainTitle<-paste("ローリング回帰 トレンドの期間:",lag,"(日間)\n",head(index(tmp),1),"-",
-    tail(index(tmp),1),"\nHighest:",maxDate,maxValue," , Lowest:",minDate,minValue,"\nData Source:",reference[[iii]])
-  chart.RollingCorrelation(tmp[,2],tmp[,1],legend.loc="bottomleft",width=lag,main=mainTitle,type="h",col=grey(0.5),cex.legend=3,cex.axis=3,cex.main=2,ylab="",sub="sub")
+  png(file=png.file,width=1920,height=1080)
+  par(mfrow=c(1,2),mar=c(5,8,10,8),family="Meiryo")
+  for(ccc in seq(iii,iii+1)){
+  if(cnt<ccc){break}  
+  if(regexpr("oanda",reference[[ccc]])!=-1){
+    lag<-30
+  }else{
+    lag<-30
+  }  
+  tmp<-dataset[[ccc]][paste(firstDate,"::",sep="")]
+  correlation<-na.omit(rollapply(tmp,FUN=cor.fun,width=lag,by.column=F,align="right"))  
+  lengthMinus<-length(correlation[correlation<0])  
+  lengthPlus<-length(correlation[correlation>=0])  
+  ratioMinus<-round(lengthMinus/(lengthMinus+lengthPlus)*100)
+  print(colnames(tmp)[1])
+  print(tail(correlation,10))
+  cat("\n\n") 
+  setwd(dir.list)
+  csvFile<-paste(colnames(tmp)[1],".csv",sep="")
+  csvData<-data.frame(date=index(correlation),correlation, row.names=NULL)
+  colnames(csvData)[2]<-paste(colnames(tmp)[1],".",colnames(csvData)[2],sep="")  
+  write.csv(tail(csvData,30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+  mainTitle<-paste("ローリング回帰 ラグのスパン:",lag,"(日間)\n",colnames(tmp)[1],
+    ", correlation<0:",lengthMinus,",Ratio(%):",ratioMinus,"\n",head(index(tmp),1),"-",tail(index(tmp),1),"\nData Source:",reference[[iii]])
+  chart.RollingCorrelation(tmp[,2],tmp[,1],width=lag,
+    main=mainTitle,type="h",col=grey(0.5),cex.legend=3,cex.axis=2,cex.main=2.5,cex.lab=3,ylab="correlation",xaxis=T,date.format="%Y/%m/%d")
   par(new=T)
-  chart.TimeSeries(tmp[,1],main="",yaxis.right=T,xaxis=F,legend.loc="topleft",lwd=3,cex.legend=3,cex.axis=3,col="blue",grid.color="blue",ylab="") #共に,ylab=""とする。
+  chart.TimeSeries(tmp[,1],main="",yaxis.right=T,xaxis=T,lwd=3,
+    cex.legend=3,cex.axis=2,cex.lab=2,col="blue",grid.color="blue",ylab="",date.format="%Y/%m/%d") #共に,ylab=""とする。
+  mtext(colnames(tmp)[1],side=4,line=3,cex=3)
+  }
   dev.off()
 }
 ```
 
 ```{r}
-selectedObject<-c(1,4,7,11,12,13,14,15,16,17,19,22)
+colnames(allData)
+selectedObject<-c(1,4,6,10,11,12,13,14,15,16,18,21)
 setwd(pathOutput)
 tmp.allData<-list()
 tmp.allData[[1]]<-na.omit(allData)
@@ -89,7 +114,8 @@ for(iii in 2:2){ #一次階差のみとする
     png.file<-paste(addVer,".png",sep="")
     png(file=png.file,width=1920,height=1080)
     par(mar=c(10,10,10,10))
-    mainTitle<-paste("Data:",dataType," , Method:",toupper(corrMethod[mmm])," , Period:",format(head(index(selectedData),1),"%Y-%m-%d"),"-",format(tail(index(selectedData),1),"%Y-%m-%d"))
+    mainTitle<-paste("Data:",dataType," , Method:",toupper(corrMethod[mmm]),
+      " , Period:",format(head(index(selectedData),1),"%Y-%m-%d"),"-",format(tail(index(selectedData),1),"%Y-%m-%d"))
     chart.Correlation(selectedData,histogram=F,method=corrMethod[mmm],main=mainTitle,cex.main=3,cex.text=5)
     dev.off()
   }
@@ -147,4 +173,8 @@ for(iii in 2:2){
     dev.off()
   }
 }
+setwd(dir.list)
+colnames(grand.result)<-c("Pair","Correlation")
+csvFile<-paste("finance.correlation.1stDifference.spearman.csv",sep="")
+write.csv(grand.result,csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 ```
