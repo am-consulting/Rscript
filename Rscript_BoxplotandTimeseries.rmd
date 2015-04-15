@@ -11,7 +11,7 @@ SD<-Sys.Date()
 setwd(pathOutput)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
-  dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F)
+  dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"))
   dataset[,1]<-as.Date(dataset[,1])
   monthly<<-2 #日次
   if(unique(day(dataset[,1]))==1){#月次データの日付は月中に変更
@@ -94,13 +94,13 @@ write.csv(na.omit(tail(dataset,30)),csvFile,row.names=F,append=F,quote=F,fileEnc
 
 ```{r}
 fun.readData()
-commonTitle<-"米ドル-日本円購買力平価:"
-dataSource<-"\nデータ出所:公益社団法人国際通貨研究所"
+commonTitle<-"市場第一部PER.PBR:"
+dataSource<-"\nデータ出所:株式会社日本取引所グループ"
 ```
 
 ```{r}
 setwd(pathOutput)
-forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 switch(monthly,
   dateFormat<-"%Y/%m",
   dateFormat<-"%Y/%m/%d"
