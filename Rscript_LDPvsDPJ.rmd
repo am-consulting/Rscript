@@ -33,8 +33,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"機械受注統計調査:"
-dataSource<-"\nデータ出所:内閣府"
+commonTitle<-"市場第一部PER.PBR:"
+dataSource<-"\nデータ出所:株式会社日本取引所グループ"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -84,6 +84,7 @@ for(ccc in 2:ncol(dataset)){
   for(mmm in 1:length(changePoint)){
     if(nrow(data[[mmm]])!=0){
     start<-nrow(subset(data[[mmm]],data[[mmm]][,1]<changePoint[mmm]))
+    if(start!=0){
     end<-nrow(subset(data[[mmm]],data[[mmm]][,1]>changePoint[mmm]))
     data[[mmm]]$monthID<-rep(-start:end,length=nrow(data[[mmm]]))
     points(data[[mmm]][,3],data[[mmm]][,2],col=cols[mmm])
@@ -135,6 +136,9 @@ for(ccc in 2:ncol(dataset)){
       result09,",不偏分散:",result10,",開始:",result21,",終了:",result22,",<0:",result23,",0<=:",result24,
       "\nマンホイットニU検定.p値:",(wilcox.exact(beforeData,afterData,paired=F))$p.value,
       sep="")
+  }else{
+    periodResult[[mmm]]<-"\nNo Data"  
+  }  
   }else{
     periodResult[[mmm]]<-"\nNo Data"  
   }
