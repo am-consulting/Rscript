@@ -90,17 +90,18 @@ ST<-Sys.time()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 csvFile<-paste("日米国債金利及び金利差",".csv",sep="")    
 write.csv(na.omit(tail(dataset,30)),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
 ```{r}
 fun.readData()
 commonTitle<-"市場第一部PER.PBR:"
 dataSource<-"\nデータ出所:株式会社日本取引所グループ"
+forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
 ```{r}
 setwd(pathOutput)
-forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 switch(monthly,
   dateFormat<-"%Y/%m",
   dateFormat<-"%Y/%m/%d"
