@@ -14,7 +14,6 @@ pathWmap<<-paste("C:/Users/",username,"/Desktop/ne_50m_admin_0_countries/",sep="
 SD<-Sys.Date()
 creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
 setwd(pathOutput)
-windowsFonts()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
   dataset<<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F)
@@ -32,59 +31,64 @@ fun.readData()
 
 ```{r}
 ########################################## time series ##########################################
-chartType<-2 #1:line , 2:bar
-fitType<-2 #1:lm , 2:loess
+mainTitle<-"購買力平価:米ドル-日本円為替レート"
+dataSource<-"\nData Source:公益財団法人国際通貨研究所"
+chartType<-1 #1:line , 2:bar
+fitType<-3 #1:lm , 2:loess ,3:none
+tailNumber<-5000
 setwd(pathOutput)
-tailNumber<-50
-if(colnames(dataset)[1]=="date"){
+if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
 }else{
   dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
 }
-buf.colnames<-colnames(dataset)
-for(zzz in 2:length(dataset)){
-  buf.dataset<-tail(dataset[,c(1,zzz)],tailNumber)  
-  SD<-Sys.Date()
-  ST<-Sys.time()  
-  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1400,height=900)
-  mainTitle<-buf.colnames[zzz]
-  mainTitle<-gsub("source","\nData Source:",mainTitle)
-  mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
-  colnames(buf.dataset)<-c("xvalue","yvalue")
-  g<-ggplot()
-  switch(chartType,  
-    g<-g+geom_line(data=buf.dataset,aes(x=xvalue,y=yvalue),size=2),
-    g<-g+geom_bar(data=buf.dataset,aes(x=xvalue,y=yvalue),stat="identity",position="identity",fill="blue",alpha=0.1,color="black")
-  )
-  switch(fitType,
-    g<-g+geom_smooth(data=buf.dataset,aes(x=xvalue,y=yvalue),method=lm,lwd=2),
-    g<-g+geom_smooth(data=buf.dataset,aes(x=xvalue,y=yvalue,group=1),method=loess,color="red",lwd=2)
-  )
-  g<-g+theme(plot.title=element_text(size=20,family="Meiryo"))
-  g<-g+theme(axis.title.x=element_text(size=20),axis.title.y=element_text(size=20)) 
-  g<-g+theme(axis.text.x=element_text(size=20,angle=90,hjust=1,vjust=0.5),axis.text.y=element_text(size=20)) 
-  g<-g+ggtitle(paste(mainTitle,"\n",creationDate))
-  if(colnames(dataset)[1]=="date" & regexpr("\\.月次",buf.colnames[zzz])!=-1){  
-    g<-g+scale_x_date(labels=date_format("%Y-%m"))  
-  }  
-  g<-g+xlab("")
-  g<-g+ylab("") 
-  g<-g+scale_y_continuous(labels=comma)
-  print(g)
-  dev.off()
+buf.dataset<-tail(dataset,tailNumber)  
+melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+g<-ggplot()
+g<-g+scale_y_continuous(labels=comma)
+switch(chartType,  
+  g<-g+geom_line(data=melt.dataset,aes(x=Date,y=value,color=variable),size=2),
+  g<-g+geom_bar(data=melt.dataset,aes(x=Date,y=value,color=variable),stat="identity",position="identity",fill="blue",alpha=0.1,color="black")
+)
+switch(fitType,
+  g<-g+geom_smooth(data=melt.dataset,aes(x=Date,y=value),method=lm,lwd=2),
+  g<-g+geom_smooth(data=melt.dataset,aes(x=Date,y=value,group=1,color=variable),method=loess,lwd=2),
+  g<-g
+)
+g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
+g<-g+theme(axis.title.x=element_text(size=30)) 
+g<-g+theme(axis.title.y=element_text(size=30)) 
+g<-g+theme(axis.text.x=element_text(size=40,angle=0,hjust=0.5,vjust=0.5)) 
+g<-g+theme(axis.text.y=element_text(size=40,angle=90)) 
+g<-g+theme(legend.text=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
+g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))   
+g<-g+theme(legend.position="top")          
+g<-g+ggtitle(paste(mainTitle,"\n対象期間:",format(head(buf.dataset[,1],1),"%Y/%m"),"-",format(tail(buf.dataset[,1],1),"%Y/%m"),dataSource))
+if(colnames(buf.dataset)[1]=="Date"){  
+  g<-g+scale_x_date(labels=date_format("%Y/%m"))  
 }  
+g<-g+xlab("")
+g<-g+ylab("")
+g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),
+  label=paste(format(tail(buf.dataset[,1],1),"%Y/%m"),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
+print(g)
+dev.off()
 ########################################## time series ##########################################
 ```
 
 ```{r}
 ##########################################  bar chart  ##########################################
+grandTitle<-"業種別PER.PBR"
+dataSource<-"\nData Source:株式会社日本取引所グループ"
 fun.readData()
 colorList<-c("blue","red") #改良余地あり
 titleCol<-2 
 setwd(pathOutput)
-orderType<-1 # 1:as is , 2-:colnumber
+orderType<-2 # 1:as is , 2-:colnumber
 if(colnames(dataset)[1]=="Date"){dataset[,1]<-as.Date(dataset[,1])}
 buf.colnames<-colnames(dataset)
 buf.dataset<-dataset
@@ -99,7 +103,7 @@ mainTitle<-gsub("前年同月比\\.","前年同月比(%)\n",mainTitle)
 mainTitle<-gsub("割合","割合(%)",mainTitle)
 mainTitle<-gsub("break","\n",mainTitle)
 if(orderType!=1){
-  rrr<-order(buf.dataset[,(orderType-1)],decreasing=FALSE)
+  rrr<-order(buf.dataset[,(orderType)],decreasing=FALSE)
   buf.dataset<-buf.dataset[rrr,]
 }  
 buf.dataset[,1]<-ordered(buf.dataset[,1],levels=buf.dataset[,1][length(buf.dataset[,1]):1])
@@ -127,7 +131,7 @@ g<-g+theme(axis.title.x=element_text(size=30))
 g<-g+theme(axis.title.y=element_text(size=30)) 
 g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=1,vjust=0.5)) 
 g<-g+theme(axis.text.y=element_text(size=25)) 
-g<-g+ggtitle(mainTitle)
+g<-g+ggtitle(paste(grandTitle,"\n",mainTitle,dataSource))
 if(colnames(dataset)[1]=="Date" & regexpr("\\.月次",buf.colnames[2])!=-1){  
   g<-g+scale_x_date(labels=date_format("%Y-%m"))  
 }  
