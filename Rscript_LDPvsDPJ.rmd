@@ -33,8 +33,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"市場第一部PER.PBR:"
-dataSource<-"\nデータ出所:株式会社日本取引所グループ"
+commonTitle<-""
+dataSource<-"\nデータ出所:国土交通省"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -79,8 +79,8 @@ for(ccc in 2:ncol(dataset)){
     ylimMax<-max(ylimMax,max(data[[mmm]][,2]))
     }
   }
-  ylimMax<-(ylimMax-ylimMin)/5+ylimMax
-  plot(0,0,type="n",xlim=c(-interval,interval),ylim=c(ylimMin,ylimMax+(ylimMax-ylimMin)/5),xlab="",ylab="",main=mainTitle,las=1)
+  ylimMax<-(ylimMax-ylimMin)/2+ylimMax
+  plot(0,0,type="n",xlim=c(-interval,interval),ylim=c(ylimMin,ylimMax),xlab="",ylab="",main=mainTitle,las=1)
   for(mmm in 1:length(changePoint)){
     if(nrow(data[[mmm]])!=0){
     start<-nrow(subset(data[[mmm]],data[[mmm]][,1]<changePoint[mmm]))
@@ -174,8 +174,8 @@ for(ccc in 2:ncol(dataset)){
   par(ps=20,mar=c(5,10,10,3),cex.main=1.5,cex.lab=1,cex.axis=1.5,family="Meiryo")  
   ylimMin<-min(subset(buf,changePoint[1]<=buf[,1])[,2])
   ylimMax<-max(subset(buf,changePoint[1]<=buf[,1])[,2])
-  ylimMax<-ylimMax+(ylimMax-ylimMin)/5
-  plot(0,0,type="n",xlim=c(1,xlimEnd),ylim=c(ylimMin,ylimMax+(ylimMax-ylimMin)/5),xlab="",ylab="",main=mainTitle,las=1)
+  ylimMax<-ylimMax+(ylimMax-ylimMin)/2
+  plot(0,0,type="n",xlim=c(1,xlimEnd),ylim=c(ylimMin,ylimMax),xlab="",ylab="",main=mainTitle,las=1)
   for(mmm in 1:length(data)){
     tmp<-data.frame(id=c(1:nrow(data[[mmm]])),data[[mmm]])
     points(tmp[,1],tmp[,3],col=cols[mmm])
@@ -214,18 +214,101 @@ for(ccc in 2:ncol(dataset)){
   resultLDP16<-(tail(ldpData,1)-head(ldpData,1))/length(ldpData)
   resultLDP17<-round((resultLDP13/length(ldpData))*100,2)
   resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,
-    ",最小値:",resultDPJ04,",不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,
+    ",最小値:",resultDPJ04,"\n不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,
     ",<0:",resultDPJ13,",0<=:",resultDPJ14,"\n合計:",resultDPJ15,",政権期間変化率(/月):",resultDPJ16,",割合(<0,%):",resultDPJ17,
     sep="")
   resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,
-    ",最小値:",resultLDP04,",不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,
+    ",最小値:",resultLDP04,"\n不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,
     ",<0:",resultLDP13,",0<=:",resultLDP14,"\n合計:",resultLDP15,",政権期間変化率(/月):",resultLDP16,",割合(<0,%):",resultLDP17,
     sep="")
   result<-c(resultDPJ,resultLDP)
   outputlabels<-paste(labels,result,sep="")
   legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.2,bty="n",x.intersp=0,y.intersp=3,lwd=3)
 #Non-parametric Mann-Whitney's U test
-  text(0,ylimMax+(ylimMax-ylimMin)/5,labels=paste("マンホイットニU検定.p値:",(wilcox.exact(dpjData,ldpData,paired=F))$p.value),srt=0,cex=1.5,adj=c(0,0),family="Meiryo")
+  text(0,ylimMax,labels=paste("マンホイットニU検定.p値:",(wilcox.exact(dpjData,ldpData,paired=F))$p.value),srt=0,cex=1.5,adj=c(0,0),family="Meiryo")
+  print(wilcox.test(dpjData,ldpData))
+  print(wilcox.exact(dpjData,ldpData,paired=F))
+  dev.off()
+}
+```
+
+```{r}
+labelValue<-0
+data<-list()
+setwd(pathOutput)
+labels<-c("白川日銀総裁:2008/3/20-2013/3/19\n","黒田日銀総裁:2013/3/20-\n")
+changePoint<-as.Date(c("2008/3/20","2013/3/20"))
+cols<-c("red","blue")
+ltys<-c(1,1)
+for(ccc in 2:ncol(dataset)){
+  buf<-dataset[,c(1,ccc)]
+  funPreTitle()
+  mainTitle<-paste("白川総裁時と黒田総裁就任以降の比較\n",commonTitle,preTitle,dataSource)
+  dpj<-subset(buf,changePoint[1]<=buf[,1] & buf[,1]<changePoint[2])
+  ldp<-subset(buf,changePoint[2]<=buf[,1])
+  data[[1]]<-dpj
+  data[[2]]<-ldp
+  xlimEnd<-max(nrow(data[[1]]),nrow(data[[2]]))
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1920,height=1080)
+  par(ps=20,mar=c(5,10,10,3),cex.main=1.5,cex.lab=1,cex.axis=1.5,family="Meiryo")  
+  ylimMin<-min(subset(buf,changePoint[1]<=buf[,1])[,2])
+  ylimMax<-max(subset(buf,changePoint[1]<=buf[,1])[,2])
+  ylimMax<-ylimMax+(ylimMax-ylimMin)/2
+  plot(0,0,type="n",xlim=c(1,xlimEnd),ylim=c(ylimMin,ylimMax),xlab="",ylab="",main=mainTitle,las=1)
+  for(mmm in 1:length(data)){
+    tmp<-data.frame(id=c(1:nrow(data[[mmm]])),data[[mmm]])
+    points(tmp[,1],tmp[,3],col=cols[mmm])
+    lines(tmp[,1],tmp[,3],type="l",col=cols[mmm])
+    if(labelValue==1){
+      text(tmp[,1],tmp[,3],labels=tmp[,3],srt=0,cex=1.5,adj=c(0.5,-0.5),col=cols[mmm],family="Meiryo")
+    }
+    text(tmp[1,1],tmp[1,3],labels=format(tmp[1,2],dateFormatType),srt=0,cex=1.2,adj=c(0,0),col="black",family="Meiryo")
+    text(tmp[nrow(tmp),1],tmp[nrow(tmp),3],labels=format(tmp[nrow(tmp),2],dateFormatType),
+      srt=0,cex=1.2,adj=c(1,0),col="black",family="Meiryo")
+    abline(lm(tmp[,3]~tmp[,1]),col=cols[mmm],lty="dashed",lwd=3)
+  }
+  dpjData<-data[[1]][,2]
+  resultDPJ01<-format(mean(dpjData),digits=3)
+  resultDPJ02<-median(dpjData)  
+  resultDPJ03<-max(dpjData)  
+  resultDPJ04<-min(dpjData)
+  resultDPJ05<-format(var(dpjData),digits=3)
+  resultDPJ11<-head(dpjData,1)
+  resultDPJ12<-tail(dpjData,1)
+  resultDPJ13<-length(dpjData[dpjData<0])
+  resultDPJ14<-length(dpjData[dpjData>=0])
+  resultDPJ15<-sum(dpjData)
+  resultDPJ16<-(tail(dpjData,1)-head(dpjData,1))/length(dpjData)
+  resultDPJ17<-round((resultDPJ13/length(dpjData))*100,2)
+  ldpData<-data[[2]][,2]
+  resultLDP01<-format(mean(ldpData),digits=3)
+  resultLDP02<-median(ldpData)  
+  resultLDP03<-max(ldpData)  
+  resultLDP04<-min(ldpData)  
+  resultLDP05<-format(var(ldpData),digits=3)
+  resultLDP11<-head(ldpData,1)
+  resultLDP12<-tail(ldpData,1)
+  resultLDP13<-length(ldpData[ldpData<0])
+  resultLDP14<-length(ldpData[ldpData>=0])
+  resultLDP15<-sum(ldpData)
+  resultLDP16<-(tail(ldpData,1)-head(ldpData,1))/length(ldpData)
+  resultLDP17<-round((resultLDP13/length(ldpData))*100,2)
+  resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,
+    ",最小値:",resultDPJ04,"\n不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,
+    ",<0:",resultDPJ13,",0<=:",resultDPJ14,"\n合計:",resultDPJ15,",政権期間変化率(/月):",resultDPJ16,",割合(<0,%):",resultDPJ17,
+    sep="")
+  resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,
+    ",最小値:",resultLDP04,"\n不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,
+    ",<0:",resultLDP13,",0<=:",resultLDP14,"\n合計:",resultLDP15,",政権期間変化率(/月):",resultLDP16,",割合(<0,%):",resultLDP17,
+    sep="")
+  result<-c(resultDPJ,resultLDP)
+  outputlabels<-paste(labels,result,sep="")
+  legend("topleft",legend=outputlabels,col=cols,lty=ltys,inset=0,cex=1.2,bty="n",x.intersp=0,y.intersp=3,lwd=3)
+#Non-parametric Mann-Whitney's U test
+  text(0,ylimMax,labels=paste("マンホイットニU検定.p値:",(wilcox.exact(dpjData,ldpData,paired=F))$p.value),srt=0,cex=1.5,adj=c(0,0),family="Meiryo")
   print(wilcox.test(dpjData,ldpData))
   print(wilcox.exact(dpjData,ldpData,paired=F))
   dev.off()
