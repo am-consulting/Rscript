@@ -101,6 +101,8 @@ forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line ,
 ```
 
 ```{r}
+tttS<-1
+tttE<-1
 setwd(pathOutput)
 switch(monthly,
   dateFormat<-"%Y/%m",
@@ -218,7 +220,7 @@ for(ttt in 1:length(successiveCabinets)){
 funTimeseries<-function(){
 setwd(pathOutput)
 first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
-for(ttt in 1:2){ #ttt 1:首相 2:日銀総裁
+for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
@@ -283,7 +285,7 @@ shade<<-shade
 ###################################### boxplotパート######################################
 funBoxplot<-function(){
 setwd(pathOutput)
-for(ttt in 1:2){    
+for(ttt in tttS:tttE){    
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
