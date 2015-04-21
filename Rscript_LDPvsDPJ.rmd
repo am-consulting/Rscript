@@ -33,8 +33,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-""
-dataSource<-"\nデータ出所:国土交通省"
+commonTitle<-"景気動向指数.一致系列:"
+dataSource<-"\nデータ出所:内閣府"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -89,9 +89,12 @@ for(ccc in 2:ncol(dataset)){
     data[[mmm]]$monthID<-rep(-start:end,length=nrow(data[[mmm]]))
     points(data[[mmm]][,3],data[[mmm]][,2],col=cols[mmm])
     lines(data[[mmm]][,3],data[[mmm]][,2],type="l",col=cols[mmm])
-    text(head(data[[mmm]][,3],1),head(data[[mmm]][,2],1),labels=format(head(data[[mmm]][,1],1),dateFormatType),srt=0,cex=1.2,adj=c(0,0),col="black",family="Meiryo")
-    text(0,data[[mmm]][25,2],labels=format(data[[mmm]][25,1],dateFormatType),srt=0,cex=1.2,adj=c(0,0),col="black",family="Meiryo")
-    text(tail(data[[mmm]][,3],1),tail(data[[mmm]][,2],1),labels=format(tail(data[[mmm]][,1],1),dateFormatType),srt=0,cex=1.2,adj=c(1,0),col="black",family="Meiryo")
+    text(head(data[[mmm]][,3],1),head(data[[mmm]][,2],1),
+      labels=format(head(data[[mmm]][,1],1),dateFormatType),srt=0,cex=1.2,adj=c(0,0),col="black",family="Meiryo")
+    text(0,data[[mmm]][data[[mmm]][,3]==0,2],
+      labels=format(data[[mmm]][data[[mmm]][,3]==0,1],dateFormatType),srt=0,cex=1.2,adj=c(0,0),col="black",family="Meiryo")
+    text(tail(data[[mmm]][,3],1),tail(data[[mmm]][,2],1),
+      labels=format(tail(data[[mmm]][,1],1),dateFormatType),srt=0,cex=1.2,adj=c(1,0),col="black",family="Meiryo")
     if(labelValue==1){
       text(data[[mmm]][,3],data[[mmm]][,2],labels=paste(data[[mmm]][,2],sep=""),srt=90,cex=1.5,adj=0,col=cols[mmm],family="Meiryo")
     }
