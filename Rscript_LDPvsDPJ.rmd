@@ -33,8 +33,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"景気動向指数.一致系列:"
-dataSource<-"\nデータ出所:内閣府"
+commonTitle<-"財務省貿易統計"
+dataSource<-"\nデータ出所:財務省"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){

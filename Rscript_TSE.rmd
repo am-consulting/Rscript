@@ -1,5 +1,5 @@
 ```{r}
-period<-c("03/30～04/03","04/06～04/10")
+period<-c("04/06～04/10","04/13～04/17")
 dataType<-1 # 1売買代金,2株数
 library(ggplot2)
 library(gridExtra)

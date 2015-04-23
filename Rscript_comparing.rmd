@@ -228,15 +228,19 @@ dev.off()
 
 ```{r}
 setwd(pathOutput)
-for(ppp in 1:2){
+for(ppp in 3:3){
 if(ppp==1){
   firstDifference1<-na.omit(diff(allData[,2],lag=1,diff=1))
   firstDifference2<-na.omit(diff(allData[,3],lag=1,diff=1))
   title0<-"1次階差(差分)の相互相関係数\n"
-}else{
+}else if(ppp==2){
   firstDifference1<-na.omit(rank(diff(allData[,2],lag=1,diff=1)))
   firstDifference2<-na.omit(rank(diff(allData[,3],lag=1,diff=1)))
   title0<-"1次階差(差分後順位)の相互相関係数\n"
+}else{
+  firstDifference1<-allData[,2]
+  firstDifference2<-allData[,3]
+  title0<-"原系列の相互相関係数(単位根検定結果に注意ください)\n"
 }  
 title<-paste(
   title0,
@@ -253,7 +257,7 @@ resultCCF<-ccf(firstDifference2,firstDifference1,lag.max=36)
 acf<-resultCCF$acf[,,1]
 lag<-resultCCF$lag[,,1]
 resultDF<-data.frame(acf,lag)
-resultMax<-resultDF[which.max(resultDF$acf),]
+resultMax<-resultDF[which.max(abs(resultDF$acf)),]
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste(addVer,".png",sep="")
