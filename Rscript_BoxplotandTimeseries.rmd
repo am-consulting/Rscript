@@ -95,8 +95,8 @@ forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 fun.readData()
-commonTitle<-"市場第一部PER.PBR:"
-dataSource<-"\nデータ出所:株式会社日本取引所グループ"
+commonTitle<-"財務省貿易統計"
+dataSource<-"\nデータ出所:財務省"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
