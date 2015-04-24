@@ -95,8 +95,8 @@ forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 fun.readData()
-commonTitle<-"財務省貿易統計"
-dataSource<-"\nデータ出所:財務省"
+commonTitle<-"消費税を除く企業向けサービス価格指数:"
+dataSource<-"\nデータ出所:日本銀行"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
