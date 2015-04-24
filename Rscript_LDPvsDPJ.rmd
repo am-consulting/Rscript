@@ -33,8 +33,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"財務省貿易統計"
-dataSource<-"\nデータ出所:財務省"
+commonTitle<-"消費税を除く企業向けサービス価格指数:"
+dataSource<-"\nデータ出所:日本銀行"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -63,7 +63,7 @@ for(ccc in 2:ncol(dataset)){
   ylimMin<-10^10
   ylimMax<-(-1)*10^10
   result<-NULL
-  buf<-dataset[,c(1,ccc)]
+  buf<-na.omit(dataset[,c(1,ccc)])
   funPreTitle()
   mainTitle<-paste("消費税導入･増税前後の時系列推移\n",commonTitle,preTitle,dataSource)
   ST<-Sys.time()  
@@ -162,7 +162,7 @@ changePoint<-as.Date(c("2009/9/16","2012/12/26"))
 cols<-c("red","blue")
 ltys<-c(1,1)
 for(ccc in 2:ncol(dataset)){
-  buf<-dataset[,c(1,ccc)]
+  buf<-na.omit(dataset[,c(1,ccc)])
   funPreTitle()
   mainTitle<-paste("民主党政権と自民党政権(第二次安倍政権以降)の比較\n",commonTitle,preTitle,dataSource)
   dpj<-subset(buf,changePoint[1]<=buf[,1] & buf[,1]<changePoint[2])
