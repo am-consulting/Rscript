@@ -13,11 +13,11 @@ fun.readData<-function(){
 ```
 
 ```{r}
-fun.readData()#dataset<-dataset[order(dataset[,2],decreasing=T),]
-if(colnames(dataset)[1]=="Date"){ #1列目が日付でない場合、強制的にオーダー化する
+fun.readData()
+if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
 }else{
-  dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
+  dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])]) #1列目が日付でない場合、強制的にオーダー化する
 }
 ```
 
@@ -30,10 +30,10 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"日本の鉱工業指数生産指数(季節調整値,データ出所：経済産業省)"
-tailNumber<-2400
-plotType<-1 #1:line , 2:bar
-orderColumn<-0
+overallTitle<-"建設技能労働者過不足率(%)の推移(全国,原数値):2015年3月(データ出所：国土交通省)"
+tailNumber<-12
+plotType<-2 #1:line , 2:bar
+orderColumn<-1
 orderDirection<-"desc" #asc
 dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
@@ -47,6 +47,7 @@ switch(dateFormat,
 ```
 
 ```{r}
+#only html
 setwd(pathOutput)
 col<-list()
 grandData<-NULL
@@ -54,10 +55,6 @@ header<-NULL
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 htmlFile<-paste(addVer,".html",sep="")
-mfrowTYpe<-c(2,ceiling((ncol(dataset)-1)/2))
-png.file<-paste(addVer,".png",sep="")
-png(file=png.file,width=1400,height=900)
-par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(12,5,5,5),cex.main=1.0,cex.lab=1,cex.axis=0.8)
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
 cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
@@ -86,29 +83,10 @@ for(ccc in 1:ncol(dataset)){
     )
   }else{  
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
-    #plot part
-    tmp<-tail(dataset,tailNumber)
-    if(3<=dateFormat){
-      plotX<-as.Date(tmp[,1])
-      mainTitle<-paste(colnames(tmp)[ccc],"\n期間:",
-        format(as.Date(head(tmp[,1],1)),dateFormatType),"-",format(as.Date(tail(tmp[,1],1)),dateFormatType))
-    }else{
-      plotX<-tmp[,1]
-      mainTitle<-paste(colnames(tmp)[ccc],"\n期間:",head(tmp[,1],1),"-",tail(tmp[,1],1))
-    }
-    if(plotType==1){
-      plot(plotX,tmp[,ccc],type="l",main=mainTitle,family="Meiryo",ylab="",xlab="")
-    }else{
-      barplot(names.arg=tmp[,1],tmp[,ccc],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col="blue",yaxt="n") 
-      axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="g", big.mark=','),las=2)
-    }  
-    #plot part
   }  
   grandData<-cbind(grandData,col[[ccc]])
   header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
 }
-title(overallTitle,outer=TRUE,cex.main=1.5,family="Meiryo")
-dev.off()
 tableHtml<-"<table cellpadding=\"0\" cellspacing=\"0\" id=\"am-consulting\" width=\"100%\" class=\"display\"><thead>"
 tableHtml<-paste(tableHtml,header,"</thead>",sep="")
 cat(tableHtml,file=htmlFile,append=T)
@@ -120,87 +98,32 @@ cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
 
 ```{r}
 setwd(pathOutput)
-cols<-c("red","black","blue")
-ltys<-c(1,1,1)
-labels<-c("1989年4月消費税導入前後4年間","1997年4月消費税増税前後4年間","2014年4月消費税増税前後4年間")
-changePoint<-as.Date(c("1989/4/1","1997/4/1","2014/4/1"))
-data<-list()
-interval<-24
-dataset[,1]<-as.Date(dataset[,1])  
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-png.file<-paste(addVer,".png",sep="")
-png(file=png.file,width=1400,height=900)
 mfrowTYpe<-c(2,ceiling((ncol(dataset)-1)/2))
-par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(3,3,5,3),cex.main=1.2,cex.lab=1,cex.axis=1.0,family="Meiryo")  
-for(ccc in 2:ncol(dataset)){
-  plot(0,0,type="n",xlim=c(-interval,interval),ylim=c(min(dataset[,ccc]),max(dataset[,ccc])),xlab="",ylab="",main=colnames(dataset)[ccc])
-  tmp<-dataset[,c(1,ccc)]
-  for(mmm in 1:length(changePoint)){
-    data[[mmm]]<-subset(tmp,(changePoint[mmm]-months(interval))<=tmp[,1] & tmp[,1]<=(changePoint[mmm]+months(interval)))
-    start<-nrow(subset(data[[mmm]],data[[mmm]][,1]<changePoint[mmm]))
-    end<-nrow(subset(data[[mmm]],data[[mmm]][,1]>changePoint[mmm]))
-    data[[mmm]]$monthID<-rep(-start:end,length=nrow(data[[mmm]]))
-    points(data[[mmm]][,3],data[[mmm]][,2],col=cols[mmm])
-    lines(data[[mmm]][,3],data[[mmm]][,2],type="l",col=cols[mmm])
-    text(data[[mmm]][,3],data[[mmm]][,2],labels=paste(data[[mmm]][,2],sep=""),srt=90,cex=0.6,adj=0,col=cols[mmm],family="Meiryo")
-  }
-  legend("topleft",legend=labels,col=cols,lty=ltys)
-}
-title(overallTitle,outer=TRUE,cex.main=1.5,family="Meiryo")
-dev.off()
-```
-
-```{r}
-setwd(pathOutput)
-chartLayout<-1
-overallTitle<-"民主党政権と自民党政権(第二次安倍政権以降)の比較:鉱工業生産指数 データ出所：経済産業省\n月次データの日付は次の例の通り:(例)2015年1月→2015年1月15日,2015年2月→2015年2月14日"
-labels<-c("民主党政権:2009/9/16-2012/12/25","自民党政権:2012/12/26-")
-labelValue<-0
-changePoint<-as.Date(c("2009/9/16","2012/12/26"))
-monthly<-2
-buf<-dataset
-if(unique(day(buf[,1]))==1){#月次データの日付は14日または15日に変更
-  buf[,1]<-as.Date(paste(year(buf[,1]),"-",month(buf[,1]),"-",floor(days_in_month(buf[,1])/2),sep=""))
-  monthly<-1
-}
-switch(monthly,
-  dateFormatType<-"%Y/%m",
-  dateFormatType<-"%Y/%m/%d",
-  dateFormatType<-"%Y"
-) 
-cols<-c("red","blue")
-ltys<-c(1,1)
-data<-list()
-dpj<-subset(buf,changePoint[1]<=buf[,1] & buf[,1]<changePoint[2])
-ldp<-subset(buf,changePoint[2]<=buf[,1])
-data[[1]]<-dpj
-data[[2]]<-ldp
-xlimEnd<-max(nrow(data[[1]]),nrow(data[[2]]))
-ST<-Sys.time()  
-addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1400,height=900)
-mfrowTYpe<-c(chartLayout,ceiling((ncol(buf)-1)/chartLayout))
-par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(3,3,5,3),cex.main=1.2,cex.lab=1,cex.axis=1.0,family="Meiryo")  
-for(ccc in 2:ncol(buf)){
-  ylimMin<-min(subset(buf,changePoint[1]<=buf[,1])[,ccc])
-  ylimMax<-max(subset(buf,changePoint[1]<=buf[,1])[,ccc])
-  plot(0,0,type="n",xlim=c(1,xlimEnd),ylim=c(ylimMin,ylimMax),xlab="",ylab="",main=colnames(buf)[ccc])
-  for(mmm in 1:length(data)){
-    tmpDF<-data.frame(id=c(1:nrow(data[[mmm]])),data[[mmm]])
-    tmp<-tmpDF[,c(1,2,ccc+1)]
-    points(tmp[,1],tmp[,3],col=cols[mmm])
-    lines(tmp[,1],tmp[,3],type="l",col=cols[mmm])
-    if(labelValue==1){
-      text(tmp[,1],tmp[,3],labels=tmp[,3],srt=0,cex=0.7,adj=0,col=cols[mmm],family="Meiryo")
-    }
-    text(tmp[1,1],tmp[1,3],labels=format(tmp[1,2],dateFormatType),srt=0,cex=1,adj=0,col="black",family="Meiryo")
-    text(tmp[nrow(tmp),1],tmp[nrow(tmp),3],labels=format(tmp[nrow(tmp),2],dateFormatType),srt=0,cex=1,adj=1,col="black",family="Meiryo")
-    abline(lm(tmp[,3]~tmp[,1]),col=cols[mmm],lty="dashed")
-  }
-  legend("topleft",legend=labels,col=cols,lty=ltys)
+par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(10,5,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5)
+if(colnames(dataset[1])!="Date"){
+  dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
 }
-title(overallTitle,outer=TRUE,cex.main=1.2,family="Meiryo")
+for(ccc in 2:ncol(dataset)){
+  tmp<-tail(dataset,tailNumber)
+  if(3<=dateFormat){
+    plotX<-as.Date(tmp[,1])
+    mainTitle<-paste(colnames(tmp)[ccc],"\n期間:",
+      format(as.Date(head(tmp[,1],1)),dateFormatType),"-",format(as.Date(tail(tmp[,1],1)),dateFormatType))
+  }else{
+    plotX<-tmp[,1]
+    mainTitle<-paste(colnames(tmp)[ccc],"\n期間:",head(tmp[,1],1),"-",tail(tmp[,1],1))
+  }
+  if(plotType==1){
+    plot(plotX,tmp[,ccc],type="l",main=mainTitle,family="Meiryo",ylab="",xlab="")
+  }else{
+    barplot(names.arg=format(plotX,dateFormatType),tmp[,ccc],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col="blue",yaxt="n") 
+    axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="g", big.mark=','),las=2)
+  }  
+}
+title(overallTitle,outer=TRUE,cex.main=2,family="Meiryo")
 dev.off()
 ```
