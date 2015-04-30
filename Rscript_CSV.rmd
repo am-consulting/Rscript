@@ -30,12 +30,12 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"建設技能労働者過不足率(%)の推移(全国,原数値):2015年3月(データ出所：国土交通省)"
+overallTitle<-"建築着工統計調査-床面積前年同月比(%):2015年3月(データ出所：国土交通省)"
 tailNumber<-12
 plotType<-2 #1:line , 2:bar
-orderColumn<-1
+orderColumn<-0
 orderDirection<-"desc" #asc
-dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
@@ -109,18 +109,23 @@ if(colnames(dataset[1])!="Date"){
 }
 for(ccc in 2:ncol(dataset)){
   tmp<-tail(dataset,tailNumber)
+  tmp<-tmp[,c(1,ccc)]
+  tmp[tmp[,2]<0,3]<-"red"  
+  tmp[0<=tmp[,2],3]<-"blue"  
+  colnames(tmp)[3]<-"color"
   if(3<=dateFormat){
     plotX<-as.Date(tmp[,1])
-    mainTitle<-paste(colnames(tmp)[ccc],"\n期間:",
+    mainTitle<-paste(colnames(tmp)[2],"\n期間:",
       format(as.Date(head(tmp[,1],1)),dateFormatType),"-",format(as.Date(tail(tmp[,1],1)),dateFormatType))
   }else{
     plotX<-tmp[,1]
-    mainTitle<-paste(colnames(tmp)[ccc],"\n期間:",head(tmp[,1],1),"-",tail(tmp[,1],1))
+    mainTitle<-paste(colnames(tmp)[2],"\n期間:",head(tmp[,1],1),"-",tail(tmp[,1],1))
   }
   if(plotType==1){
-    plot(plotX,tmp[,ccc],type="l",main=mainTitle,family="Meiryo",ylab="",xlab="")
+    plot(plotX,tmp[,2],type="l",main=mainTitle,family="Meiryo",ylab="",xlab="")
   }else{
-    barplot(names.arg=format(plotX,dateFormatType),tmp[,ccc],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col="blue",yaxt="n") 
+    barplot(names.arg=format(plotX,dateFormatType),tmp[,2],horiz=F,las=2,main=mainTitle,
+      family="Meiryo",ylab="",xlab="",col=tmp[,3],yaxt="n") 
     axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="g", big.mark=','),las=2)
   }  
 }
