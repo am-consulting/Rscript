@@ -31,11 +31,17 @@ fun.readData()
 
 ```{r}
 ########################################## time series ##########################################
-mainTitle<-"購買力平価:米ドル-日本円為替レート"
-dataSource<-"\nData Source:公益財団法人国際通貨研究所"
-chartType<-1 #1:line , 2:bar
+dateType<-1
+switch(dateType,
+  dateFormat<-"%Y/%m/%d",
+  dateFormat<-"%Y/%m"
+)  
+colorList<-c("blue","red")
+mainTitle<-"週間石油在庫統計:USOICR:製油所原油処理量"
+dataSource<-"\nData Source:U.S. Energy Information Administration"
+chartType<-2 #1:line , 2:bar
 fitType<-3 #1:lm , 2:loess ,3:none
-tailNumber<-5000
+tailNumber<-200
 setwd(pathOutput)
 if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
@@ -43,7 +49,7 @@ if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
 }
 buf.dataset<-tail(dataset,tailNumber)  
-melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])
+melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])#系列が一つでも強制的にmelt
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste(addVer,".png",sep="")
@@ -52,13 +58,15 @@ g<-ggplot()
 g<-g+scale_y_continuous(labels=comma)
 switch(chartType,  
   g<-g+geom_line(data=melt.dataset,aes(x=Date,y=value,color=variable),size=2),
-  g<-g+geom_bar(data=melt.dataset,aes(x=Date,y=value,color=variable),stat="identity",position="identity",fill="blue",alpha=0.1,color="black")
+  g<-g+geom_bar(data=melt.dataset,aes(x=Date,y=value,fill=variable),stat="identity",position="identity",alpha=0.5)
 )
 switch(fitType,
   g<-g+geom_smooth(data=melt.dataset,aes(x=Date,y=value),method=lm,lwd=2),
-  g<-g+geom_smooth(data=melt.dataset,aes(x=Date,y=value,group=1,color=variable),method=loess,lwd=2),
+  g<-g+geom_smooth(data=melt.dataset,aes(x=Date,y=value,group=1),method=loess,lwd=2,color="red"),
   g<-g
 )
+g<-g+scale_color_manual(values=colorList) 
+g<-g+scale_fill_manual(values=colorList) 
 g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
 g<-g+theme(axis.title.x=element_text(size=30)) 
 g<-g+theme(axis.title.y=element_text(size=30)) 
@@ -67,14 +75,14 @@ g<-g+theme(axis.text.y=element_text(size=40,angle=90))
 g<-g+theme(legend.text=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
 g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))   
 g<-g+theme(legend.position="top")          
-g<-g+ggtitle(paste(mainTitle,"\n対象期間:",format(head(buf.dataset[,1],1),"%Y/%m"),"-",format(tail(buf.dataset[,1],1),"%Y/%m"),dataSource))
+g<-g+ggtitle(paste(mainTitle,"\n対象期間:",format(head(buf.dataset[,1],1),dateFormat),"-",format(tail(buf.dataset[,1],1),dateFormat),dataSource))
 if(colnames(buf.dataset)[1]=="Date"){  
-  g<-g+scale_x_date(labels=date_format("%Y/%m"))  
+  g<-g+scale_x_date(labels=date_format(dateFormat))  
 }  
 g<-g+xlab("")
 g<-g+ylab("")
 g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),
-  label=paste(format(tail(buf.dataset[,1],1),"%Y/%m"),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
+  label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
 print(g)
 dev.off()
 ########################################## time series ##########################################
@@ -85,7 +93,7 @@ dev.off()
 grandTitle<-"消費税を除く企業向けサービス価格指数.2015年3月"
 dataSource<-"\nData Source:日本銀行"
 titleCol<-2 
-orderType<-2 # 1:as is , 2-:colnumber
+orderType<-1 # 1:as is(including "Date") , 2-:colnumber
 fun.readData()
 colorList<-c("blue","red") #改良余地あり
 setwd(pathOutput)
@@ -105,8 +113,8 @@ mainTitle<-gsub("break","\n",mainTitle)
 if(orderType!=1){
   rrr<-order(buf.dataset[,(orderType)],decreasing=FALSE)
   buf.dataset<-buf.dataset[rrr,]
+  buf.dataset[,1]<-ordered(buf.dataset[,1],levels=buf.dataset[,1][length(buf.dataset[,1]):1])#Dateに適用するとNAに変換されるので注意
 }  
-buf.dataset[,1]<-ordered(buf.dataset[,1],levels=buf.dataset[,1][length(buf.dataset[,1]):1])
 if(ncol(buf.dataset)<=2){
   colnames(buf.dataset)<-c("xvalue","yvalue")
   buf.dataset[buf.dataset[,2]<0,3]<-"red"
