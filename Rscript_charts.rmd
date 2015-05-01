@@ -90,8 +90,8 @@ dev.off()
 
 ```{r}
 ##########################################  bar chart  ##########################################
-grandTitle<-"建築着工統計調査:2015年3月:都道府県別"
-dataSource<-"\nData Source:国土交通省"
+grandTitle<-"完全失業率:年齢階級･性別毎:2015年3月"
+dataSource<-"\nData Source:総務省"
 titleCol<-2 
 orderType<-2 # 1:as is(including "Date") , 2-:colnumber
 fun.readData()
@@ -134,12 +134,12 @@ if(ncol(buf.dataset)<=2){
   g<-g+scale_fill_manual(values=colorList) 
   g<-g+geom_text(data=melt.dataset,aes(label=value),hjust=-0.5,size=6,family="Meiryo",position=position_dodge(width=0.9))
 }  
-g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
+g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
 g<-g+theme(axis.title.x=element_text(size=30)) 
 g<-g+theme(axis.title.y=element_text(size=30)) 
 g<-g+theme(axis.text.x=element_text(size=25,angle=0,hjust=1,vjust=0.5)) 
-g<-g+theme(axis.text.y=element_text(size=25)) 
-g<-g+ggtitle(paste(grandTitle,"\n",mainTitle,dataSource))
+g<-g+theme(axis.text.y=element_text(size=24,color="black",face="bold")) 
+g<-g+ggtitle(paste(grandTitle,":",mainTitle,dataSource))
 if(colnames(dataset)[1]=="Date" & regexpr("\\.月次",buf.colnames[2])!=-1){  
   g<-g+scale_x_date(labels=date_format("%Y-%m"))  
 }  
