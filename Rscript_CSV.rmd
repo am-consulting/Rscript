@@ -5,7 +5,7 @@ pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 SD<-Sys.Date()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
-  dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F)
+  dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-"))
   dataset<<-dataset # caution
   print(head(dataset))
   print(tail(dataset))
@@ -30,12 +30,13 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"住宅着工統計-新設住宅着工:戸数前年同月比(%):2015年3月(データ出所：国土交通省)"
+overallTitle<-"有効求人倍率:2015年3月(データ出所:厚生労働省)"
 tailNumber<-12
 plotType<-2 #1:line , 2:bar
 orderColumn<-0
 orderDirection<-"desc" #asc
 dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+chartRow<-1
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
@@ -100,7 +101,7 @@ cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
 setwd(pathOutput)
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-mfrowTYpe<-c(2,ceiling((ncol(dataset)-1)/2))
+mfrowTYpe<-c(chartRow,ceiling((ncol(dataset)-1)/chartRow))
 png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1400,height=900)
 par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(10,5,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5)
