@@ -5,7 +5,7 @@ library(gridExtra)
 library(scales)
 library(lubridate)
 SD<-Sys.Date()
-year<-c((year(SD)-1):year(SD))
+year<-c((year(SD)-5):year(SD))
 username<-Sys.info()['user']
 pathCFTC<-paste("C:/Users/",username,"/Desktop/CFTC/",sep="")
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
@@ -57,12 +57,16 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 ```
 
 ```{r}
+pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
 titlefontSize<-20
 axistextfontSize<-20
 plots<-list()
 dataset<-list()
 plotData<-list()
-setwd(pathOutput)
 diff.date<-365*5
 first.date<-Sys.Date()-diff.date
 cnt<-0
@@ -75,6 +79,11 @@ for(ccc in 1:length(currency)){
   colnames(dataset[[cnt]])<-paste(colnames(dataset[[cnt]]),":",currency[ccc],sep="")
   rrr<-order(dataset[[cnt]][,1],decreasing=FALSE)
   dataset[[cnt]]<-dataset[[cnt]][rrr,]
+  setwd(dir.list)
+  csvTitle<-substr(currency[ccc],1,regexpr(" -",currency[ccc])[1])
+  csvFile<-gsub(" ","",paste("IMMポジション.",csvTitle,".csv",sep=""))    
+  write.csv(dataset[[cnt]],csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+  setwd(pathOutput)
   tmp<-na.omit(dataset[[cnt]])
   tmp<-subset(tmp,first.date<=tmp[,1])
   tmp<-tail(tmp,30)
