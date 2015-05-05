@@ -1,0 +1,179 @@
+```{r}
+requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape","quantmod")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+SD<-Sys.Date()
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
+setwd(pathOutput)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+fun.readData<-function(){
+  dataset[[cnt]]<<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-"))
+  head(dataset)
+  tail(dataset)
+}
+cnt<-0
+```
+
+```{r}
+cnt<-cnt+1
+fun.readData()
+```
+
+```{r}
+##################################################### from FRED part ####################################################
+ttt.range<-c(1:2)
+level.multi<-0
+tsSource<-list()
+dataset<-list()
+#tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DGS10","GOLDAMGBD228NLBM","DCOILWTICO")
+#tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
+#tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
+#tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS")
+for(lll in 1:length(tsSource)){
+  for(iii in 4:length(tsSource[[lll]])){
+    cnt<-cnt+1
+    item<- tsSource[[lll]][iii]
+    tmp<-getSymbols(item,src=tsSource[[lll]][1],auto.assign=FALSE)
+    tmp<-tmp[,as.numeric(tsSource[[lll]][2])]
+    dataset[[cnt]]<-data.frame(Date=index(tmp),tmp, row.names=NULL)
+  }
+}
+##################################################### from FRED part ####################################################
+```
+
+```{r}
+#data reshape part
+histgramMonth<-list()
+for(ddd in 1:length(dataset)){
+  tmpHistogram<-NULL
+  buf<-na.omit(dataset[[ddd]])  
+  buf$Month<-format(buf[,1],"%Y/%m")
+  buf$Year<-format(buf[,1],"%Y")
+  nMonth<-unique(buf$Month)
+  for(mmm in 1:length(nMonth)){
+    tmp<-subset(buf,buf$Month==nMonth[mmm])  
+    tmp01<-tmp[which.max(tmp[,2]),]  
+    tmp02<-tmp[which.min(tmp[,2]),]  
+    tmp03<-rbind(tail(tmp01,1),tail(tmp02,1))  
+    range<-round(tmp03[which.max(tmp03[,1]),][2]-tmp03[which.min(tmp03[,1]),][2],3)  
+    tmpHistogram<-rbind(tmpHistogram,
+      data.frame(
+        Date=as.Date(paste(unique(year(tmp[,1])),"-",unique(month(tmp[,1])),"-1",sep="")),
+        Range=range,
+        MaxDate=tmp03[which.max(tmp03[,2]),][1,1],
+        Max=tmp03[which.max(tmp03[,2]),][1,2],
+        MinDate=tmp03[which.min(tmp03[,2]),][1,1],
+        Min=tmp03[which.min(tmp03[,2]),][1,2]
+      )
+    )  
+  }
+  histgramMonth[[ddd]]<-tmpHistogram 
+  setwd(dir.list)
+  csvFile<-paste("1ヶ月の値幅.",colnames(histgramMonth[[ddd]])[2],".csv",sep="")    
+  write.csv(na.omit(tail(histgramMonth[[ddd]],120)),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+  #####chart part
+  setwd(pathOutput)
+  title<-paste("1ヶ月間の値幅:最高値-最低値\n",colnames(histgramMonth[[ddd]])[2],"\n",
+    format(head(histgramMonth[[ddd]][,1],1),"%Y/%m"),"-",format(tail(histgramMonth[[ddd]][,1],1),"%Y/%m"))  
+  #chart01
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1920,height=1080)
+  par(ps=20,mar=c(5,10,10,3),cex.main=2,cex.lab=2,cex.axis=1.5,family="Meiryo") 
+  hist(histgramMonth[[ddd]][,2],
+    breaks=seq(floor(min(histgramMonth[[ddd]][,2])),ceiling(max(histgramMonth[[ddd]][,2])),1),
+    col="#0000ff40",freq=F,xlab="",main=paste(title,": bin幅=1"))
+  lines(density(histgramMonth[[ddd]][,2]),col="red",lwd=2)
+  rug(histgramMonth[[ddd]][,2])
+  dev.off()  
+  #chart02
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1920,height=1080)
+  par(ps=20,mar=c(5,10,10,3),cex.main=2,cex.lab=2,cex.axis=1.5,family="Meiryo") 
+  tailrange<-100000
+  ymin<-min(tail(histgramMonth[[ddd]],tailrange)[,2])
+  ymax<-(max(tail(histgramMonth[[ddd]],tailrange)[,2])-ymin)/1.5+max(tail(histgramMonth[[ddd]],tailrange)[,2])
+  plot(tail(histgramMonth[[ddd]][,1:2],tailrange),type="h",main=title,ylim=c(ymin,ymax),col="#0000ff")
+  addtable2plot(x=head(tail(histgramMonth[[ddd]],tailrange)[,1],1),y=ymax,table=tail(histgramMonth[[ddd]],10),
+      bty="o",hlines=T,vlines=T,yjust=-0.02)
+  dev.off()
+  #chart03
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1920,height=1080)
+  par(oma=c(1,1,14,1),ps=20,mar=c(5,10,10,3),cex.main=2,cex.lab=2,cex.axis=1.5,family="Meiryo",mfrow=c(1,2)) 
+  #left part
+  qqnorm(histgramMonth[[ddd]][,2])#,main=paste("Normal Q-Q Plot\n",title))
+  qqline(histgramMonth[[ddd]][,2],col="red",lwd=2)
+  #right part
+  plot(ecdf(histgramMonth[[ddd]][,2]),main="ecdf")
+  x<-seq(floor(min(histgramMonth[[ddd]][,2])),ceiling(max(histgramMonth[[ddd]][,2])),0.01)
+  lines(x,pnorm(x,mean=mean(histgramMonth[[ddd]][,2]),sd=sqrt(var(histgramMonth[[ddd]][,2]))),col=2,lwd=2)
+  title(paste(title,"\nShapiro-Wilk normality test. p value=",
+    shapiro.test(histgramMonth[[ddd]][,2])$p.value),outer=TRUE,cex.main=2,family="Meiryo")
+  dev.off()
+  #chart04
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1920,height=1080)
+  objectDate<-subset(buf,as.Date(paste(year(Sys.Date())-3,"-1-1",sep=""))<=buf[,1])
+  meltDate<-melt(objectDate,id="Month",measure="DEXJPUS")
+  g<-ggplot(data=meltDate,aes(x=Month,y=value))
+  g<-g+geom_boxplot(lwd=1)
+  g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo")) 
+  g<-g+theme(axis.text.y=element_text(size=40,family="Meiryo")) 
+  g<-g+theme(axis.title=element_text(size=40,face="bold")) 
+  g<-g+theme(title=element_text(size=40,face="bold",family="Meiryo")) 
+  g<-g+xlab("")
+  g<-g+ylab("") 
+  g<-g+scale_y_continuous(labels=comma)
+  g<-g+ggtitle(paste(title))
+  print(g)
+  dev.off()
+  #chart05
+  title<-paste("時系列データ\n",colnames(buf)[2],"\n",
+    format(head(buf[,1],1),"%Y/%m/%d"),"-",format(tail(buf[,1],1),"%Y/%m/%d"),
+    "\n直近データ:",format(tail(buf[,1],1),"%Y/%m/%d"),"-",tail(buf[,2],1)
+    )  
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1920,height=1080)
+  g<-ggplot()
+  g<-g+geom_line(data=buf,aes(x=Date,y=buf[,2]),size=2)
+  g<-g+geom_smooth(data=buf,aes(x=Date,y=buf[,2]),method=lm)
+  g<-g+geom_smooth(data=buf,aes(x=Date,y=buf[,2]),method=loess,color="red")
+  g<-g+ggtitle(paste(title))
+  g<-g+xlab("") 
+  g<-g+ylab("") 
+  g<-g+theme(axis.text=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.title=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(legend.position="right")          
+  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold")) 
+  g<-g+scale_x_date(labels=date_format("%Y/%m"))#当面日付タイプに係らず年-月とする
+  g<-g+scale_y_continuous(labels=comma)
+  print(g)
+  dev.off() 
+  #####chart part
+}
+```
