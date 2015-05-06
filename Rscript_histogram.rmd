@@ -41,7 +41,7 @@ dataset<-list()
 #tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
 #tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
 #tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
-tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225")
 for(lll in 1:length(tsSource)){
   for(iii in 4:length(tsSource[[lll]])){
     cnt<-cnt+1
@@ -60,6 +60,7 @@ histgramMonth<-list()
 for(ddd in 1:length(dataset)){
   tmpHistogram<-NULL
   buf<-na.omit(dataset[[ddd]])  
+  buf<-subset(buf,as.Date("1980/1/1")<=buf[,1])
   buf$Month<-format(buf[,1],"%Y/%m")
   buf$Year<-format(buf[,1],"%Y")
   nMonth<-unique(buf$Month)
@@ -80,10 +81,22 @@ for(ddd in 1:length(dataset)){
       )
     )  
   }
-  histgramMonth[[ddd]]<-tmpHistogram 
+  histgramMonth[[ddd]]<-tmpHistogram
+  binWidth<-10^(floor(log10(range(histgramMonth[[ddd]][,2])[2]-range(histgramMonth[[ddd]][,2])[1]))-2)
+  histLeft<-floor((range(histgramMonth[[ddd]][,2])[1])/binWidth)*binWidth
+  histright<-ceiling((range(histgramMonth[[ddd]][,2])[2])/binWidth)*binWidth
+  histgramData<-NULL
+  for(iii in 0:((histright-histLeft)/binWidth)){
+    number<-nrow(subset(histgramMonth[[ddd]],
+      histLeft+iii*binWidth<=histgramMonth[[ddd]][,2] & histgramMonth[[ddd]][,2]<histLeft+(iii+1)*binWidth)) 
+    histgramData<-rbind(histgramData,data.frame(Bin=histLeft+iii*binWidth,Frequency=number))
+  }
+  histgramData$Ratio<-round(histgramData[,2]/sum(histgramData[,2])*100,2)
   setwd(dir.list)
   csvFile<-paste("1ヶ月の値幅.",colnames(histgramMonth[[ddd]])[2],".csv",sep="")    
   write.csv(na.omit(tail(histgramMonth[[ddd]],120)),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+  csvFile<-paste("1ヶ月の値幅.頻度.割合.",colnames(histgramMonth[[ddd]])[2],".csv",sep="")    
+  write.csv(histgramData,csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
   #####chart part
   setwd(pathOutput)
   title<-paste("1ヶ月間の値幅:最高値-最低値\n",colnames(histgramMonth[[ddd]])[2],"\n",
@@ -95,8 +108,8 @@ for(ddd in 1:length(dataset)){
   png(file=png.file,width=1920,height=1080)
   par(ps=20,mar=c(5,10,10,3),cex.main=2,cex.lab=2,cex.axis=1.5,family="Meiryo") 
   hist(histgramMonth[[ddd]][,2],
-    breaks=seq(floor(min(histgramMonth[[ddd]][,2])),ceiling(max(histgramMonth[[ddd]][,2])),1),
-    col="#0000ff40",freq=F,xlab="",main=paste(title,": bin幅=1"))
+    breaks=seq(histLeft,histright,binWidth),
+    col="#0000ff40",freq=F,xlab="",main=paste(title,": bin幅=",binWidth))
   lines(density(histgramMonth[[ddd]][,2]),col="red",lwd=2)
   rug(histgramMonth[[ddd]][,2])
   dev.off()  
@@ -118,16 +131,16 @@ for(ddd in 1:length(dataset)){
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1920,height=1080)
-  par(oma=c(1,1,14,1),ps=20,mar=c(5,10,10,3),cex.main=2,cex.lab=2,cex.axis=1.5,family="Meiryo",mfrow=c(1,2)) 
+  par(oma=c(1,1,10,1),ps=20,mar=c(5,10,10,3),cex.main=2,cex.lab=2,cex.axis=1.5,family="Meiryo",mfrow=c(1,2)) 
   #left part
-  qqnorm(histgramMonth[[ddd]][,2])#,main=paste("Normal Q-Q Plot\n",title))
+  qqnorm(histgramMonth[[ddd]][,2])
   qqline(histgramMonth[[ddd]][,2],col="red",lwd=2)
   #right part
   plot(ecdf(histgramMonth[[ddd]][,2]),main="ecdf")
   x<-seq(floor(min(histgramMonth[[ddd]][,2])),ceiling(max(histgramMonth[[ddd]][,2])),0.01)
   lines(x,pnorm(x,mean=mean(histgramMonth[[ddd]][,2]),sd=sqrt(var(histgramMonth[[ddd]][,2]))),col=2,lwd=2)
   title(paste(title,"\nShapiro-Wilk normality test. p value=",
-    shapiro.test(histgramMonth[[ddd]][,2])$p.value),outer=TRUE,cex.main=2,family="Meiryo")
+    shapiro.test(histgramMonth[[ddd]][,2])$p.value),outer=TRUE,cex.main=1.5,family="Meiryo")
   dev.off()
   #chart04
   ST<-Sys.time()  
@@ -135,7 +148,8 @@ for(ddd in 1:length(dataset)){
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1920,height=1080)
   objectDate<-subset(buf,as.Date(paste(year(Sys.Date())-3,"-1-1",sep=""))<=buf[,1])
-  meltDate<-melt(objectDate,id="Month",measure="DEXJPUS")
+  colnames(objectDate)[2]<-"Index"
+  meltDate<-melt(objectDate,id="Month",measure="Index")
   g<-ggplot(data=meltDate,aes(x=Month,y=value))
   g<-g+geom_boxplot(lwd=1)
   g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo")) 
@@ -174,6 +188,20 @@ for(ddd in 1:length(dataset)){
   g<-g+scale_y_continuous(labels=comma)
   print(g)
   dev.off() 
+  #chart06
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1920,height=1080)
+  par(oma=c(1,1,10,1),ps=20,mar=c(5,2,5,1),cex.main=2,cex.lab=2,cex.axis=1.0,family="Meiryo",mfrow=c(1,2)) 
+  tmp<-subset(histgramData,histgramData[,2]!=0)
+  dataOrder<-order(tmp[,2],decreasing=T)
+  tmp<-tmp[dataOrder,]
+  tmp[,1]<-ordered(tmp[,1],levels=tmp[,1][1:length(tmp[,1])])#Dateに適用するとNAに変換されるので注
+  barplot(names.arg=tmp[,1],tmp[,2],horiz=F,las=2,main="Frequency",family="Meiryo",ylab="",xlab="",col="#0000ff40") 
+  barplot(names.arg=tmp[,1],tmp[,3],horiz=F,las=2,main="Ratio(%)",family="Meiryo",ylab="",xlab="",col="#DF013A40") 
+  title(paste(title),outer=TRUE,cex.main=1.5,family="Meiryo")
+  dev.off()
   #####chart part
 }
 ```
