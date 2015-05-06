@@ -163,7 +163,7 @@ for(ddd in 1:length(dataset)){
   print(g)
   dev.off()
   #chart05
-  title<-paste("時系列データ\n",colnames(buf)[2],"\n",
+  titleTS<-paste("時系列データ\n",colnames(buf)[2],"\n",
     format(head(buf[,1],1),"%Y/%m/%d"),"-",format(tail(buf[,1],1),"%Y/%m/%d"),
     "\n直近データ:",format(tail(buf[,1],1),"%Y/%m/%d"),"-",tail(buf[,2],1)
     )  
@@ -175,7 +175,7 @@ for(ddd in 1:length(dataset)){
   g<-g+geom_line(data=buf,aes(x=Date,y=buf[,2]),size=2)
   g<-g+geom_smooth(data=buf,aes(x=Date,y=buf[,2]),method=lm)
   g<-g+geom_smooth(data=buf,aes(x=Date,y=buf[,2]),method=loess,color="red")
-  g<-g+ggtitle(paste(title))
+  g<-g+ggtitle(paste(titleTS))
   g<-g+xlab("") 
   g<-g+ylab("") 
   g<-g+theme(axis.text=element_text(size=30,face="bold",family="Meiryo"))          
