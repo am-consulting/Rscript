@@ -315,9 +315,11 @@ g2<-g2+theme(title=element_text(size=28,face="bold",family="Meiryo"))
 g2<-g2+xlab("") 
 print(g2)
 result2<-capture.output(resultCointeg)
+result2<-gsub(",","\n",result2)
 for(ttt in 1:length(result2)){plotText2<-paste(plotText2,result2[ttt],"\n")}
 residual<-resultLm$res
 result2<-capture.output(adf.test(residual))
+result2<-gsub(",","\n",result2)
 for(ttt in 1:length(result2)){plotText2<-paste(plotText2,result2[ttt],"\n")}
 g2<-g2+annotate("text",x=head(tmp[,1],1),y=y1+(y1-y0)/5,label=plotText2,size=7,family="Meiryo",hjust=0,vjust=0.9,col="black")
 print(g2)
