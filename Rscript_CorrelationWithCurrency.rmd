@@ -69,6 +69,26 @@ dev.off()
 
 ```{r}
 setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+par(oma=c(2,2,6,2),mfrow=c(4,5),family="Meiryo")
+for(ddd in 2:cnt){
+  tmp<-tail(scale(na.omit(allData[,c(1,ddd)])),1000000)
+  title<-paste(colnames(tmp)[1],"×",colnames(tmp)[2],"\n",
+    format(head(index(tmp),1),"%Y/%m/%d"),"-",format(tail(index(tmp),1),"%Y/%m/%d"))
+  plot(tmp[,1],ylim=c(min(tmp),max(tmp)),
+    type="l",main=title,major.format="%Y/%m/%d",major.ticks="years",cex.axis=2,cex.lab=2,cex.main=2)
+  lines(tmp[,1],col="red")
+  lines(tmp[,2],col="black")
+}
+mtext("\nWTI原油価格(米ドル/バレル)と米ドルストレートレート:正規化",side=3,line=1,cex=4,outer=TRUE)
+dev.off()
+```
+
+```{r}
+setwd(pathOutput)
 lagN<-300
 rankData<-list()
 buf<-list()
