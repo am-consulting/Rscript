@@ -90,6 +90,7 @@ for(ccc in 1:3){
     rankData[[ddd]]<-merge.xts(tmp,rank=rank(as.vector(tmp[,1]),na.last="keep"))
     colnames(rankData[[ddd]])[2]<-paste(colnames(rankData[[ddd]])[1],".rank",sep="")
     buf[[ddd]]<-na.omit(merge.xts(rankData[[ddd]],rankData[[1]],data[[ddd]],data[[1]]))
+    colnames(buf[[ddd]])[5:6]<-c(paste(colnames(data[[ddd]]),".original",sep=""),paste(colnames(data[[1]]),".original",sep=""))
     if(ccc!=3){
       explanation<-as.vector(buf[[ddd]][,ccc])
       objective<-as.vector(buf[[ddd]][,ccc+2])  
@@ -112,7 +113,7 @@ for(ccc in 1:3){
       main=paste(
         colnames(buf[[ddd]])[1],
         "\nMax:lag=",resultMax[2],
-        ",ACF=",resultMax[1],
+        ",ACF=",resultMax[1],"\n",
         format(first(index(buf[[ddd]])),"%Y/%m/%d"),
         "-",
         format(last(index(buf[[ddd]])),"%Y/%m/%d"))
@@ -126,7 +127,7 @@ for(ccc in 1:3){
 ```
 
 ```{r}
-lagwidth<-30
+lagwidth<-250
 cor.fun=function(x){cor(x)[1,2]}
 for(ccc in 1:3){
 ST<-Sys.time()  
