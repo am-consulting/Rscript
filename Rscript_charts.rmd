@@ -37,8 +37,8 @@ switch(dateType,
   dateFormat<-"%Y/%m"
 )  
 colorList<-c("blue","red")
-mainTitle<-"住宅着工統計"
-dataSource<-"\nData Source:国土交通省"
+mainTitle<-"週間石油在庫統計"
+dataSource<-"\nData Source: U.S. Energy Information Administration"
 chartType<-2 #1:line , 2:bar
 fitType<-3 #1:lm , 2:loess ,3:none
 tailNumber<-200

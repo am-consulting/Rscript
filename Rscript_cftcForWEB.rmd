@@ -76,7 +76,7 @@ for(ccc in 1:length(currency)){
   dataset[[cnt]]<-cftc[grep(currency[ccc],cftc[,1]),]
   dataset[[cnt]]<-dataset[[cnt]][grep(unit[ccc],dataset[[cnt]][,5]),]
   dataset[[cnt]]<-dataset[[cnt]][,-c(1,5)]
-  colnames(dataset[[cnt]])<-paste(colnames(dataset[[cnt]]),":",currency[ccc],sep="")
+  colnames(dataset[[cnt]])[2:4]<-paste(colnames(dataset[[cnt]])[2:4],":",currency[ccc],sep="")
   rrr<-order(dataset[[cnt]][,1],decreasing=FALSE)
   dataset[[cnt]]<-dataset[[cnt]][rrr,]
   setwd(dir.list)
