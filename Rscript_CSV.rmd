@@ -30,13 +30,13 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"景気動向指数:2015年3月(データ出所:内閣府)"
+overallTitle<-"日本の国際収支:2015年3月(データ出所:日本銀行)"
 tailNumber<-13
-plotType<-1 #1:line , 2:bar
+plotType<-2 #1:line , 2:bar
 orderColumn<-0
 orderDirection<-"desc" #asc
 dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
-chartRow<-1
+chartRow<-2
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
