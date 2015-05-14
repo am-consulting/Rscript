@@ -30,7 +30,7 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"日本の国際収支:2015年3月(データ出所:日本銀行)"
+overallTitle<-"日本のマネーストック前年同月比(%):2015年4月(データ出所:日本銀行)"
 tailNumber<-13
 plotType<-2 #1:line , 2:bar
 orderColumn<-0

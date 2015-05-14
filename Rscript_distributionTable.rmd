@@ -1,0 +1,21 @@
+```{r}
+#You can change following arguments and run codes.
+zLimL<-0
+zLimR<-3
+mean<-0
+sd<-1
+tailType<-F # T or F
+#You can change above arguments and run codes.
+#Fixed Part
+zStep<-0.01
+ncol<-10
+q<-seq(zLimL,zLimR,zStep)
+nrow<-floor(length(q)/ncol)
+phiz<-head(pnorm(q,mean,sd,lower.tail=tailType),ncol*nrow)
+table<-matrix(phiz,nrow,ncol,byrow=T)
+colnames(table)<-seq(0,(ncol-1)*zStep,by=zStep)
+rownames(table)<-round(seq(zLimL,zLimR-ncol*zStep,by=ncol*zStep),1)
+print(table)
+plot(head(q,ncol*nrow),phiz,xlab="z",ylab="φ(z)",type="l",main=paste("Normal Distribution\nmean=",mean,", sd=",sd))
+#Fixed Part
+```
