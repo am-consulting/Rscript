@@ -33,15 +33,15 @@ fun.readData()
 
 ```{r}
 ##################################################### from FRED part ####################################################
-ttt.range<-c(1:2)
-level.multi<-0
+binWidthCalibration<-1
 tsSource<-list()
 dataset<-list()
+histgramMonthTail<-120
 #tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DGS10","GOLDAMGBD228NLBM","DCOILWTICO")
 #tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
 #tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
 #tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
-tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXUSAL")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DCOILWTICO")
 for(lll in 1:length(tsSource)){
   for(iii in 4:length(tsSource[[lll]])){
     cnt<-cnt+1
@@ -60,7 +60,6 @@ histgramMonth<-list()
 for(ddd in 1:length(dataset)){
   tmpHistogram<-NULL
   buf<-na.omit(dataset[[ddd]])  
-  buf<-subset(buf,as.Date("1980/1/1")<=buf[,1])
   buf$Month<-format(buf[,1],"%Y/%m")
   buf$Year<-format(buf[,1],"%Y")
   nMonth<-unique(buf$Month)
@@ -81,8 +80,8 @@ for(ddd in 1:length(dataset)){
       )
     )  
   }
-  histgramMonth[[ddd]]<-tmpHistogram
-  binWidth<-10^(floor(log10(range(histgramMonth[[ddd]][,2])[2]-range(histgramMonth[[ddd]][,2])[1]))-2)
+  histgramMonth[[ddd]]<-tail(na.omit(tmpHistogram),histgramMonthTail)
+  binWidth<-10^(floor(log10(range(histgramMonth[[ddd]][,2])[2]-range(histgramMonth[[ddd]][,2])[1]))-binWidthCalibration)
   histLeft<-floor((range(histgramMonth[[ddd]][,2])[1])/binWidth)*binWidth
   histright<-ceiling((range(histgramMonth[[ddd]][,2])[2])/binWidth)*binWidth
   histgramData<-NULL
@@ -94,7 +93,7 @@ for(ddd in 1:length(dataset)){
   histgramData$Ratio<-round(histgramData[,2]/sum(histgramData[,2])*100,2)
   setwd(dir.list)
   csvFile<-paste("1ヶ月の値幅.",colnames(histgramMonth[[ddd]])[2],".csv",sep="")    
-  write.csv(na.omit(tail(histgramMonth[[ddd]],120)),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+  write.csv(histgramMonth[[ddd]],csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
   csvFile<-paste("1ヶ月の値幅.頻度.割合.",colnames(histgramMonth[[ddd]])[2],".csv",sep="")    
   write.csv(histgramData,csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
   #####chart part
@@ -119,11 +118,10 @@ for(ddd in 1:length(dataset)){
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1920,height=1080)
   par(ps=20,mar=c(5,10,10,3),cex.main=2,cex.lab=2,cex.axis=1.5,family="Meiryo") 
-  tailrange<-100000
-  ymin<-min(tail(histgramMonth[[ddd]],tailrange)[,2])
-  ymax<-(max(tail(histgramMonth[[ddd]],tailrange)[,2])-ymin)/1.5+max(tail(histgramMonth[[ddd]],tailrange)[,2])
-  plot(tail(histgramMonth[[ddd]][,1:2],tailrange),type="h",main=title,ylim=c(ymin,ymax),col="#0000ff")
-  addtable2plot(x=head(tail(histgramMonth[[ddd]],tailrange)[,1],1),y=ymax,table=tail(histgramMonth[[ddd]],10),
+  ymin<-min(histgramMonth[[ddd]][,2])
+  ymax<-(max(histgramMonth[[ddd]][,2])-ymin)/1.5+max(histgramMonth[[ddd]][,2])
+  plot(histgramMonth[[ddd]][,1:2],type="h",main=title,ylim=c(ymin,ymax),col="#0000ff")
+  addtable2plot(x=head(histgramMonth[[ddd]][,1],1),y=ymax,table=tail(histgramMonth[[ddd]],10),
       bty="o",hlines=T,vlines=T,yjust=-0.02)
   dev.off()
   #chart03
@@ -131,7 +129,7 @@ for(ddd in 1:length(dataset)){
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1920,height=1080)
-  par(oma=c(1,1,10,1),ps=20,mar=c(5,10,10,3),cex.main=2,cex.lab=2,cex.axis=1.5,family="Meiryo",mfrow=c(1,2)) 
+  par(oma=c(1,1,14,1),ps=20,mar=c(5,10,8,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo",mfrow=c(1,2)) 
   #left part
   qqnorm(histgramMonth[[ddd]][,2])
   qqline(histgramMonth[[ddd]][,2],col="red",lwd=2)
@@ -140,7 +138,7 @@ for(ddd in 1:length(dataset)){
   x<-seq(floor(min(histgramMonth[[ddd]][,2])),ceiling(max(histgramMonth[[ddd]][,2])),0.01)
   lines(x,pnorm(x,mean=mean(histgramMonth[[ddd]][,2]),sd=sqrt(var(histgramMonth[[ddd]][,2]))),col=2,lwd=2)
   title(paste(title,"\nShapiro-Wilk normality test. p value=",
-    shapiro.test(histgramMonth[[ddd]][,2])$p.value),outer=TRUE,cex.main=1.5,family="Meiryo")
+    shapiro.test(histgramMonth[[ddd]][,2])$p.value),outer=TRUE,cex.main=2,family="Meiryo")
   dev.off()
   #chart04
   ST<-Sys.time()  
@@ -150,16 +148,17 @@ for(ddd in 1:length(dataset)){
   objectDate<-subset(buf,as.Date(paste(year(Sys.Date())-3,"-1-1",sep=""))<=buf[,1])
   colnames(objectDate)[2]<-"Index"
   meltDate<-melt(objectDate,id="Month",measure="Index")
+  titleBP<-paste("ボックスプロット\n",colnames(histgramMonth[[ddd]])[2],"\n",head(meltDate[,1],1),"-",tail(meltDate[,1],1))  
   g<-ggplot(data=meltDate,aes(x=Month,y=value))
   g<-g+geom_boxplot(lwd=1)
   g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo")) 
-  g<-g+theme(axis.text.y=element_text(size=40,family="Meiryo")) 
-  g<-g+theme(axis.title=element_text(size=40,face="bold")) 
-  g<-g+theme(title=element_text(size=40,face="bold",family="Meiryo")) 
+  g<-g+theme(axis.text.y=element_text(size=30,family="Meiryo")) 
+  g<-g+theme(axis.title=element_text(size=30,face="bold")) 
+  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo")) 
   g<-g+xlab("")
   g<-g+ylab("") 
   g<-g+scale_y_continuous(labels=comma)
-  g<-g+ggtitle(paste(title))
+  g<-g+ggtitle(paste(titleBP))
   print(g)
   dev.off()
   #chart05
@@ -193,14 +192,14 @@ for(ddd in 1:length(dataset)){
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1920,height=1080)
-  par(oma=c(1,1,10,1),ps=20,mar=c(5,2,5,1),cex.main=2,cex.lab=2,cex.axis=1.0,family="Meiryo",mfrow=c(1,2)) 
+  par(oma=c(1,1,14,1),ps=20,mar=c(5,2,5,1),cex.main=1.5,cex.lab=1.5,cex.axis=1.0,family="Meiryo",mfrow=c(1,2)) 
   tmp<-subset(histgramData,histgramData[,2]!=0)
   dataOrder<-order(tmp[,2],decreasing=T)
   tmp<-tmp[dataOrder,]
   tmp[,1]<-ordered(tmp[,1],levels=tmp[,1][1:length(tmp[,1])])#Dateに適用するとNAに変換されるので注
   barplot(names.arg=tmp[,1],tmp[,2],horiz=F,las=2,main="Frequency",family="Meiryo",ylab="",xlab="",col="#0000ff40") 
   barplot(names.arg=tmp[,1],tmp[,3],horiz=F,las=2,main="Ratio(%)",family="Meiryo",ylab="",xlab="",col="#DF013A40") 
-  title(paste(title),outer=TRUE,cex.main=1.5,family="Meiryo")
+  title(paste(title,": bin幅=",binWidth),outer=TRUE,cex.main=2,family="Meiryo")
   dev.off()
   #####chart part
 }
