@@ -37,7 +37,7 @@ funMaintitle<-function(){
 commonTitle<-"日本国債金利･米国財務省証券金利･10年物金利差):"
 dataSource<-"\nデータ出所:財務省(日本国債),FRED(米国財務省証券)"
 monthly<-2
-#####################################################    JGB part    ####################################################
+################################################### JGB part ###################################################
 url<-c(
  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/jgbcme.csv"
@@ -56,9 +56,8 @@ colnames(tmp01)[1]<-"Date"
 tmp01<-tmp01[,c(1,11)]#10年物のみを抽出
 head(tmp01)
 tail(tmp01)
-#####################################################    JGB part    ####################################################
-##################################################### from FRED part ####################################################
-monthly<-2
+################################################### JGB part ###################################################
+################################################ from FRED part ################################################
 ts.source<-list()
 ts.source[[1]]<-c("FRED",1,"DGS10")
 for(lll in 1:length(ts.source)){
@@ -74,7 +73,7 @@ for(lll in 1:length(ts.source)){
     }
   }
 }
-##################################################### from FRED part ####################################################
+################################################ from FRED part ################################################
 dataset<-merge(tmp01,tmp02,all=T)
 dataset[,4]<-dataset[,3]-dataset[,2]
 colnames(dataset)[4]<-"10year.InterestSpread"
@@ -89,7 +88,7 @@ setwd(dir.list)
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 csvFile<-paste("日米国債金利及び金利差",".csv",sep="")    
-write.csv(na.omit(tail(dataset,30)),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+write.csv(tail(dataset,30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
