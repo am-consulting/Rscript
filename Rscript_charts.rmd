@@ -31,6 +31,7 @@ fun.readData()
 
 ```{r}
 ########################################## time series ##########################################
+needCSV<-1
 dateType<-1
 switch(dateType,
   dateFormat<-"%Y/%m/%d",
@@ -85,6 +86,17 @@ g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],
   label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
 print(g)
 dev.off()
+#CSV part
+if(needCSV==1){
+pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+setwd(dir.list)
+csvFile<-paste(colnames(dataset)[2],".csv",sep="")    
+write.csv(tail(dataset,30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+}  
 ########################################## time series ##########################################
 ```
 
