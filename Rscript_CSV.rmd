@@ -30,14 +30,15 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"日本のマネーストック前年同月比(%):2015年4月(データ出所:日本銀行)"
+overallTitle<-"日本の国内総生産:2015年1-3月期(データ出所:内閣府)"
+menulength<-25
 tailNumber<-13
 plotType<-2 #1:line , 2:bar
-orderColumn<-0
+orderColumn<-1
 orderDirection<-"desc" #asc
-dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 chartRow<-2
-columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+columnWidth<-"{\"width\":\"40%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
   dateFormatType<-"",
@@ -64,7 +65,7 @@ cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\
 cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)  
 cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
 cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
-cat("\"lengthMenu\": [[20,-1,100,200], [20,\"All\",100,200]],",file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
 cat("\"order\": [[ ",orderColumn,", \"" ,orderDirection,"\" ]],",file=htmlFile,append=T)
 cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
