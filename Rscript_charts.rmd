@@ -102,11 +102,11 @@ write.csv(tail(dataset,30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UT
 
 ```{r}
 ##########################################  bar chart  ##########################################
-grandTitle<-"完全失業率:年齢階級･性別毎:2015年3月"
-dataSource<-"\nData Source:総務省"
+ylimManual<-1
+grandTitle<-"貸出先別貸出金 四半期調査 3月"
+dataSource<-"\nData Source:日本銀行"
 titleCol<-2 
 orderType<-2 # 1:as is(including "Date") , 2-:colnumber
-fun.readData()
 colorList<-c("blue","red") #改良余地あり
 setwd(pathOutput)
 if(colnames(dataset)[1]=="Date"){dataset[,1]<-as.Date(dataset[,1])}
@@ -154,10 +154,14 @@ g<-g+theme(axis.text.y=element_text(size=24,color="black",face="bold"))
 g<-g+ggtitle(paste(grandTitle,":",mainTitle,dataSource))
 if(colnames(dataset)[1]=="Date" & regexpr("\\.月次",buf.colnames[2])!=-1){  
   g<-g+scale_x_date(labels=date_format("%Y-%m"))  
+} 
+if(ylimManual==1){
+  g<-g+scale_y_continuous(labels=comma,limits=c(0,150000))
+}else{
+  g<-g+scale_y_continuous(labels=comma)
 }  
-g<-g+scale_y_continuous(labels=comma)
 g<-g+xlab("")
-g<-g+ylab("") 
+g<-g+ylab("")
 g<-g+coord_flip()
 print(g)
 dev.off()
