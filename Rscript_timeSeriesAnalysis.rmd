@@ -1,0 +1,382 @@
+```{r}
+requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape","quantmod","lmtest","forecast")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+SD<-Sys.Date()
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
+setwd(pathOutput)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+fun.readData<-function(){
+  dataset[[cnt]]<<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-"))
+  head(dataset)
+  tail(dataset)
+}
+cnt<-0
+```
+
+```{r}
+cnt<-cnt+1
+fun.readData()
+```
+
+```{r}
+##################################################### from FRED part ####################################################
+tsSource<-list()
+dataset<-list()
+tailWidth<-240
+tailWidthARIMA<-12000
+xlimLdiff<-ceiling(960/tailWidth)
+#tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DGS10","GOLDAMGBD228NLBM","DCOILWTICO")
+#tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
+#tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
+#tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS")
+for(lll in 1:length(tsSource)){
+  for(iii in 4:length(tsSource[[lll]])){
+    cnt<-cnt+1
+    item<- tsSource[[lll]][iii]
+    tmp<-getSymbols(item,src=tsSource[[lll]][1],auto.assign=FALSE)
+    tmp<-tmp[,as.numeric(tsSource[[lll]][2])]
+    dataset[[cnt]]<-data.frame(Date=index(tmp),tmp, row.names=NULL)
+  }
+}
+##################################################### from FRED part ####################################################
+```
+
+```{r}
+#data reshape part
+tsData<-list()
+for(ddd in 1:length(dataset)){
+  tmptsData<-NULL
+  buf<-na.omit(dataset[[ddd]])  
+  buf$Month<-format(buf[,1],"%Y/%m")
+  buf$Year<-format(buf[,1],"%Y")
+  nMonth<-unique(buf$Month)
+  for(mmm in 1:length(nMonth)){
+    tmp<-subset(buf,buf$Month==nMonth[mmm])  
+    tmp01<-tmp[which.max(tmp[,2]),]  
+    tmp02<-tmp[which.min(tmp[,2]),]  
+    tmp03<-rbind(tail(tmp01,1),tail(tmp02,1))  
+    range<-round(tmp03[which.max(tmp03[,1]),][2]-tmp03[which.min(tmp03[,1]),][2],3) 
+    Median<-median(tmp[,2])
+    Mean<-mean(tmp[,2])
+    Var<-var(tmp[,2])
+    reg<-lm(tmp[,2]~tmp[,1])
+    Slope<-reg$coef[2]
+    DW<-dwtest(reg)$stat
+    DW.pvalue<-dwtest(reg)$p.value
+    Sum<-sum(tmp[,2])
+    gMean<-prod(tmp[,2])^(1/length(tmp[,2]))
+    hMean<-1/sum(1/tmp[,2])*length(tmp[,2])
+    CV<-round(sd(tmp[,2])/Mean*100,2)
+    tmptsData<-rbind(tmptsData,
+      data.frame(
+        Date=as.Date(paste(unique(year(tmp[,1])),"-",unique(month(tmp[,1])),"-1",sep="")),
+        Range=range,
+        MaxDate=tmp03[which.max(tmp03[,2]),][1,1],
+        Max=tmp03[which.max(tmp03[,2]),][1,2],
+        MinDate=tmp03[which.min(tmp03[,2]),][1,1],
+        Min=tmp03[which.min(tmp03[,2]),][1,2],
+        Median=Median,
+        Mean=Mean,
+        Var=Var,
+        Slope=Slope,
+        Sum=Sum,
+        GeoMean=gMean,
+        HarmoMean=hMean,
+        DW=DW,
+        DW.pvalue=DW.pvalue,
+        CV.percent=CV
+      )
+    )  
+  }
+  tsData[[ddd]]<-na.omit(tmptsData)
+  print(colnames(tsData[[ddd]]))
+  if(colnames(tsData[[ddd]])[2]=="DEXJPUS"){colnames(tsData[[ddd]])[2]<-"米ドル-日本円為替レート"}
+}  
+```
+
+```{r}
+setwd(pathOutput)
+for(ddd in 1:length(tsData)){
+  tmp<-tail(tsData[[ddd]],tailWidth)
+  for(ccc in 2:ncol(tmp)){  
+    switch(ccc,
+      chartType<-"*",#1
+      chartType<-"h",#2
+      chartType<-"*",#3
+      chartType<-"l",#4
+      chartType<-"*",#5
+      chartType<-"l",#6
+      chartType<-"l",#7
+      chartType<-"l",#8
+      chartType<-"h",#9
+      chartType<-"h",#10
+      chartType<-"h",#11
+      chartType<-"l",#12
+      chartType<-"l",#13
+      chartType<-"h",#14
+      chartType<-"h" #15
+    )
+    dateRange<-paste(format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m"),sep="")
+    xlimL<-as.Date(paste(year(head(tmp[,1],1))-xlimLdiff,"-1-1",sep=""))
+    xlimR<-as.Date(tail(tmp[,1],1))
+    if(ccc==2){
+      title<-paste(colnames(tmp)[2],"\nRange\n",dateRange,sep="")  
+    }else{
+      title<-paste(colnames(tmp)[2],"\n",colnames(tmp)[ccc],"\n",dateRange,sep="")
+    }
+    if(ccc==4 | ccc==6 | ccc==7 | ccc==8 | ccc==9 | ccc==10 | ccc==15 | ccc==16){
+      ST<-Sys.time()  
+      addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+      png.file<-paste(addVer,".png",sep="")
+      png(file=png.file,width=1920,height=1080)
+      par(ps=20,mar=c(5,10,10,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
+      plot(tmp[,1],tmp[,ccc],type=chartType,main=title,family="Meiryo",
+        xlab="",ylab="",xlim=c(xlimL,xlimR),panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),xaxt="n")
+      lines(tmp[,1],tmp[,ccc],type=chartType,col="blue",lwd=2)
+      addTable<-data.frame(Date=format(tmp[,1],"%Y/%m"),Value=format(tmp[,ccc],scientific=T))  
+      addtable2plot(x=xlimL,y=max(tmp[,ccc]),table=tail(addTable,32),
+        bty="o",hlines=T,vlines=T,yjust=-0.02,display.colnames=F)
+      axis.Date(side=1,at=tmp[,1],format="%Y/%m",padj=1)
+      maxDate<-tmp[which.max(tmp[,ccc]),c(1,ccc)]
+      abline(v=as.Date(maxDate[1,1]),col="red",lty=2)
+      abline(h=maxDate[1,2],col="red",lty=2)
+      text(maxDate[1,1],maxDate[1,2],paste(format(maxDate[1,1],"%Y/%m"),":",maxDate[1,2]))
+      minDate<-tmp[which.min(tmp[,ccc]),c(1,ccc)]
+      abline(v=as.Date(minDate[1,1]),col="red",lty=2)
+      abline(h=minDate[1,2],col="red",lty=2)
+      if(ccc==15){abline(h=0.05,col="green",lty=2)}
+      text(minDate[1,1],minDate[1,2],paste(format(minDate[1,1],"%Y/%m"),":",minDate[1,2]))
+      dev.off()
+    }
+  }
+}
+```
+
+```{r}
+setwd(pathOutput)
+help(auto.arima)
+help(arfima)
+ci<-80
+for(ddd in 1:length(tsData)){
+tmp<-tail(tsData[[ddd]],tailWidthARIMA)
+for(ccc in 2:ncol(tmp)){
+if(colnames(tmp)[ccc]=="Mean"){  
+#ARIMA
+#forecast
+Month<-tail(seq(tail(tmp[,1],1),by="month",length.out=13),-1)  
+objData<-tmp[,ccc]
+arimaResult<-auto.arima(
+  x=objData,
+  d=NA,
+  D=NA,
+  max.p=5,
+  max.q=5,
+  max.P=2,
+  max.Q=2,
+  max.order=5,
+  max.d=2,
+  max.D=1,
+  start.p=2,
+  start.q=2,
+  start.P=1,
+  start.Q=1,
+  stationary=F,
+  seasonal=T,
+  ic="aic", #"aicc","aic","bic"
+  stepwise=T,
+  trace=F,
+  approximation=(length(objData)>100 | frequency(objData)>12),
+  xreg=NULL,
+  test="kpss", #"kpss","adf","pp"
+  seasonal.test="ocsb", #"ocsb","ch"
+  allowdrift=T,
+  lambda=NULL,
+  parallel=F,
+  num.cores=2
+)
+forecastResult<-forecast(
+  object=arimaResult,
+  h=12,
+  level=c(ci),
+  fan=F,
+  robust=F,
+  lambda=NULL,
+  find.frequency=F
+)
+arimaTable01<-data.frame(
+  Month=format(Month,"%Y/%m"),
+  Forecast.Mean=round(forecastResult$mean,2),
+  Forecast.Lower=round(as.vector(forecastResult$lower),2),
+  Forecast.Upper=round(as.vector(forecastResult$upper),2)
+)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+par(ps=20,mar=c(5,10,13,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
+title<-paste(
+  colnames(tmp)[2]," - Mean",
+  "\nForcast by ",gsub(" ","",forecastResult$method),
+  " from Time Series:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m"),
+  "\nForcast Period:",format(head(Month,1),"%Y/%m"),"-",format(tail(Month,1),"%Y/%m"),
+  "\nConfidence Interval(%):",ci,
+  "\nShapiro Test for Residuals - p value:",shapiro.test((arimaResult$res))$p.value,  
+  sep=""
+)
+plot(forecastResult,panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),main=title)
+addtable2plot(x=0,y=max(tmp[,ccc]),table=tail(arimaTable01,32),bty="o",hlines=T,vlines=T,yjust=-0.02,display.colnames=T)  
+dev.off()
+#test
+objData<-head(tmp[,ccc],-12)
+arimaResult<-auto.arima(
+  x=objData,
+  d=NA,
+  D=NA,
+  max.p=5,
+  max.q=5,
+  max.P=2,
+  max.Q=2,
+  max.order=5,
+  max.d=2,
+  max.D=1,
+  start.p=2,
+  start.q=2,
+  start.P=1,
+  start.Q=1,
+  stationary=F,
+  seasonal=T,
+  ic="aic", #"aicc","aic","bic"
+  stepwise=T,
+  trace=F,
+  approximation=(length(objData)>100 | frequency(objData)>12),
+  xreg=NULL,
+  test="kpss", #"kpss","adf","pp"
+  seasonal.test="ocsb", #"ocsb","ch"
+  allowdrift=T,
+  lambda=NULL,
+  parallel=F,
+  num.cores=2
+)
+forecastResult<-forecast(
+  object=arimaResult,
+  h=12,
+  level=c(ci),
+  fan=F,
+  robust=F,
+  lambda=NULL,
+  find.frequency=F
+)
+arimaTable02<-data.frame(
+  Month=format(tail(tmp[,1],12),"%Y/%m"),
+  Forecast.Mean=round(forecastResult$mean,2),
+  Forecast.Lower=round(as.vector(forecastResult$lower),2),
+  Forecast.Upper=round(as.vector(forecastResult$upper),2),
+  Value=round(tail(tmp[,ccc],12),2),
+  Result=I("×")
+)
+arimaTable02[arimaTable02[,3]<=arimaTable02[,5] & arimaTable02[,5]<=arimaTable02[,4],6]<-"○"  
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+par(ps=20,mar=c(5,10,13,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
+title<-paste(
+  colnames(tmp)[2]," - Mean",
+  "\nForcast by ",gsub(" ","",forecastResult$method),
+  " from Time Series:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(head(tmp[,1],-12),1),"%Y/%m"),
+  "\nForcast Period:",format(head(tail(tmp[,1],12),1),"%Y/%m"),"-",format(tail(tail(tmp[,1],12),1),"%Y/%m"),
+  "\nConfidence Interval(%):",ci,
+  "\nShapiro Test for Residuals.p value:",shapiro.test((arimaResult$res))$p.value,  
+  sep=""
+)
+plot(forecastResult,panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),main=title)
+lines(tmp[,ccc],col="red")  
+addtable2plot(x=0,y=max(tmp[,ccc]),table=tail(arimaTable02,32),bty="o",hlines=T,vlines=T,yjust=-0.02,display.colnames=T)  
+dev.off()
+#ARFIMA
+#forecast  
+objData<-tmp[,ccc]  
+arfimaResult<-arfima(
+  x=objData,
+  drange=c(0,1),
+  estim="mle", #"mle","ls"
+  lambda=NULL
+)  
+forecastResult<-forecast(arfimaResult,level=c(ci),h=12)
+arfimaTable01<-data.frame(
+  Month=format(Month,"%Y/%m"),
+  Forecast.Mean=round(forecastResult$mean,2),
+  Forecast.Lower=round(as.vector(forecastResult$lower),2),
+  Forecast.Upper=round(as.vector(forecastResult$upper),2)
+)  
+title<-paste(
+  colnames(tmp)[2]," - Mean",
+  "\nForcast by ",gsub(" ","",forecastResult$method),
+  " from Time Series:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m"),
+  "\nForcast Period:",format(head(Month,1),"%Y/%m"),"-",format(tail(Month,1),"%Y/%m"),
+  "\nConfidence Interval(%):",ci,
+  "\nShapiro Test for Residuals.p value:",shapiro.test((arfimaResult$res))$p.value,  
+  sep=""
+)  
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+par(ps=20,mar=c(5,10,13,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
+plot(forecastResult,panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),main=title)
+addtable2plot(x=0,y=max(tmp[,ccc]),table=tail(arfimaTable01,32),bty="o",hlines=T,vlines=T,yjust=-0.02,display.colnames=T)    
+dev.off()  
+#test
+objData<-head(tmp[,ccc],-12)  
+arfimaResult<-arfima(
+  x=objData,
+  drange=c(0,1),
+  estim="mle", #"mle","ls"
+  lambda=NULL
+)  
+forecastResult<-forecast(arfimaResult,level=c(ci),h=12)  
+arfimaTable02<-data.frame(
+  Month=format(tail(tmp[,1],12),"%Y/%m"),
+  Forecast.Mean=round(forecastResult$mean,2),
+  Forecast.Lower=round(as.vector(forecastResult$lower),2),
+  Forecast.Upper=round(as.vector(forecastResult$upper),2),
+  Value=round(tail(tmp[,ccc],12),2),
+  Result=I("×")
+)  
+arfimaTable02[arfimaTable02[,3]<=arfimaTable02[,5] & arfimaTable02[,5]<=arfimaTable02[,4],6]<-"○"  
+title<-paste(
+  colnames(tmp)[2]," - Mean",
+  "\nForcast by ",gsub(" ","",forecastResult$method),
+  " from Time Series:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(head(tmp[,1],-12),1),"%Y/%m"),
+  "\nForcast Period:",format(head(tail(tmp[,1],12),1),"%Y/%m"),"-",format(tail(tail(tmp[,1],12),1),"%Y/%m"),
+  "\nConfidence Interval(%):",ci,
+  "\nShapiro Test for Residuals.p value:",shapiro.test((arfimaResult$res))$p.value,  
+  sep=""
+)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+par(ps=20,mar=c(5,10,13,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
+plot(forecastResult,panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),main=title)
+lines(tmp[,ccc],col="red")  
+addtable2plot(x=0,y=max(tmp[,ccc]),table=tail(arfimaTable02,32),bty="o",hlines=T,vlines=T,yjust=-0.02,display.colnames=T)    
+dev.off()  
+}  
+}
+}
+```
