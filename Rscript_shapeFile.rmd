@@ -87,6 +87,7 @@ for(eee in 1:length(selectedCountry)){
   q<-q+geom_polygon(data=selectedMap,aes(long,lat,group=group),alpha=0.0,colour="black")
 ##### making a map part  
   for(mmm in seq(floor(min(datasetMap$mag)),ceiling(max(datasetMap$mag)),by=MagBy)){
+    mmm<-round(mmm,2) #演算誤差処理対策として本処理を挟む
     earthquakeList<-NULL
     tmp<-subset(datasetMap,mmm<=(datasetMap$mag) & (datasetMap$mag)<(mmm+MagBy))
     if(nrow(tmp)!=0){
