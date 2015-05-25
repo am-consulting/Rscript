@@ -30,15 +30,15 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"日本の国内総生産:2015年1-3月期(データ出所:内閣府)"
+overallTitle<-"衆院議員の資産報告書(データ出所:株式会社朝日新聞社)"
 menulength<-25
 tailNumber<-13
 plotType<-2 #1:line , 2:bar
-orderColumn<-1
-orderDirection<-"desc" #asc
+orderColumn<-6
+orderDirection<-"desc" #asc desc
 dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 chartRow<-2
-columnWidth<-"{\"width\":\"40%\",\"targets\":0}"
+columnWidth<-"{\"width\":\"6%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
   dateFormatType<-"",
@@ -72,9 +72,6 @@ cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
 cat("});",file=htmlFile,append=T)
 cat("});</script>",file=htmlFile,append=T)
-if(colnames(dataset[1])!="Date"){
-  dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
-}
 for(ccc in 1:ncol(dataset)){
   if(ccc==1){
     switch(dateFormat,
