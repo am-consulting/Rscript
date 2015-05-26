@@ -1,6 +1,7 @@
 ```{r}
 library(lubridate)
 library(exactRankTests)
+library(lmtest)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 SD<-Sys.Date()
@@ -33,8 +34,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"労働力調査"
-dataSource<-"\nデータ出所:総務省"
+commonTitle<-"企業向けサービス価格指数"
+dataSource<-"\nデータ出所:日本銀行"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){
@@ -121,6 +122,7 @@ for(ccc in 2:ncol(dataset)){
     result12<-tail(beforeData,1)
     result13<-length(beforeData[beforeData<0])
     result14<-length(beforeData[beforeData>=0])
+    DW.pvalue.before<-dwtest(resultBefore)$p.value  
     #after
     afterData<-tail(data[[mmm]][,2],end)
     result06<-format(mean(afterData),digits=3)
@@ -132,11 +134,12 @@ for(ccc in 2:ncol(dataset)){
     result22<-tail(afterData,1)
     result23<-length(afterData[afterData<0])
     result24<-length(afterData[afterData>=0])
+    DW.pvalue.after<-dwtest(resultAfter)$p.value  
     periodResult[[mmm]]<-paste(
       "\n増税前-平均:",result01,",中央値:",result02,"最大値:",result03,"最小値:",
-      result04,",不偏分散:",result05,",開始:",result11,",終了:",result12,",<0:",result13,",0<=:",result14,
+      result04,",不偏分散:",result05,",開始:",result11,",終了:",result12,",<0:",result13,",0<=:",result14,",D.W検定(p値):",DW.pvalue.before,
       "\n増税後-平均:",result06,",中央値:",result07,"最大値:",result08,"最小値:",
-      result09,",不偏分散:",result10,",開始:",result21,",終了:",result22,",<0:",result23,",0<=:",result24,
+      result09,",不偏分散:",result10,",開始:",result21,",終了:",result22,",<0:",result23,",0<=:",result24,",D.W検定(p値):",DW.pvalue.after,
       "\nマンホイットニU検定.p値:",(wilcox.exact(beforeData,afterData,paired=F))$p.value,
       sep="")
   }else{
@@ -189,6 +192,10 @@ for(ccc in 2:ncol(dataset)){
     text(tmp[1,1],tmp[1,3],labels=format(tmp[1,2],dateFormatType),srt=0,cex=1.2,adj=c(0,0),col="black",family="Meiryo")
     text(tmp[nrow(tmp),1],tmp[nrow(tmp),3],labels=format(tmp[nrow(tmp),2],dateFormatType),srt=0,cex=1.2,adj=c(1,0),col="black",family="Meiryo")
     abline(lm(tmp[,3]~tmp[,1]),col=cols[mmm],lty="dashed",lwd=3)
+    switch(mmm,
+      DW.pvalue.dpj<-dwtest(lm(tmp[,3]~tmp[,1]))$p.value,
+      DW.pvalue.ldp<-dwtest(lm(tmp[,3]~tmp[,1]))$p.value
+    )
   }
   dpjData<-data[[1]][,2]
   resultDPJ01<-format(mean(dpjData),digits=3)
@@ -219,10 +226,12 @@ for(ccc in 2:ncol(dataset)){
   resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,
     ",最小値:",resultDPJ04,"\n不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,
     ",<0:",resultDPJ13,",0<=:",resultDPJ14,"\n合計:",resultDPJ15,",政権期間変化率(/月):",resultDPJ16,",割合(<0,%):",resultDPJ17,
+    "\nD.W検定(p値):",DW.pvalue.dpj,
     sep="")
   resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,
     ",最小値:",resultLDP04,"\n不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,
     ",<0:",resultLDP13,",0<=:",resultLDP14,"\n合計:",resultLDP15,",政権期間変化率(/月):",resultLDP16,",割合(<0,%):",resultLDP17,
+    "\nD.W検定(p値):",DW.pvalue.ldp,
     sep="")
   result<-c(resultDPJ,resultLDP)
   outputlabels<-paste(labels,result,sep="")
@@ -272,6 +281,10 @@ for(ccc in 2:ncol(dataset)){
     text(tmp[nrow(tmp),1],tmp[nrow(tmp),3],labels=format(tmp[nrow(tmp),2],dateFormatType),
       srt=0,cex=1.2,adj=c(1,0),col="black",family="Meiryo")
     abline(lm(tmp[,3]~tmp[,1]),col=cols[mmm],lty="dashed",lwd=3)
+    switch(mmm,
+      DW.pvalue.shirakawa<-dwtest(lm(tmp[,3]~tmp[,1]))$p.value,
+      DW.pvalue.kuroda<-dwtest(lm(tmp[,3]~tmp[,1]))$p.value
+    )
   }
   dpjData<-data[[1]][,2]
   resultDPJ01<-format(mean(dpjData),digits=3)
@@ -302,10 +315,12 @@ for(ccc in 2:ncol(dataset)){
   resultDPJ<-paste("平均:",resultDPJ01,",中央値:",resultDPJ02,",最大値:",resultDPJ03,
     ",最小値:",resultDPJ04,"\n不偏分散:",resultDPJ05,",開始:",resultDPJ11,",終了:",resultDPJ12,
     ",<0:",resultDPJ13,",0<=:",resultDPJ14,"\n合計:",resultDPJ15,",政権期間変化率(/月):",resultDPJ16,",割合(<0,%):",resultDPJ17,
+    ",D.W検定(p値):",DW.pvalue.shirakawa,
     sep="")
   resultLDP<-paste("平均:",resultLDP01,",中央値:",resultLDP02,",最大値:",resultLDP03,
     ",最小値:",resultLDP04,"\n不偏分散:",resultLDP05,",開始:",resultLDP11,",終了:",resultLDP12,
     ",<0:",resultLDP13,",0<=:",resultLDP14,"\n合計:",resultLDP15,",政権期間変化率(/月):",resultLDP16,",割合(<0,%):",resultLDP17,
+    ",D.W検定(p値):",DW.pvalue.kuroda,
     sep="")
   result<-c(resultDPJ,resultLDP)
   outputlabels<-paste(labels,result,sep="")

@@ -30,13 +30,13 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"衆院議員の資産報告書(データ出所:株式会社朝日新聞社)"
+overallTitle<-"消費税を除く企業向けサービス価格指数 前年同月比(%)(データ出所:日本銀行)"
 menulength<-25
 tailNumber<-13
 plotType<-2 #1:line , 2:bar
-orderColumn<-6
+orderColumn<-0
 orderDirection<-"desc" #asc desc
-dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 chartRow<-2
 columnWidth<-"{\"width\":\"6%\",\"targets\":0}"
 switch(dateFormat,

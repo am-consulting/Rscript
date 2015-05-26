@@ -94,7 +94,7 @@ forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 fun.readData()
-commonTitle<-"消費税を除く企業向けサービス価格指数:"
+commonTitle<-""
 dataSource<-"\nデータ出所:日本銀行"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
@@ -262,9 +262,9 @@ for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   g<-g+ggtitle(paste(commonTitle,mainTitle,dataSource))
   g<-g+xlab("") 
   g<-g+ylab("") 
-  g<-g+theme(axis.text=element_text(size=40,face="bold",family="Meiryo"))          
-  g<-g+theme(axis.title=element_text(size=40,face="bold",family="Meiryo"))          
-  g<-g+theme(title=element_text(size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.text=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.title=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
   g<-g+theme(legend.position="right")          
   g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))          
   g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold")) 
@@ -302,10 +302,10 @@ for(ttt in tttS:tttE){
   g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
   g<-g+geom_boxplot(lwd=2)
   g<-g+ggtitle(paste(commonTitle,mainTitle,dataSource))
-  g<-g+theme(axis.text.x=element_text(size=40,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo")) 
-  g<-g+theme(axis.text.y=element_text(size=40,family="Meiryo")) 
-  g<-g+theme(axis.title=element_text(size=40,face="bold")) 
-  g<-g+theme(title=element_text(size=40,face="bold",family="Meiryo")) 
+  g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo")) 
+  g<-g+theme(axis.text.y=element_text(size=30,family="Meiryo")) 
+  g<-g+theme(axis.title=element_text(size=30,face="bold")) 
+  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo")) 
   g<-g+xlab("")
   g<-g+ylab("") 
   g<-g+scale_y_continuous(labels=comma)
