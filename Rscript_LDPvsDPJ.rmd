@@ -34,8 +34,8 @@ monthly<-2
 ```
 
 ```{r}
-commonTitle<-"企業向けサービス価格指数"
-dataSource<-"\nデータ出所:日本銀行"
+commonTitle<-"建設労働需給調査"
+dataSource<-"\nデータ出所:国土交通省"
 plotType<-1 #1:line , 2:bar
 if(length(unique(day(dataset[,1])))==1){#月次データの日付は14日または15日に変更
   if(unique(day(dataset[,1]))==1){

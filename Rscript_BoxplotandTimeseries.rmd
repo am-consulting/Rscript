@@ -94,8 +94,8 @@ forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 fun.readData()
-commonTitle<-""
-dataSource<-"\nデータ出所:日本銀行"
+commonTitle<-"建設労働需給調査:"
+dataSource<-"\nデータ出所:国土交通省"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 

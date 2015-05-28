@@ -1,6 +1,6 @@
 ```{r}
-period<-c("05/07～05/08","05/11～05/15")
-dataType<-2 # 1売買代金,2株数
+period<-c("05/11～05/15","05/18～05/22")
+dataType<-1 # 1売買代金,2株数
 library(ggplot2)
 library(gridExtra)
 library(scales)
