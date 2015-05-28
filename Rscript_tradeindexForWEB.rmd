@@ -66,6 +66,8 @@ csvFile<-paste(addVer,".csv",sep="")
 ```
 
 ```{r}
+imageWidth<-1600
+imageHeight<-1000
 colnames(grandData)
 lineColor<-c("blue","red","black","green")
 for(ccc in c(4,7,10,13)){
@@ -78,7 +80,7 @@ for(ccc in c(4,7,10,13)){
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1920,height=1080)
+  png(file=png.file,width=imageWidth,height=imageHeight)
   g<-ggplot()
   g<-g+geom_line(data=meltData,aes(x=Date,y=value,color=Area),size=0.8)
   g<-g+scale_colour_manual("財務省貿易統計",values=lineColor)  
@@ -87,9 +89,9 @@ for(ccc in c(4,7,10,13)){
   g<-g+ggtitle(title) 
   g<-g+xlab("") 
   g<-g+ylab("") 
-  g<-g+theme(axis.text=element_text(size=40,face="bold",family="Meiryo"))          
-  g<-g+theme(axis.title=element_text(size=40,face="bold",family="Meiryo"))          
-  g<-g+theme(title=element_text(size=40,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.text=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.title=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
   g<-g+theme(legend.position="top")          
   g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))          
   g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))
@@ -109,7 +111,7 @@ for(ddd in 1:length(data)){
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1920,height=1080)
+  png(file=png.file,width=imageWidth,height=imageHeight)
   mfrowTYpe<-c(2,3)
   par(oma=c(3,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(10,3,7,3),cex.main=2,cex.lab=2,cex.axis=2,family="Meiryo")  
   for(ccc in 9:14){
