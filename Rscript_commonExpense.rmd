@@ -1,0 +1,290 @@
+```{r}
+library(lubridate)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+SD<-Sys.Date()
+```
+
+```{r}
+loopS<-22
+loopE<-22
+menulength<-25
+orderColumn<-0
+orderDirection<-"asc" #asc
+columnWidth<-"{\"width\":\"40%\",\"targets\":0}"
+rateAll<-list()
+rateTable<-list()
+```
+
+```{r}
+#土木工事
+#http://www.mlit.go.jp/report/press/kanbo08_hh_000296.html
+#http://www.mlit.go.jp/report/press/kanbo08_hh_000181.html
+#http://www.mlit.go.jp/sogoseisaku/constplan/sosei_constplan_tk_000024.html
+#http://www.mlit.go.jp/kisha/kisha08/13/130328_.html
+constructionType<-c(
+  "河川工事",            #1
+  "河川･道路構造物工事", #2
+  "海岸工事",            #3
+  "道路改良工事",        #4
+  "鋼橋架設工事",        #5
+  "PC橋工事",            #6
+  "舗装工事",            #7
+  "砂防･地すべり等工事", #8
+  "公園工事",            #9
+  "電線共同溝工事",      #10
+  "情報BOX工事",         #11
+  "道路維持工事",        #12
+  "河川維持工事",        #13
+  "共同溝等工事1",       #14
+  "共同溝等工事2",       #15
+  "トンネル工事",        #16
+  "下水道工事1",         #17  
+  "下水道工事2",         #18
+  "下水道工事3",         #19
+  "コンクリートダム工事",#20
+  "フィルダム工事",      #21
+  "工事区分共通",        #22
+  "非市街地",            #23
+  "市街地"               #24
+)
+```
+
+```{r}
+#共通仮設費率の計算
+rateKyoutsuukasetsuList<-list()
+rateKyoutsuukasetsuList[[1]]<-c(12.53,238.6,-0.1888,4.77)  #河川工事
+rateKyoutsuukasetsuList[[2]]<-c(26.94,6907.7,-0.3554,4.37) #河川・道路構造物工事
+rateKyoutsuukasetsuList[[3]]<-c(13.08,407.9,-0.2204,4.24)  #海岸工事
+rateKyoutsuukasetsuList[[4]]<-c(12.78,57,-0.0958,7.83)     #道路改良工事
+rateKyoutsuukasetsuList[[5]]<-c(26.1,633,-0.2043,9.18)     #鋼橋架設工事
+rateKyoutsuukasetsuList[[6]]<-c(27.04,1636.8,-0.2629,7.05) #PC橋工事
+rateKyoutsuukasetsuList[[7]]<-c(17.09,435.1,-0.2074,5.92)  #舗装工事
+rateKyoutsuukasetsuList[[8]]<-c(15.19,624.5,-0.2381,4.49)  #砂防・地すべり等工事
+rateKyoutsuukasetsuList[[9]]<-c(10.8,48,-0.0956,6.62)      #公園工事
+rateKyoutsuukasetsuList[[10]]<-c(9.96,40,-0.0891,6.31)     #電線共同溝工事
+rateKyoutsuukasetsuList[[11]]<-c(18.93,494.9,-0.2091,6.5)  #情報BOX工事
+rateKyoutsuukasetsuList[[12]]<-c(16.64,34596.3,-0.4895,4.2)#道路維持工事
+rateKyoutsuukasetsuList[[13]]<-c(8.34,26.8,-0.0748,6.76)   #河川維持工事
+rateKyoutsuukasetsuList[[14]]<-c(8.86,68.3,-0.1267,4.53)   #共同溝等工事1
+rateKyoutsuukasetsuList[[15]]<-c(13.79,92.5,-0.1181,7.37)  #共同溝等工事2
+rateKyoutsuukasetsuList[[16]]<-c(31.87,5388.7,-0.3183,5.9) #トンネル工事
+rateKyoutsuukasetsuList[[17]]<-c(12.85,422.4,-0.2167,4.08) #下水道工事1
+rateKyoutsuukasetsuList[[18]]<-c(13.32,485.4,-0.2231,4.08) #下水道工事2
+rateKyoutsuukasetsuList[[19]]<-c(7.64,13.5,-0.0353,6.34)   #下水道工事3
+rateKyoutsuukasetsuList[[20]]<-c(12.29,105.2,-0.11,9.02)   #コンクリートダム工事
+rateKyoutsuukasetsuList[[21]]<-c(7.57,43.7,-0.0898,5.88)   #フィルダム工事
+funcionK<-function(P){
+  if(P<=lowerLimit){
+    rateKyoutsuukasetsu<-rateKyoutsuukasetsuList[[constructionSegment]][1]
+  }else if(upperLimit<P){
+    rateKyoutsuukasetsu<-rateKyoutsuukasetsuList[[constructionSegment]][4]
+  }else{
+    rateKyoutsuukasetsu<-rateKyoutsuukasetsuList[[constructionSegment]][2]*(P^rateKyoutsuukasetsuList[[constructionSegment]][3])
+  }
+  return(rateKyoutsuukasetsu)
+}
+for(constructionSegment in loopS:loopE){
+  if(constructionSegment<=11){
+    lowerLimit<-6000000
+    upperLimit<-1000000000
+  }else	if(constructionSegment<=13){
+    lowerLimit<-6000000
+    upperLimit<-100000000
+  }else if(constructionSegment<=19){
+    lowerLimit<-10000000
+    upperLimit<-2000000000
+  }else{
+    lowerLimit<-300000000
+    upperLimit<-5000000000
+  }
+  P<-seq(lowerLimit,upperLimit,by=1000)
+  tmp<-sapply(P,funcionK)
+  rateAll[[constructionSegment]]<-data.frame(P,format(tmp,digits=10),floor(100*as.numeric(tmp)+0.5)/100) 
+  print(head(rateAll[[constructionSegment]]))
+  print(tail(rateAll[[constructionSegment]]))
+}
+colName<-c("共通仮設費率(%)","共通仮設費率(四捨五入前.%)","共通仮設費率")
+```
+
+```{r}
+#現場管理費率の計算
+rateGenbakanriList<-list()
+rateGenbakanriList[[1]]<-c(42.02,1169,-0.211,14.75)    #河川工事
+rateGenbakanriList[[2]]<-c(28.22,52.6,-0.0395,23.2)    #河川・道路構造物工事
+rateGenbakanriList[[3]]<-c(26.9,104,-0.0858,17.57)     #海岸工事
+rateGenbakanriList[[4]]<-c(32.73,80,-0.0567,24.71)     #道路改良工事
+rateGenbakanriList[[5]]<-c(39.06,105.6,-0.0631,28.56)  #鋼橋架設工事
+rateGenbakanriList[[6]]<-c(30.09,113.1,-0.084,19.84)   #Ｐ・Ｃ橋工事
+rateGenbakanriList[[7]]<-c(39.39,622.2,-0.1751,16.52)  #舗装工事
+rateGenbakanriList[[8]]<-c(44.58,1281.7,-0.2131,15.48) #砂防・地すべり等工事
+rateGenbakanriList[[9]]<-c(41.68,366.3,-0.1379,21.03)  #公園工事
+rateGenbakanriList[[10]]<-c(58.82,2235.6,-0.2308,18.72)#電線共同溝工事
+rateGenbakanriList[[11]]<-c(52.66,1570,-0.2154,18.08)  #情報ボックス工事
+rateGenbakanriList[[12]]<-c(51.14,316.8,-0.1257,31.27) #道路維持工事
+rateGenbakanriList[[13]]<-c(41.28,166.7,-0.0962,28.34) #河川維持工事
+rateGenbakanriList[[14]]<-c(48.95,367.7,-0.1251,25.23) #共同溝等工事(1)
+rateGenbakanriList[[15]]<-c(37.5,110.6,-0.0671,26.28)  #共同溝等工事(2)
+rateGenbakanriList[[16]]<-c(43.96,203.6,-0.0951,26.56) #トンネル工事
+rateGenbakanriList[[17]]<-c(33.46,50.8,-0.0259,29.17)  #下水道工事(1)
+rateGenbakanriList[[18]]<-c(36.91,213.5,-0.1089,20.73) #下水道工事(2)
+rateGenbakanriList[[19]]<-c(31.58,48.4,-0.0265,27.44)  #下水道工事(3)
+rateGenbakanriList[[20]]<-c(22.6,301.3,-0.1327,15.56)  #コンクリートダム
+rateGenbakanriList[[21]]<-c(33.08,166.5,-0.0828,26.2)  #フィルダム
+functionG<-function(Np){
+  if(Np<=lowerLimit){
+    rateGenbakanri<-rateGenbakanriList[[constructionSegment]][1]
+  }else if(upperLimit<Np){
+    rateGenbakanri<-rateGenbakanriList[[constructionSegment]][4]
+  }else{
+    rateGenbakanri<-rateGenbakanriList[[constructionSegment]][2]*(Np^(rateGenbakanriList[[constructionSegment]][3]))
+  }
+  return(rateGenbakanri)  
+}
+for(constructionSegment in loopS:loopE){
+  if(constructionSegment<=11){
+		lowerLimit<-7000000
+		upperLimit<-1000000000
+	}
+	else
+	if(constructionSegment<=13){
+		lowerLimit<-7000000
+		upperLimit<-100000000
+	}
+	else
+	if(constructionSegment<=19){
+		lowerLimit<-10000000
+		upperLimit<-2000000000
+	}
+	else{
+		lowerLimit<-300000000
+		upperLimit<-5000000000
+	}
+  Np<-seq(lowerLimit,upperLimit,by=1000)
+  tmp<-sapply(Np,functionG)
+  rateAll[[constructionSegment]]<-data.frame(Np,format(tmp,digits=10),floor(100*as.numeric(tmp)+0.5)/100) 
+  print(head(rateAll[[constructionSegment]]))
+  print(tail(rateAll[[constructionSegment]]))
+}
+colName<-c("現場管理費率(%)","現場管理費率(四捨五入前.%)","現場管理費率")
+```
+
+```{r}
+for(constructionSegment in loopS:loopE){
+  buf<-rateAll[[constructionSegment]][!duplicated(rateAll[[constructionSegment]][,3],fromLast=T),]
+  if(constructionSegment!=23 & constructionSegment!=24){
+    buf<-rbind(head(rateAll[[constructionSegment]],1),buf)
+  }
+  buf<-buf[,c(1,3,2)]
+  buf[,1]<-buf[,1]/1000
+  colnames(buf)<-c(paste(constructionType[constructionSegment],"-対象額(以下.千円単位)",sep=""),colName[1],colName[2])
+  rateTable[[constructionSegment]]<-buf
+  print(head(rateTable[[constructionSegment]]))
+  print(tail(rateTable[[constructionSegment]]))
+} 
+```
+
+```{r}
+#一般管理費率の計算
+constructionSegment<-22
+loopS<-constructionSegment
+loopE<-constructionSegment
+functionI<-function(Gp){
+  if(Gp<=5000000){
+    rateIppanKanri<-20.29;
+  }else if(3000000000<Gp){
+    rateIppanKanri<-7.41;
+  }else{
+    rateIppanKanri<--4.63586*log10(Gp)+51.34242
+  }
+  return(rateIppanKanri)
+}
+Gp<-seq(5000000,3000000000,by=1000)
+tmp<-sapply(Gp,functionI)
+rateAll[[constructionSegment]]<-data.frame(Gp,format(tmp,digits=10),floor(100*as.numeric(tmp)+0.5)/100) 
+print(head(rateAll[[constructionSegment]]))
+print(tail(rateAll[[constructionSegment]]))
+colName<-c("一般管理費率(%)","一般管理費率(四捨五入前.%)","一般管理費率")
+```
+
+```{r}
+#イメージアップ経費率の計算
+loopS<-23
+loopE<-24
+functionP<-function(Pi){
+  if(Pi>500000000){
+    rateImageup<-0.69;
+  }else{
+    rateImageup<-11*(Pi^-0.138);
+  }
+  return(rateImageup)
+} 
+Pi<-seq(1000,500000000,by=1000)
+tmp<-sapply(Pi,functionP)
+for(constructionSegment in loopS:loopE){
+  if(constructionSegment==loopS){
+    rateAll[[constructionSegment]]<-data.frame(Pi,format(tmp,digits=10),floor(100*as.numeric(tmp)+0.5)/100) 
+  }else{
+    rateAll[[constructionSegment]]<-data.frame(Pi,format(tmp,digits=10),(floor(100*as.numeric(tmp)+0.5)/100)+1.5) 
+  }  
+  print(head(rateAll[[constructionSegment]]))
+  print(tail(rateAll[[constructionSegment]]))
+  
+}
+colName<-c("イメージアップ経費率(%)","イメージアップ経費率(四捨五入前.%)","イメージアップ経費率")
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+col<-list()
+for(constructionSegment in loopS:loopE){
+grandData<-NULL
+header<-NULL
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)  
+cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+cat("\"order\": [[ ",orderColumn,", \"" ,orderDirection,"\" ]],",file=htmlFile,append=T)
+cat("\"searching\": true,",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("});</script>",file=htmlFile,append=T)
+for(ccc in 1:ncol(rateTable[[constructionSegment]])){
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(rateTable[[constructionSegment]][,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(rateTable[[constructionSegment]])[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+cat(paste("国土交通省土木工事積算基準等"," - ",colName[3]," - ",constructionType[constructionSegment],"<br>",sep=""),file=htmlFile,append=T)  
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+cat("<strong>参考算出方法</strong><br>",file=htmlFile,append=T)
+cat("土木工事における共通仮設費、現場管理費、一般管理費等およびイメージアップ経費率の計算<br>",file=htmlFile,append=T)
+cat("- http://am-consulting.co.jp/?p=495",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+cat("<strong>参考資料</strong><br>",file=htmlFile,append=T)
+cat("国土交通省土木工事積算基準等の改定について 平成27年3月11日<br>",file=htmlFile,append=T)
+cat("- http://www.mlit.go.jp/report/press/kanbo08_hh_000296.html<br>",file=htmlFile,append=T)
+cat("国土交通省土木工事積算基準等の改正について 平成24年3月30日<br>",file=htmlFile,append=T)
+cat("- http://www.mlit.go.jp/report/press/kanbo08_hh_000181.html<br>",file=htmlFile,append=T)
+cat("国土交通省土木工事積算基準等の改正について 平成20年3月28日<br>",file=htmlFile,append=T)
+cat("- http://www.mlit.go.jp/kisha/kisha08/13/130328_.html<br>",file=htmlFile,append=T)
+cat("土木工事標準歩掛<br>",file=htmlFile,append=T)
+cat("- http://www.mlit.go.jp/sogoseisaku/constplan/sosei_constplan_tk_000024.html",file=htmlFile,append=T)
+}
+```
