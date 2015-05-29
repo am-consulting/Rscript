@@ -30,15 +30,15 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"消費税を除く企業向けサービス価格指数 前年同月比(%)(データ出所:日本銀行)"
+overallTitle<-"一般職業紹介状況-有効求人倍率-季節調整値(データ出所:厚生労働省)"
 menulength<-25
-tailNumber<-13
-plotType<-2 #1:line , 2:bar
-orderColumn<-0
-orderDirection<-"desc" #asc desc
-dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+tailNumber<-72
+plotType<-1 #1:line , 2:bar
+orderColumn<-6
+orderDirection<-"asc" #asc desc
+dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 chartRow<-2
-columnWidth<-"{\"width\":\"6%\",\"targets\":0}"
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
   dateFormatType<-"",
@@ -66,7 +66,7 @@ cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jq
 cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
 cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
 cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
-cat("\"order\": [[ ",orderColumn,", \"" ,orderDirection,"\" ]],",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
 cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
