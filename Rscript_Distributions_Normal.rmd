@@ -1,0 +1,171 @@
+```{r}
+library(lubridate)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+menulength<-10
+orderColumn<-0
+orderDirection<-"asc" #asc desc
+columnWidth<-"{\"width\":\"4%\",\"targets\":0}"
+digitsNumber<-10^7
+```
+
+```{r}
+#Normal Distribution
+#common
+zLimL<-0
+zLimR<-5
+mean<-0
+sd<-1
+tailType<-F # T or F
+zStep<-0.01
+ncol<-10
+q<-seq(zLimL,zLimR,zStep)
+nrow<-floor(length(q)/ncol)
+phiz<-head(pnorm(q,mean,sd,lower.tail=tailType),ncol*nrow)
+#table
+table<-matrix(abs(phiz-0.5),nrow,ncol,byrow=T)
+colnames(table)<-seq(0,(ncol-1)*zStep,by=zStep)
+rownames(table)<-round(seq(zLimL,zLimR-ncol*zStep,by=ncol*zStep),1)
+print(table)
+```
+
+```{r}
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+mfrowTYpe<-c(1,1)
+png.file<-paste("normaldistribution",addVer,".png",sep="")
+png(file=png.file,width=1400,height=900)
+par(oma=c(1,1,1,1),mfrow=mfrowTYpe,ps=20,mar=c(5,5,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5)
+x<-head(q,ncol*nrow)
+y<-abs(phiz-0.5)
+plot(x,y,xlab="z",ylab="P[0≤x≤|z|]]",type="l",main=paste("Normal Distribution\nmean=",mean,", sd=",sd),
+  family="Meiryo",panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T))
+lines(x,y,col="blue",lwd=2)
+dev.off()
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+dataset<-data.frame(rownames(table),table,row.names=NULL)
+colnames(dataset)<-c("z",colnames(table))
+col<-list()
+grandData<-NULL
+header<-NULL
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+htmlFile<-paste("normaldistribution",addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>\n",file=htmlFile,append=F)
+cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)
+cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>\n",file=htmlFile,append=T)
+cat("<script type=\"text/javascript\" charset=\"utf-8\">\n$(document).ready( function(){\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable({\n",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],\n",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],\n",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,\n",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],\n",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}\n",file=htmlFile,append=T)
+cat("});\n",file=htmlFile,append=T)
+cat("});\n</script>\n",file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset)){
+  tmp0<-dataset[,ccc]
+  if(ccc!=1){tmp0<-floor(digitsNumber*as.numeric(tmp0)+0.5)/digitsNumber}
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(tmp0,big.mark=",",scientific=F),"</td>",sep="")
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\" style=\"font-size:11px;\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+cat(paste("NormalDistribution Ver.",addVer,"\n",sep=""),file=htmlFile,append=T)
+cat("[wptab name=\'Table\']\n",file=htmlFile,append=T)
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F,row.names=F,append=T)
+cat("</table>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+cat("\n[/wptab]\n",file=htmlFile,append=T)
+cat("[wptab name=\'Chart\']\n",file=htmlFile,append=T)
+cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" width=\"100%\">\n",sep=""),file=htmlFile,append=T)
+cat("\n[/wptab]\n",file=htmlFile,append=T)
+cat("[wptab name=\'Tips\']\n",file=htmlFile,append=T)
+cat("<style>th { text-align: center; vertical-align: middle; } td { text-align: left; vertical-align: middle; }</style>\n",file=htmlFile,append=T)
+cat("※\"Tips\"欄中、2重鉤括弧内の文章は\"References\"欄のリンク先から引用。\n",file=htmlFile,append=T)
+cat("<table>\n",file=htmlFile,append=T)
+cat("<tr><th width=\"50%\" bgcolor=\"#F5F5F5\">Tips</th><th width=\"50%\" bgcolor=\"#F5F5F5\">References</th></tr>\n",file=htmlFile,append=T)
+#tips
+cat("<tr>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("『中心極限定理により、独立な多数の因子の和として表される確率変数は正規分布に従う。』",file=htmlFile,append=T) #Tips
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("http://ja.wikipedia.org/wiki/%E6%AD%A3%E8%A6%8F%E5%88%86%E5%B8%83",file=htmlFile,append=T) #URL
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+cat("<tr>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("『正規分布は再生性を持つ。』,『確率分布の族における再生性（さいせいせい、reproductive property）とは、同じ分布族に含まれる確率分布を持つ2つの独立な確率変数に対して、その和の確率分布もまた同じ族に含まれる性質のことを言う。』",file=htmlFile,append=T) #Tips
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("http://ja.wikipedia.org/wiki/%E6%AD%A3%E8%A6%8F%E5%88%86%E5%B8%83 , http://ja.wikipedia.org/wiki/%E5%86%8D%E7%94%9F%E6%80%A7",file=htmlFile,append=T) #URL
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+cat("<tr>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("『中心極限定理により、巨大な n に対する二項分布とも考えることができる。』",file=htmlFile,append=T) #Tips
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("http://ja.wikipedia.org/wiki/%E6%AD%A3%E8%A6%8F%E5%88%86%E5%B8%83",file=htmlFile,append=T) #URL
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+cat("<tr>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("『正規分布が統計学上特別な地位を持つのは中心極限定理が存在するためである。中心極限定理は、「独立な同一の分布に従う確率変数の算術平均（確率変数の合計を変数の数で割ったもの）の分布は、もとの確率変数に標準偏差が存在するならば、もとの分布の形状に関係なく、変数の数が多数になったとき、正規分布に収束する。」』",file=htmlFile,append=T) #Tips
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("http://ja.wikipedia.org/wiki/%E6%AD%A3%E8%A6%8F%E5%88%86%E5%B8%83",file=htmlFile,append=T) #URL
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+#tips
+cat("</table><br>\n",file=htmlFile,append=T)
+cat("\n[/wptab]\n",file=htmlFile,append=T)
+cat("[end_wptabset]",file=htmlFile,append=T)
+```
+
+```{r}
+#notification
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste("distributionlist",addVer,".html",sep="")
+cat("<style>th { text-align: center; vertical-align: middle; } td { text-align: left; vertical-align: middle; }</style>\n",file=htmlFile,append=F)
+cat("<table>\n",file=htmlFile,append=T)
+cat("<tr><th width=\"30%\" bgcolor=\"#F5F5F5\">Tips</th><th width=\"50%\" bgcolor=\"#F5F5F5\">References</th><th width=\"20%\" bgcolor=\"#F5F5F5\">Upload/Update</th></tr>\n",file=htmlFile,append=T)
+cat("<tr>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("Normal Distribution",file=htmlFile,append=T) #distribution
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("http://equations.am-consulting.co.jp/?p=1719",file=htmlFile,append=T) #URL
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat(paste(year(SD),"-",month(SD),"-",day(SD),sep=""),file=htmlFile,append=T) #URL
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+cat("</table><br>\n",file=htmlFile,append=T)
+```
+
+cat("<tr>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("『』",file=htmlFile,append=T) #Tips
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("<td>\n",file=htmlFile,append=T)
+cat("",file=htmlFile,append=T) #URL
+cat("\n</td>\n",file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
