@@ -30,14 +30,14 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"日本のマネタリーベース-前年同月比(%)(データ出所:日本銀行)"
+overallTitle<-"対内証券売買契約等の状況(単位:億円、株式他は株式･投資ファンド持分、データ出所:財務省)"
 menulength<-20
 tailNumber<-13
 plotType<-2 #1:line , 2:bar
-orderColumn<-2
+orderColumn<-0
 orderDirection<-"desc" #asc desc
 dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
-chartRow<-1
+chartRow<-2
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
@@ -103,7 +103,7 @@ addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),secon
 mfrowTYpe<-c(chartRow,ceiling((ncol(dataset)-1)/chartRow))
 png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1400,height=900)
-par(oma=c(1,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(10,5,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5)
+par(oma=c(5,1,5,1),mfrow=mfrowTYpe,ps=20,mar=c(10,5,5,5),cex.main=1.2,cex.lab=1.0,cex.axis=1.0)
 if(colnames(dataset[1])!="Date"){
   dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
 }
@@ -126,8 +126,11 @@ for(ccc in 2:ncol(dataset)){
     lines(plotX,tmp[,2],col="blue",lwd=2)
     axis.Date(1,plotX,format="%Y/%m")
   }else{
-    barplot(names.arg=format(plotX,dateFormatType),tmp[,2],horiz=F,las=2,main=mainTitle,
-      family="Meiryo",ylab="",xlab="",col=tmp[,3],yaxt="n") 
+    if(3<=dateFormatType){
+      barplot(names.arg=format(plotX,dateFormatType),tmp[,2],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp[,3],yaxt="n") 
+    }else{    
+      barplot(names.arg=plotX,tmp[,2],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp[,3],yaxt="n") 
+    }
     axis(side=2,at=axTicks(2),labels=formatC(axTicks(2), format="g", big.mark=','),las=2)
   }  
 }
