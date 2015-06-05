@@ -1,0 +1,83 @@
+```{r}
+library(lubridate)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+menulength<-10
+orderColumn<-0
+orderDirection<-"asc" #asc desc
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+```
+
+```{r}
+functionBMI<-function(bmi){
+  weight<-bmi*(height/100)^2
+  return(weight)  
+}
+lowerLimitH<-150
+upperLimitH<-190
+bmi<-c(18.5,22,25,30,35,40)
+height<-seq(lowerLimitH,upperLimitH,by=0.5)
+tmp<-sapply(bmi,functionBMI)
+buf<-data.frame(paste(format(height,nsmall=1),"cm",sep=""),round(tmp,1))
+colnames(buf)<-c("身長",paste("体重(kg,BMI=",bmi,")",sep=""))
+print(buf)
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+col<-list()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>\n",file=htmlFile,append=F)
+cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)
+cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>\n",file=htmlFile,append=T)
+cat("<b>ボディマス指数(Body Mass Index)</b><br>\n",file=htmlFile,append=T)
+cat("肥満度の判定基準(日本肥満学会2000)\n",file=htmlFile,append=T)
+cat("<style>th { text-align: center; vertical-align: middle; } td { text-align: left; vertical-align: middle; }</style>\n",file=htmlFile,append=T)
+cat("<table>\n",file=htmlFile,append=T)
+cat("<tr><th width=\"50%\" bgcolor=\"#3CB371\">状態</th><th bgcolor=\"#3CB371\">BMI</th></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>標準体重</td><td>22</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>低体重(痩せ型)</td><td>18.5未満</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>普通体重</td><td>18.5以上,25未満</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>肥満(1度)</td><td>25以上,30未満</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>肥満(2度)</td><td>30以上,35未満</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>肥満(3度)</td><td>35以上,40未満</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>肥満(4度)</td><td>40以上</td></tr>\n",file=htmlFile,append=T)
+cat("</table>\n",file=htmlFile,append=T)
+grandData<-NULL
+header<-NULL
+dataset<-buf
+tableID<-paste("am-consulting",addVer,sep="")
+cat("<script type=\"text/javascript\" charset=\"utf-8\">\n$(document).ready( function(){\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable({\n",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],\n",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],\n",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,\n",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],\n",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}\n",file=htmlFile,append=T)
+cat("});\n",file=htmlFile,append=T)
+cat("});\n</script>\n",file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset)){
+  tmp0<-dataset[,ccc]
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(tmp0,big.mark=",",scientific=F),"</td>",sep="")
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\" style=\"font-size:15px;\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F,row.names=F,append=T)
+cat("</table>\n",file=htmlFile,append=T)
+cat("<hr>\n",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )<br>\n",file=htmlFile,append=T)
+cat("参照 - http://ja.wikipedia.org/wiki/%E3%83%9C%E3%83%87%E3%82%A3%E3%83%9E%E3%82%B9%E6%8C%87%E6%95%B0",file=htmlFile,append=T)
+cat(paste("<br>Body Mass Index Ver.",addVer,"<br>\n",sep=""),file=htmlFile,append=T)
+```
