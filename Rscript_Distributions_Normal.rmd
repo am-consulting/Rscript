@@ -83,23 +83,25 @@ for(ccc in 1:ncol(dataset)){
 }
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\" style=\"font-size:11px;\"><thead>",sep="")
 tableHtml<-paste(tableHtml,header,"</thead>",sep="")
-cat(paste("NormalDistribution Ver.",addVer,"\n",sep=""),file=htmlFile,append=T)
-cat("[wptab name=\'Table\']\n",file=htmlFile,append=T)
+#table part
+cat("<div id=\"Table\"><b>Table</b></div>\n",file=htmlFile,append=T)
+cat("<a href=\"#Table\">Table</a>&nbsp;<a href=\"#Chart\">Chart</a>&nbsp;<a href=\"#Tips\">Tips</a><br>\n",file=htmlFile,append=T)
 cat(tableHtml,file=htmlFile,append=T)
 grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F,row.names=F,append=T)
 cat("</table>",file=htmlFile,append=T)
 cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
-cat("\n[/wptab]\n",file=htmlFile,append=T)
-cat("[wptab name=\'Chart\']\n",file=htmlFile,append=T)
+#cahrt part
+cat("<div id=\"Chart\"><b>Chart</b></div>\n",file=htmlFile,append=T)
+cat("<a href=\"#Table\">Table</a>&nbsp;<a href=\"#Chart\">Chart</a>&nbsp;<a href=\"#Tips\">Tips</a><br>\n",file=htmlFile,append=T)
 cat(paste("\n<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" width=\"100%\">\n",sep=""),file=htmlFile,append=T)
-cat("\n[/wptab]\n",file=htmlFile,append=T)
-cat("[wptab name=\'Tips\']\n",file=htmlFile,append=T)
+#tips part
+cat("<div id=\"Tips\"><b>Tips</b></div>\n",file=htmlFile,append=T)
+cat("<a href=\"#Table\">Table</a>&nbsp;<a href=\"#Chart\">Chart</a>&nbsp;<a href=\"#Tips\">Tips</a><br>\n",file=htmlFile,append=T)
 cat("<style>th { text-align: center; vertical-align: middle; } td { text-align: left; vertical-align: middle; }</style>\n",file=htmlFile,append=T)
 cat("※\"Tips\"欄中、2重鉤括弧内の文章は\"References\"欄のリンク先から引用。\n",file=htmlFile,append=T)
 cat("<table>\n",file=htmlFile,append=T)
 cat("<tr><th width=\"50%\" bgcolor=\"#F5F5F5\">Tips</th><th width=\"50%\" bgcolor=\"#F5F5F5\">References</th></tr>\n",file=htmlFile,append=T)
-#tips
 cat("<tr>\n",file=htmlFile,append=T)
 cat("<td>\n",file=htmlFile,append=T)
 cat("『中心極限定理により、独立な多数の因子の和として表される確率変数は正規分布に従う。』",file=htmlFile,append=T) #Tips
@@ -133,9 +135,9 @@ cat("http://ja.wikipedia.org/wiki/%E6%AD%A3%E8%A6%8F%E5%88%86%E5%B8%83",file=htm
 cat("\n</td>\n",file=htmlFile,append=T)
 cat("</tr>\n",file=htmlFile,append=T)
 #tips
-cat("</table><br>\n",file=htmlFile,append=T)
-cat("\n[/wptab]\n",file=htmlFile,append=T)
-cat("[end_wptabset]",file=htmlFile,append=T)
+cat("</table>\n",file=htmlFile,append=T)
+cat("<a href=\"#Table\">Table</a>&nbsp;<a href=\"#Chart\">Chart</a>&nbsp;<a href=\"#Tips\">Tips</a><br>\n",file=htmlFile,append=T)
+cat(paste("NormalDistribution Ver.",addVer,"\n",sep=""),file=htmlFile,append=T)
 ```
 
 ```{r}
