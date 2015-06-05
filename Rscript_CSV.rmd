@@ -30,13 +30,13 @@ write.csv(dataset,csvFile,col.names=T,row.names=F,append=F,quote=F,fileEncoding=
 ```
 
 ```{r}
-overallTitle<-"対内証券売買契約等の状況(単位:億円、株式他は株式･投資ファンド持分、データ出所:財務省)"
+overallTitle<-"マネタリーベースと日本銀行の取引(単位:兆円、データ出所:日本銀行)"
 menulength<-20
 tailNumber<-13
-plotType<-2 #1:line , 2:bar
+plotType<-1 #1:line , 2:bar
 orderColumn<-0
 orderDirection<-"desc" #asc desc
-dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
 chartRow<-2
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 switch(dateFormat,
