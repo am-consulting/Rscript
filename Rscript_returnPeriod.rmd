@@ -1,0 +1,82 @@
+```{r}
+library(lubridate)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+menulength<-10
+orderColumn<-0
+orderDirection<-"asc" #asc desc
+columnWidth<-"{\"width\":\"14%\",\"targets\":0}"
+digitsNumber<-10^2
+```
+
+```{r}
+encounterProb<-list()
+functionProb<-function(returnPeriod){
+  switch(iii,
+  prob<-(1-(1-1/returnPeriod)^period)*100,                              #pattern1 期間中、少なくとも1回は遭遇する確率
+  prob<-(((1-1/returnPeriod)^(period-1))*(1/returnPeriod)^1*period)*100,#pattern2 期間中、1回のみ遭遇する確率  
+  prob<-(((1-1/returnPeriod)^(period-1))*(1/returnPeriod)^1)*100        #pattern3 期間中、最後の年のみに1回遭遇する確率
+  )  
+  return(prob)  
+}
+period<-seq(1,100,by=1)
+returnPeriod<-c(5,10,50,100,500,1000,3000)
+for(iii in 1:3){
+  tmp<-sapply(returnPeriod,functionProb)
+  buf<-data.frame(period,tmp)
+  colnames(buf)<-c(paste("期間(年間)",sep=""),paste("再現期間=",returnPeriod,"年",sep=""))
+  print(buf)
+  encounterProb[[iii]]<-buf
+}
+tableTitle<-c("Pattern1:期間中、少なくとも1回は遭遇する確率(%)","Pattern2:期間中、1回のみ遭遇する確率(%)","Pattern3:期間中、最後の年のみに遭遇する確率(%)")
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+col<-list()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste("encounterprobability",addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>\n",file=htmlFile,append=F)
+cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)
+cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>\n",file=htmlFile,append=T)
+cat("リスク分析のための遭遇確率 - 再現期間(年)に基づく遭遇確率表<hr>\n",file=htmlFile,append=T)
+for(iii in 1:length(encounterProb)){
+  grandData<-NULL
+  header<-NULL
+  tableID<-paste("am-consulting",iii,addVer,sep="")
+  dataset<-encounterProb[[iii]]
+  cat("<script type=\"text/javascript\" charset=\"utf-8\">\n$(document).ready( function(){\n",file=htmlFile,append=T)
+  cat(paste("$('#",tableID,"').dataTable({\n",sep=""),file=htmlFile,append=T)
+  cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],\n",file=htmlFile,append=T)
+  cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],\n",sep=""),file=htmlFile,append=T)
+  cat("\"searching\": true,\n",file=htmlFile,append=T)
+  cat("\"columnDefs\":[",columnWidth,"],\n",file=htmlFile,append=T)
+  cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}\n",file=htmlFile,append=T)
+  cat("});\n",file=htmlFile,append=T)
+  cat("});\n</script>\n",file=htmlFile,append=T)
+  cat(paste("<b>",tableTitle[iii],"</b><br>",sep=""),file=htmlFile,append=T)
+  for(ccc in 1:ncol(dataset)){
+    tmp0<-dataset[,ccc]
+    if(ccc!=1){tmp0<-floor(digitsNumber*as.numeric(tmp0)+0.5)/digitsNumber}
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(tmp0,big.mark=",",scientific=F),"</td>",sep="")
+    grandData<-cbind(grandData,col[[ccc]])
+    header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+  }
+  tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" style=\"font-size:15px;\"><thead>",sep="")
+  tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+  cat(tableHtml,file=htmlFile,append=T)
+  grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+  write.table(grandData,htmlFile,quote=F,col.names=F,row.names=F,append=T)
+  cat("</table>\n<hr>",file=htmlFile,append=T)
+}
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+cat(paste("<br>参照 http://en.wikipedia.org/wiki/Return_period","\n",sep=""),file=htmlFile,append=T)
+cat(paste("<br>Encounter Probability Ver.",addVer,"\n",sep=""),file=htmlFile,append=T)
+```
