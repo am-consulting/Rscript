@@ -1,0 +1,120 @@
+```{r}
+library(lubridate)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+SD<-Sys.Date()
+```
+
+```{r}
+#sapplyによると行名と列名が削除される
+#fun01<-function(ccc){
+#  buf[,ccc]<-as.numeric(buf[,ccc])  
+#}  
+#ccc<-c(2:ncol(buf))
+#buf<-sapply(ccc,fun01)
+#sapplyによると行名と列名が削除される
+nDate<-100
+url<-"http://www.mizuhobank.co.jp/rate/market/csv/quote.csv"
+buf<-read.csv(url,header=T,skip=1,stringsAsFactor=F,na.strings=c("*****","NA"))
+buf<-buf[-1,]
+buf[,1]<-as.Date(buf[,1])
+colnames(buf)[1]<-"Date"
+buf<-buf[,regexpr(".1",colnames(buf))==-1]
+buf<-tail(buf,nDate)#
+for(ccc in 2:ncol(buf)){
+  buf[,ccc]<-as.numeric(buf[,ccc])  
+}
+buf<-buf[,colSums(is.na(buf))==0]
+head(buf)
+tail(buf)
+```
+
+```{r}
+variance<-function(x){
+  tmp<-sqrt(var(x)*(length(x)-1)/length(x))
+  value<-floor(1000*as.numeric(tmp)+0.5)/1000
+  return(value)
+}
+meanValue=as.vector(colMeans(buf[,-1]),mode='numeric')
+sdValue=as.vector(apply(buf[,-1],2,variance),mode='numeric')
+tmpDataset<-data.frame(
+  通貨=colnames(buf[,-1]),
+  latest1=as.vector(buf[nrow(buf)-0,-1],mode='numeric'),
+  latest2=as.vector(buf[nrow(buf)-1,-1],mode='numeric'),
+  中央値=as.vector(apply(buf[,-1],2,median),mode='numeric'),
+  標本標準偏差=sdValue,
+  最大値=as.vector(apply(buf[,-1],2,max),mode='numeric'),
+  最小値=as.vector(apply(buf[,-1],2,min),mode='numeric'),
+  変動率=sdValue/meanValue*100,
+  row.names=NULL
+)
+tmpDataset[,c(5,8)]<-floor(100*(tmpDataset[,c(5,8)])+0.5)/100
+colnames(tmpDataset)[2:3]<-c(as.character(buf[,1][nrow(buf)-0]),as.character(buf[,1][nrow(buf)-1]))
+colnames(tmpDataset)[ncol(tmpDataset)]<-paste(colnames(tmpDataset)[ncol(tmpDataset)],"(%)",sep="")
+dataset<-tmpDataset
+```
+
+```{r}
+menulength<-30
+orderColumn<-1
+orderDirection<-"desc" #asc desc
+dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+columnWidth<-"{\"width\":\"21%\",\"targets\":0}"
+switch(dateFormat, #columa=1のデータフォーマット
+  dateFormatType<-"",
+  dateFormatType<-"",
+  dateFormatType<-"%Y/%m",
+  dateFormatType<-"%Y/%m/%d",
+  dateFormatType<-"%Y"
+)  
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+col<-list()
+grandData<-NULL
+header<-NULL
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)  
+cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("});</script>",file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset)){
+  if(ccc==1){
+    switch(dateFormat,
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",dataset[,ccc],"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep="")
+    )
+  }else{  
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  }  
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+}
+cat(paste(year(tail(buf[,1],1)),"年",month(tail(buf[,1],1)),"月",day(tail(buf[,1],1)),"日"," 外国為替公示相場(仲値、データ出所:株式会社みずほ銀行)<br>\n",sep=""),file=htmlFile,append=T)
+cat(paste("平均値、中央値、標本標準偏差、最大値、最小値の対象は",nDate,"営業日分(",head(buf[,1],1),"から",tail(buf[,1],1),")<br>\n"),file=htmlFile,append=T)
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+```
