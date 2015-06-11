@@ -14,6 +14,8 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 origData<-list()
 title<-list()
 tempAnomalyDF<-list()
+tempAnomalyXTS<-list()
+tempAnomalyTS<-list()
 ```
 
 ```{r}
@@ -36,11 +38,11 @@ for(rrr in 1:length(url)){
     station<-"Yonagunijima"
   )  
   tmp<-read.csv(url[rrr],header=T,skip=0,stringsAsFactor=F)
-  tmp<-tmp[,-(4:5)]
-  tmp[,3]<-as.numeric(tmp[,3])
-  tmp<-subset(tmp,tmp[,2]!="NA")
+  tmp<-tmp[,-(4:5)]                #列4と列5 ",,単位 ppm"
+  tmp[,3]<-as.numeric(tmp[,3])     #ppm列を数値化
+  tmp<-subset(tmp,tmp[,2]!="NA")   #コメント(csv最下から4行分)削除
   tmp<-data.frame(Date=as.Date(paste(tmp[,1],"-",tmp[,2],"-1",sep="")),co2=tmp[,3])
-  if(omitNA==1){tmp<-na.omit(tmp)}
+  if(omitNA==1){tmp<-na.omit(tmp)} #未公表月データを削除
   origData[[rrr]]<-tmp
   colnames(origData[[rrr]])[2]<-paste(station,".co2",sep="")
   print(head(origData[[rrr]]))
@@ -48,19 +50,20 @@ for(rrr in 1:length(url)){
 }  
 ```
 
-
 ```{r}
 pattern<-2
-sourceData<-1
+sourceData<-4
 switch(sourceData,
 sourceURL<-"\nData Source http://www.data.jma.go.jp/cpdinfo/temp/list/mon_wld.html",
 sourceURL<-"\nData Source http://www.data.jma.go.jp/cpdinfo/temp/list/mon_jpn.html",
+sourceURL<-"\nData Source http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html",
 sourceURL<-"\nData Source http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html"
 )  
 switch(sourceData,
 title[[1]]<-"世界の月平均気温偏差(摂氏,度,基準値:1981-2010年の30年平均値)",
 title[[1]]<-"日本の月平均気温偏差(摂氏,度,基準値:1981-2010年の30年平均値)",
-title[[1]]<-"エルニーニョ監視海域(NINO.3)海面水温値"
+title[[1]]<-"エルニーニョ監視海域(NINO.3) 海面水温の基準値との差(摂氏,度,5か月移動平均値)",
+title[[1]]<-"エルニーニョ監視海域(NINO.3) 海面水温(摂氏,度)"
 )  
 fun.readData<-function(){
   origData[[1]]<<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=FALSE,na.strings=c("na","NA",99.9)) # 99.9をNAとはしていないソースか否か注意
@@ -68,10 +71,10 @@ fun.readData<-function(){
   print(tail(origData[[1]]))
 }
 fun.readData()
+#エルニーニョ監視指数は1)htmlデータをテキストファイルとして保存、2)表計算ソフトで読み込み(スペース区切り)、3)データ範囲をコピー、とする手順が必要。
 ```
 
 ```{r}
-########## seasonplot
 setwd(pathOutput)
 for(rrr in 1:length(origData)){
   if(pattern==2){  
@@ -83,22 +86,78 @@ for(rrr in 1:length(origData)){
     tempAnomalyDF[[rrr]]<-origData[[rrr]]
     colnames(tempAnomalyDF[[rrr]])[2]<-"value" #冗長であるが当面挟むこと
   }  
-  tempAnomalyXTS<-as.xts(tempAnomalyDF[[rrr]][,-1],order.by=as.Date(tempAnomalyDF[[rrr]]$Date))
+  tempAnomalyXTS[[rrr]]<-as.xts(tempAnomalyDF[[rrr]][,-1],order.by=as.Date(tempAnomalyDF[[rrr]]$Date))
   tmp<-subset(tempAnomalyDF[[rrr]],(year(last(tempAnomalyDF[[rrr]][,1]))-1000)<=year(tempAnomalyDF[[rrr]][,1]))
-  tempAnomalyTS<-ts(tmp[,2],freq=12,start=c(year(tmp[1,1]),month(tmp[1,1]))) 
-#   f.date<-format(first(tmp[,1]),"%Y/%m")
-#   e.date<-format(last(tmp[,1]),"%Y/%m")
-#   mainTitle<-paste(title[[rrr]],"\n期間",f.date,"-",e.date,sourceURL)
-#   ST<-Sys.time() 
-#   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-#   png.file<-paste(addVer,".png",sep="")
-#   png(file=png.file,width=1920,height=1080)
-#   par(mar=c(5,6,8,2),ps=30)
-#   seasonplot(tempAnomalyTS,col=rainbow_hcl(6,c=150),year.labels=TRUE,lwd="2",
-#     main=mainTitle,family="Meiryo",ylab=title[[rrr]],cex.main=1,cex.lab=1,cex.axis=1) 
-#   dev.off()
+  tempAnomalyTS[[rrr]]<-ts(tmp[,2],freq=12,start=c(year(tmp[1,1]),month(tmp[1,1]))) 
 }
-########## seasonplot
+```
+
+```{r}
+menulength<-20
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+switch(dateFormat,
+  dateFormatType<-"",
+  dateFormatType<-"",
+  dateFormatType<-"%Y/%m",
+  dateFormatType<-"%Y/%m/%d",
+  dateFormatType<-"%Y"
+)  
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+col<-list()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)
+for(rrr in 1:length(origData)){
+  grandData<-NULL
+  header<-NULL
+  tableID<-paste("am-consulting",rrr,addVer,sep="")
+  dataset<-tempAnomalyDF[[rrr]]
+  colnames(dataset)[2]<-title[[rrr]]  
+  cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+  cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+  cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+  cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+  cat("\"searching\": true,",file=htmlFile,append=T)
+  cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+  cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+  cat("});",file=htmlFile,append=T)
+  cat("});</script>",file=htmlFile,append=T)
+  for(ccc in 1:ncol(dataset)){
+    if(ccc==1){
+      switch(dateFormat,
+      col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",dataset[,ccc],"</td>",sep=""),
+      col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep=""),
+      col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+      col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+      col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep="")
+      )
+    }else{  
+      col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+    }  
+    grandData<-cbind(grandData,col[[ccc]])
+    header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+  }
+  tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+  tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+  cat(tableHtml,file=htmlFile,append=T)
+  grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+  write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+  cat("</table>",file=htmlFile,append=T)
+  cat("<hr>",file=htmlFile,append=T)
+}  
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
 ```
 
 ```{r}
@@ -108,6 +167,7 @@ for(rrr in 1:length(origData)){
   f.date<-format(first(tempAnomalyDF[[rrr]][,1]),"%Y/%m")
   e.date<-format(last(tempAnomalyDF[[rrr]][,1]),"%Y/%m")
   mainTitle<-paste(title[[rrr]],"\n期間",f.date,"-",e.date,sourceURL)
+########## timeseries
   g<-ggplot()
   if(length((tempAnomalyDF[[rrr]]$value)[tempAnomalyDF[[rrr]]$value<0])!=0){
     level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
@@ -122,7 +182,7 @@ for(rrr in 1:length(origData)){
   g<-g+geom_smooth(data=tempAnomalyDF[[rrr]],aes(x=Date,y=value,group=1),method=loess,color="red",lwd=3)
   g<-g+theme(plot.title=element_text(size=35,family="Meiryo"))
   g<-g+theme(axis.title.x=element_text(size=30)) 
-  g<-g+theme(axis.title.y=element_text(size=30)) 
+  g<-g+theme(axis.title.y=element_text(size=25)) 
   g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=0.5,vjust=0.5)) 
   g<-g+theme(axis.text.y=element_text(size=30)) 
   g<-g+ggtitle(paste(mainTitle))
@@ -132,16 +192,17 @@ for(rrr in 1:length(origData)){
   ST<-Sys.time() 
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1920,height=1080)
+  png(file=png.file,width=1600,height=800)
   print(g)
   dev.off()
+########## seasonplot
   seasonData<-data.frame(tempAnomalyDF[[rrr]],month=month.abb[month(tempAnomalyDF[[rrr]][,1])])
   seasonData$month<-factor(seasonData$month,levels=month.abb)
   g1<-ggplot(data=seasonData,aes(x=month,y=value))
   g1<-g1+geom_boxplot(lwd=2)
   g1<-g1+theme(plot.title=element_text(size=35,family="Meiryo"))
   g1<-g1+theme(axis.title.x=element_text(size=30)) 
-  g1<-g1+theme(axis.title.y=element_text(size=30)) 
+  g1<-g1+theme(axis.title.y=element_text(size=25)) 
   g1<-g1+theme(axis.text.x=element_text(size=30,angle=0,hjust=0.5,vjust=0.5)) 
   g1<-g1+theme(axis.text.y=element_text(size=30)) 
   g1<-g1+ggtitle(paste(mainTitle))
@@ -150,7 +211,7 @@ for(rrr in 1:length(origData)){
   ST<-Sys.time() 
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
-  png(file=png.file,width=1920,height=1080)
+  png(file=png.file,width=1600,height=800)
   print(g1)
   dev.off()
 }
