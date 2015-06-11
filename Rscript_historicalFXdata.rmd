@@ -109,7 +109,7 @@ for(ccc in 1:ncol(dataset)){
   header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
 }
 cat(paste(year(tail(buf[,1],1)),"年",month(tail(buf[,1],1)),"月",day(tail(buf[,1],1)),"日"," 外国為替公示相場(仲値、データ出所:株式会社みずほ銀行)<br>\n",sep=""),file=htmlFile,append=T)
-cat(paste("中央値、標本標準偏差、最大値、最小値の対象は",nDate,"営業日分(",head(buf[,1],1),"から",tail(buf[,1],1),")<br>\n"),file=htmlFile,append=T)
+cat(paste("中央値、標本標準偏差、最大値、最小値、変動率の対象は",nDate,"営業日分(",head(buf[,1],1),"から",tail(buf[,1],1),")<br>\n"),file=htmlFile,append=T)
 cat(paste("変動率(%)=標本標準偏差/平均値×100<br>\n"),file=htmlFile,append=T)
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
 tableHtml<-paste(tableHtml,header,"</thead>",sep="")
