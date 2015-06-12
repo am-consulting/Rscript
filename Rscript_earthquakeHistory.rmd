@@ -1,0 +1,101 @@
+```{r}
+requiredPackageList<-c("ggplot2","lubridate","maptools")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+data.file<-"query.csv"
+pathEarthquake<-paste("C:/Users/",username,"/Desktop/Earthquake_Data/",sep="")
+buf<-read.table(file=paste(pathEarthquake,data.file,sep=""),sep=",",header=T,as.is=T,skip=0)
+SD<-Sys.Date()
+ST<-Sys.time() 
+buf<-subset(buf,7<=buf$mag)
+JST<-as.POSIXct(sub("Z","",sub("T"," ",buf$time)))+3600*9 #UTC+9
+No<-seq(1,nrow(buf),by=1)
+GoogleMap<-paste("<a href=\"http://maps.google.co.jp/maps?ll=",buf$latitude,",",buf$longitude,"&z=4&q=loc:",buf$latitude,"+",buf$longitude,"\" target=\"_blank\">Google Map</a>",sep="")
+buf<-data.frame(No,JST,GoogleMap,buf)
+colnames(buf)
+print(head(buf))
+print(tail(buf))
+nrow(buf)
+```
+
+```{r}
+tailLength<-100000
+menulength<-10
+orderColumn<-0
+orderDirection<-"asc" #asc desc
+dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+columnWidth<-"{\"width\":\"6%\",\"targets\":0},{\"width\":\"16%\",\"targets\":1},{\"width\":\"9%\",\"targets\":2},{\"width\":\"9%\",\"targets\":3},{\"width\":\"9%\",\"targets\":4} ,{\"width\":\"9%\",\"targets\":6}"
+switch(dateFormat,
+  dateFormatType<-"",
+  dateFormatType<-"",
+  dateFormatType<-"%Y/%m",
+  dateFormatType<-"%Y/%m/%d",
+  dateFormatType<-"%Y"
+)  
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+col<-list()
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)
+grandData<-NULL
+header<-NULL
+tableID<-paste("am-consulting",addVer,sep="")
+tmp<-buf[,c(1,2,5,6,7,8,9,17,3)]
+colnames(tmp)<-c("No.","日本時間","緯度","経度","深さ","M","Mタイプ","地点","地図")
+dataset<-tail(tmp,tailLength)
+cat("<b>西暦1900年以降に発生したマグニチュード7.0以上の地震リスト</b><br>\n",file=htmlFile,append=T) 
+cat("- 表中\"M\"はマグニチュード<br>\n",file=htmlFile,append=T) 
+cat("- マグニチュードタイプ(Mタイプ)はデータ毎に異なります<br>\n",file=htmlFile,append=T) 
+cat("- ソースデータ:http://earthquake.usgs.gov/<br>\n",file=htmlFile,append=T) 
+cat(paste("- データ確認日時:",year(SD),"年",month(SD),"月",day(SD),"日","<br>\n",sep=""),file=htmlFile,append=T) 
+cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("});</script>",file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset)){
+  if(ccc==1){
+    switch(dateFormat,
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",dataset[,ccc],"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep="")
+    )
+  }else{  
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  }  
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\" style=\"font-size:10.5px;\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )<br>",file=htmlFile,append=T)
+```
