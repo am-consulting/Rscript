@@ -1,0 +1,160 @@
+```{r}
+requiredPackageList<-c("tseries","ggplot2","scales","gridExtra","knitr","lubridate","reshape2","forecast","xts","dichromat","RColorBrewer","colorspace")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+title<-list()
+caution<-list()
+```
+
+```{r}
+title[[1]]<-"月平均全天日射量(MJ/m^2)"
+caution[[1]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります<br>"
+dataSource<-"データ出所:気象庁"
+```
+
+```{r}
+fun.readData<-function(){
+  buf<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=FALSE,na.strings=c("na","NA"))
+  buf[,1]<-as.Date(buf[,1])
+  buf<<-buf
+  print(head(buf))
+  print(tail(buf))
+}
+fun.readData()
+```
+
+```{r}
+selecteddSource<-1
+menulength<-20
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+switch(dateFormat,
+  dateFormatType<-"",
+  dateFormatType<-"",
+  dateFormatType<-"%Y/%m",
+  dateFormatType<-"%Y/%m/%d",
+  dateFormatType<-"%Y"
+)  
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+col<-list()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)
+grandData<-NULL
+header<-NULL
+tableID<-paste("am-consulting",addVer,sep="")
+dataset<-buf
+cat("<b>",title[[selecteddSource]],"</b><br>",file=htmlFile,append=T)
+cat(caution[[selecteddSource]],file=htmlFile,append=T)
+cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("});</script>",file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset)){
+  if(ccc==1){
+    switch(dateFormat,
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",dataset[,ccc],"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep="")
+    )
+  }else{  
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  }  
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+```
+
+```{r}
+########## timeseries & seasonplot
+setwd(pathOutput)
+f.date<-format(first(buf[,1]),"%Y/%m")
+e.date<-format(last(buf[,1]),"%Y/%m")
+for(ccc in 2:ncol(buf)){
+  mainTitle<-paste(title[[selecteddSource]],"-",colnames(buf)[ccc],"\n期間",f.date,"-",e.date," , ",dataSource)
+  deficit<-paste(format(subset(buf,is.na(buf[,ccc])==TRUE)[,1],"%Y/%m"),collapse=",")
+  if(deficit==""){deficit<-"なし"}
+  dataset<-na.omit(buf[,c(1,ccc)])
+  colnames(dataset)[2]<-"value"
+########## timeseries
+  g<-ggplot()
+  switch(selecteddSource,
+    level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
+  )  
+  if(level.type==2){
+    g<-g+geom_bar(data=dataset,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.9,size=2)
+  }else{
+    g<-g+geom_line(data=dataset,aes(x=Date,y=value),size=1,colour="blue",alpha=0.5)
+  }
+  g<-g+theme(plot.title=element_text(size=35,family="Meiryo"))
+  g<-g+theme(axis.title.x=element_text(size=30)) 
+  g<-g+theme(axis.title.y=element_text(size=25)) 
+  g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=0.5,vjust=0.5)) 
+  g<-g+theme(axis.text.y=element_text(size=30)) 
+  g<-g+ggtitle(paste(mainTitle,"\n欠損データ:",deficit))
+  g<-g+ggtitle(paste(mainTitle))
+  g<-g+scale_x_date(labels=date_format("%Y/%m"))  
+  g<-g+xlab("")
+  g<-g+ylab(title[[selecteddSource]]) 
+  ST<-Sys.time() 
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1600,height=800)
+  print(g)
+  dev.off()
+########## seasonplot
+  seasonData<-data.frame(dataset,month=month.abb[month(dataset[,1])])
+  seasonData$month<-factor(seasonData$month,levels=month.abb)
+  g1<-ggplot(data=seasonData,aes(x=month,y=value))
+  g1<-g1+geom_boxplot(lwd=2)
+  g1<-g1+theme(plot.title=element_text(size=35,family="Meiryo"))
+  g1<-g1+theme(axis.title.x=element_text(size=30)) 
+  g1<-g1+theme(axis.title.y=element_text(size=25)) 
+  g1<-g1+theme(axis.text.x=element_text(size=30,angle=0,hjust=0.5,vjust=0.5)) 
+  g1<-g1+theme(axis.text.y=element_text(size=30)) 
+  g1<-g1+ggtitle(paste(mainTitle,"\n欠損データ:",deficit))
+  g1<-g1+xlab("")
+  g1<-g1+ylab(title[[selecteddSource]]) 
+  ST<-Sys.time() 
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste(addVer,".png",sep="")
+  png(file=png.file,width=1600,height=800)
+  print(g1)
+  dev.off()
+}
+########## timeseries & seasonplot
+```
