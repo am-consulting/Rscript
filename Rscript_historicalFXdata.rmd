@@ -45,12 +45,11 @@ tmpDataset<-data.frame(
   標本標準偏差=sdValue,
   最大値=as.vector(apply(buf[,-1],2,max),mode='numeric'),
   最小値=as.vector(apply(buf[,-1],2,min),mode='numeric'),
-  変動率=sdValue/meanValue*100,
+  変動係数=sdValue/meanValue*100,
   row.names=NULL
 )
 tmpDataset[,c(5,8)]<-floor(100*(tmpDataset[,c(5,8)])+0.5)/100
 colnames(tmpDataset)[2:3]<-c(as.character(buf[,1][nrow(buf)-0]),as.character(buf[,1][nrow(buf)-1]))
-colnames(tmpDataset)[ncol(tmpDataset)]<-paste(colnames(tmpDataset)[ncol(tmpDataset)],"(%)",sep="")
 dataset<-tmpDataset
 ```
 
@@ -109,8 +108,8 @@ for(ccc in 1:ncol(dataset)){
   header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
 }
 cat(paste(year(tail(buf[,1],1)),"年",month(tail(buf[,1],1)),"月",day(tail(buf[,1],1)),"日"," 外国為替公示相場(仲値、データ出所:株式会社みずほ銀行)<br>\n",sep=""),file=htmlFile,append=T)
-cat(paste("中央値、標本標準偏差、最大値、最小値、変動率の対象は",nDate,"営業日分(",head(buf[,1],1),"から",tail(buf[,1],1),")<br>\n"),file=htmlFile,append=T)
-cat(paste("変動率(%)=標本標準偏差/平均値×100<br>\n"),file=htmlFile,append=T)
+cat(paste("中央値、標本標準偏差、最大値、最小値、変動係数の対象は",nDate,"営業日分(",head(buf[,1],1),"から",tail(buf[,1],1),")<br>\n"),file=htmlFile,append=T)
+cat(paste("変動係数(%)=標本標準偏差/平均値×100<br>\n"),file=htmlFile,append=T)
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
 tableHtml<-paste(tableHtml,header,"</thead>",sep="")
 cat(tableHtml,file=htmlFile,append=T)
