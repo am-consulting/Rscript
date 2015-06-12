@@ -42,7 +42,7 @@ xlimLdiff<-ceiling(960/tailWidth)
 #tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
 #tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
 #tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
-tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DJIA")
 for(lll in 1:length(tsSource)){
   for(iii in 4:length(tsSource[[lll]])){
     cnt<-cnt+1
@@ -106,6 +106,12 @@ for(ddd in 1:length(dataset)){
   print(colnames(tsData[[ddd]]))
   if(colnames(tsData[[ddd]])[2]=="DEXJPUS"){colnames(tsData[[ddd]])[2]<-"米ドル-日本円為替レート"}
   if(colnames(tsData[[ddd]])[2]=="DEXUSEU"){colnames(tsData[[ddd]])[2]<-"ユーロ-米ドル為替レート"}
+  if(colnames(tsData[[ddd]])[2]=="DJIA"){colnames(tsData[[ddd]])[2]<-"ダウ工業株30種平均"}
+  if(colnames(tsData[[ddd]])[2]=="GOLDAMGBD228NLBM"){colnames(tsData[[ddd]])[2]<-"ロンドン渡しゴールド価格(米ドル/トロイオンス)"}
+  if(colnames(tsData[[ddd]])[2]=="DCOILWTICO"){colnames(tsData[[ddd]])[2]<-"WTI原油価格(米ドル/バレル)"}
+  if(colnames(tsData[[ddd]])[2]=="SP500"){colnames(tsData[[ddd]])[2]<-"S&P500指数"}
+  if(colnames(tsData[[ddd]])[2]=="DTWEXM"){colnames(tsData[[ddd]])[2]<-"貿易加重対主要通貨米ドルインデックス"}
+  if(colnames(tsData[[ddd]])[2]=="DEXUSUK"){colnames(tsData[[ddd]])[2]<-"英ポンド-米ドル為替レート"}
 }  
 ```
 
