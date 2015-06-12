@@ -16,9 +16,11 @@ caution<-list()
 ```
 
 ```{r}
+dataSource<-"データ出所:気象庁"
 title[[1]]<-"月平均全天日射量(MJ/m^2)"
 caution[[1]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります<br>"
-dataSource<-"データ出所:気象庁"
+title[[2]]<-"月最高気温(摂氏、度)"
+caution[[2]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。"
 ```
 
 ```{r}
@@ -33,7 +35,7 @@ fun.readData()
 ```
 
 ```{r}
-selecteddSource<-1
+selecteddSource<-2
 menulength<-20
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -112,8 +114,10 @@ for(ccc in 2:ncol(buf)){
   colnames(dataset)[2]<-"value"
 ########## timeseries
   g<-ggplot()
-  switch(selecteddSource,
-    level.type<-2#レベル系列のチャートタイプ　1はライン、2はバー
+  switch(selecteddSource,#レベル系列のチャートタイプ　1はライン、2はバー
+    level.type<-2,
+    level.type<-2,
+    level.type<-dammy
   )  
   if(level.type==2){
     g<-g+geom_bar(data=dataset,aes(x=Date,y=value),stat="identity",position="identity",fill="blue",alpha=0.9,size=2)
