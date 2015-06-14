@@ -75,7 +75,7 @@ output2.html<-"cftcoutput02.html" #corre
 js.title<-"IMMpositions"
 js.file.table.list<-paste(js.title,".tablelist.js",sep="")
 #javascript part  
-diff.date<-365*5
+diff.date<-365*1
 first.date<-Sys.Date()-diff.date
 dataset<-list()
 cnt<-0
@@ -143,7 +143,7 @@ for(ccc in 1:length(currency)){
     png(file=png.file,width=1400,height=1200)
     par(mar=c(7, 7, 7, 7))    
     g<-ggplot()
-    g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="white",alpha=0.1,color="black")
+    g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.1,color="black")
     g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
     g<-g+ggtitle(paste(gsub("\\sFX\\s-\\sCHICAGO\\sMERCANTILE\\sEXCHANGE","",gsub("Net\\s","",colnames(tmp)[2])),"\n",subtitle,"\n",first(tmp[,1]),"-",last(tmp[,1])))+xlab("")+ylab(subtitle)
     g<-g+scale_x_date(labels=date_format("%y-%m"))
