@@ -253,7 +253,7 @@ cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jq
 cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
 cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
 cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
-cat("\"order\": [[",orderColumn,",\"" ,orderDirection,"\" ]],",file=htmlFile,append=T)
+cat(paste("\"order\": [[",orderColumn,",\"" ,orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
 cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
