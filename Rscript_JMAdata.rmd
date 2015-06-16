@@ -21,6 +21,8 @@ title[[1]]<-"月平均全天日射量(MJ/m^2)"
 caution[[1]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります<br>"
 title[[2]]<-"月最高気温(摂氏、度)"
 caution[[2]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。"
+title[[3]]<-"降水量の合計(mm)"
+caution[[3]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。"
 ```
 
 ```{r}
@@ -35,7 +37,7 @@ fun.readData()
 ```
 
 ```{r}
-selecteddSource<-2
+selecteddSource<-3
 menulength<-20
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -108,13 +110,19 @@ f.date<-format(first(buf[,1]),"%Y/%m")
 e.date<-format(last(buf[,1]),"%Y/%m")
 for(ccc in 2:ncol(buf)){
   mainTitle<-paste(title[[selecteddSource]],"-",colnames(buf)[ccc],"\n期間",f.date,"-",e.date," , ",dataSource)
-  deficit<-paste(format(subset(buf,is.na(buf[,ccc])==TRUE)[,1],"%Y/%m"),collapse=",")
-  if(deficit==""){deficit<-"なし"}
+  tmpDeficit<-format(subset(buf,is.na(buf[,ccc])==TRUE)[,1],"%Y/%m")
+  if(length(tmpDeficit)==0){
+    deficit01<-"なし";deficit02<-""
+  }else{
+    deficit01<-paste(head(tmpDeficit,8),collapse=",")
+    deficit02<-paste(tail(tmpDeficit,length(tmpDeficit)-8),collapse=",")
+  }
   dataset<-na.omit(buf[,c(1,ccc)])
   colnames(dataset)[2]<-"value"
 ########## timeseries
   g<-ggplot()
   switch(selecteddSource,#レベル系列のチャートタイプ　1はライン、2はバー
+    level.type<-2,
     level.type<-2,
     level.type<-2,
     level.type<-dammy
@@ -124,13 +132,12 @@ for(ccc in 2:ncol(buf)){
   }else{
     g<-g+geom_line(data=dataset,aes(x=Date,y=value),size=1,colour="blue",alpha=0.5)
   }
-  g<-g+theme(plot.title=element_text(size=35,family="Meiryo"))
+  g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
   g<-g+theme(axis.title.x=element_text(size=30)) 
   g<-g+theme(axis.title.y=element_text(size=25)) 
   g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=0.5,vjust=0.5)) 
   g<-g+theme(axis.text.y=element_text(size=30)) 
-  g<-g+ggtitle(paste(mainTitle,"\n欠損データ:",deficit))
-  g<-g+ggtitle(paste(mainTitle))
+  g<-g+ggtitle(paste(mainTitle,"\n欠損データ:",deficit01,"\n",deficit02))
   g<-g+scale_x_date(labels=date_format("%Y/%m"))  
   g<-g+xlab("")
   g<-g+ylab(title[[selecteddSource]]) 
@@ -145,12 +152,12 @@ for(ccc in 2:ncol(buf)){
   seasonData$month<-factor(seasonData$month,levels=month.abb)
   g1<-ggplot(data=seasonData,aes(x=month,y=value))
   g1<-g1+geom_boxplot(lwd=2)
-  g1<-g1+theme(plot.title=element_text(size=35,family="Meiryo"))
+  g1<-g1+theme(plot.title=element_text(size=30,family="Meiryo"))
   g1<-g1+theme(axis.title.x=element_text(size=30)) 
   g1<-g1+theme(axis.title.y=element_text(size=25)) 
   g1<-g1+theme(axis.text.x=element_text(size=30,angle=0,hjust=0.5,vjust=0.5)) 
   g1<-g1+theme(axis.text.y=element_text(size=30)) 
-  g1<-g1+ggtitle(paste(mainTitle,"\n欠損データ:",deficit))
+  g1<-g1+ggtitle(paste(mainTitle,"\n欠損データ:",deficit01,"\n",deficit02))
   g1<-g1+xlab("")
   g1<-g1+ylab(title[[selecteddSource]]) 
   ST<-Sys.time() 
