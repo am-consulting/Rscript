@@ -1,0 +1,357 @@
+```{r}
+library(lubridate)
+library(snowfall)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+SD<-Sys.Date()
+rateTable<-list()
+```
+
+```{r}
+menulength<-5
+orderColumn<-0
+orderDirection<-"asc" #asc desc
+columnWidth<-"{\"width\":\"35%\",\"targets\":0}"
+expenseType<-3 #1:共通仮設費 2:現場管理費 3:一般管理費
+```
+
+```{r}
+#建築工事
+##########  共通仮設費  ##########
+functionCoefKr<-function(KoujiShubetsu){
+  if(KoujiShubetsu==1){
+    a<-7.56;b<--0.1105;c<-0.2389;d<-(10^7);eu<-4.33;el<-3.25;fu<-5.78;fl<-4.34;g<--0.0313;shubetsu<-"新築建築工事"
+  }else if(KoujiShubetsu==2){
+    a<-18.03;b<--0.2027;c<-0.4017;d<-5*(10^6);eu<-6.07;el<-3.59;fu<-11.74;fl<-6.94;g<--0.0774;shubetsu<-"改修建築工事"
+  }else if(KoujiShubetsu==3){
+    a<-22.89;b<--0.2462;c<-0.41;d<-5*(10^6);eu<-7.19;el<-3.9;fu<-16.73;fl<-9.08;g<--0.0992;shubetsu<-"新築電気設備工事"
+  }else if(KoujiShubetsu==4){
+    a<-10.15;b<--0.2462;c<-0.6929;d<-3*(10^6);eu<-5.21;el<-1.91;fu<-8.47;fl<-3.1;g<--0.0608;shubetsu<-"改修電気設備工事"
+  }else if(KoujiShubetsu==5){
+    a<-12.15;b<--0.1186;c<-0.0882;d<-5*(10^6);eu<-5.51;el<-4.86;fu<-12.4;fl<-10.94;g<--0.0952;shubetsu<-"新築機械設備工事"
+  }else if(KoujiShubetsu==6){
+    a<-12.21;b<--0.2596;c<-0.6874;d<-3*(10^6);eu<-4.96;el<-1.73;fu<-7.02;fl<-2.44;g<--0.0433;shubetsu<-"改修機械設備工事"
+  }
+  coefList<-c(a,b,c,d,eu,el,fu,fl,g,shubetsu)
+  coefList<<-coefList
+}  
+functionKr<-function(costChokusetsuKouji){
+  #Kr=a*P^b*Kouki^c,P:直接工事費(千円)
+  #直接工事費閾値を超える直接工事費.共通仮設費率.上限=fu*P^g
+  #直接工事費閾値を超える直接工事費.共通仮設費率.下限=fl*P^g
+  #d:直接工事費閾値,eu:直接工事費閾値以下上限共通仮設費率,el:直接工事費閾値以下下限共通仮設費率
+  if(costChokusetsuKouji<=d){
+    P<-d/1000
+  }else{
+    P<-costChokusetsuKouji/1000
+  }
+  Kr<-a*(P^b)*(Kouki^c)
+  Kr<-as.numeric(format(Kr,nsmall=3))
+  Kr<-floor(100*as.numeric(Kr)+0.5)/100
+  if(costChokusetsuKouji<=d){
+    tmprateKyoutsuuKasetsu<-max(Kr,el)
+    tmprateKyoutsuuKasetsu<-min(tmprateKyoutsuuKasetsu,eu)
+    KrUpperLimit<-eu
+    KrLowerLimit<-el
+  }else{
+    KrUpperLimit<-fu*(P^g)
+    KrUpperLimit<-as.numeric(format(KrUpperLimit,nsmall=3))
+    KrUpperLimit<-floor(100*as.numeric(KrUpperLimit)+0.5)/100
+    KrLowerLimit<-fl*(P^g)
+    KrLowerLimit<-as.numeric(format(KrLowerLimit,nsmall=3))
+    KrLowerLimit<-floor(100*as.numeric(KrLowerLimit)+0.5)/100
+    tmprateKyoutsuuKasetsu<-max(Kr,KrLowerLimit)
+    tmprateKyoutsuuKasetsu<-min(tmprateKyoutsuuKasetsu,KrUpperLimit)
+  }
+  rateKyoutsuuKasetsu<-tmprateKyoutsuuKasetsu
+  tmpTable<-data.frame(a1=costChokusetsuKouji/period,b1=rateKyoutsuuKasetsu,c1=KrLowerLimit,d1=KrUpperLimit,Kr=Kr)
+  return(tmpTable)
+}
+functionELVKr<-function(costChokusetsuKouji){
+  if(KoujiShubetsu==7){#昇降機設備工事
+    #Kr=a*P^b,P:直接工事費(千円)
+    #c:直接工事費下限閾値,d:直接工事費上限閾値,e:直接工事費下限閾値共通仮設費率,f:直接工事費上限閾値共通仮設費率
+    if(costChokusetsuKouji<=c){
+      rateKyoutsuuKasetsu<-e
+    }else if(costChokusetsuKouji>d){
+      rateKyoutsuuKasetsu<-f
+    }else{
+      rateKyoutsuuKasetsu<-a*((costChokusetsuKouji/1000)^b)
+    }
+    origKr<-rateKyoutsuuKasetsu
+    rateKyoutsuuKasetsu<-as.numeric(format(rateKyoutsuuKasetsu,nsmall=3))
+    rateKyoutsuuKasetsu<-floor(100*as.numeric(rateKyoutsuuKasetsu)+0.5)/100
+    tmpTable<-data.frame(a1=costChokusetsuKouji/period,b1=rateKyoutsuuKasetsu,origKr)
+    return(tmpTable)
+  }
+}
+##########  共通仮設費  ##########
+##########  現場管理費  ##########
+functionCoefNp<-function(KoujiShubetsu){
+  if(KoujiShubetsu==1){
+    a<-151.08;b<--0.3396;c<-0.586;d<-(10^7);eu<-20.13;el<-10.01;fu<-75.97;fl<-37.76;g<--0.1442;shubetsu<-"新築建築工事"
+  }else if(KoujiShubetsu==2){
+    a<-356.2;b<--0.4085;c<-0.5766;d<-5*(10^6);eu<-26.86;el<-12.7;fu<-184.58;fl<-87.29;g<--0.2263;shubetsu<-"改修建築工事"
+  }else if(KoujiShubetsu==3){
+    a<-351.48;b<--0.3528;c<-0.3524;d<-5*(10^6);eu<-38.6;el<-22.91;fu<-263.03;fl<-156.07;g<--0.2253;shubetsu<-"新築電気設備工事"
+  }else if(KoujiShubetsu==4){
+    a<-658.42;b<--0.4896;c<-0.7247;d<-3*(10^6);eu<-50.37;el<-17.67;fu<-530.68;fl<-186.18;g<--0.2941;shubetsu<-"改修電気設備工事"
+  }else if(KoujiShubetsu==5){
+    a<-152.72;b<--0.3085;c<-0.4222;d<-5*(10^6);eu<-31.23;el<-17.14;fu<-165.22;fl<-90.67;g<--0.1956;shubetsu<-"新築機械設備工事"
+  }else if(KoujiShubetsu==6){
+    a<-825.85;b<--0.5122;c<-0.6648;d<-3*(10^6);eu<-42.07;el<-15.25;fu<-467.95;fl<-169.65;g<--0.3009;shubetsu<-"改修機械設備工事"
+  }
+  coefList<-c(a,b,c,d,eu,el,fu,fl,g,shubetsu)
+  coefList<<-coefList
+} 
+functionNp<-function(costJyunKouji){
+  #Jo=a*Np^b*Kouki^c,Np:純工事費(千円)
+  #純工事費閾値を超える純工事費.現場管理費率.上限=fu*Np^g
+  #純工事費閾値を超える純工事費.現場管理費率.下限=fl*Np^g
+  #d:純工事費閾値,eu:純工事費閾値以下上限共通仮設費率,el:純工事費閾値以下下限共通仮設費率
+  if(costJyunKouji<=d){
+    Np<-d/1000
+  }else{
+    Np<-costJyunKouji/1000
+  }
+  Jo<-a*(Np^b)*(Kouki^c)
+  Jo<-as.numeric(format(Jo,nsmall=3))
+  Jo<-floor(100*as.numeric(Jo)+0.5)/100 
+  if(costJyunKouji<=d){
+    tmprateGenbaKanri<-max(Jo,el)
+    tmprateGenbaKanri<-min(tmprateGenbaKanri,eu)
+    JoUpperLimit<-eu
+    JoLowerLimit<-el
+  }else{
+    JoUpperLimit<-fu*(Np^g)
+    JoUpperLimit<-as.numeric(format(JoUpperLimit,nsmall=3))
+    JoUpperLimit<-floor(100*as.numeric(JoUpperLimit)+0.5)/100 
+    JoLowerLimit<-fl*(Np^g);
+    JoLowerLimit<-as.numeric(format(JoLowerLimit,nsmall=3))
+    JoLowerLimit<-floor(100*as.numeric(JoLowerLimit)+0.5)/100 
+    tmprateGenbaKanri<-max(Jo,JoLowerLimit)
+    tmprateGenbaKanri<-min(tmprateGenbaKanri,JoUpperLimit)
+  }
+  rateGenbaKanri<-tmprateGenbaKanri
+  tmpTable<-data.frame(a1=costJyunKouji/period,b1=rateGenbaKanri,c1=JoLowerLimit,d1=JoUpperLimit,Jo=Jo)
+  return(tmpTable)
+}
+functionELVNp<-function(costJyunKouji){
+  if(KoujiShubetsu==7){#昇降機設備工事
+    #Jo=a*Np^b,Np:純工事費(千円)
+    #c:純工事費下限閾値,d:純工事費上限閾値,e:純工事費下限閾値現場管理費率,f:純工事費上限閾値現場管理費率
+    if(costJyunKouji<=c){
+      rateGenbaKanri<-e
+    }else if(costJyunKouji>d){
+      rateGenbaKanri<-f
+    }else{
+      rateGenbaKanri<-a*((costJyunKouji/1000)^b)
+    }
+    origNp<-rateGenbaKanri
+    rateGenbaKanri<-as.numeric(format(rateGenbaKanri,nsmall=3))
+    rateGenbaKanri<-floor(100*as.numeric(rateGenbaKanri)+0.5)/100
+    tmpTable<-data.frame(a1=costJyunKouji/period,b1=rateGenbaKanri,origNp)
+    return(tmpTable)
+  }
+}
+##########  現場管理費  ##########
+##########  一般管理費  ##########
+#Gp=a-b*log10(Cp),Cp:工事原価(千円)
+#c:工事原価下限閾値,d:工事原価上限閾値,e:工事原価下限閾値一般管理費率,f:工事原価上限閾値一般管理費率
+functionCoefGp<-function(KoujiShubetsu){
+  if(KoujiShubetsu==1 | KoujiShubetsu==2){
+    a<-15.065;b<-1.028;c<-5*(10^6);d<-3*(10^9);e<-11.26;f<-8.41;shubetsu<-"建築工事"
+  }else if(KoujiShubetsu==3 | KoujiShubetsu==4){
+    a<-17.286;b<-1.577;c<-3*(10^6);d<-2*(10^9);e<-11.8;f<-7.35;shubetsu<-"電気設備工事"
+  }else{
+    a<-15.741;b<-1.305;c<-3*(10^6);d<-2*(10^9);e<-11.2;f<-7.52;shubetsu<-"機械･昇降機設備工事"
+  }
+  coefList<-c(a,b,c,d,e,f,shubetsu)
+  coefList<<-coefList
+}
+functionGp<-function(costKoujiGenka){
+  if(costKoujiGenka<=c){
+    rateIppanKanri<-e
+  }else if(costKoujiGenka>d){
+    rateIppanKanri<-f
+  }else{
+    rateIppanKanri<-a-b*log10(costKoujiGenka/1000)
+  }
+  origGp<-rateIppanKanri
+  rateIppanKanri<-as.numeric(format(rateIppanKanri,nsmall=3))
+  rateIppanKanri<-floor(100*as.numeric(rateIppanKanri)+0.5)/100
+  tmpTable<-data.frame(a1=costKoujiGenka/period,b1=rateIppanKanri,origGp)
+  return(tmpTable)
+}  
+##########  一般管理費  ##########
+```
+
+```{r}
+#一般管理費専用チャンク
+KoujiShubetsu<-5 # 1,3,5
+cnt<-1
+period<-1000
+functionCoefGp(KoujiShubetsu)
+a<-as.numeric(coefList[1])
+b<-as.numeric(coefList[2])
+c<-as.numeric(coefList[3])  
+d<-as.numeric(coefList[4])
+e<-as.numeric(coefList[5])  
+f<-as.numeric(coefList[6])  
+shubetsu<-coefList[7]
+tmpConst<-seq(c,d,by=1*10^6)
+costKoujiGenka<-tmpConst
+buf<-sapply(costKoujiGenka,functionGp)
+bufTable<-t(buf)
+colnames(bufTable)[1]<-paste(shubetsu,"-工事原価(千円)",sep="")
+colnames(bufTable)[2]<-"一般管理費率(%)"
+colnames(bufTable)[3]<-"一般管理費率(%、四捨五入前)"
+rateTable[[cnt]]<-bufTable
+```
+
+```{r}
+#昇降機専用チャンク
+KoujiShubetsu<-7
+cnt<-1
+period<-1000
+shubetsu<-"昇降機設備工事"
+if(expenseType==1){#共通仮設費
+  a<-7.89;b<--0.1021;c<-(10^7);d<-5*(10^8);e<-3.08;f<-2.07
+  tmpConst<-seq(c,d,by=5*10^6)
+  costChokusetsuKouji<-tmpConst
+  buf<-sapply(costChokusetsuKouji,functionELVKr)
+  tmpTitle<-c("-直接工事費(千円)","共通仮設費率(%)","共通仮設費率(%、四捨五入前)")
+}else{#現場管理費
+  a<-15.1;b<--0.1449;c<-(10^7);d<-5*(10^8);e<-3.98;f<-2.26
+  tmpConst<-seq(c,d,by=5*10^6)
+  costJyunKouji<-tmpConst
+  buf<-sapply(costJyunKouji,functionELVNp)
+  tmpTitle<-c("-純工事費(千円)","現場管理費率(%)","現場管理費率(%、四捨五入前)")
+}  
+bufTable<-t(buf)
+colnames(bufTable)[1]<-paste(shubetsu,tmpTitle[1],sep="")
+colnames(bufTable)[2]<-tmpTitle[2]
+colnames(bufTable)[3]<-tmpTitle[3]
+rateTable[[cnt]]<-bufTable
+```
+
+```{r}
+sfInit(parallel=TRUE,cpus=2)
+sfIsRunning()
+sfCpus()
+KoujiShubetsu<-6
+################
+period<-1000
+cnt<-0
+switch(expenseType,
+  functionCoefKr(KoujiShubetsu),
+  functionCoefNp(KoujiShubetsu)
+)
+switch(expenseType,
+  tmpTitle<-c("-直接工事費(千円)","共通仮設費率(%)-工期(","Kr(%)"),
+  tmpTitle<-c("-純工事費(千円)","現場管理費率(%)-工期(","Np(%)")
+)
+a<-as.numeric(coefList[1])
+b<-as.numeric(coefList[2])
+c<-as.numeric(coefList[3])  
+d<-as.numeric(coefList[4])
+eu<-as.numeric(coefList[5])  
+el<-as.numeric(coefList[6])  
+fu<-as.numeric(coefList[7])
+fl<-as.numeric(coefList[8])
+g<-as.numeric(coefList[9])
+shubetsu<-coefList[10]
+tmpConst<-c(seq(10^7,10^8,by=0.5*10^7),seq(10^8+0.5*10^8,10^9,by=0.5*10^8),seq(10^9+0.5*10^9,10^10,by=0.5*10^9))
+switch(expenseType,
+  costChokusetsuKouji<-tmpConst,
+  costJyunKouji<-tmpConst
+)
+for(iii in 1:2){
+  switch(iii,
+    KoukiRange<-seq(1,25,by=1),
+    KoukiRange<-seq(26,50,by=1)
+  )  
+  for(Kouki in KoukiRange){
+    cnt<-cnt+1
+  #  costUpper<-(a/fl*Kouki^c)^(1/(g-b))*1000
+  #  costLower<-(a/fu*Kouki^c)^(1/(g-b))*1000
+  #  print(costUpper)
+  #  print(costLower)
+  #  costChokusetsuKouji<-floor(seq(floor(costLower/period)*period,ceiling(costUpper/period)*period,by=period))
+  #  buf<-sapply(costChokusetsuKouji,functionKr)
+    sfExportAll() #(注意)必ずsfSapply直前に置くこと
+    switch(expenseType,
+      buf<-sfSapply(costChokusetsuKouji,functionKr),
+      buf<-sfSapply(costJyunKouji,functionNp)
+    )    
+    bufTable<-t(buf)
+    colnames(bufTable)[1]<-paste(shubetsu,tmpTitle[1],sep="")
+    colnames(bufTable)[2]<-paste(tmpTitle[2],Kouki,"ヶ月)")
+    colnames(bufTable)[3]<-"下限(%)"
+    colnames(bufTable)[4]<-"上限(%)"
+    colnames(bufTable)[5]<-tmpTitle[3]
+  #  rateTable[[cnt]]<-bufTable[!duplicated(bufTable[,2],fromLast=T),]
+  #  rateTable[[cnt]]<-rbind(bufTable[1,],rateTable[[cnt]])
+    rateTable[[cnt]]<-bufTable
+    print(head(rateTable[[cnt]]))
+    print(tail(rateTable[[cnt]]))
+  }
+}
+sfStop()
+```
+
+```{r}
+sfInit(parallel=TRUE,cpus=2)
+#only html
+setwd(pathOutput)
+col<-list()
+for(iii in 1:2){
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  htmlFile<-paste(addVer,".html",sep="")
+  if(iii==1){
+    sCnt<-1;eCnt<-25
+  }else{
+    sCnt<-26;eCnt<-50
+  }
+  if(KoujiShubetsu==7 | expenseType==3){sCnt<-1;eCnt<-1}
+  for(ddd in sCnt:eCnt){
+    grandData<-NULL
+    header<-NULL
+    ST<-Sys.time()  
+    addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+    tableID<-paste("am-consulting",addVer,sep="")
+    cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
+    cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+    cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",
+      file=htmlFile,append=T) 
+    cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+    cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)  
+    cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+    cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+    cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+    cat(paste("\"order\": [[",orderColumn,",\"",orderDirection,"\"]],",sep=""),file=htmlFile,append=T)
+    cat("\"searching\": true,",file=htmlFile,append=T)
+    cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+    cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+    cat("});",file=htmlFile,append=T)
+    cat("});</script>",file=htmlFile,append=T)
+    for(ccc in 1:ncol(rateTable[[ddd]])){
+      col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(rateTable[[ddd]][,ccc],big.mark=",",scientific=F),"</td>",sep="")
+      grandData<-cbind(grandData,col[[ccc]])
+      header<-paste(header,"<th>",colnames(rateTable[[ddd]])[ccc],"</th>",sep="")  
+    }
+    tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+    tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+    cat(tableHtml,file=htmlFile,append=T)
+    grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+    write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+    cat("</table>",file=htmlFile,append=T)
+    cat("<hr>",file=htmlFile,append=T)
+  }
+  cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+  cat("<br>参考資料 - 公共建築工事共通費積算基準(出所:国土交通省) - http://www.mlit.go.jp/common/001033734.pdf",file=htmlFile,append=T)
+  if(KoujiShubetsu==7 | expenseType==3){break}
+}  
+sfStop()
+```
