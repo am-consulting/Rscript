@@ -95,7 +95,7 @@ forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line ,
 ```{r}
 fun.readData()
 commonTitle<-""
-dataSource<-"\nデータ出所:日本取引所グループ"
+dataSource<-"\nデータ出所:経済産業省"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
