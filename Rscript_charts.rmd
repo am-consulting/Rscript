@@ -1,5 +1,5 @@
 ```{r}
-requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape")
+requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape","gridExtra")
 colnames(installed.packages())
 notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
 if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
@@ -31,36 +31,41 @@ fun.readData()
 
 ```{r}
 ########################################## time series ##########################################
-needCSV<-1
-dateType<-1
+needCSV<-2
+dateType<-2 #1:日次 2:月次
+mainTitle<-""#"週間石油在庫統計 - "
+dataSource<-"\nデータ出所:国土交通省"#"\nData Source: U.S. Energy Information Administration"
+chartType<-2 #1:line , 2:bar
+fitType<-3 #1:lm , 2:loess ,3:none
+tailNumber<-200000
+#####################
 switch(dateType,
   dateFormat<-"%Y/%m/%d",
   dateFormat<-"%Y/%m"
 )  
 colorList<-c("blue","red")
-mainTitle<-"週間石油在庫統計"
-dataSource<-"\nData Source: U.S. Energy Information Administration"
-chartType<-2 #1:line , 2:bar
-fitType<-3 #1:lm , 2:loess ,3:none
-tailNumber<-200
 setwd(pathOutput)
 if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
 }else{
   dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
 }
-buf.dataset<-tail(dataset,tailNumber)  
+for(ccc in 2:ncol(dataset)){
+buf.dataset<-tail(dataset[,c(1,ccc)],tailNumber)  
 melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])#系列が一つでも強制的にmelt
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1920,height=1080)
-g<-ggplot()
-g<-g+scale_y_continuous(labels=comma)
 switch(chartType,  
-  g<-g+geom_line(data=melt.dataset,aes(x=Date,y=value,color=variable),size=2),
-  g<-g+geom_bar(data=melt.dataset,aes(x=Date,y=value,fill=variable),stat="identity",position="identity",alpha=0.5)
-)
+  g<-ggplot(data=melt.dataset,aes(x=Date,y=value,color=variable))+geom_line(size=2),
+  g<-ggplot(data=melt.dataset,aes(x=Date,y=value,fill=variable))+geom_bar(stat="identity",position="identity",alpha=0.5)
+)  
+g<-g+scale_y_continuous(labels=comma)
+#switch(chartType,  
+#  g<-g+geom_line(data=melt.dataset,aes(x=Date,y=value,color=variable),size=2),
+#  g<-g+geom_bar(data=melt.dataset,aes(x=Date,y=value,fill=variable),stat="identity",position="identity",alpha=0.5)
+#)
 switch(fitType,
   g<-g+geom_smooth(data=melt.dataset,aes(x=Date,y=value),method=lm,lwd=2),
   g<-g+geom_smooth(data=melt.dataset,aes(x=Date,y=value,group=1),method=loess,lwd=2,color="red"),
@@ -76,14 +81,57 @@ g<-g+theme(axis.text.y=element_text(size=40,angle=90))
 g<-g+theme(legend.text=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
 g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))   
 g<-g+theme(legend.position="top")          
-g<-g+ggtitle(paste(mainTitle,"\n対象期間:",format(head(buf.dataset[,1],1),dateFormat),"-",format(tail(buf.dataset[,1],1),dateFormat),dataSource))
+g<-g+ggtitle(paste(mainTitle,"対象期間:",format(head(buf.dataset[,1],1),dateFormat),"-",format(tail(buf.dataset[,1],1),dateFormat),dataSource))
 if(colnames(buf.dataset)[1]=="Date"){  
   g<-g+scale_x_date(labels=date_format(dateFormat))  
 }  
 g<-g+xlab("")
 g<-g+ylab("")
-g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),
-  label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
+#g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
+grobTable<-buf.dataset
+grobTable[,1]<-format(as.Date(grobTable[,1]),"%Y-%m")
+#time series  
+g<-g+annotation_custom(
+  tableGrob(
+    tail(grobTable,13),
+    separator="black",
+    show.rownames=F,
+    h.odd.alpha=0.5,
+    h.even.alpha=0.5,
+    v.odd.alpha=0.5,
+    v.even.alpha=0.5,
+    gpar.coretext=gpar(col="black",cex=2.5),
+    gpar.coltext=gpar(col="black",cex=2.5,fontfamily="Meiryo"),
+    gpar.rowtext=gpar(col="black",cex=2.5,fontfamily="Meiryo")
+  ),
+  xmin=as.numeric(buf.dataset[10,1]),
+  xmax=as.numeric(buf.dataset[floor(nrow(buf.dataset)/2),1]),
+  ymin=min(buf.dataset[,2]),
+  ymax=max(buf.dataset[,2])
+)
+#max and min  
+noteTable<-rbind(
+  data.frame(grobTable[which.max(grobTable[,2]),],Note="Max"),  
+  data.frame(grobTable[which.min(grobTable[,2]),],Note="Min")  
+)  
+g<-g+annotation_custom(
+  tableGrob(
+    noteTable,
+    separator="black",
+    show.rownames=F,
+    h.odd.alpha=0.5,
+    h.even.alpha=0.5,
+    v.odd.alpha=0.5,
+    v.even.alpha=0.5,
+    gpar.coretext=gpar(col="black",cex=2.5),
+    gpar.coltext=gpar(col="black",cex=2.5,fontfamily="Meiryo"),
+    gpar.rowtext=gpar(col="black",cex=2.5,fontfamily="Meiryo")
+  ),
+  xmin=as.numeric(buf.dataset[floor(nrow(buf.dataset)/2),1]),
+  xmax=as.numeric(buf.dataset[floor(nrow(buf.dataset)),1]),
+  ymin=min(buf.dataset[,2]),
+  ymax=max(buf.dataset[,2])
+)
 print(g)
 dev.off()
 #CSV part
@@ -97,6 +145,7 @@ setwd(dir.list)
 csvFile<-paste(colnames(dataset)[2],".csv",sep="")    
 write.csv(tail(dataset,30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 }  
+}
 ########################################## time series ##########################################
 ```
 
