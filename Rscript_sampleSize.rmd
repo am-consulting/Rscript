@@ -1,0 +1,77 @@
+```{r}
+library(lubridate)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+SD<-Sys.Date()
+```
+
+```{r}
+confidenceLevel<-c(99.9999,99.999,99.99,99.9,99,seq(95,50,by=-5)) #%
+tmp<-(100-confidenceLevel)/2/100
+lambda<-qnorm(tmp,mean=0,sd=1,lower.tail=F)
+samplingError<-c(0.01,0.1,0.5,1,2,3,4,5,10) #%
+p<-0.5
+functionSS<-function(samplingError){
+  sampleSize<-p*(1-p)*(lambda/(samplingError/100))^2
+  return(sampleSize)  
+}
+buf<-sapply(samplingError,functionSS)
+sizeTable<-data.frame(confidenceLevel,lambda,ceiling(buf))
+colnames(sizeTable)<-c("信頼水準(%)","z",paste("e:",samplingError,"%",sep=""))
+dataset<-sizeTable
+```
+
+```{r}
+menulength<-20
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+columnWidth<-"{\"width\":\"12%\",\"targets\":0}"
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+col<-list()
+grandData<-NULL
+header<-NULL
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)  
+cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,",file=htmlFile,append=T)
+cat("\"scrollX\": true,",file=htmlFile,append=T)
+cat("\"paging\": false,",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("});</script>",file=htmlFile,append=T)
+cat("<span style=\"font-size:83%;\">･E:Margin of error of plus or minus(%)/許容誤差(プラスマイナス,%)。<br>",file=htmlFile,append=T)
+cat("･標本調査の目標精度を「信頼水準99%、標本誤差の許容範囲はプラスマイナス1%」とする場合の標本サイズは16,588。<br>",file=htmlFile,append=T)
+cat("･標本サイズは小数点以下切り上げとしている。<br>",file=htmlFile,append=T)
+cat("･前提01:無作為標本抽出その他により標本は『母集団のよい縮図』( http://www.stat.go.jp/teacher/c2hyohon.htm )となっていること。<br>",file=htmlFile,append=T)
+cat("･前提02:中心極限定理の成立。</span><br>",file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset)){
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\" style=\"font-size:11px;\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("参考資料<br>",file=htmlFile,append=T)
+cat("- http://repository.dl.itc.u-tokyo.ac.jp/dspace/bitstream/2261/52469/7/micro_6.pdf<br>",file=htmlFile,append=T)
+cat("- http://www.stat.go.jp/teacher/c2hyohon.htm<br>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+```
