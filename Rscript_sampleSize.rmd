@@ -46,6 +46,31 @@ note03<-"･標本誤差は小数点第二位止め。<br>"
 ```
 
 ```{r}
+#サンプルサイズと許容誤差から信頼水準
+samplingError<-0.5
+sampleSize<-8735
+samplingError<-2
+sampleSize<-4147
+samplingError<-0.1
+sampleSize<-113735
+samplingError<-c(0.01,0.1,0.5,1,2,3,4,5,10) #%
+sampleSize<-c(10,20,50,100,500,1000,10000,50000,100000)
+p<-0.5
+functionCL<-function(sampleSize){
+  lambda<-samplingError/100*(sampleSize/(p*(1-p)))^0.5
+  confidenceLevel<-100-pnorm(lambda,mean=0,sd=1,lower.tail=F)*200
+  return(confidenceLevel)  
+}
+buf<-sapply(sampleSize,functionCL)
+sizeTable<-data.frame(samplingError,format(buf,digits=4))
+colnames(sizeTable)<-c("標本誤差(%)",paste("SS:",sampleSize,"",sep=""))
+dataset<-sizeTable
+note01<-"･SS:Sample Size/サンプルサイズ(標本サイズ)、標本誤差の単位はプラスマイナス%。<br>"
+note02<-"･標本調査の標本誤差にプラスマイナス5%を求めサンプルサイズを500とした場合の信頼水準は97.46527%。<br>"
+note03<-"･表示桁数の関係で信頼水準が100%と表示されるセルがあります。<br>"
+```
+
+```{r}
 menulength<-20
 orderColumn<-0
 orderDirection<-"desc" #asc desc
