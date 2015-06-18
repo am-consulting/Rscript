@@ -22,6 +22,17 @@ if(colnames(dataset)[1]=="Date"){
 ```
 
 ```{r}
+#pattern 毎月勤労統計調査
+colName<-"賃金指数-現金給与支給額"
+tmpSave<-dataset
+start<-as.numeric(gsub("年","",dataset[1,1]))
+tmp.value<-as.numeric(gsub("\\*","",na.omit(as.vector(t(dataset[,-1])))))
+tmp.date<-seq(as.Date(paste(start,"/1/1",sep="")),by="month",length.out=length(tmp.value))
+dataset<-data.frame(Date=tmp.date,value=tmp.value)
+colnames(dataset)[2]<-colName
+```
+
+```{r}
 pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
 folder.path<-file.path(pathInput)
 setwd(folder.path)
@@ -35,7 +46,7 @@ write.csv(dataset,csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8") #co
 ```
 
 ```{r}
-overallTitle<-"日本円の実効為替レート(2010年=100、データ出所:日本銀行)"
+overallTitle<-"毎月勤労統計調査-賃金指数-現金給与総額-5人以上\n就業形態計-調査産業計-平成22年平均=100(データ出所:厚生労働省)"
 menulength<-20
 tailNumber<-3600
 plotType<-1 #1:line , 2:bar
@@ -132,8 +143,18 @@ for(ccc in 2:ncol(dataset)){
     lines(plotX,tmp[,2],col="blue",lwd=2)
     axis.Date(1,plotX,format="%Y/%m")
   }else{
+    tmpPlotX<-NULL
+    tmpMonth<-month(plotX[length(plotX)])
+    for(ccc in 1:length(plotX)){
+      if(month(plotX[ccc])!=tmpMonth){
+        tmpPlotX<-c(tmpPlotX,"")
+      }else{
+        tmpPlotX<-c(tmpPlotX,format(plotX[ccc],"%Y/%m"))
+      }
+    }  
     if(3<=dateFormat){
-      barplot(names.arg=format(plotX,dateFormatType),tmp[,2],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp[,3],yaxt="n") 
+      barplot(names.arg=tmpPlotX,tmp[,2],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp[,3],yaxt="n",
+        panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T)) 
     }else{    
       barplot(names.arg=plotX,tmp[,2],horiz=F,las=2,main=mainTitle,family="Meiryo",ylab="",xlab="",col=tmp[,3],yaxt="n") 
     }
