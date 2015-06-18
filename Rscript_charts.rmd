@@ -31,26 +31,30 @@ fun.readData()
 
 ```{r}
 ########################################## time series ##########################################
-needCSV<-2
-dateType<-2 #1:日次 2:月次
-mainTitle<-""#"週間石油在庫統計 - "
-dataSource<-"\nデータ出所:国土交通省"#"\nData Source: U.S. Energy Information Administration"
+needCSV<-1
+dateType<-1 #1:日次 2:月次
+switch(dateType,
+  dateFormat<-"%Y-%m-%d",
+  dateFormat<-"%Y-%m"
+)
+mainTitle<-"週間石油在庫統計 - "
+dataSource<-"\nData Source: U.S. Energy Information Administration"
 chartType<-2 #1:line , 2:bar
 fitType<-3 #1:lm , 2:loess ,3:none
-tailNumber<-200000
+tailNumber<-120
 #####################
 switch(dateType,
   dateFormat<-"%Y/%m/%d",
   dateFormat<-"%Y/%m"
 )  
 colorList<-c("blue","red")
-setwd(pathOutput)
 if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
 }else{
   dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
 }
 for(ccc in 2:ncol(dataset)){
+setwd(pathOutput)
 buf.dataset<-tail(dataset[,c(1,ccc)],tailNumber)  
 melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])#系列が一つでも強制的にmelt
 ST<-Sys.time()  
@@ -89,7 +93,8 @@ g<-g+xlab("")
 g<-g+ylab("")
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
 grobTable<-buf.dataset
-grobTable[,1]<-format(as.Date(grobTable[,1]),"%Y-%m")
+colnames(grobTable)[2]<-"Value"  
+grobTable[,1]<-format(as.Date(grobTable[,1]),dateFormat)
 #time series  
 g<-g+annotation_custom(
   tableGrob(
@@ -106,8 +111,8 @@ g<-g+annotation_custom(
   ),
   xmin=as.numeric(buf.dataset[10,1]),
   xmax=as.numeric(buf.dataset[floor(nrow(buf.dataset)/2),1]),
-  ymin=min(buf.dataset[,2]),
-  ymax=max(buf.dataset[,2])
+  ymin=min(na.omit(buf.dataset)[,2]),
+  ymax=max(na.omit(buf.dataset)[,2])
 )
 #max and min  
 noteTable<-rbind(
@@ -129,8 +134,8 @@ g<-g+annotation_custom(
   ),
   xmin=as.numeric(buf.dataset[floor(nrow(buf.dataset)/2),1]),
   xmax=as.numeric(buf.dataset[floor(nrow(buf.dataset)),1]),
-  ymin=min(buf.dataset[,2]),
-  ymax=max(buf.dataset[,2])
+  ymin=min(na.omit(buf.dataset)[,2]),
+  ymax=max(na.omit(buf.dataset)[,2])
 )
 print(g)
 dev.off()
@@ -142,8 +147,8 @@ setwd(folder.path)
 tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
 dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(dir.list)
-csvFile<-paste(colnames(dataset)[2],".csv",sep="")    
-write.csv(tail(dataset,30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+csvFile<-paste(colnames(dataset[,c(1,ccc)])[2],".csv",sep="")    
+write.csv(tail(dataset[,c(1,ccc)],30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 }  
 }
 ########################################## time series ##########################################
