@@ -6,6 +6,7 @@ SD<-Sys.Date()
 ```
 
 ```{r}
+#信頼水準と許容誤差からサンプルサイズ
 confidenceLevel<-c(99.9999,99.999,99.99,99.9,99,seq(95,50,by=-5)) #%
 tmp<-(100-confidenceLevel)/2/100
 lambda<-qnorm(tmp,mean=0,sd=1,lower.tail=F)
@@ -19,6 +20,29 @@ buf<-sapply(samplingError,functionSS)
 sizeTable<-data.frame(confidenceLevel,lambda,ceiling(buf))
 colnames(sizeTable)<-c("信頼水準(%)","z",paste("e:",samplingError,"%",sep=""))
 dataset<-sizeTable
+note01<-"･E:Margin of error of plus or minus(%)/許容誤差(プラスマイナス,%)。<br>"
+note02<-"･標本調査の目標精度を「信頼水準99%、標本誤差の許容範囲はプラスマイナス1%」とする場合の標本サイズは16,588。<br>"
+note03<-"･標本サイズは小数点以下切り上げとしている。<br>"
+```
+
+```{r}
+#信頼水準とサンプルサイズから許容誤差
+confidenceLevel<-c(99.9999,99.999,99.99,99.9,99,seq(95,50,by=-5)) #%
+tmp<-(100-confidenceLevel)/2/100
+lambda<-qnorm(tmp,mean=0,sd=1,lower.tail=F)
+sampleSize<-c(10,20,50,100,500,1000,10000,50000,100000)
+p<-0.5
+functionSE<-function(sampleSize){
+  samplingError<-100*lambda/(sampleSize/(p*(1-p)))^0.5
+  return(samplingError)  
+}
+buf<-sapply(sampleSize,functionSE)
+sizeTable<-data.frame(confidenceLevel,lambda,format(buf,digits=2))
+colnames(sizeTable)<-c("信頼水準(%)","z",paste("SS:",sampleSize,"",sep=""))
+dataset<-sizeTable
+note01<-"･SS:Sample Size/サンプルサイズ(標本サイズ)。<br>"
+note02<-"･標本調査の信頼水準に99%を求めサンプルサイズを500とした場合の許容標本誤差はプラスマイナス5.76%。<br>"
+note03<-"･標本誤差は小数点第二位止め。<br>"
 ```
 
 ```{r}
@@ -54,9 +78,9 @@ cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
 cat("});",file=htmlFile,append=T)
 cat("});</script>",file=htmlFile,append=T)
-cat("<span style=\"font-size:83%;\">･E:Margin of error of plus or minus(%)/許容誤差(プラスマイナス,%)。<br>",file=htmlFile,append=T)
-cat("･標本調査の目標精度を「信頼水準99%、標本誤差の許容範囲はプラスマイナス1%」とする場合の標本サイズは16,588。<br>",file=htmlFile,append=T)
-cat("･標本サイズは小数点以下切り上げとしている。<br>",file=htmlFile,append=T)
+cat("<span style=\"font-size:83%;\">",note01,file=htmlFile,append=T)
+cat(note02,file=htmlFile,append=T)
+cat(note03,file=htmlFile,append=T)
 cat("･前提01:無作為標本抽出その他により標本は『母集団のよい縮図』( http://www.stat.go.jp/teacher/c2hyohon.htm )となっていること。<br>",file=htmlFile,append=T)
 cat("･前提02:中心極限定理の成立。</span><br>",file=htmlFile,append=T)
 for(ccc in 1:ncol(dataset)){
