@@ -30,6 +30,7 @@ funMaintitle<-function(){
   mainTitle<-colnames(tmp.dataset)[2]
   mainTitle<-gsub("\\.\\.","\\.",mainTitle)
   mainTitle<-gsub("前年同月比","前年同月比(%)",mainTitle)
+  mainTitle<-gsub("完全失業率","完全失業率(%)",mainTitle)
   mainTitle<-gsub("割合","割合(%)",mainTitle)
   mainTitle<-gsub("break","\n",mainTitle)
   mainTitle<-gsub("パーセント","%",mainTitle)
@@ -94,13 +95,17 @@ addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),secon
 csvFile<-paste("日米国債金利及び金利差",".csv",sep="")    
 write.csv(tail(dataset,30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+dataset<-dataset[,1:2]
+colnames(dataset)[2]<-"10年物日本国債金利"
+commonTitle<-""
+dataSource<-"\nデータ出所:財務省"
 ```
 
 ```{r}
 fun.readData()
 commonTitle<-""
-dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
-forcedlevel.type<-1#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+dataSource<-"\nデータ出所:日本銀行"# Federal Reserve Bank of St. Louis
+forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
 ```{r}
