@@ -1,0 +1,60 @@
+```{r}
+requiredPackageList<-c("lubridate")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+fun.readData<-function(){
+  dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","NA"))
+  dataset[,1]<-as.Date(dataset[,1])
+  dataset<-na.omit(dataset)
+  print(head(dataset))
+  print(tail(dataset))
+  dataset<<-dataset
+}
+```
+
+```{r}
+fun.readData()
+repType<-1 #1:算術平均値 2:中央値 3:最大値 4:最小値
+switch(repType,
+  csvadd<-"mean",
+  csvadd<-"median",
+  csvadd<-"max",
+  csvadd<-"min"
+)
+```
+
+```{r}
+setwd(pathOutput)
+for(ccc in 2:ncol(dataset)){
+  tmptsData<-NULL
+  buf<-na.omit(dataset[,c(1,ccc)])  
+  buf$Month<-format(buf[,1],"%Y/%m")
+  buf$Year<-format(buf[,1],"%Y")
+  nMonth<-unique(buf$Month)
+  for(mmm in 1:length(nMonth)){
+    tmp<-subset(buf,buf$Month==nMonth[mmm])  
+    switch(repType,
+      Value<-mean(tmp[,2]),
+      Value<-median(tmp[,2]),
+      Value<-max(tmp[,2]),
+      Value<-min(tmp[,2])
+    )
+    tmptsData<-rbind(tmptsData,
+      data.frame(
+        Date=as.Date(paste(unique(year(tmp[,1])),"-",unique(month(tmp[,1])),"-1",sep="")),
+        Value=Value
+      )
+    )  
+  }
+  colnames(tmptsData)[2]<-paste(colnames(dataset)[ccc],".",csvadd,sep="")
+  csvFile<-paste(colnames(tmptsData)[2],".csv",sep="")    
+  write.csv(tmptsData,csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8") #col.names=Tを付けると日本語が文字化けする
+}  
+```
