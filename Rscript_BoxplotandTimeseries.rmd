@@ -5,9 +5,12 @@ library(scales)
 library(quantmod) # last()
 library(reshape)
 library(gridExtra)
+library(e1071)
+library(tseries)
 successiveCabinets<-list()
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 SD<-Sys.Date()
 setwd(pathOutput)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
@@ -96,8 +99,8 @@ forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line ,
 ```{r}
 fun.readData()
 commonTitle<-""
-dataSource<-"\nデータ出所:日本銀行"
-forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
+forcedlevel.type<-1#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
 ```{r}
@@ -114,6 +117,7 @@ switch(monthly,
 )
 funSuccessiveCabinets()
 for(ccc in 2:ncol(dataset)){
+  invisible(replicate(20, gc()))
   tmp.dataset<-na.omit(dataset[,c(1,ccc)])  
   funBase()
   funMaintitle()
@@ -227,8 +231,8 @@ first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
 for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste("ts_",ttt,"_",addVer,".png",sep="")
-  png(file=png.file,width=1920,height=1080)
+  png.file<-paste("ts_",ccc,"_",ttt,"_",addVer,".png",sep="")
+  png(file=png.file,width=1600,height=1000)
   tmp.timeseries<-tmp.dataset
   tmp.date<-max(as.Date(first.date[ttt]),na.omit(tmp.timeseries)[1,1])
   tmp.timeseries<-na.omit(subset(tmp.timeseries,tmp.date<=tmp.timeseries[,1]))
@@ -282,7 +286,7 @@ for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
 if(ttt==1){
 #only html
 htmldataset<-tmp.timeseries
-colnames(htmldataset)<-c("Date",colnames(tmp.dataset)[2],"内閣総理大臣","日銀総裁")  
+colnames(htmldataset)<-c("Date","Value","内閣総理大臣","日銀総裁")  
 col<-list()
 grandData<-NULL
 header<-NULL
@@ -290,6 +294,7 @@ ST<-Sys.time()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 tableID<-paste("am-consulting",addVer,sep="")
 htmlFile<-paste(addVer,".html",sep="")
+htmlFile<<-htmlFile  
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
 cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
@@ -304,6 +309,9 @@ cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
 cat("});",file=htmlFile,append=T)
 cat("});</script>",file=htmlFile,append=T)
+cat("<b>",mainTitle,"</b><br>",file=htmlFile,append=T)
+cat(dataSource,"<br>",file=htmlFile,append=T)
+cat("最新データは\"数表リスト\"( http://am-consulting.co.jp/?p=1914 )から確認ください<br>",file=htmlFile,append=T)
 for(ccc in 1:ncol(htmldataset)){
   if(ccc==1){
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(htmldataset[,ccc]),dateFormat),"</td>",sep="")
@@ -320,8 +328,64 @@ grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
 cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
+x<-tmp.timeseries[,2]  
+bvalue<-c(
+mean(x),                                        #01 平均値  
+median(x),                                      #02 中央値
+var(x)*(length(x)-1)/length(x),                 #03 標本不偏分散 
+(var(x)*(length(x)-1)/length(x))^0.5,           #04 標本標準偏差 
+as.vector(quantile(x,c(0.05,0.1,0.9,0.95))[1]), #05 5%
+as.vector(quantile(x,c(0.05,0.1,0.9,0.95))[2]), #06 10%
+as.vector(quantile(x,c(0.05,0.1,0.9,0.95))[3]), #07 90%
+as.vector(quantile(x,c(0.05,0.1,0.9,0.95))[4]), #08 95%
+skewness(x),                                    #09 原系列歪度  
+kurtosis(x),                                    #10 原系列尖度  
+skewness(diff(x)),                              #11 1次差分歪度  
+kurtosis(diff(x)),                              #12 1次差分尖度  
+adf.test(x)$p.value,                            #13 原系列単位根検定   
+adf.test(diff(x))$p.value,                      #14 1次差分単位根検定
+0  
+)  
+btitle<-c(
+"平均値",                #01 平均値  
+"中央値",                #02 中央値
+"標本不偏分散",          #03 標本不偏分散 
+"標本標準偏差",          #04 標本標準偏差 
+"5パーセンタイル",       #05 5%
+"10パーセンタイル",      #06 10%
+"90パーセンタイル",      #07 90%
+"95パーセンタイル",      #08 95%
+"原系列歪度",            #09 原系列歪度  
+"原系列尖度",            #10 原系列尖度  
+"1次差分歪度",           #11 1次差分歪度  
+"1次差分尖度",           #12 1次差分尖度  
+"原系列単位根検定:p値",  #13 原系列単位根検定   
+"1次差分単位根検定:p値", #14 1次差分単位根検定
+"dammy"  
+)  
+cat("\n<table width=\"100%\">\n",file=htmlFile,append=T) # cellpadding=\"0\" cellspacing=\"0\"  
+for(ttt in seq(1,14,by=2)){
+  cat("<tr>\n",file=htmlFile,append=T)
+  cat("<td style=\"width:25%;text-align:center;vertical-align:middle;\" bgcolor=\"#F5F5F5\">\n",file=htmlFile,append=T)
+  cat(btitle[ttt],"\n",file=htmlFile,append=T)
+  cat("</td>\n",file=htmlFile,append=T)
+  cat("<td style=\"width:25%;text-align:right;vertical-align:middle;\">\n",file=htmlFile,append=T)
+  cat(bvalue[ttt],"\n",file=htmlFile,append=T)
+  cat("</td>\n",file=htmlFile,append=T)
+  cat("<td style=\"width:25%;text-align:center;vertical-align:middle;\" bgcolor=\"#F5F5F5\">\n",file=htmlFile,append=T)
+  cat(btitle[ttt+1],"\n",file=htmlFile,append=T)
+  cat("</td>\n",file=htmlFile,append=T)
+  cat("<td style=\"width:25%;text-align:right;vertical-align:middle;\">\n",file=htmlFile,append=T)
+  cat(bvalue[ttt+1],"\n",file=htmlFile,append=T)
+  cat("</td>\n",file=htmlFile,append=T)
+  cat("</tr>\n",file=htmlFile,append=T)
+}  
+cat("</table>",file=htmlFile,append=T)
 #only html
 }  
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)  
 }
 #以下はデータ確認用にグローバル化する
 tmp.segment<<-tmp.segment  
@@ -335,8 +399,8 @@ setwd(pathOutput)
 for(ttt in tttS:tttE){    
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste("bo_",ttt,"_",addVer,".png",sep="")
-  png(file=png.file,width=1920,height=1080)
+  png.file<-paste("bo_",ccc,"_",ttt,"_",addVer,".png",sep="")
+  png(file=png.file,width=1600,height=1000)
   if(ttt<=2){
     tmp.boxplot<-tmp.dataset[,c(2,2+ttt)]
   }else{
@@ -359,6 +423,9 @@ for(ttt in tttS:tttE){
   g<-g+scale_y_continuous(labels=comma)
   print(g)
   dev.off()
+  cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)  
 }
 tmp.boxplot<<-tmp.boxplot #確認用にグローバル化する  
 }  
