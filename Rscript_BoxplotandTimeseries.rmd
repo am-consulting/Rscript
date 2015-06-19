@@ -9,10 +9,7 @@ library(e1071)
 library(tseries)
 successiveCabinets<-list()
 username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 SD<-Sys.Date()
-setwd(pathOutput)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
   dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"))
@@ -21,6 +18,16 @@ fun.readData<-function(){
   if(unique(day(dataset[,1]))==1){#月次データの日付は月中に変更
     dataset[,1]<-as.Date(paste(year(dataset[,1]),"-",month(dataset[,1]),"-",floor(days_in_month(dataset[,1])/2),sep=""))
     monthly<<-1 #月次
+  }
+  if(regexpr("JGB.10year",colnames(dataset)[2])!=-1){
+    tmpColname<-gsub("JGB.10year","10年物日本国債金利",colnames(dataset)[2])
+    tmpColname<-gsub("mean","月中算術平均値",tmpColname)
+    tmpColname<-gsub("median","月中中央値",tmpColname)
+    tmpColname<-gsub("max","月中最大値",tmpColname)
+    tmpColname<-gsub("min","月中最小値",tmpColname)
+    colnames(dataset)[2]<-tmpColname
+    dataSource<<-"\nデータ出所:財務省"# Federal Reserve Bank of St. Louis
+    forcedlevel.type<<-1#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
   }
   print(head(dataset),3)
   print(tail(dataset),3)
@@ -34,14 +41,15 @@ funMaintitle<-function(){
   mainTitle<-gsub("割合","割合(%)",mainTitle)
   mainTitle<-gsub("break","\n",mainTitle)
   mainTitle<-gsub("パーセント","%",mainTitle)
+  mainTitle<-gsub("mean","月中算術平均値",mainTitle)
+  mainTitle<-gsub("median","月中中央値",mainTitle)
+  mainTitle<-gsub("max","月中最大値",mainTitle)
+  mainTitle<-gsub("min","月中最小値",mainTitle)
   mainTitle<<-mainTitle
 }
 ```
 
 ```{r}
-commonTitle<-"日本国債金利･米国財務省証券金利･10年物金利差):"
-dataSource<-"\nデータ出所:財務省(日本国債),FRED(米国財務省証券)"
-monthly<-2
 ################################################### JGB part ###################################################
 url<-c(
  "http://www.mof.go.jp/english/jgbs/reference/interest_rate/historical/jgbcme_all.csv",
@@ -84,21 +92,10 @@ dataset[,4]<-dataset[,3]-dataset[,2]
 colnames(dataset)[4]<-"10year.InterestSpread"
 head(dataset)
 tail(dataset)
-pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
-folder.path<-file.path(pathInput)
-setwd(folder.path)
-tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
-dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
-setwd(dir.list)
-ST<-Sys.time()  
-addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-csvFile<-paste("日米国債金利及び金利差",".csv",sep="")    
-write.csv(tail(dataset,30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
-forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
-dataset<-dataset[,1:2]
-colnames(dataset)[2]<-"10年物日本国債金利"
-commonTitle<-""
-dataSource<-"\nデータ出所:財務省"
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+setwd(pathOutput)
+csvFile<-paste("日米国債金利及び金利差",".csv",sep="")
+write.csv(dataset,csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 ```
 
 ```{r}
@@ -118,10 +115,10 @@ forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line ,
 ```
 
 ```{r}
-fun.readData()
 commonTitle<-""
 dataSource<-"\nデータ出所:日本銀行"# Federal Reserve Bank of St. Louis
 forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+fun.readData()
 ```
 
 ```{r}
@@ -131,6 +128,7 @@ menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
 switch(monthly,
   dateFormat<-"%Y/%m",
