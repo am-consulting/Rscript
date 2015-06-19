@@ -4,6 +4,7 @@ library(lubridate)
 library(scales)
 library(quantmod) # last()
 library(reshape)
+library(gridExtra)
 successiveCabinets<-list()
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
@@ -95,13 +96,17 @@ forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line ,
 ```{r}
 fun.readData()
 commonTitle<-""
-dataSource<-"\nデータ出所:経済産業省"
-forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+dataSource<-"\nデータ出所:日本銀行"
+forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 ```
 
 ```{r}
 tttS<-1
 tttE<-1
+menulength<-5
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 setwd(pathOutput)
 switch(monthly,
   dateFormat<-"%Y/%m",
@@ -222,7 +227,7 @@ first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
 for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste(addVer,".png",sep="")
+  png.file<-paste("ts_",ttt,"_",addVer,".png",sep="")
   png(file=png.file,width=1920,height=1080)
   tmp.timeseries<-tmp.dataset
   tmp.date<-max(as.Date(first.date[ttt]),na.omit(tmp.timeseries)[1,1])
@@ -246,7 +251,7 @@ for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   if(0<y0 & level.type==2){y0<-0}
   y1<-max(tmp.timeseries[,2])
   shade<-data.frame(x0,x1,y0,y1)
-  value.y<-median(tmp.timeseries[,2]) #value.y<-mean(tmp.timeseries[,2])
+  value.y<-(max(tmp.timeseries[,2])+min(tmp.timeseries[,2]))/2 #median(tmp.timeseries[,2]) #value.y<-mean(tmp.timeseries[,2])
   value.y<<-value.y #caution
   level.type<<-level.type #caution
   g<-ggplot()
@@ -262,18 +267,61 @@ for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   g<-g+ggtitle(paste(commonTitle,mainTitle,dataSource))
   g<-g+xlab("") 
   g<-g+ylab("") 
-  g<-g+theme(axis.text=element_text(size=30,face="bold",family="Meiryo"))          
-  g<-g+theme(axis.title=element_text(size=30,face="bold",family="Meiryo"))          
-  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
+  g<-g+theme(axis.text=element_text(size=30,face="plain",family="Meiryo"))          
+  g<-g+theme(axis.title=element_text(size=30,face="plain",family="Meiryo"))          
+  g<-g+theme(title=element_text(size=30,face="plain",family="Meiryo"))          
   g<-g+theme(legend.position="right")          
-  g<-g+theme(legend.text=element_text(colour="black",size=40,face="bold",family="Meiryo"))          
-  g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold")) 
-  g<-g+annotate("text",x=tmp.timeseries[1,1],y=y1+(y1-y0)/5,label=plotText,size=10,family="Meiryo",hjust=0,vjust=0.9,col="black")
-#  g<-g+scale_x_date(labels=date_format(dateFormat))
-  g<-g+scale_x_date(labels=date_format("%Y-%m"))#当面日付タイプに係らず年-月とする
-  g<-g+scale_y_continuous(labels=comma,limits=c(y0,(y1-y0)/5+y1))
+  g<-g+theme(legend.text=element_text(colour="black",size=30,face="plain",family="Meiryo"))          
+  g<-g+theme(legend.title=element_text(colour="white",size=0,face="plain")) 
+#  g<-g+annotate("text",x=tmp.timeseries[1,1],y=y1+(y1-y0)/5,label=plotText,size=10,family="Meiryo",hjust=0,vjust=0.9,col="black")
+  g<-g+scale_x_date(labels=date_format(dateFormat))
+#  g<-g+scale_x_date(labels=date_format("%Y-%m"))#当面日付タイプに係らず年-月とする
+  g<-g+scale_y_continuous(labels=comma)#,limits=c(y0,(y1-y0)/5+y1))
   print(g)
-  dev.off() 
+  dev.off()
+if(ttt==1){
+#only html
+htmldataset<-tmp.timeseries
+colnames(htmldataset)<-c("Date",colnames(tmp.dataset)[2],"内閣総理大臣","日銀総裁")  
+col<-list()
+grandData<-NULL
+header<-NULL
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)  
+cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("});</script>",file=htmlFile,append=T)
+for(ccc in 1:ncol(htmldataset)){
+  if(ccc==1){
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(htmldataset[,ccc]),dateFormat),"</td>",sep="")
+  }else{  
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  }  
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
+#only html
+}  
 }
 #以下はデータ確認用にグローバル化する
 tmp.segment<<-tmp.segment  
@@ -287,7 +335,7 @@ setwd(pathOutput)
 for(ttt in tttS:tttE){    
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  png.file<-paste(addVer,".png",sep="")
+  png.file<-paste("bo_",ttt,"_",addVer,".png",sep="")
   png(file=png.file,width=1920,height=1080)
   if(ttt<=2){
     tmp.boxplot<-tmp.dataset[,c(2,2+ttt)]
@@ -302,10 +350,10 @@ for(ttt in tttS:tttE){
   g<-ggplot(data=tmp.boxplot,aes(x=variable,y=value))
   g<-g+geom_boxplot(lwd=2)
   g<-g+ggtitle(paste(commonTitle,mainTitle,dataSource))
-  g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5,face="bold",family="Meiryo")) 
-  g<-g+theme(axis.text.y=element_text(size=30,family="Meiryo")) 
-  g<-g+theme(axis.title=element_text(size=30,face="bold")) 
-  g<-g+theme(title=element_text(size=30,face="bold",family="Meiryo")) 
+  g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=1,vjust=0.5,face="plain",family="Meiryo")) 
+  g<-g+theme(axis.text.y=element_text(size=30,face="plain",family="Meiryo")) 
+  g<-g+theme(axis.title=element_text(size=30,face="plain",family="Meiryo")) 
+  g<-g+theme(title=element_text(size=30,face="plain",family="Meiryo")) 
   g<-g+xlab("")
   g<-g+ylab("") 
   g<-g+scale_y_continuous(labels=comma)
