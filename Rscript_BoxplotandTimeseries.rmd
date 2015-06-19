@@ -102,6 +102,22 @@ dataSource<-"\nデータ出所:財務省"
 ```
 
 ```{r}
+#pattern 毎月勤労統計調査
+dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"))
+colName<-"実質賃金指数前年同月比-現金給与支給額-5人以上-就業形態計-調査産業計"
+tmpSave<-dataset
+start<-as.numeric(gsub("年","",dataset[1,1]))
+tmp.value<-as.numeric(gsub("\\*","",na.omit(as.vector(t(dataset[,-1])))))
+tmp.date<-seq(as.Date(paste(start,"/1/1",sep="")),by="month",length.out=length(tmp.value))
+dataset<-data.frame(Date=tmp.date,value=tmp.value)
+colnames(dataset)[2]<-colName
+monthly<-1 #月次
+commonTitle<-""
+dataSource<-"\nデータ出所:厚生労働省"
+forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+```
+
+```{r}
 fun.readData()
 commonTitle<-""
 dataSource<-"\nデータ出所:日本銀行"# Federal Reserve Bank of St. Louis
