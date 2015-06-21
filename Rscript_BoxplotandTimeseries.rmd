@@ -397,6 +397,7 @@ cat("<td><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" nam
 cat("</tr>",file=htmlFile,append=T)
 cat("</tbody></table>",file=htmlFile,append=T)
 cat("</form>",file=htmlFile,append=T)
+#Reference http://stackoverflow.com/questions/12212567/jquery-calculate-average-of-column-values-and-put-it-in-each-td-of-another-co  
 #calStat part  
 for(ccc in 1:ncol(htmldataset)){
   if(ccc==1){
