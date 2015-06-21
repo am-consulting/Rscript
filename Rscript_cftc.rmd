@@ -25,6 +25,11 @@ for(iii in 1:length(year)){
   }
   if(file.exists(filename)==T){
     tmp<-read.table(unzip(filename),sep=",",header=T,as.is=T)
+    if(colnames(tmp)[126]=="Contract_Units"){
+      colnames(tmp)[126]<-"Contract.Units" #2015/06/21
+    }  
+    print(year[iii])
+    print(colnames(tmp))
     if(chk==0){cftc<-tmp;chk<-1}else{cftc<-rbind(cftc,tmp)}
   }
 }
@@ -143,15 +148,25 @@ for(ccc in 1:length(currency)){
     png(file=png.file,width=1400,height=1200)
     par(mar=c(7, 7, 7, 7))    
     g<-ggplot()
-    g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),stat="identity",position="identity",fill="blue",alpha=0.1,color="black")
+    g<-g+geom_bar(data=tmp.1,aes(x=date,y=value),
+      stat="identity",position="identity",fill="blue",alpha=0.1,color="black")
     g<-g+geom_smooth(data=tmp.1,aes(x=date,y=value),method=loess,color="red")
-    g<-g+ggtitle(paste(gsub("\\sFX\\s-\\sCHICAGO\\sMERCANTILE\\sEXCHANGE","",gsub("Net\\s","",colnames(tmp)[2])),"\n",subtitle,"\n",first(tmp[,1]),"-",last(tmp[,1])))+xlab("")+ylab(subtitle)
+    g<-g+ggtitle(
+      paste(gsub("\\sFX\\s-\\sCHICAGO\\sMERCANTILE\\sEXCHANGE",
+        "",gsub("Net\\s","",colnames(tmp)[2])),"\n",subtitle,"\n",
+        first(tmp[,1]),"-",last(tmp[,1])))
+    g<-g+xlab("")+ylab(subtitle)
     g<-g+scale_x_date(labels=date_format("%y-%m"))
-    g<-g+theme(axis.text=element_text(size=30),axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"))
+    g<-g+theme(
+      axis.text=element_text(size=30,face="plain",family="Meiryo"),
+      axis.title=element_text(size=40,face="plain",family="Meiryo"),
+      title=element_text(size=40,face="plain",family="Meiryo")
+    )
     print(g)    
     dev.off()
 #output html
-    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output1.html,append=T)
+    cat(paste("<img src=\"http://archive.am-consulting.co.jp/",
+      png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=output1.html,append=T)
   }
   cat("\n<hr>\n",file=output1.html,append=T)
 #output js  
@@ -218,9 +233,9 @@ for(iii in 1:cnt){
     png.file<-paste("corre",gsub("\\s","", currency[iii], perl=T),".png",sep="")
     png(file=png.file,width=1400,height=1200)
     par(mar=c(8, 8, 8, 8))
-    chart.TimeSeries(tmp.0[,1],main=paste(currency[iii],"\n",first(index(tmp.0)),"-",last(index(tmp.0))),yaxis.right=F,type="h",lwd="2",legend.loc="bottomleft",color="black",cex.main=4,cex.legend=4,cex.lab=4,cex.axis=4)
+    chart.TimeSeries(tmp.0[,1],main=paste(currency[iii],"\n",first(index(tmp.0)),"-",last(index(tmp.0))),yaxis.right=F,type="h",lwd="2",legend.loc="bottomleft",color="black",cex.main=4,cex.legend=4,cex.lab=4,cex.axis=4,family="Meiryo")
     par(new=T)
-    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",color="blue",xaxis=F,yaxis.right=T,legend.loc="topleft",cex.legend=4,ylab="",cex.axis=4)
+    chart.TimeSeries(tmp.0[,2],main="",type="o",lwd="2",color="blue",xaxis=F,yaxis.right=T,legend.loc="topleft",cex.legend=4,ylab="",cex.axis=4,family="Meiryo")
     dev.off()
 #output html
     result.corr.file.name<-paste("corre",gsub("\\s","", currency[iii], perl=T),".html",sep="")
