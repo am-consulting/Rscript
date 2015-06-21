@@ -16,6 +16,9 @@ for(iii in 1:length(year)){
   filename<-paste("deacot",year[iii],".zip",sep="")
   download.file(paste(url,"deacot",year[iii],".zip",sep=""),filename,mode="wb")
   tmp<-read.table(unzip(filename),sep=",",header=T,as.is=T)
+  if(colnames(tmp)[126]=="Contract_Units"){
+    colnames(tmp)[126]<-"Contract.Units" #2015/06/21 2015年分対策用
+  }  
   cftcAll<-rbind(cftcAll,tmp)
 }
 ccc01<-grep("Market.and.Exchange.Names", colnames(cftcAll))
