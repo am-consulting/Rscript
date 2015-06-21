@@ -10,6 +10,7 @@ lapply(requiredPackageList,require,character.only=T)
 SD<-Sys.Date()
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 shapeFolder<-"ne_50m_admin_0_countries" # ne_50m_admin_0_countries shapeFile ne_50m_urban_areas
 pathShapeFile<-paste("C:/Users/",username,"/Desktop/",shapeFolder,"/",sep="")
 windowsFonts(Meiryo=windowsFont("Meiryo"))
@@ -28,6 +29,23 @@ mapData<-map.df[order(map.df$order),]
 ```
 
 ```{r}
+#html part
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste(addVer,".html",sep="")
+cat("",file=htmlFile,append=F)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
+cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)  
+menulength<-5
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+columnWidth<-"{\"width\":\"30%\",\"targets\":0}"
+col<-list()
+#html part
 location<-c(
   141.033611,37.421389,"福島第一原子力発電所",
   139.744901,35.676777,"国会議事堂",
@@ -40,7 +58,6 @@ location<-c(
   140.872146,38.269113,"宮城県庁", 
   141.152624,39.703774,"岩手県庁" 
   )
-setwd(pathOutput)
 data<-list()
 data.location<-2 #1:local 2:web
 data.file<-"http://radioactivity.nsr.go.jp/ja/contents/10000/9290/24/inside_20km_airdose.csv"
@@ -74,7 +91,7 @@ for(ddd in 1:length(unique(tmp$latlon))){
   if(100<=nrow(buf) & 5<=tail(buf[,8],1)){
     ST<-Sys.time()  
     addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-    png.file<-paste(addVer,".png",sep="")
+    png.file<-paste("radioActive_",addVer,".png",sep="")
     png(file=png.file,width=1600,height=1000)
     par(oma=c(1,1,7,1),mfrow=c(1,2),ps=20,mar=c(5,5,5,5),cex.main=1.2,cex.lab=1.5,cex.axis=1.2,family="Meiryo")
     cnt<-cnt+1
@@ -126,6 +143,51 @@ for(ddd in 1:length(unique(tmp$latlon))){
     sep="")
     title(overallTitle,outer=TRUE,cex.main=1.2,family="Meiryo")
     dev.off()
+    #html part
+    dataset<-data[[cnt]][,c(11,8)]
+    cat(paste(
+      "20km圏内空間線量率-",
+      unique(data[[cnt]][,3]),
+      "-北緯(度):",unique(data[[cnt]][,4]),
+      "-東経(度):",unique(data[[cnt]][,5]),
+      "-",colnames(data[[cnt]])[6],":",unique(data[[cnt]][,6]),
+      sep=""
+      ),file=htmlFile,append=T)
+    colnames(dataset)[1]<-"日時"  
+    colnames(dataset)[2]<-gsub("\\.μSv/h","\\.マイクロシーベルト/時間",colnames(tmp)[8])
+    grandData<-NULL
+    header<-NULL
+    tableID<-paste("am-consulting-",cnt,"-",addVer,sep="")
+    cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+    cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+    cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+    cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+    cat("\"searching\": true,",file=htmlFile,append=T)
+    cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+    cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+    cat("});",file=htmlFile,append=T)
+    cat("});</script>",file=htmlFile,append=T)
+    for(ccc in 1:ncol(dataset)){
+      if(ccc==1){
+        col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",dataset[,ccc],"</td>",sep="")
+      }else{  
+        col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+      }  
+      grandData<-cbind(grandData,col[[ccc]])
+      header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+    }
+    tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+    tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+    cat(tableHtml,file=htmlFile,append=T)
+    grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+    write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+    cat("</table>",file=htmlFile,append=T)
+    cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+      "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+      "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)   
+    cat("<hr>",file=htmlFile,append=T)
+    #html part  
   }  
 }
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
 ```
