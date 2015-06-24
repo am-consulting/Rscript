@@ -33,6 +33,9 @@ fun.readData<-function(){
 #=SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(CLEAN(E3),"　",""),"～","から")," ","")
 fun.preReadData()
 fun.readData()
+```
+
+```{r}
 seireiShiteiToshi<-c(
 "大阪市",
 "名古屋市",
