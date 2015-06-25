@@ -46,6 +46,7 @@ funMaintitle<-function(){
   mainTitle<-gsub("max","月中最大値",mainTitle)
   mainTitle<-gsub("min","月中最小値",mainTitle)
   mainTitle<-gsub("失業率","失業率(%)",mainTitle)
+  mainTitle<-gsub("過不足率","過不足率(%)",mainTitle)
   mainTitle<<-mainTitle
 }
 ```
@@ -117,7 +118,7 @@ forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"# Federal Reserve Bank of St. Louis
+dataSource<-"\nデータ出所:国土交通省"# Federal Reserve Bank of St. Louis
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
