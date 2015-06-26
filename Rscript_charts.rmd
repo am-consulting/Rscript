@@ -27,7 +27,7 @@ fun.round<-function(buf){
 
 ```{r}
 fun.readData()
-# =YEAR(B15)&"年"&MONTH(B15)&"月第"&WEEKNUM(B15,1)-WEEKNUM(DATE(YEAR(B15),MONTH(B15),1),1)+1&"週"
+# =YEAR(B16)&"年"&MONTH(B16)&"月第"&WEEKNUM(B16,1)-WEEKNUM(DATE(YEAR(B16),MONTH(B16),1),1)+1&"週"
 ```
 
 ```{r}
