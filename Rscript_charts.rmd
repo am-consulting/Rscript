@@ -27,35 +27,34 @@ fun.round<-function(buf){
 
 ```{r}
 fun.readData()
+# =YEAR(B15)&"年"&MONTH(B15)&"月第"&WEEKNUM(B15,1)-WEEKNUM(DATE(YEAR(B15),MONTH(B15),1),1)+1&"週"
 ```
 
 ```{r}
 ########################################## time series ##########################################
-needCSV<-1
-dateType<-1 #1:日次 2:月次
-switch(dateType,
-  dateFormat<-"%Y-%m-%d",
-  dateFormat<-"%Y-%m"
-)
-mainTitle<-"週間石油在庫統計 - "
-dataSource<-"\nData Source: U.S. Energy Information Administration"
+needCSV<-2
+dateType<-3 #1:日次 2:月次 3:character(第*週他)
+mainTitle<-"対外及び対内証券売買契約等の状況 単位:億円 - "#"週間石油在庫統計 - "
+dataSource<-"\nData Source:財務省"#"\nData Source: U.S. Energy Information Administration"
 chartType<-2 #1:line , 2:bar
-fitType<-3 #1:lm , 2:loess ,3:none
-tailNumber<-120
+fitType<-3 #1:lm , 2:loess , 3:none
+tailNumber<-60
 #####################
 switch(dateType,
   dateFormat<-"%Y/%m/%d",
-  dateFormat<-"%Y/%m"
+  dateFormat<-"%Y/%m",
+  dateFormat<-"dammy"
 )  
 colorList<-c("blue","red")
-if(colnames(dataset)[1]=="Date"){
-  dataset[,1]<-as.Date(dataset[,1])
-}else{
-  dataset[,1]<-ordered(dataset[,1],levels=dataset[,1][1:length(dataset[,1])])
-}
 for(ccc in 2:ncol(dataset)){
 setwd(pathOutput)
-buf.dataset<-tail(dataset[,c(1,ccc)],tailNumber)  
+buf.dataset<-tail(dataset[,c(1,ccc)],tailNumber)
+if(colnames(dataset)[1]=="Date"){
+  buf.dataset[,1]<-as.Date(buf.dataset[,1])
+}else{
+  buf.dataset[,1]<-ordered(buf.dataset[,1],levels=buf.dataset[,1][1:length(buf.dataset[,1])])
+  colnames(buf.dataset)[1]<-"Date"
+}
 melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])#系列が一つでも強制的にmelt
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
@@ -80,21 +79,41 @@ g<-g+scale_fill_manual(values=colorList)
 g<-g+theme(plot.title=element_text(size=40,family="Meiryo"))
 g<-g+theme(axis.title.x=element_text(size=30)) 
 g<-g+theme(axis.title.y=element_text(size=30)) 
-g<-g+theme(axis.text.x=element_text(size=40,angle=0,hjust=0.5,vjust=0.5)) 
 g<-g+theme(axis.text.y=element_text(size=40,angle=90)) 
 g<-g+theme(legend.text=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
 g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))   
 g<-g+theme(legend.position="top")          
-g<-g+ggtitle(paste(mainTitle,"対象期間:",format(head(buf.dataset[,1],1),dateFormat),"-",format(tail(buf.dataset[,1],1),dateFormat),dataSource))
-if(colnames(buf.dataset)[1]=="Date"){  
-  g<-g+scale_x_date(labels=date_format(dateFormat))  
+if(dateType!=3){#Date
+  g<-g+theme(axis.text.x=element_text(size=40,angle=0,hjust=0.5,vjust=0.5)) 
+  g<-g+ggtitle(paste(
+    mainTitle,
+    "対象期間:",
+    format(head(buf.dataset[,1],1),dateFormat),
+    "-",
+    format(tail(buf.dataset[,1],1),dateFormat),
+    dataSource)
+  )
+  g<-g+scale_x_date(labels=date_format(dateFormat))
+  xL1<-as.numeric(buf.dataset[10,1])
+  xR1<-as.numeric(buf.dataset[floor(nrow(buf.dataset)/2),1])
+  xL2<-as.numeric(buf.dataset[floor(nrow(buf.dataset)/2),1])
+  xR2<-as.numeric(buf.dataset[floor(nrow(buf.dataset)),1])
+}else{#Non-Date
+  g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=0.5,vjust=0.5)) 
+  g<-g+ggtitle(paste(mainTitle,"対象期間:",head(buf.dataset[,1],1),"-",tail(buf.dataset[,1],1),dataSource))
+  xL1<-1
+  xR1<-floor(tailNumber/2)
+  xL2<-floor(tailNumber/2)
+  xR2<-tailNumber
 }  
 g<-g+xlab("")
 g<-g+ylab("")
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
 grobTable<-buf.dataset
 colnames(grobTable)[2]<-"Value"  
-grobTable[,1]<-format(as.Date(grobTable[,1]),dateFormat)
+if(dateType!=3){
+  grobTable[,1]<-format(as.Date(grobTable[,1]),dateFormat)
+}  
 #time series  
 g<-g+annotation_custom(
   tableGrob(
@@ -109,8 +128,8 @@ g<-g+annotation_custom(
     gpar.coltext=gpar(col="black",cex=2.5,fontfamily="Meiryo"),
     gpar.rowtext=gpar(col="black",cex=2.5,fontfamily="Meiryo")
   ),
-  xmin=as.numeric(buf.dataset[10,1]),
-  xmax=as.numeric(buf.dataset[floor(nrow(buf.dataset)/2),1]),
+  xmin=xL1,
+  xmax=xR1,
   ymin=min(na.omit(buf.dataset)[,2]),
   ymax=max(na.omit(buf.dataset)[,2])
 )
@@ -132,8 +151,8 @@ g<-g+annotation_custom(
     gpar.coltext=gpar(col="black",cex=2.5,fontfamily="Meiryo"),
     gpar.rowtext=gpar(col="black",cex=2.5,fontfamily="Meiryo")
   ),
-  xmin=as.numeric(buf.dataset[floor(nrow(buf.dataset)/2),1]),
-  xmax=as.numeric(buf.dataset[floor(nrow(buf.dataset)),1]),
+  xmin=xL2,
+  xmax=xR2,
   ymin=min(na.omit(buf.dataset)[,2]),
   ymax=max(na.omit(buf.dataset)[,2])
 )
@@ -160,7 +179,7 @@ ylimManual<-1
 grandTitle<-"貸出先別貸出金 四半期調査 3月"
 dataSource<-"\nData Source:日本銀行"
 titleCol<-2 
-orderType<-2 # 1:as is(including "Date") , 2-:colnumber
+orderType<-1 # 1:as is(including "Date") , 2-:colnumber
 colorList<-c("blue","red") #改良余地あり
 setwd(pathOutput)
 if(colnames(dataset)[1]=="Date"){dataset[,1]<-as.Date(dataset[,1])}
