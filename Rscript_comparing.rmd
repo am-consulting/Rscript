@@ -5,14 +5,17 @@ library(lubridate)
 library(gridExtra)
 library(reshape)
 library(tseries)
+library(quantmod)
+library(PerformanceAnalytics)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 SD<-Sys.Date()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 dataset<-list()
 fun.readData<-function(){
   cnt<<-cnt+1
-  dataset[[cnt]]<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F)
+  dataset[[cnt]]<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"))
   print(head(dataset[[cnt]]))
   print(tail(dataset[[cnt]]))
   dataset[[cnt]]<<-dataset[[cnt]] # caution
@@ -43,6 +46,29 @@ colnames(dataset[[cnt]])[2]<-preTitle
 ```
 
 ```{r}
+#ソロスチャート用チャンク
+exSource<-list()
+exSource[[1]]<-c("FRED",1,"AMBNS","EXJPUS")
+for(lll in 1:length(exSource)){
+  if(2<length(exSource[[lll]])){
+    for(iii in 3:length(exSource[[lll]])){
+      item<- exSource[[lll]][iii]
+      tmp<-getSymbols(item,src=exSource[[lll]][1],auto.assign=FALSE)
+      tmp<-tmp[,as.double(exSource[[lll]][2])]
+      tmp<-data.frame(date=index(tmp),tmp, row.names=NULL)
+      colnames(tmp)[1]<-"Date"
+      cnt<<-cnt+1
+      dataset[[cnt]]<-tmp
+      dataset[[cnt]][,1]<-as.Date(dataset[[cnt]][,1])
+      print(head(dataset[[cnt]]))
+      print(tail(dataset[[cnt]]))
+    }
+  }
+}
+#ソロスチャート用チャンク
+```
+
+```{r}
 allData<-dataset[[1]]
 for(ddd in 2:length(dataset)){
   allData<-merge(allData,dataset[[ddd]],all=T)  
@@ -51,6 +77,17 @@ for(ddd in 2:length(dataset)){
 head(allData)
 tail(allData)
 bufColnames<-colnames(allData)
+```
+
+```{r}
+#ソロスチャート用チャンク
+allData$Ratio<-allData$マネタリーベース平均残高/(allData$AMBNS*10)
+allData<-data.frame(allData$Date,allData$Ratio,allData$EXJPUS)
+colnames(allData)<-c("Date","日米マネタリーベース比率","ドル円為替レート")
+head(allData)
+tail(allData)
+bufColnames<-colnames(allData)
+#ソロスチャート用チャンク
 ```
 
 ```{r}
@@ -105,6 +142,7 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1920,height=1080)
 grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
 dev.off()
+pngFile01<-png.file#ソロスチャート用
 ```
 
 ```{r}
@@ -157,6 +195,7 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1920,height=1080)
 grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
 dev.off()
+pngFile02<-png.file#ソロスチャート用
 ```
 
 ```{r}
@@ -196,6 +235,7 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1920,height=1080)
 print(g)
 dev.off()
+pngFile03<-png.file#ソロスチャート用
 ```
 
 ```{r}
@@ -334,4 +374,114 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1920,height=1080)
 grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
 dev.off()
+```
+
+```{r}
+#ローリング回帰
+setwd(pathOutput)
+rollingData<-list()
+rollingData[[1]]<-allData
+rollingData[[1]][,1]<-format(rollingData[[1]][,1],"%Y/%m")
+lagwidth<-60
+cor.fun=function(x){cor(x)[1,2]}
+po.fun=function(x){po.test(x)$p.value}
+adf.fun=function(x){adf.test(x)$p.value}
+cnt<-1
+for(ccc in 1:2){#1:原数値,2:1次差分
+  cnt<-cnt+1  
+  if(ccc==1){  
+    explanation<-allData[,2]
+    objective<-allData[,3]
+    periodRoll<-allData[,1]
+  }else if(ccc==2){
+    explanation<-diff(allData[,2])
+    objective<-diff(allData[,3])
+    periodRoll<-allData[-1,1]
+  }
+  rolldf<-data.frame(explanation,objective)
+  buf01<-rollapply(rolldf[,1:2],FUN=cor.fun,width=lagwidth,by.column=F,align="right",partial=FALSE,fill=NA)
+  buf02<-rollapply(rolldf[,1:2],FUN=po.fun,width=lagwidth,by.column=F,align="right",partial=FALSE,fill=NA)
+  adf01<-rollapply(rolldf[,1],FUN=adf.fun,width=lagwidth,by.column=F,align="right",partial=FALSE,fill=NA)
+  adf02<-rollapply(rolldf[,2],FUN=adf.fun,width=lagwidth,by.column=F,align="right",partial=FALSE,fill=NA)
+  rollPeriod<-paste(
+      format(periodRoll-months(lagwidth)+months(1),"%Y/%m"),
+      "-",
+      format(periodRoll,"%Y/%m"),
+      sep=""
+  )
+  rollingData[[cnt]]<-na.omit(data.frame(rollPeriod,buf01,buf02,adf01,adf02))
+  colnames(rollingData[[cnt]])<-c(
+    "期間",
+    "相関係数",
+    "共和分検定p値",
+    paste(colnames(allData)[2],"<br>単位根検定p値",sep=""),
+    paste(colnames(allData)[3],"<br>単位根検定p値",sep="")
+  )
+  print(head(rollingData[[cnt]]))
+  print(tail(rollingData[[cnt]]))
+}
+#ローリング回帰
+```
+
+```{r}
+#ローリング回帰only html
+menulength<-5
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+columnWidth<-"{\"width\":\"20%\",\"targets\":0}"
+setwd(pathOutput)
+col<-list()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste(addVer,".html",sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<script src=\"https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+for(ddd in 1:length(rollingData)){
+  grandData<-NULL
+  header<-NULL
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  tableID<-paste("am-consulting",addVer,sep="")
+  cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+  cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+  cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+  cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+  cat("\"searching\": true,",file=htmlFile,append=T)
+  cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+  cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+  cat("});",file=htmlFile,append=T)
+  cat("});</script>",file=htmlFile,append=T)
+  buf<-rollingData[[ddd]]
+  for(ccc in 1:ncol(buf)){
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",buf[,ccc],"</td>",sep="")
+    grandData<-cbind(grandData,col[[ccc]])
+    header<-paste(header,"<th>",colnames(buf)[ccc],"</th>",sep="")  
+  }
+  tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
+  tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+  if(ddd==1){
+    cat("<b>日米マネタリーベース比率(円/ドル)とドル円為替レート</b>",file=htmlFile,append=T)
+  }else if(ddd==2){
+    cat(paste("<b>",lagwidth,"ヶ月毎の日米マネタリーベース比率(円/ドル)とドル円為替レートの相関係数･共和分検定他:原数値</b>",sep=""),file=htmlFile,append=T)
+  }else if(ddd==3){
+    cat(paste("<b>",lagwidth,"ヶ月毎の日米マネタリーベース比率(円/ドル)とドル円為替レートの相関係数･共和分検定他:1次差分</b>",sep=""),file=htmlFile,append=T)
+  }  
+  cat(tableHtml,file=htmlFile,append=T)
+  grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+  write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+  cat("</table>",file=htmlFile,append=T)
+  cat("<hr>",file=htmlFile,append=T)
+}  
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",pngFile01,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",pngFile01,
+  "\" alt=\"",pngFile01,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",pngFile02,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",pngFile02,
+  "\" alt=\"",pngFile02,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",pngFile03,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",pngFile03,
+  "\" alt=\"",pngFile03,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
+#ローリング回帰only html
 ```
