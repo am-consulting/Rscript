@@ -37,7 +37,6 @@ funMaintitle<-function(){
   mainTitle<-colnames(tmp.dataset)[2]
   mainTitle<-gsub("\\.\\.","\\.",mainTitle)
   mainTitle<-gsub("前年同月比","前年同月比(%)",mainTitle)
-  mainTitle<-gsub("完全失業率","完全失業率(%)",mainTitle)
   mainTitle<-gsub("割合","割合(%)",mainTitle)
   mainTitle<-gsub("break","\n",mainTitle)
   mainTitle<-gsub("パーセント","%",mainTitle)
@@ -118,7 +117,7 @@ forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:国土交通省"# Federal Reserve Bank of St. Louis
+dataSource<-"\nデータ出所:厚生労働省"# Federal Reserve Bank of St. Louis
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
