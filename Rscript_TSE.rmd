@@ -1,6 +1,4 @@
 ```{r}
-period<-c("06/08～06/12","06/15～06/19")
-dataType<-1 # 1売買代金,2株数
 library(ggplot2)
 library(gridExtra)
 library(scales)
@@ -8,6 +6,18 @@ library(lubridate)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+fun.readData<-function(){
+  origData<<-read.table("clipboard",header=T,sep="\t",stringsAsFactors = FALSE)
+  print(head(origData))
+  print(tail(origData))
+}
+fun.readData()
+dataType<-origData[1,1]#1 # 1売買代金,2株数
+if(regexpr("株数",dataType)!=-1){
+  dataType<-2
+}else{
+  dataType<-1
+}  
 if(dataType==1){
   mainTitle<-"投資部門別売買状況.株券.二市場一･二部等全51社.億円 Data Source:株式会社日本取引所グループ"
   dataPower<-10^-5
@@ -15,13 +25,19 @@ if(dataType==1){
   mainTitle<-"投資部門別売買状況.株券.二市場一･二部等全51社.億株 Data Source:株式会社日本取引所グループ"
   dataPower<-10^-5
 }
-fun.readData<-function(){
-  origData<<-read.table("clipboard",header=F,sep="\t")
-  head(origData)
-  tail(origData)
-}
-fun.readData()
+origData<-origData[-1,]
+origData[,1]<-as.numeric(origData[,1])
+origData[,2]<-as.numeric(origData[,2])
 origData<-origData*dataPower
+print(head(origData))
+print(tail(origData))
+colnames(origData)<-gsub("X","",colnames(origData))
+substr(colnames(origData), 3, 3) <- "/"
+substr(colnames(origData), 9, 9) <- "/"
+substr(colnames(origData), 6, 6) <- "-"
+period<-c(colnames(origData)[1],colnames(origData)[2])
+print(head(origData))
+print(tail(origData))
 ```
 
 ```{r}
