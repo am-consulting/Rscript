@@ -46,6 +46,7 @@ funMaintitle<-function(){
   mainTitle<-gsub("min","月中最小値",mainTitle)
   mainTitle<-gsub("失業率","失業率(%)",mainTitle)
   mainTitle<-gsub("過不足率","過不足率(%)",mainTitle)
+  mainTitle<-gsub("percent","%",mainTitle)
   mainTitle<<-mainTitle
 }
 ```
