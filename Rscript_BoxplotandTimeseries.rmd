@@ -117,14 +117,14 @@ forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:日本銀行"# Federal Reserve Bank of St. Louis
+dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"# Federal Reserve Bank of St. Louis
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
 
 ```{r}
-tttS<-1
-tttE<-1
+tttS<-3
+tttE<-3
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -213,7 +213,8 @@ successiveCabinets[[2]]<-c(
 "2013-3-20","黒田東彦"
 )
 successiveCabinets[[3]]<-c(
-"1949-1-20","Harry S. Truman",
+"1933-3-4","Franklin Delano Roosevelt",  
+"1945-4-12","Harry S. Truman",
 "1953-1-20","Dwight David Eisenhower",
 "1961-1-20","John Fitzgerald Kennedy",
 "1963-11-22","Lyndon Baines Johnson",
@@ -227,6 +228,9 @@ successiveCabinets[[3]]<-c(
 "2009-1-20","Barack Obama"
 )
 successiveCabinets[[4]]<-c(
+"1934-11-15","Marriner Eccles",
+"1948-4-15","Thomas B. McCabe",
+"1951-4-2","William M. Martin",
 "1970-2-1","Arthur F.Burns",
 "1978-3-8","G.William Miller",
 "1987-8-11","Alan Greenspan",
@@ -247,7 +251,7 @@ for(ttt in 1:length(successiveCabinets)){
 ######################################時系列チャート###################################### 
 funTimeseries<-function(){
 setwd(pathOutput)
-first.date<-c("1937-6-4","1937-7-27","1993-1-20","1987-8-11")
+first.date<-c("1937-6-4","1937-7-27","1949-1-20","1970-2-1")
 for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
@@ -303,10 +307,14 @@ for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   g<-g+scale_y_continuous(labels=comma)#,limits=c(y0,(y1-y0)/5+y1))
   print(g)
   dev.off()
-if(ttt==1){
+if(ttt==1 | ttt==3){
 #only html
 htmldataset<-tmp.timeseries
-colnames(htmldataset)<-c("Date","Value","内閣総理大臣","日銀総裁")  
+if(ttt==1){
+  colnames(htmldataset)<-c("Date","Value","内閣総理大臣","日銀総裁")  
+}else if(ttt==3){
+  colnames(htmldataset)<-c("Date","Value","President","FRB")  
+}  
 col<-list()
 grandData<-NULL
 header<-NULL
@@ -452,19 +460,19 @@ btitle<-c(
 "dammy"  
 )  
 cat("\n<table width=\"100%\">\n",file=htmlFile,append=T) # cellpadding=\"0\" cellspacing=\"0\"  
-for(ttt in seq(1,14,by=2)){
+for(aaa in seq(1,14,by=2)){
   cat("<tr>\n",file=htmlFile,append=T)
   cat("<td style=\"width:25%;text-align:center;vertical-align:middle;\" bgcolor=\"#F5F5F5\">\n",file=htmlFile,append=T)
-  cat(btitle[ttt],"\n",file=htmlFile,append=T)
+  cat(btitle[aaa],"\n",file=htmlFile,append=T)
   cat("</td>\n",file=htmlFile,append=T)
   cat("<td style=\"width:25%;text-align:right;vertical-align:middle;\">\n",file=htmlFile,append=T)
-  cat(bvalue[ttt],"\n",file=htmlFile,append=T)
+  cat(bvalue[aaa],"\n",file=htmlFile,append=T)
   cat("</td>\n",file=htmlFile,append=T)
   cat("<td style=\"width:25%;text-align:center;vertical-align:middle;\" bgcolor=\"#F5F5F5\">\n",file=htmlFile,append=T)
-  cat(btitle[ttt+1],"\n",file=htmlFile,append=T)
+  cat(btitle[aaa+1],"\n",file=htmlFile,append=T)
   cat("</td>\n",file=htmlFile,append=T)
   cat("<td style=\"width:25%;text-align:right;vertical-align:middle;\">\n",file=htmlFile,append=T)
-  cat(bvalue[ttt+1],"\n",file=htmlFile,append=T)
+  cat(bvalue[aaa+1],"\n",file=htmlFile,append=T)
   cat("</td>\n",file=htmlFile,append=T)
   cat("</tr>\n",file=htmlFile,append=T)
 }  
@@ -519,11 +527,11 @@ tmp.boxplot<<-tmp.boxplot #確認用にグローバル化する
 }  
 ###################################### boxplotパート######################################
 funBase<-function(){
-border.date<-as.Date(max(successiveCabinets[[1]][1,1],successiveCabinets[[2]][1,1]))
+border.date<-as.Date(max(successiveCabinets[[tttS]][1,1],successiveCabinets[[tttS+1]][1,1]))
 tmp.dataset<-subset(tmp.dataset,border.date<=tmp.dataset[,1])
 buf<-list()
 cnt<-0
-for(ttt in 1:2){ #目的に応じて変更 1:2 or 3:4
+for(ttt in tttS:(tttS+1)){ #目的に応じて変更 1:2 or 3:4
   cnt<-cnt+1
   for(nnn in 1:nrow(successiveCabinets[[ttt]])){  
     tmp<-subset(tmp.dataset,successiveCabinets[[ttt]]$inaugural.date[nnn]<=tmp.dataset$Date & tmp.dataset$Date<=successiveCabinets[[ttt]]$resignation.date[nnn])
