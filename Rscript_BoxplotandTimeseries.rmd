@@ -438,7 +438,7 @@ cat("</form>",file=htmlFile,append=T)
 #calStat part
 #正規表現
 cat("<b>正規表現対応フィルターボックス</b>",file=htmlFile,append=T)  
-cat("\n<table width=\"100%\"><thead><tr><th width=\"15%\">Target</th><th width=\"85%\">Search text</th><th>Regex</th></tr></thead><tbody>\n",file=htmlFile,append=T)
+cat("\n<table width=\"100%\"><thead><tr><th width=\"15%\">Target</th><th width=\"75%\">Search text</th><th>Regex</th></tr></thead><tbody>\n",file=htmlFile,append=T)
 for(rccc in 1:ncol(htmldataset)){
 cat(paste("<tr id=\"filter_col",rccc,"\" data-column=\"",rccc-1,"\">\n",sep=""),file=htmlFile,append=T)
 cat(paste("<td>",colnames(htmldataset)[rccc],"</td>",sep=""),file=htmlFile,append=T)
