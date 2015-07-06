@@ -8,7 +8,7 @@ lapply(requiredPackageList,require,character.only=T)
 #http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
 #http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 SD<-Sys.Date()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 title<-list()
@@ -18,17 +18,22 @@ caution<-list()
 ```{r}
 dataSource<-"データ出所:気象庁"
 title[[1]]<-"月平均全天日射量(MJ/m^2)"
-caution[[1]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります<br>"
+caution[[1]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります。"
 title[[2]]<-"月最高気温(摂氏、度)"
 caution[[2]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。"
 title[[3]]<-"降水量の合計(mm)"
 caution[[3]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。"
+title[[4]]<-"月平均気温(mm)"
+caution[[4]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。"
+title[[5]]<-"日照率(%)"
+caution[[5]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります。"
 ```
 
 ```{r}
 fun.readData<-function(){
   buf<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=FALSE,na.strings=c("na","NA"))
   buf[,1]<-as.Date(buf[,1])
+  buf<-buf[rowSums(is.na(buf))!=(ncol(buf)-1), ]
   buf<<-buf
   print(head(buf))
   print(tail(buf))
@@ -37,8 +42,8 @@ fun.readData()
 ```
 
 ```{r}
-selecteddSource<-3
-menulength<-20
+selecteddSource<-5
+menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
 dateFormat<-3 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
@@ -68,8 +73,10 @@ grandData<-NULL
 header<-NULL
 tableID<-paste("am-consulting",addVer,sep="")
 dataset<-buf
+dataset[is.na(dataset)==T]<--9999
 cat("<b>",title[[selecteddSource]],"</b><br>",file=htmlFile,append=T)
 cat(caution[[selecteddSource]],file=htmlFile,append=T)
+cat("<br>- 表中、-9999はNA。",file=htmlFile,append=T)
 cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
 cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
 cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
@@ -106,18 +113,23 @@ cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
 ```{r}
 ########## timeseries & seasonplot
 setwd(pathOutput)
-f.date<-format(first(buf[,1]),"%Y/%m")
-e.date<-format(last(buf[,1]),"%Y/%m")
 for(ccc in 2:ncol(buf)){
-  mainTitle<-paste(title[[selecteddSource]],"-",colnames(buf)[ccc],"\n期間",f.date,"-",e.date," , ",dataSource)
-  tmpDeficit<-format(subset(buf,is.na(buf[,ccc])==TRUE)[,1],"%Y/%m")
+  deficit01<-deficit02<-""
+  dataset<-buf[,c(1,ccc)]
+  f.date<-format(first(na.omit(dataset)[,1]),"%Y/%m")
+  e.date<-format(last(na.omit(dataset)[,1]),"%Y/%m")
+  dataset<-subset(dataset,first(na.omit(dataset)[,1])<=dataset[,1])
+  mainTitle<-paste(title[[selecteddSource]],"-",colnames(dataset)[2],"\n期間",f.date,"-",e.date," , ",dataSource)
+  tmpDeficit<-format(subset(dataset,is.na(dataset[,2])==TRUE)[,1],"%Y/%m")
   if(length(tmpDeficit)==0){
     deficit01<-"なし";deficit02<-""
   }else{
     deficit01<-paste(head(tmpDeficit,8),collapse=",")
-    deficit02<-paste(tail(tmpDeficit,length(tmpDeficit)-8),collapse=",")
+    if(8<length(tmpDeficit)){
+      deficit02<-paste(tail(tmpDeficit,length(tmpDeficit)-8),collapse=",")
+    }  
   }
-  dataset<-na.omit(buf[,c(1,ccc)])
+  dataset<-na.omit(dataset)
   colnames(dataset)[2]<-"value"
 ########## timeseries
   g<-ggplot()
@@ -125,6 +137,8 @@ for(ccc in 2:ncol(buf)){
     level.type<-2,
     level.type<-2,
     level.type<-2,
+    level.type<-2,
+    level.type<-2,#日照率
     level.type<-dammy
   )  
   if(level.type==2){
@@ -147,6 +161,9 @@ for(ccc in 2:ncol(buf)){
   png(file=png.file,width=1600,height=800)
   print(g)
   dev.off()
+  cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)  
 ########## seasonplot
   seasonData<-data.frame(dataset,month=month.abb[month(dataset[,1])])
   seasonData$month<-factor(seasonData$month,levels=month.abb)
@@ -166,6 +183,9 @@ for(ccc in 2:ncol(buf)){
   png(file=png.file,width=1600,height=800)
   print(g1)
   dev.off()
+  cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)  
 }
 ########## timeseries & seasonplot
 ```
