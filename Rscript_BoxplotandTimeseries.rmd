@@ -118,14 +118,14 @@ forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"# Federal Reserve Bank of St. Louis
+dataSource<-"\nデータ出所:内閣府"# Federal Reserve Bank of St. Louis
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
 
 ```{r}
-tttS<-3
-tttE<-3
+tttS<-1
+tttE<-1
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -325,10 +325,8 @@ tableID<-paste("am-consulting",addVer,sep="")
 htmlFile<-paste(addVer,".html",sep="")
 htmlFile<<-htmlFile  
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
-cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
-cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
-cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
-cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)  
+cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T)  
+cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
 cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
 cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
 cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
@@ -336,6 +334,27 @@ cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),fi
 cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+#cat("});",file=htmlFile,append=T)
+#Individual column searching part  
+cat(",initComplete: function () {",file=htmlFile,append=T)
+cat("this.api().columns().every( function () {",file=htmlFile,append=T)
+cat("var column = this;",file=htmlFile,append=T)
+cat("var select = $('<select><option value=\"\"></option></select>')",file=htmlFile,append=T)
+cat(".appendTo( $(column.footer()).empty() )",file=htmlFile,append=T)
+cat(".on( 'change', function () {",file=htmlFile,append=T)
+cat("var val = $.fn.dataTable.util.escapeRegex(",file=htmlFile,append=T)
+cat("$(this).val()",file=htmlFile,append=T)
+cat(");",file=htmlFile,append=T)
+cat("column",file=htmlFile,append=T)
+cat(".search( val ? '^'+val+'$' : '', true, false )",file=htmlFile,append=T)
+cat(".draw();",file=htmlFile,append=T)
+cat("} );",file=htmlFile,append=T)
+cat("column.data().unique().sort().each( function ( d, j ) {",file=htmlFile,append=T)
+cat("select.append( '<option value=\"'+d+'\">'+d+'</option>' )",file=htmlFile,append=T)
+cat("} );",file=htmlFile,append=T)
+cat("} );",file=htmlFile,append=T)
+cat("}",file=htmlFile,append=T)
+#Individual column searching part  
 cat("});",file=htmlFile,append=T)
 #calStat part  
 cat(paste("$('#",tableID,"')",sep=""),file=htmlFile,append=T)
@@ -385,7 +404,7 @@ cat("</script>",file=htmlFile,append=T)
 #calStat part  
 cat("<b>",mainTitle,"</b><br>",file=htmlFile,append=T)
 cat(dataSource,"<br>",file=htmlFile,append=T)
-cat("最新データは\"数表リスト\"( http://am-consulting.co.jp/?p=1914 )から確認ください<br>",file=htmlFile,append=T)
+cat("最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
 #calStat part  
 cat("<form name=\"form1\">",file=htmlFile,append=T)
 cat("<table width=\"100%\"><tbody>",file=htmlFile,append=T)
@@ -419,7 +438,8 @@ for(ccc in 1:ncol(htmldataset)){
   header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
 }
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
-tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead><tfoot>",sep="")
+tableHtml<-paste(tableHtml,header,"</tfoot>",sep="")
 cat(tableHtml,file=htmlFile,append=T)
 grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
