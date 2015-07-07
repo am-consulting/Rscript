@@ -355,6 +355,13 @@ cat("} );\n",file=htmlFile,append=T)
 cat("} );\n",file=htmlFile,append=T)
 cat("}\n",file=htmlFile,append=T)
 #Individual column searching part  
+#Row created callback  
+cat(",\"createdRow\": function ( row, data, index ) {\n",file=htmlFile,append=T)
+cat("if ( data[1].replace('', '') * 1 < 0 ) {\n",file=htmlFile,append=T)
+cat("$('td', row).eq(1).addClass('highlight');\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)  
+#Row created callback  
 cat("});\n\n\n\n\n",file=htmlFile,append=T)
 #正規表現  
 cat(paste("$('#",tableID,"').dataTable();",sep=""),file=htmlFile,append=T)
@@ -386,6 +393,7 @@ cat(".on( 'xhr.dt', function () {calStat()} )",file=htmlFile,append=T)
 cat(".dataTable();\n\n\n\n\n",file=htmlFile,append=T)
 #calStat part  
 cat("});</script>\n\n\n\n\n",file=htmlFile,append=T)
+cat("<!--Row created callback--><style>td.highlight {font-weight: plain;color: red;}</style><!--Row created callback-->\n",file=htmlFile,append=T) 
 #calStat part  
 cat("<script>window.onload = function(){calStat()};</script>",file=htmlFile,append=T)
 cat("<script>",file=htmlFile,append=T)
