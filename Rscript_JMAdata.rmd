@@ -27,6 +27,8 @@ title[[4]]<-"月平均気温(mm)"
 caution[[4]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。"
 title[[5]]<-"日照率(%)"
 caution[[5]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります。"
+title[[6]]<-"月平均雲量(10分比)"
+caution[[6]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります。"
 ```
 
 ```{r}
@@ -42,7 +44,7 @@ fun.readData()
 ```
 
 ```{r}
-selecteddSource<-5
+selecteddSource<-6
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -65,10 +67,8 @@ ST<-Sys.time()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 htmlFile<-paste(addVer,".html",sep="")
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
-cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
-cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
-cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
-cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
 grandData<-NULL
 header<-NULL
 tableID<-paste("am-consulting",addVer,sep="")
@@ -85,7 +85,46 @@ cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
 cat("});",file=htmlFile,append=T)
+#正規表現  
+cat(paste("$('#",tableID,"').dataTable();",sep=""),file=htmlFile,append=T)
+cat("$('input.global_filter').on( 'keyup click', function () {",file=htmlFile,append=T)
+cat("filterGlobal();",file=htmlFile,append=T)
+cat("} );",file=htmlFile,append=T)
+cat("$('input.column_filter').on( 'keyup click', function () {",file=htmlFile,append=T)
+cat("filterColumn( $(this).parents('tr').attr('data-column') );",file=htmlFile,append=T)
+cat("} );  ",file=htmlFile,append=T)
+#正規表現  
 cat("});</script>",file=htmlFile,append=T)
+#正規表現
+cat("<br><b>正規表現対応フィルターボックス</b>",file=htmlFile,append=T)  
+cat("\n<table width=\"100%\"><thead><tr><th width=\"15%\">Target</th><th width=\"75%\">Search text</th><th>Regex</th></tr></thead><tbody>\n",file=htmlFile,append=T)
+for(rccc in 1:ncol(dataset)){
+cat(paste("<tr id=\"filter_col",rccc,"\" data-column=\"",rccc-1,"\">\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td>",colnames(dataset)[rccc],"</td>",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"text\" class=\"column_filter\" id=\"col",rccc-1,"_filter\"  style=\"width:100%\"></td>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_regex\" checked=\"checked\"></td>\n",sep=""),file=htmlFile,append=T)
+#cat(paste("<td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_smart\" checked=\"checked\"></td>\n",sep=""),file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+}  
+cat("\n</tbody></table>",file=htmlFile,append=T)  
+cat("<script>\n",file=htmlFile,append=T)  
+cat("function filterGlobal () {\n",file=htmlFile,append=T) 
+cat(paste("$('#",tableID,"').DataTable().search(\n",sep=""),file=htmlFile,append=T) 
+cat("$('#global_filter').val(),\n",file=htmlFile,append=T) 
+cat("$('#global_regex').prop('checked'),\n",file=htmlFile,append=T) 
+cat("$('#global_smart').prop('checked')\n",file=htmlFile,append=T) 
+cat(").draw();\n",file=htmlFile,append=T) 
+cat("}\n",file=htmlFile,append=T) 
+cat("function filterColumn ( i ) {\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').DataTable().column( i ).search(\n",sep=""),file=htmlFile,append=T)
+cat("$('#col'+i+'_filter').val(),\n",file=htmlFile,append=T)
+cat("$('#col'+i+'_regex').prop('checked'),\n",file=htmlFile,append=T)
+cat("$('#col'+i+'_smart').prop('checked')\n",file=htmlFile,append=T)
+cat(").draw();\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)  
+#正規表現
+cat("(注)複数のキーワードで検索する際は半角スペースで区切ってください。",file=htmlFile,append=T)  
 for(ccc in 1:ncol(dataset)){
   if(ccc==1){
     switch(dateFormat,
@@ -139,6 +178,7 @@ for(ccc in 2:ncol(buf)){
     level.type<-2,
     level.type<-2,
     level.type<-2,#日照率
+    level.type<-2,#月平均雲量
     level.type<-dammy
   )  
   if(level.type==2){
