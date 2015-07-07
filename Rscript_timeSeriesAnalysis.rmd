@@ -42,7 +42,7 @@ xlimLdiff<-ceiling(960/tailWidth)
 #tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
 #tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
 #tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
-tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DCOILWTICO")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","SP500")
 for(lll in 1:length(tsSource)){
   for(iii in 4:length(tsSource[[lll]])){
     cnt<-cnt+1
