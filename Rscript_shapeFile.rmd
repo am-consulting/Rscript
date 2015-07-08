@@ -10,6 +10,7 @@ lapply(requiredPackageList,require,character.only=T)
 SD<-Sys.Date()
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 shapeFolder<-"ne_50m_admin_0_countries" # ne_50m_admin_0_countries shapeFile ne_50m_urban_areas
 pathShapeFile<-paste("C:/Users/",username,"/Desktop/",shapeFolder,"/",sep="")
 windowsFonts(Meiryo=windowsFont("Meiryo"))
@@ -51,6 +52,8 @@ dataset$Energy.GJ<-round(10^((dataset$mag)*1.5+4.8)*(10^-9),4)
 ```
 
 ```{r}
+htmlFile<-"linktoImage.html"  
+cat("",file=htmlFile,append=F)
 sourceURL<-"ソースデータ:http://earthquake.usgs.gov/"
 selectedCountry<-c("JPN","JPN","entireworld")
 selectedRegion<-c("","tohoku","")
@@ -117,10 +120,13 @@ for(eee in 1:length(selectedCountry)){
         addVer<-paste("TOHOKU",addVer,sep="")
       }  
       png.file<-paste(addVer,".png",sep="")
-      png(file=png.file,width=1200,height=900)
+      png(file=png.file,width=1400,height=900)
       par(mar=c(0,0,12,0),ps=40)
       print(g)
       dev.off()
+      cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+      "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+      "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)     
     }  
   }
 }
@@ -144,7 +150,7 @@ for(eee in 1:length(selectedCountry)){
   }
   date.f<-head(datasetMap$JST)[1]
   date.e<-tail(datasetMap$JST)[1]
-  for(pppp in 1:2){
+  for(pppp in 1:1){#当面マグニチュード降順のみとする
     tmp<-datasetMap
     if(pppp==1){
       mainTitle<-paste(subTitle,date.e,"から",date.f,"\nマグニチュード降順(上位20)\nソースデータ確認日時:",dataTime,"\n",sourceURL)
@@ -184,10 +190,13 @@ for(eee in 1:length(selectedCountry)){
       addVer<-paste("TOHOKU",addVer,sep="")
     }  
     png.file<-paste(addVer,".png",sep="")
-    png(file=png.file,width=1200,height=900)
+    png(file=png.file,width=1400,height=900)
     par(mar=c(10,0,12,0),ps=40)
     print(g)
     dev.off()
+    cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)     
   }
 }  
 ```
