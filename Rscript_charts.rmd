@@ -36,12 +36,12 @@ fun.readData()
 ########################################## time series ##########################################
 setwd(pathOutput)
 needCSV<-2
-dateType<-2 #1:日次 2:月次 3:character(第*週他)
-mainTitle<-"ギリシャの失業率.15歳から74歳.季節調整値.パーセント"#"対外及び対内証券投資売買契約等の状況(億円) - "#"週間石油在庫統計 - "
+dateType<-1 #1:日次 2:月次 3:character(第*週他)
+mainTitle<-"週間石油在庫統計 - "#"対外及び対内証券投資売買契約等の状況(億円) - "#"週間石油在庫統計 - "
 dataSource<-"\nData Source:Hellenic Statistical Authority"#"\nData Source:財務省"#"\nData Source: U.S. Energy Information Administration"
-chartType<-1 #1:line , 2:bar
-fitType<-2 #1:lm , 2:loess , 3:none
-tailNumber<-6000
+chartType<-2 #1:line , 2:bar
+fitType<-3 #1:lm , 2:loess , 3:none
+tailNumber<-120
 annotation<-1 # need:1,no need:2
 perpbr<-0
 htmlFile<-"linktoImage.html"  
