@@ -118,8 +118,8 @@ forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:株式会社東京商工リサーチ"# Federal Reserve Bank of St. Louis 株式会社東京商工リサーチ
-forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+dataSource<-"\nデータ出所:内閣府"# Federal Reserve Bank of St. Louis 株式会社東京商工リサーチ
+forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
 
