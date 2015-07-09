@@ -7,6 +7,7 @@ library(reshape)
 library(gridExtra)
 library(e1071)
 library(tseries)
+library(forecast)
 successiveCabinets<-list()
 username<-Sys.info()['user']
 SD<-Sys.Date()
@@ -144,7 +145,120 @@ for(ccc in 2:ncol(dataset)){
   funMaintitle()
   funTimeseries()  
   funBoxplot()
+  funARIMA()
 }  
+```
+
+```{r}
+#arima
+funARIMA<-function(){
+#ARIMA
+#forecast
+objData<-tmp.dataset[,2]
+arimaResult<-auto.arima(
+  x=objData,
+  d=NA,
+  D=NA,
+  max.p=5,
+  max.q=5,
+  max.P=2,
+  max.Q=2,
+  max.order=5,
+  max.d=2,
+  max.D=1,
+  start.p=2,
+  start.q=2,
+  start.P=1,
+  start.Q=1,
+  stationary=F,
+  seasonal=T,
+  ic="aic", #"aicc","aic","bic"
+  stepwise=T,
+  trace=F,
+  approximation=(length(objData)>100 | frequency(objData)>12),
+  xreg=NULL,
+  test="kpss", #"kpss","adf","pp"
+  seasonal.test="ocsb", #"ocsb","ch"
+  allowdrift=T,
+  lambda=NULL,
+  parallel=F,
+  num.cores=2
+)
+forecastResult<-forecast(
+  object=arimaResult,
+  h=12,
+  level=c(0.95),
+  fan=F,
+  robust=F,
+  lambda=NULL,
+  find.frequency=F
+)
+arimaTable01<-data.frame(
+  Date=tmp.dataset[,1],
+  Original=tmp.dataset[,2],
+  FittedByARIMA=forecastResult$fitted,
+  Residual=forecastResult$residuals
+)
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("arima_",addVer,".png",sep="")
+png(file=png.file,width=1600,height=1000)
+par(ps=20,mar=c(5,10,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo") 
+plot(
+  arimaTable01[,1],
+  arimaTable01[,2],
+  type="l",
+#  main=title,
+  family="Meiryo",
+  xlab="",
+  ylab="",
+  ylim=c(min(arimaTable01[,2:3]),max(arimaTable01[,2:3])),
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
+  xaxt="n"
+)
+lines(arimaTable01[,1],arimaTable01[,3],type="l",col="blue",lwd=2)
+axis.Date(side=1,at=arimaTable01[,1],format="%Y/%m",padj=1)
+labels<-c(colnames(tmp.dataset)[2],colnames(arimaTable01)[3])
+cols<-c("black", "blue")
+ltys<-c(1, 1)
+lwds<-c(1,2)
+legend("topleft",legend=labels,col=cols,lty=ltys,lwd=lwds)
+dev.off()
+coefPhi<-arimaResult$model$phi  
+coefDelta<-arimaResult$model$Delta  
+coeftheta<-arimaResult$model$theta  
+p<-length(coefPhi)  
+d<-length(coefDelta)  
+q<-length(coeftheta)  
+coefList<-"\n"
+if(p!=0){
+  coefList<-paste(coefList,paste("p=",p,"(",paste(coefPhi,collapse=","),")",seP=""),"<br>")
+}else{
+  coefList<-paste(coefList,"p=",p,"<br>")
+}  
+if(d!=0){
+  coefList<-paste(coefList,paste("d=",d,"(",paste(coefDelta,collapse=","),")",seP=""),"<br>")
+}else{
+  coefList<-paste(coefList,"d=",d,"<br>")
+}  
+if(q!=0){
+  coefList<-paste(coefList,paste("q=",q,"(",paste(coeftheta,collapse=","),")",seP=""),"<br>")
+}else{
+  coefList<-paste(coefList,"q=",q,"<br>")
+}  
+equation<-paste(
+"<hr><b>Equation</b><br>",  
+"ARIMA(p,d,q)<br>",
+"$latex \\Delta^{d}y_{t}=c+\\phi_{1}\\Delta^{d}y_{t-1}+\\cdots\\phi_{p}\\Delta^{d}y_{t-p}+u_{t}+\\theta_{1}u_{t-1}+\\cdots+\\theta_{q}u_{t-q}&s=1$<br>",
+coefList,
+sep="")
+cat(equation,file=htmlFile,append=T) 
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
+}
+#arima
 ```
 
 ```{r}
