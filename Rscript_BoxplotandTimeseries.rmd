@@ -48,6 +48,7 @@ funMaintitle<-function(){
   mainTitle<-gsub("失業率","失業率(%)",mainTitle)
   mainTitle<-gsub("過不足率","過不足率(%)",mainTitle)
   mainTitle<-gsub("percent","%",mainTitle)
+  mainTitle<-gsub("平均利回り","平均利回り(%)",mainTitle)
   mainTitle<<-mainTitle
 }
 ```
@@ -119,7 +120,7 @@ forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line ,
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:内閣府"# Federal Reserve Bank of St. Louis 株式会社東京商工リサーチ
+dataSource<-"\nデータ出所:株式会社東京証券取引所"# Federal Reserve Bank of St. Louis 株式会社東京商工リサーチ
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
@@ -146,7 +147,89 @@ for(ccc in 2:ncol(dataset)){
   funTimeseries()  
   funBoxplot()
   funARIMA()
+  funARFIMA()
 }  
+```
+
+```{r}
+#arfima
+funARFIMA<-function(){
+#ARFIMA
+#forecast  
+objData<-tmp.dataset[,2] 
+arfimaResult<-arfima(
+  x=objData,
+  drange=c(0,1),
+  estim="mle", #"mle","ls"
+  lambda=NULL
+)  
+forecastResult<-forecast(arfimaResult,level=c(0.95),h=12)
+arfimaTable01<-data.frame(
+  Date=tmp.dataset[,1],
+  Original=tmp.dataset[,2],
+  FittedByARFIMA=forecastResult$fitted,
+  Residual=forecastResult$residuals
+)  
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("arfima_",addVer,".png",sep="")
+png(file=png.file,width=1600,height=1000)
+par(ps=20,mar=c(5,10,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo") 
+plot(
+  arfimaTable01[,1],
+  arfimaTable01[,2],
+  type="l",
+#  main=title,
+  family="Meiryo",
+  xlab="",
+  ylab="",
+  ylim=c(min(arfimaTable01[,2:3]),max(arfimaTable01[,2:3])),
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
+  xaxt="n"
+)
+lines(arfimaTable01[,1],arfimaTable01[,3],type="l",col="blue",lwd=2)
+axis.Date(side=1,at=arfimaTable01[,1],format="%Y/%m",padj=1)
+labels<-c(colnames(tmp.dataset)[2],paste(colnames(arfimaTable01)[3],forecastResult$method))
+cols<-c("black", "blue")
+ltys<-c(1, 1)
+lwds<-c(1,2)
+legend("topleft",legend=labels,col=cols,lty=ltys,lwd=lwds)
+dev.off()
+coefPhi<-forecastResult$model$ar  
+coefDelta<-forecastResult$model$d 
+coeftheta<-forecastResult$model$ma  
+p<-length(coefPhi)  
+d<-length(coefDelta)  
+q<-length(coeftheta)  
+coefList<-"\n"
+if(p!=0){
+  coefList<-paste(coefList,paste("p=",p,"(",paste(coefPhi,collapse=","),")",seP=""),"<br>")
+}else{
+  coefList<-paste(coefList,"p=",p,"<br>")
+}  
+if(d!=0){
+  coefList<-paste(coefList,paste("d=",d,"(",paste(coefDelta,collapse=","),")",seP=""),"<br>")
+}else{
+  coefList<-paste(coefList,"d=",d,"<br>")
+}  
+if(q!=0){
+  coefList<-paste(coefList,paste("q=",q,"(",paste(coeftheta,collapse=","),")",seP=""),"<br>")
+}else{
+  coefList<-paste(coefList,"q=",q,"<br>")
+}  
+equation<-paste(
+"<hr><b>Equation</b><br>",  
+"ARFIMA(p,d,q)<br>",
+"$latex \\Delta^{d}y_{t}=c+\\phi_{1}\\Delta^{d}y_{t-1}+\\cdots\\phi_{p}\\Delta^{d}y_{t-p}+u_{t}+\\theta_{1}u_{t-1}+\\cdots+\\theta_{q}u_{t-q}&s=1$<br>",
+coefList,
+sep="")
+cat(equation,file=htmlFile,append=T) 
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
+#arfima
+}
 ```
 
 ```{r}
@@ -219,7 +302,7 @@ plot(
 )
 lines(arimaTable01[,1],arimaTable01[,3],type="l",col="blue",lwd=2)
 axis.Date(side=1,at=arimaTable01[,1],format="%Y/%m",padj=1)
-labels<-c(colnames(tmp.dataset)[2],colnames(arimaTable01)[3])
+labels<-c(colnames(tmp.dataset)[2],paste(colnames(arimaTable01)[3],forecastResult$method))
 cols<-c("black", "blue")
 ltys<-c(1, 1)
 lwds<-c(1,2)
