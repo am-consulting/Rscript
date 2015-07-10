@@ -36,17 +36,17 @@ fun.readData()
 ########################################## time series ##########################################
 setwd(pathOutput)
 needCSV<-2
-dateType<-1 #1:日次 2:月次 3:character(第*週他)
-mainTitle<-"週間石油在庫統計 - "#"対外及び対内証券投資売買契約等の状況(億円) - "#"週間石油在庫統計 - "
-dataSource<-"\nData Source:Hellenic Statistical Authority"#"\nData Source:財務省"#"\nData Source: U.S. Energy Information Administration"
+dateType<-3 #1:日次 2:月次 3:character(第*週他)
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "#"対外及び対内証券投資売買契約等の状況(億円) - "#"週間石油在庫統計 - "
+dataSource<-"\nData Source:財務省"#Hellenic Statistical Authority"#"\nData Source:財務省"#"\nData Source: U.S. Energy Information Administration"
 chartType<-2 #1:line , 2:bar
 fitType<-3 #1:lm , 2:loess , 3:none
-tailNumber<-120
+tailNumber<-60
 annotation<-1 # need:1,no need:2
 perpbr<-0
 htmlFile<-"linktoImage.html"  
 cat("",file=htmlFile,append=F)
-outputFolder<-1 #1:R_Data_Write,2:charts
+outputFolder<-2 #1:R_Data_Write,2:charts
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
