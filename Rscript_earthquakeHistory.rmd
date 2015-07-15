@@ -134,3 +134,68 @@ write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
 cat("Powered by DataTables( http://datatables.net/ )<br>",file=htmlFile,append=T)
 ```
+
+```{r}
+#kml part
+magBorder<-8
+kmlDataset<-dataset
+kmlDataset<-subset(kmlDataset,magBorder<=kmlDataset[,6])
+pathOutputFTP<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutputFTP)
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+kmlFile<-paste("earthquakesOverMagnitude",magBorder,"afterY1900",".kml",sep="")
+cat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",file=kmlFile,append=F)
+cat("<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n",file=kmlFile,append=T)
+cat("<Document>\n",file=kmlFile,append=T)
+cat("<name>KmlFile</name>\n",file=kmlFile,append=T)
+#cat("<Style id=\"amc-type01\">\n",file=kmlFile,append=T)
+#cat("<BalloonStyle>\n",file=kmlFile,append=T)
+#cat("<text>\n",file=kmlFile,append=T)
+#cat("<![CDATA[\n",file=kmlFile,append=T)
+#cat("$[Place]\n",file=kmlFile,append=T)
+#cat("]]>\n",file=kmlFile,append=T)
+#cat("</text>\n",file=kmlFile,append=T)
+#cat("</BalloonStyle>\n",file=kmlFile,append=T)
+#cat("</Style>\n",file=kmlFile,append=T)
+#Placemark part
+for(ccc in 1:nrow(kmlDataset)){
+cat("<Placemark>\n",file=kmlFile,append=T)
+spec<-paste(
+  "JST:",kmlDataset[ccc,2],
+  " , Depth(km):",kmlDataset[ccc,5],
+  " , M(",kmlDataset[ccc,7],"):",kmlDataset[ccc,6],
+  " , Lon:",kmlDataset[ccc,4],
+  " , Lat:",kmlDataset[ccc,3],
+  " , ",kmlDataset[ccc,8],
+  sep="")  
+cat(paste("<name>",spec,"</name>\n",sep=""),file=kmlFile,append=T)
+#cat(paste("<description><![CDATA[",spec,"]]></description>\n",sep=""),file=kmlFile,append=T)
+cat("<styleUrl>#amc-type01</styleUrl>\n",file=kmlFile,append=T)
+#cat("<ExtendedData>\n",file=kmlFile,append=T)
+#cat("<Data name=\"Place\">\n",file=kmlFile,append=T)
+#cat(paste("<value>",kmlDataset[ccc,8],"</value>\n",sep=""),file=kmlFile,append=T)
+#cat("</Data>\n",file=kmlFile,append=T)
+#cat("</ExtendedData>\n",file=kmlFile,append=T)
+cat("<Style>\n",file=kmlFile,append=T)
+cat("<IconStyle>\n",file=kmlFile,append=T)
+cat("<Icon>\n",file=kmlFile,append=T)
+if(9<=kmlDataset[ccc,6]){  
+  cat("<href>http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png</href>\n",file=kmlFile,append=T)
+}else if(8.5<=kmlDataset[ccc,6]){  
+  cat("<href>http://maps.google.com/mapfiles/kml/pushpin/grn-pushpin.png</href>\n",file=kmlFile,append=T)
+}else if(8.0<=kmlDataset[ccc,6]){  
+  cat("<href>http://maps.google.com/mapfiles/kml/pushpin/wht-pushpin.png</href>\n",file=kmlFile,append=T)
+}  
+cat("</Icon>\n",file=kmlFile,append=T)
+cat("</IconStyle>\n",file=kmlFile,append=T)
+cat("</Style>\n",file=kmlFile,append=T)
+cat("<Point>\n",file=kmlFile,append=T)
+cat(paste("<coordinates>",kmlDataset[ccc,4],",",kmlDataset[ccc,3],",",0,"</coordinates>\n",sep=""),file=kmlFile,append=T)
+cat("</Point>\n",file=kmlFile,append=T)
+cat("</Placemark>\n",file=kmlFile,append=T)
+}  
+#Placemark part
+cat("</Document>",file=kmlFile,append=T)
+cat("</kml>",file=kmlFile,append=T)
+#kml part
+```
