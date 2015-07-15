@@ -35,7 +35,7 @@ menulength<-10
 orderColumn<-0
 orderDirection<-"asc" #asc desc
 dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
-columnWidth<-"{\"width\":\"6%\",\"targets\":0},{\"width\":\"16%\",\"targets\":1},{\"width\":\"9%\",\"targets\":2},{\"width\":\"9%\",\"targets\":3},{\"width\":\"9%\",\"targets\":4} ,{\"width\":\"9%\",\"targets\":6}"
+columnWidth<-"{\"width\":\"8%\",\"targets\":0},{\"width\":\"16%\",\"targets\":1},{\"width\":\"9%\",\"targets\":2},{\"width\":\"9%\",\"targets\":3},{\"width\":\"9%\",\"targets\":4} ,{\"width\":\"11%\",\"targets\":6}"
 switch(dateFormat,
   dateFormatType<-"",
   dateFormatType<-"",
@@ -52,10 +52,8 @@ col<-list()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 htmlFile<-paste(addVer,".html",sep="")
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
-cat("<link href=\"http://code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
-cat("<link href=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
-cat("<script src=\"http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
-cat("<script src=\"http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js\"></script>",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
 grandData<-NULL
 header<-NULL
 tableID<-paste("am-consulting",addVer,sep="")
@@ -75,7 +73,44 @@ cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
 cat("});",file=htmlFile,append=T)
+#正規表現  
+cat(paste("$('#",tableID,"').dataTable();",sep=""),file=htmlFile,append=T)
+cat("$('input.global_filter').on( 'keyup click', function () {",file=htmlFile,append=T)
+cat("filterGlobal();",file=htmlFile,append=T)
+cat("} );",file=htmlFile,append=T)
+cat("$('input.column_filter').on( 'keyup click', function () {",file=htmlFile,append=T)
+cat("filterColumn( $(this).parents('tr').attr('data-column') );",file=htmlFile,append=T)
+cat("} );  ",file=htmlFile,append=T)
+#正規表現
 cat("});</script>",file=htmlFile,append=T)
+#正規表現
+cat("<div style=\"text-align:center\"><b>正規表現対応フィルターボックス</b></div>",file=htmlFile,append=T)  
+cat("\n<table width=\"100%\"><thead><tr><th width=\"15%\" style=\"text-align:right\">Target</th><th width=\"75%\" style=\"text-align:right\">Search text</th><th style=\"text-align:right\">Regex</th></tr></thead><tbody>\n",file=htmlFile,append=T)
+for(rccc in 2:8){
+cat(paste("<tr id=\"filter_col",rccc,"\" data-column=\"",rccc-1,"\">\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td style=\"text-align:right\">",colnames(dataset)[rccc],"</td>",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"text\" class=\"column_filter\" id=\"col",rccc-1,"_filter\"  style=\"width:100%\"></td>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_regex\" checked=\"checked\"></td>\n",sep=""),file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+}  
+cat("\n</tbody></table>",file=htmlFile,append=T)  
+cat("<script>\n",file=htmlFile,append=T)  
+cat("function filterGlobal () {\n",file=htmlFile,append=T) 
+cat(paste("$('#",tableID,"').DataTable().search(\n",sep=""),file=htmlFile,append=T) 
+cat("$('#global_filter').val(),\n",file=htmlFile,append=T) 
+cat("$('#global_regex').prop('checked'),\n",file=htmlFile,append=T) 
+cat("$('#global_smart').prop('checked')\n",file=htmlFile,append=T) 
+cat(").draw();\n",file=htmlFile,append=T) 
+cat("}\n",file=htmlFile,append=T) 
+cat("function filterColumn ( i ) {\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').DataTable().column( i ).search(\n",sep=""),file=htmlFile,append=T)
+cat("$('#col'+i+'_filter').val(),\n",file=htmlFile,append=T)
+cat("$('#col'+i+'_regex').prop('checked'),\n",file=htmlFile,append=T)
+cat("$('#col'+i+'_smart').prop('checked')\n",file=htmlFile,append=T)
+cat(").draw();\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)  
+#正規表現
 for(ccc in 1:ncol(dataset)){
   if(ccc==1){
     switch(dateFormat,
