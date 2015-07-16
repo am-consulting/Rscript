@@ -9,6 +9,7 @@ lapply(requiredPackageList,require,character.only=T)
 #http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 ```
 
@@ -140,8 +141,7 @@ cat("Powered by DataTables( http://datatables.net/ )<br>",file=htmlFile,append=T
 magBorder<-8
 kmlDataset<-dataset
 kmlDataset<-subset(kmlDataset,magBorder<=kmlDataset[,6])
-pathOutputFTP<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
-setwd(pathOutputFTP)
+setwd(pathOutput)
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 kmlFile<-paste("earthquakesOverMagnitude",magBorder,"afterY1900",".kml",sep="")
 cat("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n",file=kmlFile,append=F)
@@ -159,6 +159,10 @@ cat("<name>KmlFile</name>\n",file=kmlFile,append=T)
 #cat("</Style>\n",file=kmlFile,append=T)
 #Placemark part
 for(ccc in 1:nrow(kmlDataset)){
+yText<-paste(year(kmlDataset[ccc,2]),"年",sep="")
+mText<-paste(month(kmlDataset[ccc,2]),"月",day(kmlDataset[ccc,2]),"日",sep="")
+urlY<-paste("https://ja.wikipedia.org/wiki/",yText,sep="")  
+urlM<-paste("https://ja.wikipedia.org/wiki/",mText,sep="")  
 cat("<Placemark>\n",file=kmlFile,append=T)
 spec<-paste(
   "JST:",kmlDataset[ccc,2],
@@ -168,8 +172,13 @@ spec<-paste(
   " , Lat:",kmlDataset[ccc,3],
   " , ",kmlDataset[ccc,8],
   sep="")  
+refURL<-paste(
+  "参考 - ",
+  "<a href=\"",urlY,"\" target=\"_blank\">",yText,"</a> , ",
+  "<a href=\"",urlM,"\" target=\"_blank\">",mText,"</a>",
+  sep="")
 cat(paste("<name>",spec,"</name>\n",sep=""),file=kmlFile,append=T)
-#cat(paste("<description><![CDATA[",spec,"]]></description>\n",sep=""),file=kmlFile,append=T)
+cat(paste("<description><![CDATA[",refURL,"]]></description>\n",sep=""),file=kmlFile,append=T)
 cat("<styleUrl>#amc-type01</styleUrl>\n",file=kmlFile,append=T)
 #cat("<ExtendedData>\n",file=kmlFile,append=T)
 #cat("<Data name=\"Place\">\n",file=kmlFile,append=T)
@@ -198,4 +207,62 @@ cat("</Placemark>\n",file=kmlFile,append=T)
 cat("</Document>",file=kmlFile,append=T)
 cat("</kml>",file=kmlFile,append=T)
 #kml part
+```
+
+```{r}
+#kml用html
+setwd(pathOutput)
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+kmlhtml<-paste("earthquakesOverMagnitude",magBorder,"afterY1900",".html",sep="")
+cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=kmlhtml,append=F)
+cat("<style>\n",file=kmlhtml,append=T)
+cat("body{\n",file=kmlhtml,append=T)
+cat("font-family:'ヒラギノ角ゴ Pro W3','Hiragino Kaku Gothic Pro','Meiryo UI','メイリオ',Verdana,'ＭＳ Ｐゴシック',sans-serif;\n",file=kmlhtml,append=T)
+cat("}\n",file=kmlhtml,append=T)
+cat("</style>\n",file=kmlhtml,append=T)
+cat("<!-- Reference\n",file=kmlhtml,append=T)
+cat("http://apprentice.craic.com/tutorials/40\n",file=kmlhtml,append=T)
+cat("-->\n",file=kmlhtml,append=T)
+cat(paste("<div style=\"text-align:center\">1900年以降に発生したマグニチュード",magBorder,"以上の発生地震マップ. ソースデータ確認日:",year(SD),"年",month(SD),"月",day(SD),"日. Data Source:<a href=\"http://earthquake.usgs.gov/\" target=\"_blank\">http://earthquake.usgs.gov/</a>","</div>\n",sep=""),file=kmlhtml,append=T)
+cat("<div id=\"map_canvas\"></div>\n",file=kmlhtml,append=T)
+cat("<style>\n",file=kmlhtml,append=T)
+cat("#map_canvas {\n",file=kmlhtml,append=T)
+cat("margin-left: auto;\n",file=kmlhtml,append=T)
+cat("margin-right: auto;\n",file=kmlhtml,append=T)
+cat("padding: 0;\n",file=kmlhtml,append=T)
+cat("width: 100%;\n",file=kmlhtml,append=T)
+cat("height: 100%;\n",file=kmlhtml,append=T)
+cat("}\n",file=kmlhtml,append=T)
+cat("</style>\n",file=kmlhtml,append=T)
+cat("<script src=\"https://maps.googleapis.com/maps/api/js?v=3.exp&signed_in=false\"></script>\n",file=kmlhtml,append=T)
+cat("<script>\n",file=kmlhtml,append=T)
+cat("var mylocation = {\n",file=kmlhtml,append=T)
+cat("'latitude':  35.685175,\n",file=kmlhtml,append=T)
+cat("'longitude': 139.7528\n",file=kmlhtml,append=T)
+cat("};\n",file=kmlhtml,append=T)
+cat("var map;\n",file=kmlhtml,append=T)
+cat("function initialize() {\n",file=kmlhtml,append=T)
+cat("var myLatlng = new google.maps.LatLng( mylocation.latitude, mylocation.longitude );\n",file=kmlhtml,append=T)
+cat("var mapOptions = {\n",file=kmlhtml,append=T)
+cat("zoom: 12,\n",file=kmlhtml,append=T)
+cat("center: myLatlng,\n",file=kmlhtml,append=T)
+cat("mapTypeId: google.maps.MapTypeId.ROADMAP,\n",file=kmlhtml,append=T)
+cat("navigationControl: true,\n",file=kmlhtml,append=T)
+cat("mapTypeControl: true,\n",file=kmlhtml,append=T)
+#cat("mapTypeControlOptions:{\n",file=kmlhtml,append=T)
+#cat("mapTypeIds:[\n",file=kmlhtml,append=T)
+#cat("google.maps.MapTypeId.ROADMAP,\n",file=kmlhtml,append=T)
+#cat("google.maps.MapTypeId.SATELLITE\n",file=kmlhtml,append=T)
+#cat("]\n",file=kmlhtml,append=T)
+#cat("}\n",file=kmlhtml,append=T)
+cat("}\n",file=kmlhtml,append=T)
+cat("var map = new google.maps.Map(document.getElementById('map_canvas'), mapOptions);\n",file=kmlhtml,append=T)
+cat("var kmlPath = \"http://archive.am-consulting.co.jp/earthquakesOverMagnitude8afterY1900.kml\";\n",file=kmlhtml,append=T)
+cat("var urlSuffix = (new Date).getTime().toString();\n",file=kmlhtml,append=T)
+cat("var layer = new google.maps.KmlLayer(kmlPath + '?' + urlSuffix );\n",file=kmlhtml,append=T)
+cat("layer.setMap(map);\n",file=kmlhtml,append=T)
+cat("}\n",file=kmlhtml,append=T)
+cat("google.maps.event.addDomListener(window, 'load', initialize);\n",file=kmlhtml,append=T)
+cat("</script>\n",file=kmlhtml,append=T)
+#kml用html
 ```
