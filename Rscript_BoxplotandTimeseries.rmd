@@ -121,7 +121,7 @@ tail(dataset,12)
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:日本銀行"# Federal Reserve Bank of St. Louis 株式会社東京商工リサーチ
+dataSource<-"\nデータ出所:経済産業省"# Federal Reserve Bank of St. Louis 株式会社東京商工リサーチ
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
@@ -723,6 +723,14 @@ btitle<-c(
 "原系列単位根検定:p値",  #13 原系列単位根検定   
 "1次差分単位根検定:p値", #14 1次差分単位根検定
 "dammy"  
+)
+cat(paste(
+  "<br><hr><b>対象期間:</b>",
+  format(first(tmp.timeseries[,1]),"%Y/%m"),
+  "-",
+  format(last(tmp.timeseries[,1]),"%Y/%m"),
+  "\n",
+  sep=""),file=htmlFile,append=T
 )  
 cat("\n<table width=\"100%\">\n",file=htmlFile,append=T) # cellpadding=\"0\" cellspacing=\"0\"  
 for(aaa in seq(1,14,by=2)){
