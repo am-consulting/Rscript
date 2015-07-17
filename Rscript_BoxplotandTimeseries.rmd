@@ -116,6 +116,7 @@ monthly<-1 #月次
 commonTitle<-""
 dataSource<-"\nデータ出所:厚生労働省"
 forcedlevel.type<-2#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
+tail(dataset,12)
 ```
 
 ```{r}
@@ -230,9 +231,9 @@ cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
   "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
 #arfima
 }
-```
+#```
 
-```{r}
+#```{r}
 #arima
 funARIMA<-function(){
 #ARIMA
@@ -342,9 +343,9 @@ cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
   "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
 }
 #arima
-```
+#```
 
-```{r}
+#```{r}
 funSuccessiveCabinets<-function(){
 successiveCabinets[[1]]<-c(
 "1937-6-4","近衛文麿",
