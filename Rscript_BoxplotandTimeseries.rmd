@@ -8,6 +8,7 @@ library(gridExtra)
 library(e1071)
 library(tseries)
 library(forecast)
+library(viridis)
 successiveCabinets<-list()
 username<-Sys.info()['user']
 SD<-Sys.Date()
@@ -121,7 +122,10 @@ tail(dataset,12)
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:The U.S. Census Bureau"# Federal Reserve Bank of St. Louis 株式会社東京商工リサーチ The U.S. Census Bureau
+dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
+#Federal Reserve Bank of St. Louis 
+#株式会社東京商工リサーチ
+#The U.S. Census Bureau
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
@@ -149,7 +153,41 @@ for(ccc in 2:ncol(dataset)){
   funBoxplot()
   funARIMA()
   funARFIMA()
+  funHeatMap()
 }  
+```
+
+```{r}
+#image part
+funHeatMap<-function(){
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("heat_",addVer,".png",sep="")
+png(file=png.file,width=1600,height=1000)
+par(ps=20,mar=c(5,10,10,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
+imageData<-tmp.dataset[,1:2] 
+imageData<-data.frame(imageData[-1,1],diff(imageData[,2])/imageData[-1,2]*100)
+tmpMatrix<-matrix(nrow=length(unique(year(imageData[,1]))),ncol=12)
+for(ddd in 1:length(imageData[,2])){
+  rrr<-year(imageData[ddd,1])-year(imageData[1,1])+1
+  ccc<-month(imageData[ddd,1])  
+  tmpMatrix[rrr,ccc]<-imageData[,2][ddd]  
+}
+mainTitle<-paste("Heat Map\n",colnames(tmp.dataset)[2],"の前月比(%)\n(注)原系列が季節調整値、非季節調整値の如何を問わず前月比をとっています。\n色が薄い程、値が大きいことを示します。")
+xF<-year(head(imageData[,1],1))
+xL<-year(tail(imageData[,1],1))
+colnames(tmpMatrix)<-month.abb
+rownames(tmpMatrix)<-xF:xL
+nColor<-256
+colType<-viridis(nColor,alpha=1)#heat.colors(nColor),terrain.colors(nColor),topo.colors(nColor),cm.colors(nColor)
+image(x=xF:xL,y=1:12,tmpMatrix,col=colType,xaxs="i",yaxs="i",xlab="Year",ylab="Month",useRaster=T,main=mainTitle)
+dev.off()
+cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+}
+#image part
 ```
 
 ```{r}
