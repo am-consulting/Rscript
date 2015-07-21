@@ -122,17 +122,18 @@ tail(dataset,12)
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
+dataSource<-"\nデータ出所:内閣府"
 #Federal Reserve Bank of St. Louis 
 #株式会社東京商工リサーチ
 #The U.S. Census Bureau
+#内閣府
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
 
 ```{r}
-tttS<-3
-tttE<-3
+tttS<-1
+tttE<-1
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
