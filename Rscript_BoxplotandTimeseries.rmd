@@ -122,7 +122,7 @@ tail(dataset,12)
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:内閣府"
+dataSource<-"\nデータ出所:経済産業省"
 #Federal Reserve Bank of St. Louis 
 #株式会社東京商工リサーチ
 #The U.S. Census Bureau
@@ -548,10 +548,12 @@ for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
 if(ttt==1 | ttt==3){
 #only html
 htmldataset<-tmp.timeseries
+linkToWikipedia<-paste("https://ja.wikipedia.org/wiki/",year(htmldataset[,1]),"%E5%B9%B4#",month(htmldataset[,1]),".E6.9C.88",sep="")
+htmldataset$Wikipedia<-paste("<a href=\"",linkToWikipedia,"\" target=\"_blank\">",year(htmldataset[,1]),"年",month(htmldataset[,1]),"月</a>",sep="")  
 if(ttt==1){
-  colnames(htmldataset)<-c("Date","Value","内閣総理大臣","日銀総裁")  
+  colnames(htmldataset)[1:4]<-c("Date","Value","内閣総理大臣","日銀総裁")  
 }else if(ttt==3){
-  colnames(htmldataset)<-c("Date","Value","President","FRB")  
+  colnames(htmldataset)[1:4]<-c("Date","Value","President","FRB")  
 }  
 col<-list()
 grandData<-NULL
