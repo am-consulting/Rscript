@@ -6,7 +6,7 @@ library(reshape2)
 library(scales)
 library(gridExtra)
 username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 SD<-Sys.Date()
 setwd(pathOutput)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
@@ -19,7 +19,16 @@ fun.readData<-function(){
 
 ```{r}
 setwd(pathOutput)
-download.file(url="http://www.treasury.gov/ticdata/Publish/mfh.txt","mfh.txt",mode="wb")
+nSkipRow<-14
+url<-c(
+ "http://www.treasury.gov/resource-center/data-chart-center/tic/Documents/slt3d_globl.csv"
+)
+dataset<-read.csv(url[1],header=F,skip=nSkipRow,stringsAsFactor=F,na.strings=c("-","－"))
+head(dataset)
+tail(dataset)
+ntmp<-which(dataset[,1]=="Notes:")
+dataset<-head(dataset,ntmp-1)
+#download.file(url="http://www.treasury.gov/ticdata/Publish/mfh.txt","mfh.txt",mode="wb")
 ```
 
 ```{r}
