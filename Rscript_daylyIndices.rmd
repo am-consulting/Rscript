@@ -19,11 +19,11 @@ SD<-Sys.Date()
 fredData<-0
 tsSource<-list()
 dataset<-list()
-tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS","DJIA","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","DEXSFUS","DEXUSAL","DEXUSEU","DGS10","DEXUSUK")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS","DJIA","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","DEXSFUS","DEXUSAL","DEXUSEU","DGS10","DEXUSUK","DCOILBRENTEU")
 #tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
 #tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
 #tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
-#tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","SP500")
+#tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXSFUS")
 for(lll in 1:length(tsSource)){
   for(iii in 4:length(tsSource[[lll]])){
     fredData<-fredData+1
@@ -42,6 +42,7 @@ for(lll in 1:length(tsSource)){
     if(tsSource[[lll]][iii]=="DEXUSAL"){colnames(dataset[[fredData]])[2] <- "米ドル-豪ドル為替レート"}
     if(tsSource[[lll]][iii]=="DGS10"){colnames(dataset[[fredData]])[2] <- "10年物米国財務省証券金利(%)"}
     if(tsSource[[lll]][iii]=="DEXUSUK"){colnames(dataset[[fredData]])[2] <- "米ドル-英ポンド為替レート"}
+    if(tsSource[[lll]][iii]=="DCOILBRENTEU"){colnames(dataset[[fredData]])[2] <- "ブレント原油価格(米ドル/バレル)"}
     print(tail(dataset[[fredData]]))
   }
 }
@@ -78,7 +79,7 @@ tail(dataset[[fredData]])
 #\Delta^{d}y_{t}=c+\phi_{1}\Delta^{d}y_{t-1}+\cdots\phi_{p}\Delta^{d}y_{t-p}+u_{t}+\theta_{1}u_{t-1}+\cdots+\theta_{q}u_{t-q}
 imageHeight<-700
 marType<-c(5,10,5,5)
-htmldatasetLength<-300
+htmldatasetLength<-100
 setwd(pathOutput)
 htmlFile<-"dailyIndices.html"
 cat("",file=htmlFile,append=F)
@@ -186,6 +187,8 @@ dev.off()
 coefPhi<-arimaResult$model$phi  
 coefDelta<-arimaResult$model$Delta  
 coeftheta<-arimaResult$model$theta  
+coefIntercept<-as.vector(arimaResult$coef["intercept"])
+coefDrift<-as.vector(arimaResult$coef["drift"])
 p<-length(coefPhi)  
 d<-length(coefDelta)  
 q<-length(coeftheta)  
@@ -204,7 +207,9 @@ if(q!=0){
   coefList<-paste(coefList,paste("q=",q,"(",paste(coeftheta,collapse=","),")",seP=""),"<br>")
 }else{
   coefList<-paste(coefList,"q=",q,"<br>")
-}  
+}
+coefList<-paste(coefList,paste("Intercept=",coefIntercept,seP=""),"<br>")
+coefList<-paste(coefList,paste("Drift=",coefDrift,seP=""),"<br>")
 equation<-paste(
 "<b>Equation</b><br>",  
 "ARIMA(p,d,q)<br>",
