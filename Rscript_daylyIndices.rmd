@@ -19,7 +19,7 @@ SD<-Sys.Date()
 fredData<-0
 tsSource<-list()
 dataset<-list()
-tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS","DJIA","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","DEXSFUS","DEXUSAL","DEXUSEU","DGS10")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS","DJIA","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","DEXSFUS","DEXUSAL","DEXUSEU","DGS10","DEXUSUK")
 #tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
 #tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
 #tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
@@ -41,6 +41,7 @@ for(lll in 1:length(tsSource)){
     if(tsSource[[lll]][iii]=="DEXSFUS"){colnames(dataset[[fredData]])[2] <- "南アフリカランド-米ドル為替レート"}
     if(tsSource[[lll]][iii]=="DEXUSAL"){colnames(dataset[[fredData]])[2] <- "米ドル-豪ドル為替レート"}
     if(tsSource[[lll]][iii]=="DGS10"){colnames(dataset[[fredData]])[2] <- "10年物米国財務省証券金利(%)"}
+    if(tsSource[[lll]][iii]=="DEXUSUK"){colnames(dataset[[fredData]])[2] <- "米ドル-英ポンド為替レート"}
     print(tail(dataset[[fredData]]))
   }
 }
@@ -77,7 +78,7 @@ tail(dataset[[fredData]])
 #\Delta^{d}y_{t}=c+\phi_{1}\Delta^{d}y_{t-1}+\cdots\phi_{p}\Delta^{d}y_{t-p}+u_{t}+\theta_{1}u_{t-1}+\cdots+\theta_{q}u_{t-q}
 imageHeight<-700
 marType<-c(5,10,5,5)
-htmldatasetLength<-500
+htmldatasetLength<-300
 setwd(pathOutput)
 htmlFile<-"dailyIndices.html"
 cat("",file=htmlFile,append=F)
@@ -229,7 +230,7 @@ orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 dateFormat<-"%Y/%m/%d"
 tmp<-na.omit(dataset[[cnt]])
-tmp<-data.frame(tmp[-1,1],tmp[-1,2],diff(tmp[,2])/tmp[-1,2]*100)
+tmp<-data.frame(tmp[-1,1],tmp[-1,2],diff(tmp[,2])/tmp[-nrow(tmp),2]*100)
 htmldataset<-tail(tmp,htmldatasetLength)
 linkToWikipedia<-paste("https://ja.wikipedia.org/wiki/",year(htmldataset[,1]),"%E5%B9%B4#",month(htmldataset[,1]),".E6.9C.88",sep="")
 htmldataset$Wikipedia<-paste("<a href=\"",linkToWikipedia,"\" target=\"_blank\">",year(htmldataset[,1]),"年",month(htmldataset[,1]),"月</a>",sep="")  
@@ -506,7 +507,7 @@ png.file<-paste("change_",addVer,".png",sep="")
 png(file=png.file,width=1600,height=imageHeight)
 par(ps=20,mar=marType,cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
 tmp<-na.omit(dataset[[cnt]])
-tmp<-data.frame(tmp[-1,1],diff(tmp[,2])/tmp[-1,2]*100)
+tmp<-data.frame(tmp[-1,1],diff(tmp[,2])/tmp[-nrow(tmp),2]*100)
 colnames(tmp)<-c("Date","前営業日比(%)")
 cols<-c("black")
 ltys<-c(1)
