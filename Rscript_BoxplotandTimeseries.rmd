@@ -122,7 +122,7 @@ tail(dataset,12)
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:経済産業省"
+dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 #Federal Reserve Bank of St. Louis 
 #株式会社東京商工リサーチ
 #The U.S. Census Bureau
@@ -132,8 +132,8 @@ fun.readData()
 ```
 
 ```{r}
-tttS<-1
-tttE<-1
+tttS<-3
+tttE<-3
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -168,7 +168,7 @@ png.file<-paste("heat_",addVer,".png",sep="")
 png(file=png.file,width=1600,height=1000)
 par(ps=20,mar=c(5,10,10,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
 imageData<-tmp.dataset[,1:2] 
-imageData<-data.frame(imageData[-1,1],diff(imageData[,2])/imageData[-1,2]*100)
+imageData<-data.frame(imageData[-1,1],diff(imageData[,2])/imageData[-nrow(tmp.dataset),2]*100)
 tmpMatrix<-matrix(nrow=length(unique(year(imageData[,1]))),ncol=12)
 for(ddd in 1:length(imageData[,2])){
   rrr<-year(imageData[ddd,1])-year(imageData[1,1])+1
