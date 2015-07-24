@@ -19,7 +19,7 @@ SD<-Sys.Date()
 fredData<-0
 tsSource<-list()
 dataset<-list()
-tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS","DJIA","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","DEXSFUS","DEXUSAL","DEXUSEU","DGS10","DEXUSUK","DCOILBRENTEU")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS","DJIA","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","DEXSFUS","DEXUSAL","DEXUSEU","DGS10","DEXUSUK","DCOILBRENTEU","DEXCAUS","DEXSZUS","DPROPANEMBTX","NASDAQ100","DJTA","DEXUSNZ","WILL5000IND","NASDAQCOM")
 #tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
 #tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
 #tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
@@ -43,6 +43,14 @@ for(lll in 1:length(tsSource)){
     if(tsSource[[lll]][iii]=="DGS10"){colnames(dataset[[fredData]])[2] <- "10年物米国財務省証券金利(%)"}
     if(tsSource[[lll]][iii]=="DEXUSUK"){colnames(dataset[[fredData]])[2] <- "米ドル-英ポンド為替レート"}
     if(tsSource[[lll]][iii]=="DCOILBRENTEU"){colnames(dataset[[fredData]])[2] <- "ブレント原油価格(米ドル/バレル)"}
+    if(tsSource[[lll]][iii]=="DEXCAUS"){colnames(dataset[[fredData]])[2] <- "カナダドル-米ドル為替レート"}
+    if(tsSource[[lll]][iii]=="DEXSZUS"){colnames(dataset[[fredData]])[2] <- "スイスフラン-米ドル為替レート"}
+    if(tsSource[[lll]][iii]=="DPROPANEMBTX"){colnames(dataset[[fredData]])[2] <- "米国プロパン価格(モントベルビュー渡し,米ドル/ガロン)"}
+    if(tsSource[[lll]][iii]=="NASDAQ100"){colnames(dataset[[fredData]])[2] <- "ナスダック100指数"}
+    if(tsSource[[lll]][iii]=="DJTA"){colnames(dataset[[fredData]])[2] <- "ダウ・ジョーンズ輸送株平均"}
+    if(tsSource[[lll]][iii]=="DEXUSNZ"){colnames(dataset[[fredData]])[2] <- "米ドル-ニュージーランドドル為替レート"}
+    if(tsSource[[lll]][iii]=="WILL5000IND"){colnames(dataset[[fredData]])[2] <- "ウィルシャー5000"}
+    if(tsSource[[lll]][iii]=="NASDAQCOM"){colnames(dataset[[fredData]])[2] <- "ナスダック総合指数"}
     print(tail(dataset[[fredData]]))
   }
 }
