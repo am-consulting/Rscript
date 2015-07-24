@@ -37,8 +37,8 @@ fun.readData()
 setwd(pathOutput)
 needCSV<-2
 dateType<-3 #1:日次 2:月次 3:character(第*週他)
-#mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
-mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
+#mainTitle<-"週間石油在庫統計 - "
 #dataSource<-"\nData Source:財務省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
@@ -77,7 +77,15 @@ if(mainTitle=="週間石油在庫統計 - "){
   dateFormat<-"%Y/%m/%d"
   chartType<-2 #1:line , 2:bar
   fitType<-3 #1:lm , 2:loess , 3:none
-}  
+  dataSource<-"\nData Source:U.S. Energy Information Administration"
+}
+if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){  
+  dateType<-3 #1:日次 2:月次 3:character(第*週他)
+  dateFormat<-"%Y/%m/%d"
+  chartType<-2 #1:line , 2:bar
+  fitType<-3 #1:lm , 2:loess , 3:none
+  dataSource<-"\nData Source:財務省"
+}
 if(colnames(dataset)[1]=="Date"){
   buf.dataset[,1]<-as.Date(buf.dataset[,1])
 }else{
