@@ -55,7 +55,7 @@ setwd(pathOutput)
 col<-list()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 htmlFile<-"earthquakeTable.html"
-cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=F)
+cat("<html><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=F)
 cat("<style>\n",file=htmlFile,append=T)
 cat("body{\n",file=htmlFile,append=T)
 cat("font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;\n",file=htmlFile,append=T)
