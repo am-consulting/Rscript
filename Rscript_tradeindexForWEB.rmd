@@ -23,6 +23,7 @@ for(iii in 1:length(dir(folder.path))){
 
 ```{r}
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
 SD<-Sys.Date()
 #http://www.e-stat.go.jp/SG1/estat/OtherList.do?bid=000001008860&cycode=1
@@ -32,7 +33,7 @@ area<-c("WORLD","USA","EU","ASIA","ASIA NIES","ASEAN","CHINA")
 cnt<-0
 tmp<-0
 buf<-NULL
-grandData<-NULL
+grandALLData<-NULL
 for(iii in 1:length(ts.data)){  
   for(yyyy in 1:length(year)){
     for(mm in 1:length(month)){
@@ -56,22 +57,23 @@ for(aaa in 1:length(area)){
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   csvFile<-paste(addVer,".csv",sep="")    
 #  write.csv(tmp[,c(1,4,7,10,13)],csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
-  grandData<-rbind(grandData,data[[aaa]])
+  grandALLData<-rbind(grandALLData,data[[aaa]])
 }
 colnames(data[[1]])
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-csvFile<-paste(addVer,".csv",sep="")    
-#write.csv(grandData,csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
+csvFile<-paste(addVer,".csv",sep="")
+#write.csv(grandALLData,csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
 ```
 
 ```{r}
+#当面スキップ
 imageWidth<-1600
 imageHeight<-1000
-colnames(grandData)
+colnames(grandALLData)
 lineColor<-c("blue","red","black","green")
 for(ccc in c(4,7,10,13)){
-  tmp<-grandData[,c(1,ccc,2)]
+  tmp<-grandALLData[,c(1,ccc,2)]
   tmp<-subset(tmp,tmp$Area=="USA" | tmp$Area=="EU" | tmp$Area=="ASIA" | tmp$Area=="CHINA")  
   title<-colnames(tmp)[2]
   meltData<-melt(tmp,id=c("Date","Area"))
@@ -103,9 +105,246 @@ for(ccc in c(4,7,10,13)){
   print(subset(tmp,tmp[,2]==max(tmp[,2])))
   cat("\n\n")
 }
+#当面スキップ
 ```
 
 ```{r}
+#html part
+menulength<-5
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+dateFormat<-"%Y/%m"
+dataSource<-"Data Source:財務省"
+setwd(pathOutput)
+htmldataset<-grandALLData[,c(1,2,10,13)]
+linkToWikipedia<-paste("https://ja.wikipedia.org/wiki/",year(htmldataset[,1]),"%E5%B9%B4#",month(htmldataset[,1]),".E6.9C.88",sep="")
+htmldataset$Wikipedia<-paste("<a href=\"",linkToWikipedia,"\" target=\"_blank\">",year(htmldataset[,1]),"年",month(htmldataset[,1]),"月</a>",sep="")  
+colnames(htmldataset)
+colnames(htmldataset)[3:4]<-c("輸出数量指数","輸入数量指数")  
+colnames(htmldataset)
+col<-list()
+grandData<-NULL
+header<-NULL
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+htmlFile<-paste(addVer,".html",sep="")
+htmlFile<<-htmlFile  
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T)  
+cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>\n\n\n\n",file=htmlFile,append=T) 
+cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {\n",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],\n",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],\n",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,\n",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],\n",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}\n\n",file=htmlFile,append=T)
+#cat("});",file=htmlFile,append=T)
+#Individual column searching part  
+cat(",initComplete: function () {\n",file=htmlFile,append=T)
+cat("this.api().columns().every( function () {\n",file=htmlFile,append=T)
+cat("var column = this;\n",file=htmlFile,append=T)
+cat("var select = $('<select><option value=\"\"></option></select>')\n",file=htmlFile,append=T)
+cat(".appendTo( $(column.footer()).empty() )\n",file=htmlFile,append=T)
+cat(".on( 'change', function () {\n",file=htmlFile,append=T)
+cat("var val = $.fn.dataTable.util.escapeRegex(\n",file=htmlFile,append=T)
+cat("$(this).val()\n",file=htmlFile,append=T)
+cat(");\n",file=htmlFile,append=T)
+cat("column\n",file=htmlFile,append=T)
+cat(".search( val ? '^'+val+'$' : '', true, false )\n",file=htmlFile,append=T)
+cat(".draw();\n",file=htmlFile,append=T)
+cat("} );\n",file=htmlFile,append=T)
+cat("column.data().unique().sort().each( function ( d, j ) {\n",file=htmlFile,append=T)
+cat("select.append( '<option value=\"'+d+'\">'+d+'</option>' )\n",file=htmlFile,append=T)
+cat("} );\n",file=htmlFile,append=T)
+cat("} );\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+#Individual column searching part  
+#Row created callback  
+cat(",\"createdRow\": function ( row, data, index ) {\n",file=htmlFile,append=T)
+cat("if ( data[2].replace('', '') * 1 < 0 ) {\n",file=htmlFile,append=T)
+cat("$('td', row).eq(2).addClass('highlight');\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("if ( data[3].replace('', '') * 1 < 0 ) {\n",file=htmlFile,append=T)
+cat("$('td', row).eq(3).addClass('highlight');\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)  
+#Row created callback  
+cat("});\n\n\n\n\n",file=htmlFile,append=T)
+#正規表現  
+cat(paste("$('#",tableID,"').dataTable();",sep=""),file=htmlFile,append=T)
+cat("$('input.global_filter').on( 'keyup click', function () {",file=htmlFile,append=T)
+cat("filterGlobal();",file=htmlFile,append=T)
+cat("} );",file=htmlFile,append=T)
+cat("$('input.column_filter').on( 'keyup click', function () {",file=htmlFile,append=T)
+cat("filterColumn( $(this).parents('tr').attr('data-column') );",file=htmlFile,append=T)
+cat("} );  ",file=htmlFile,append=T)
+#正規表現  
+#calStat part  
+cat(paste("$('#",tableID,"')",sep=""),file=htmlFile,append=T)
+cat(".on( 'column-sizing.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'column-visibility.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'destroy.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'draw.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'init.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'length.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'order.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'page.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'pre.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'preXhr.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'processing.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'search.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'stateLoaded.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'stateLoadParams.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'stateSaveParams.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".on( 'xhr.dt', function () {calStat()} )",file=htmlFile,append=T)
+cat(".dataTable();\n\n\n\n\n",file=htmlFile,append=T)
+#calStat part  
+cat("});</script>\n\n\n\n\n",file=htmlFile,append=T)
+cat("<!--Row created callback--><style>td.highlight {font-weight: plain;color: red;}</style><!--Row created callback-->\n",file=htmlFile,append=T) 
+#calStat part  
+cat("<script>window.onload = function(){calStat()};</script>",file=htmlFile,append=T)
+cat("<script>",file=htmlFile,append=T)
+cat("function calStat(){",file=htmlFile,append=T)
+#輸出数量
+cat(paste("var sum = 0 , count = 0 , all = $('#",tableID," > tbody > tr') , variance = 0, countPlus = 0;",sep=""),file=htmlFile,append=T)
+cat("all.each(function() {",file=htmlFile,append=T)
+cat("sum += +$('td:eq(2)', this).text();",file=htmlFile,append=T)
+cat("count++;",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("//all.find('td:eq(5)').text((sum / count).toFixed(1));\n",file=htmlFile,append=T)
+cat("mean = sum / count;",file=htmlFile,append=T)
+cat("all.each(function() {",file=htmlFile,append=T)
+cat("tmp = $('td:eq(2)', this).text()-mean;",file=htmlFile,append=T)
+cat("variance = variance + tmp*tmp;",file=htmlFile,append=T)
+cat("if( 0<= $('td:eq(2)', this).text() ){countPlus++}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("variance = variance / count;",file=htmlFile,append=T)
+cat("deviation = Math.pow(variance,0.5);",file=htmlFile,append=T)
+cat("document.form1.mean2.value = mean.toFixed(2);",file=htmlFile,append=T)
+cat("document.form1.variance2.value = variance.toFixed(2);",file=htmlFile,append=T)
+cat("document.form1.deviation2.value = deviation.toFixed(2);",file=htmlFile,append=T)
+cat("document.form1.countPlus2.value = countPlus.toFixed(2);",file=htmlFile,append=T)
+#輸入数量
+cat(paste("var sum = 0 , count = 0 , all = $('#",tableID," > tbody > tr') , variance = 0, countPlus = 0;",sep=""),file=htmlFile,append=T)
+cat("all.each(function() {",file=htmlFile,append=T)
+cat("sum += +$('td:eq(3)', this).text();",file=htmlFile,append=T)
+cat("count++;",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("//all.find('td:eq(5)').text((sum / count).toFixed(1));\n",file=htmlFile,append=T)
+cat("mean = sum / count;",file=htmlFile,append=T)
+cat("all.each(function() {",file=htmlFile,append=T)
+cat("tmp = $('td:eq(3)', this).text()-mean;",file=htmlFile,append=T)
+cat("variance = variance + tmp*tmp;",file=htmlFile,append=T)
+cat("if( 0<= $('td:eq(3)', this).text() ){countPlus++}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("variance = variance / count;",file=htmlFile,append=T)
+cat("deviation = Math.pow(variance,0.5);",file=htmlFile,append=T)
+cat("document.form1.mean3.value = mean.toFixed(2);",file=htmlFile,append=T)
+cat("document.form1.variance3.value = variance.toFixed(2);",file=htmlFile,append=T)
+cat("document.form1.deviation3.value = deviation.toFixed(2);",file=htmlFile,append=T)
+cat("document.form1.countPlus3.value = countPlus.toFixed(2);",file=htmlFile,append=T)
+cat("}",file=htmlFile,append=T)
+cat("</script>",file=htmlFile,append=T)
+#calStat part  
+cat("<b>財務省貿易統計指数</b><br>",file=htmlFile,append=T)
+cat(dataSource,"<br>",file=htmlFile,append=T)
+cat("最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
+#calStat part  
+cat("<form name=\"form1\">",file=htmlFile,append=T)
+cat("<table width=\"100%\"><tbody>",file=htmlFile,append=T)
+cat("<tr>",file=htmlFile,append=T)
+cat("<td style=\"text-align:center\" colspan=\"4\">輸出数量指数前年同月比(%) - テーブル表示範囲の基本統計量</td>",file=htmlFile,append=T)
+cat("</tr>",file=htmlFile,append=T)
+cat("<tr>",file=htmlFile,append=T)
+cat("<td style=\"width:25%;text-align:right\" bgcolor=\"#F5F5F5\">平均値</td>",file=htmlFile,append=T)
+cat("<td style=\"width:25;\"><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"mean2\" size=\"10\"></td>",file=htmlFile,append=T)
+cat("<td style=\"width:25%;text-align:right\" bgcolor=\"#F5F5F5\">標本分散</td>",file=htmlFile,append=T)
+cat("<td style=\"width:25%;\"><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"variance2\" size=\"10\"></td>",file=htmlFile,append=T)
+cat("</tr>",file=htmlFile,append=T)
+cat("<tr>",file=htmlFile,append=T)
+cat("<td style=\"text-align:right\" bgcolor=\"#F5F5F5\">標本偏差</td>",file=htmlFile,append=T)
+cat("<td><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"deviation2\" size=\"10\"></td>",file=htmlFile,append=T)
+cat("<td style=\"text-align:right\" bgcolor=\"#F5F5F5\">プラス値データ数</td>",file=htmlFile,append=T)
+cat("<td><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"countPlus2\" size=\"10\"></td>",file=htmlFile,append=T)
+cat("</tr>",file=htmlFile,append=T)
+cat("</tbody></table>",file=htmlFile,append=T)
+cat("<table width=\"100%\"><tbody>",file=htmlFile,append=T)
+cat("<tr>",file=htmlFile,append=T)
+cat("<td style=\"text-align:center\" colspan=\"4\">輸入数量指数前年同月比(%) - テーブル表示範囲の基本統計量</td>",file=htmlFile,append=T)
+cat("</tr>",file=htmlFile,append=T)
+cat("<tr>",file=htmlFile,append=T)
+cat("<td style=\"width:25%;text-align:right\" bgcolor=\"#F5F5F5\">平均値</td>",file=htmlFile,append=T)
+cat("<td style=\"width:25;\"><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"mean3\" size=\"10\"></td>",file=htmlFile,append=T)
+cat("<td style=\"width:25%;text-align:right\" bgcolor=\"#F5F5F5\">標本分散</td>",file=htmlFile,append=T)
+cat("<td style=\"width:25%;\"><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"variance3\" size=\"10\"></td>",file=htmlFile,append=T)
+cat("</tr>",file=htmlFile,append=T)
+cat("<tr>",file=htmlFile,append=T)
+cat("<td style=\"text-align:right\" bgcolor=\"#F5F5F5\">標本偏差</td>",file=htmlFile,append=T)
+cat("<td><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"deviation3\" size=\"10\"></td>",file=htmlFile,append=T)
+cat("<td style=\"text-align:right\" bgcolor=\"#F5F5F5\">プラス値データ数</td>",file=htmlFile,append=T)
+cat("<td><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"countPlus3\" size=\"10\"></td>",file=htmlFile,append=T)
+cat("</tr>",file=htmlFile,append=T)
+cat("</tbody></table>",file=htmlFile,append=T)
+cat("</form>",file=htmlFile,append=T)
+#Reference http://stackoverflow.com/questions/12212567/jquery-calculate-average-of-column-values-and-put-it-in-each-td-of-another-co  
+#calStat part
+#正規表現
+cat("<b>正規表現対応フィルターボックス</b>",file=htmlFile,append=T)  
+cat("\n<table width=\"100%\"><thead><tr><th width=\"15%\" style=\"text-align:center\">Target</th><th width=\"75%\" style=\"text-align:center\">Search text</th><th style=\"text-align:center\">Regex</th></tr></thead><tbody>\n",file=htmlFile,append=T)
+for(rccc in 1:ncol(htmldataset)){
+cat(paste("<tr id=\"filter_col",rccc,"\" data-column=\"",rccc-1,"\">\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td>",colnames(htmldataset)[rccc],"</td>",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"text\" class=\"column_filter\" id=\"col",rccc-1,"_filter\"  style=\"width:100%\"></td>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_regex\" checked=\"checked\"></td>\n",sep=""),file=htmlFile,append=T)
+#cat(paste("<td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_smart\" checked=\"checked\"></td>\n",sep=""),file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+}  
+cat("\n</tbody></table>",file=htmlFile,append=T)  
+cat("<script>\n",file=htmlFile,append=T)  
+cat("function filterGlobal () {\n",file=htmlFile,append=T) 
+cat(paste("$('#",tableID,"').DataTable().search(\n",sep=""),file=htmlFile,append=T) 
+cat("$('#global_filter').val(),\n",file=htmlFile,append=T) 
+cat("$('#global_regex').prop('checked'),\n",file=htmlFile,append=T) 
+cat("$('#global_smart').prop('checked')\n",file=htmlFile,append=T) 
+cat(").draw();\n",file=htmlFile,append=T) 
+cat("}\n",file=htmlFile,append=T) 
+cat("function filterColumn ( i ) {\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').DataTable().column( i ).search(\n",sep=""),file=htmlFile,append=T)
+cat("$('#col'+i+'_filter').val(),\n",file=htmlFile,append=T)
+cat("$('#col'+i+'_regex').prop('checked'),\n",file=htmlFile,append=T)
+cat("$('#col'+i+'_smart').prop('checked')\n",file=htmlFile,append=T)
+cat(").draw();\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)  
+#正規表現
+for(ccc in 1:ncol(htmldataset)){
+  if(ccc==1){
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(htmldataset[,ccc]),dateFormat),"</td>",sep="")
+  }else{  
+    #col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],scientific=F),"</td>",sep="")
+  }  
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead><tfoot>",sep="")
+tableHtml<-paste(tableHtml,header,"</tfoot>",sep="")
+cat("<br><b>輸出数量指数および輸入数量指数の前年同月比(%)</b>",file=htmlFile,append=T)
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
+#html part
+```
+
+```{r}
+imageWidth<-1600
+imageHeight<-1000
 setwd(pathOutput)
 for(ddd in 1:length(data)){
   ST<-Sys.time()  
@@ -113,7 +352,7 @@ for(ddd in 1:length(data)){
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=imageWidth,height=imageHeight)
   mfrowTYpe<-c(2,3)
-  par(oma=c(3,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(10,3,7,3),cex.main=2,cex.lab=2,cex.axis=2,family="Meiryo")  
+  par(oma=c(3,1,7,1),mfrow=mfrowTYpe,ps=20,mar=c(10,3,7,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")  
   for(ccc in 9:14){
     tmp<-tail(data[[ddd]][,c(1,2,ccc)],24)
     mainTitle<-paste(colnames(tmp)[3])
@@ -125,8 +364,11 @@ for(ddd in 1:length(data)){
     print(subset(tmp,tmp[,3]==max(tmp[,3])))
   }
   cat("\n\n")
-  title(paste("Area:",tmp[1,2]," , 期間:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m")),outer=TRUE,cex.main=3,family="Meiryo")
+  title(paste("Area:",tmp[1,2]," , 期間:",format(head(tmp[,1],1),"%Y/%m"),"-",format(tail(tmp[,1],1),"%Y/%m")),outer=TRUE,cex.main=2,family="Meiryo")
   dev.off()
+  cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)   
 }  
 ```
 
