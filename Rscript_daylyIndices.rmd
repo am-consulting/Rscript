@@ -80,6 +80,14 @@ dataset[[fredData]]<-tmp01
 colnames(dataset[[fredData]])[2] <- "10年物日本国債金利(%)"
 head(dataset[[fredData]])
 tail(dataset[[fredData]])
+#日米金利差
+tmpDGS10Data<-(dataset[[which(tsSource[[1]]=="DGS10")-3]])
+tmpDiff<-na.omit(merge(dataset[[fredData]],tmpDGS10Data,all=T))
+fredData<-fredData+1
+dataset[[fredData]]<-data.frame(tmpDiff[,1],tmpDiff[,3]-tmpDiff[,2])
+colnames(dataset[[fredData]])<-c("Date","日米10年物国債金利差(%)")
+fredData
+#日米金利差
 ################################################### JGB part ###################################################
 ```
 
@@ -87,7 +95,7 @@ tail(dataset[[fredData]])
 #\Delta^{d}y_{t}=c+\phi_{1}\Delta^{d}y_{t-1}+\cdots\phi_{p}\Delta^{d}y_{t-p}+u_{t}+\theta_{1}u_{t-1}+\cdots+\theta_{q}u_{t-q}
 imageHeight<-700
 marType<-c(5,10,5,5)
-htmldatasetLength<-100
+htmldatasetLength<-90
 setwd(pathOutput)
 htmlFile<-"dailyIndices.html"
 cat("",file=htmlFile,append=F)
@@ -191,6 +199,20 @@ lines(arimaTable01[,1],arimaTable01[,3],col=cols[2],lty=ltys[2],lwd=lwds[2],type
 axis.Date(side=1,at=arimaTable01[,1],format="%Y/%m",padj=1)
 labels<-c(colnames(tmp)[2],paste(colnames(arimaTable01)[3],forecastResult$method))
 legend("topleft",legend=labels,col=cols,lty=ltys,lwd=lwds,cex=1.5)
+#max,min,mean,median  
+maxDate<-tmp[which.max(tmp[,2]),] 
+abline(v=as.Date(maxDate[1,1]),col="red",lty=2)
+abline(h=maxDate[1,2],col="red",lty=2)  
+minDate<-tmp[which.min(tmp[,2]),] 
+abline(v=as.Date(minDate[1,1]),col="red",lty=2)
+abline(h=minDate[1,2],col="red",lty=2)
+abline(h=mean(tmp[,2]),col="blue",lty=2)
+abline(h=median(tmp[,2]),col="black",lty=2)
+abline(h=as.vector(quantile(tmp[,2],c(0.05,0.1,0.9,0.95))[1]),col="green",lty=2) # 5%
+abline(h=as.vector(quantile(tmp[,2],c(0.05,0.1,0.9,0.95))[2]),col="green",lty=2) # 10%
+abline(h=as.vector(quantile(tmp[,2],c(0.05,0.1,0.9,0.95))[3]),col="green",lty=2) # 90%
+abline(h=as.vector(quantile(tmp[,2],c(0.05,0.1,0.9,0.95))[4]),col="green",lty=2) # 95%  
+#max,min,mean,median  
 dev.off()
 coefPhi<-arimaResult$model$phi  
 coefDelta<-arimaResult$model$Delta  
