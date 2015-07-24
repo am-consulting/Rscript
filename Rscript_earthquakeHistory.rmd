@@ -36,7 +36,7 @@ menulength<-10
 orderColumn<-0
 orderDirection<-"asc" #asc desc
 dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
-columnWidth<-"{\"width\":\"8%\",\"targets\":0},{\"width\":\"16%\",\"targets\":1},{\"width\":\"9%\",\"targets\":2},{\"width\":\"9%\",\"targets\":3},{\"width\":\"9%\",\"targets\":4} ,{\"width\":\"11%\",\"targets\":6}"
+columnWidth<-"{\"width\":\"5%\",\"targets\":0},{\"width\":\"16%\",\"targets\":1},{\"width\":\"9%\",\"targets\":2},{\"width\":\"9%\",\"targets\":3},{\"width\":\"9%\",\"targets\":4} ,{\"width\":\"11%\",\"targets\":6}"
 switch(dateFormat,
   dateFormatType<-"",
   dateFormatType<-"",
@@ -54,14 +54,20 @@ dataset<-tail(tmp,tailLength)
 setwd(pathOutput)
 col<-list()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-htmlFile<-paste(addVer,".html",sep="")
-cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+htmlFile<-"earthquakeTable.html"
+cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=F)
+cat("<style>\n",file=htmlFile,append=T)
+cat("body{\n",file=htmlFile,append=T)
+cat("font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("</style>\n",file=htmlFile,append=T)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
 cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
 grandData<-NULL
 header<-NULL
 tableID<-paste("am-consulting",addVer,sep="")
-cat("<b>西暦1900年以降に発生したマグニチュード7.0以上の地震リスト</b><br>\n",file=htmlFile,append=T) 
+cat("<body><b>西暦1900年以降に発生したマグニチュード7.0以上の地震リスト</b><br>\n",file=htmlFile,append=T) 
 cat("- 表中\"M\"はマグニチュード<br>\n",file=htmlFile,append=T) 
 cat("- マグニチュードタイプ(Mタイプ)はデータ毎に異なります<br>\n",file=htmlFile,append=T) 
 cat("- ソースデータ:http://earthquake.usgs.gov/<br>\n",file=htmlFile,append=T) 
@@ -127,13 +133,13 @@ for(ccc in 1:ncol(dataset)){
   grandData<-cbind(grandData,col[[ccc]])
   header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
 }
-tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\" style=\"font-size:10.5px;\"><thead>",sep="")
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\" style=\"font-size:13px;\"><thead>",sep="")
 tableHtml<-paste(tableHtml,header,"</thead>",sep="")
 cat(tableHtml,file=htmlFile,append=T)
 grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
-cat("Powered by DataTables( http://datatables.net/ )<br>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )<br></body></html>",file=htmlFile,append=T)
 ```
 
 ```{r}
