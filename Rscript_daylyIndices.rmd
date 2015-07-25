@@ -19,7 +19,7 @@ SD<-Sys.Date()
 fredData<-0
 tsSource<-list()
 dataset<-list()
-tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS","DJIA","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","DEXSFUS","DEXUSAL","DEXUSEU","DGS10","DEXUSUK","DCOILBRENTEU","DEXCAUS","DEXSZUS","DPROPANEMBTX","NASDAQ100","DJTA","DEXUSNZ","WILL5000IND","NASDAQCOM")
+tsSource[[1]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXJPUS","DJIA","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","DEXSFUS","DEXUSAL","DEXUSEU","DGS10","DEXUSUK","DCOILBRENTEU","DEXCAUS","DEXSZUS","DPROPANEMBTX","NASDAQ100","DJTA","DEXUSNZ","WILL5000IND","NASDAQCOM","DTWEXB")
 #tsSource[[2]]<-c("FRED",1,"http://research.stlouisfed.org/","NIKKEI225","SP500","DJIA","NASDAQ100")
 #tsSource[[3]]<-c("FRED",1,"http://research.stlouisfed.org/","DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL")
 #tsSource[[4]]<-c("FRED",1,"http://research.stlouisfed.org/","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS")
@@ -51,6 +51,7 @@ for(lll in 1:length(tsSource)){
     if(tsSource[[lll]][iii]=="DEXUSNZ"){colnames(dataset[[fredData]])[2] <- "米ドル-ニュージーランドドル為替レート"}
     if(tsSource[[lll]][iii]=="WILL5000IND"){colnames(dataset[[fredData]])[2] <- "ウィルシャー5000"}
     if(tsSource[[lll]][iii]=="NASDAQCOM"){colnames(dataset[[fredData]])[2] <- "ナスダック総合指数"}
+    if(tsSource[[lll]][iii]=="DTWEXB"){colnames(dataset[[fredData]])[2] <- "貿易加重米ドルインデックス(Broad)"}
     print(tail(dataset[[fredData]]))
   }
 }
@@ -571,4 +572,66 @@ cat("</td></tr>",file=htmlFile,append=T)
 cat("</table><hr>",file=htmlFile,append=T)
 }
 #前日営業日比part
+```
+
+```{r}
+#正規化パート。日米金利差が最後のdatasetでない場合は要修正
+#対象は日経×ドル円、ドルインデックス×ゴールド、ドルインデックス×WTI原油、米ドル×日米金利差とする
+cat(paste("<div style=\"text-align:center\"><b>正規化時系列チャート</b></div>",sep=""),file=htmlFile,append=T)
+cols<-c("black", "blue")
+ltys<-c(1,1)
+lwds<-c(1,1)
+normalData<-list()
+normalObj<-c("NIKKEI225","DEXJPUS","GOLDAMGBD228NLBM","DCOILWTICO","DTWEXB")
+for(nnn in 1:length(normalObj)){
+  normalData[[nnn]]<-dataset[[which(tsSource[[1]]==normalObj[nnn])-3]]
+  if(nnn==1){tmpallNormalData<-normalData[[nnn]]}else{
+  tmpallNormalData<-merge(tmpallNormalData,normalData[[nnn]],all=T)
+  }  
+}
+tmpallNormalData<-merge(tmpallNormalData,dataset[[fredData]],all=T)
+head(tmpallNormalData)
+tail(tmpallNormalData)
+colnames(tmpallNormalData)
+combi<-c(2,3,4,6,5,6,3,7)
+setwd(pathOutput)
+for(nnn in seq(1,length(combi),by=2)){
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("change_",addVer,".png",sep="")
+png(file=png.file,width=1600,height=imageHeight)
+par(ps=20,mar=marType,cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
+tmp<-na.omit(tmpallNormalData[,c(1,combi[nnn],combi[nnn+1])])
+buf<-colnames(tmp)  
+tmp<-data.frame(Date=tmp[,1],scale(tmp[,-1]))
+colnames(tmp)<-buf  
+plot(
+  x=tmp[,1],
+  y=tmp[,2],
+  col=cols[1],
+  lty=ltys[1],
+  lwd=lwds[1],
+  type="l",
+  family="Meiryo",
+  xlab="",
+  ylab="",
+  ylim=c(min(tmp[,2:3]),max(tmp[,2:3])),
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
+  xaxt="n"  
+)  
+lines(
+  x=tmp[,1],
+  y=tmp[,3],
+  col=cols[2],
+  lty=ltys[2],
+  lwd=lwds[2],
+  type="l"
+)  
+axis.Date(side=1,at=tmp[,1],format="%Y/%m",padj=1)
+labels<-c(colnames(tmp)[2],colnames(tmp)[3])
+legend("topleft",legend=labels,col=cols,lty=ltys,lwd=lwds,cex=1.5)  
+dev.off()
+cat(paste("<hr><img src=\"",png.file,"\" alt=\"",png.file,"\" width=\"100%\">",sep=""),file=htmlFile,append=T)
+}
+#正規化パート
 ```
