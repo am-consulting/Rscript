@@ -119,6 +119,7 @@ for(cnt in 1:nData){
   funHtml()
   funChangeRate()
 }
+funNormal()
 cat("</body></html>",file=htmlFile,append=T)
 ```
 
@@ -576,13 +577,15 @@ cat("</table><hr>",file=htmlFile,append=T)
 
 ```{r}
 #正規化パート。日米金利差が最後のdatasetでない場合は要修正
-#対象は日経×ドル円、ドルインデックス×ゴールド、ドルインデックス×WTI原油、米ドル×日米金利差とする
-cat(paste("<div style=\"text-align:center\"><b>正規化時系列チャート</b></div>",sep=""),file=htmlFile,append=T)
+#対象は日経×ドル円、ドルインデックス×ゴールド、ドルインデックス×WTI原油、米ドル×日米金利差、豪ドル×ゴールド、ランド×ゴールドとする
+funNormal<-function(){
+alpha<-0.1
+cat(paste("<div style=\"text-align:center\"><b>正規化時系列チャート</b><br>Loessのスパンは",alpha,"</div>",sep=""),file=htmlFile,append=T)
 cols<-c("black", "blue")
 ltys<-c(1,1)
 lwds<-c(1,1)
 normalData<-list()
-normalObj<-c("NIKKEI225","DEXJPUS","GOLDAMGBD228NLBM","DCOILWTICO","DTWEXB")
+normalObj<-c("NIKKEI225","DEXJPUS","GOLDAMGBD228NLBM","DCOILWTICO","DTWEXB","DEXSFUS","DEXUSAL")
 for(nnn in 1:length(normalObj)){
   normalData[[nnn]]<-dataset[[which(tsSource[[1]]==normalObj[nnn])-3]]
   if(nnn==1){tmpallNormalData<-normalData[[nnn]]}else{
@@ -593,7 +596,7 @@ tmpallNormalData<-merge(tmpallNormalData,dataset[[fredData]],all=T)
 head(tmpallNormalData)
 tail(tmpallNormalData)
 colnames(tmpallNormalData)
-combi<-c(2,3,4,6,5,6,3,7)
+combi<-c(2,3,4,6,5,6,3,9,4,7,4,8)
 setwd(pathOutput)
 for(nnn in seq(1,length(combi),by=2)){
 ST<-Sys.time()  
@@ -629,9 +632,16 @@ lines(
 )  
 axis.Date(side=1,at=tmp[,1],format="%Y/%m",padj=1)
 labels<-c(colnames(tmp)[2],colnames(tmp)[3])
-legend("topleft",legend=labels,col=cols,lty=ltys,lwd=lwds,cex=1.5)  
+legend("topleft",legend=labels,col=cols,lty=ltys,lwd=lwds,cex=1.5)
+#loess part  
+loessResult02<-(loess(formula=tmp[,2]~as.numeric(tmp[,1]),tmp,span=alpha))$fitted  
+loessResult03<-(loess(formula=tmp[,3]~as.numeric(tmp[,1]),tmp,span=alpha))$fitted  
+lines(x=tmp[,1],y=loessResult02,col=cols[1],lty=2,lwd=4)  
+lines(x=tmp[,1],y=loessResult03,col=cols[2],lty=2,lwd=4)  
+#loess part  
 dev.off()
 cat(paste("<hr><img src=\"",png.file,"\" alt=\"",png.file,"\" width=\"100%\">",sep=""),file=htmlFile,append=T)
 }
+}  
 #正規化パート
 ```
