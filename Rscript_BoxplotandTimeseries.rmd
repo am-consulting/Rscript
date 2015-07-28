@@ -51,6 +51,8 @@ funMaintitle<-function(){
   mainTitle<-gsub("percent","%",mainTitle)
   mainTitle<-gsub("平均利回り","平均利回り(%)",mainTitle)
   mainTitle<<-mainTitle
+  colnames(tmp.dataset)[2]<-mainTitle
+  tmp.dataset<<-tmp.dataset
 }
 ```
 
@@ -122,7 +124,7 @@ tail(dataset,12)
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
+dataSource<-"\nデータ出所:国土交通省"
 #Federal Reserve Bank of St. Louis 
 #株式会社東京商工リサーチ
 #The U.S. Census Bureau
@@ -132,8 +134,8 @@ fun.readData()
 ```
 
 ```{r}
-tttS<-3
-tttE<-3
+tttS<-1
+tttE<-1
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -153,12 +155,71 @@ for(ccc in 2:ncol(dataset)){
   funTimeseries()  
   funBoxplot()
   funARIMA()
-  funARFIMA()
+  #funARFIMA()
   funHeatMap()
+  funAmcharts()
 }  
 ```
 
 ```{r}
+#amcharts
+funAmcharts<-function(){
+cat(paste("<hr><div style=\"text-align:center\"><b>",colnames(tmp.dataset)[2]," - 一次差分</b></div>\n",sep=""),file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/amcharts.js\"></script>",file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/serial.js\"></script>",file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/themes/light.js\"></script>",file=htmlFile,append=T)
+cat("<style>#chartdiv{width:100%;height:500px;font-size:11px;}</style>",file=htmlFile,append=T)			
+cat("<div id=\"chartdiv\"></div>\n",file=htmlFile,append=T)  
+cat("<script>\n",file=htmlFile,append=T)
+cat("var chart = AmCharts.makeChart(\"chartdiv\",{\n",file=htmlFile,append=T)
+cat("\"type\": \"serial\",\n",file=htmlFile,append=T)
+cat("\"theme\": \"light\",\n",file=htmlFile,append=T)
+cat("\"dataProvider\": [\n",file=htmlFile,append=T)
+#data part  
+amchartsData<-data.frame(tmp.dataset[-1,1],diff(tmp.dataset[,2]))
+for(rrr in 1:nrow(amchartsData)){
+  if(rrr!=nrow(amchartsData)){  
+    cat(paste("{\"Date\": \"",format(amchartsData[rrr,1],dateFormat),"\",\"Ratio\":", amchartsData[rrr,2],"},\n",sep=""),file=htmlFile,append=T)
+  }else{
+    cat(paste("{\"Date\": \"",format(amchartsData[rrr,1],dateFormat),"\",\"Ratio\":", amchartsData[rrr,2],"}\n",sep=""),file=htmlFile,append=T)
+  }
+}
+#data part    
+cat("],\n",file=htmlFile,append=T)
+cat("\"valueAxes\":[{\"axisAlpha\": 0.2,\"gridColor\":\"#808080\",\"gridAlpha\":0.2,\"dashLength\":0}],\n",file=htmlFile,append=T)
+cat("\"gridAboveGraphs\": true,\n",file=htmlFile,append=T)
+cat("\"startDuration\": 1,\n",file=htmlFile,append=T)
+cat("\"graphs\": [ {\n",file=htmlFile,append=T)
+cat("\"balloonText\": \"[[category]]: <b>[[value]]</b>\",\n",file=htmlFile,append=T)
+cat("\"fillAlphas\": 0.8,\n",file=htmlFile,append=T)
+cat("\"lineAlpha\": 0.2,\n",file=htmlFile,append=T)
+cat("\"type\": \"column\",\n",file=htmlFile,append=T)
+cat("\"valueField\": \"Ratio\"\n",file=htmlFile,append=T)
+cat("}],\n",file=htmlFile,append=T)
+cat("\"chartCursor\": {\n",file=htmlFile,append=T)
+cat("\"categoryBalloonEnabled\": true,\n",file=htmlFile,append=T)
+cat("\"cursorAlpha\": 0.2,\n",file=htmlFile,append=T)
+cat("\"zoomable\": true\n",file=htmlFile,append=T)
+cat("},\n",file=htmlFile,append=T)
+cat("\"categoryField\": \"Date\",\n",file=htmlFile,append=T)
+cat("\"categoryAxis\": {\n",file=htmlFile,append=T)
+cat("\"gridColor\":\"#808080\",\n",file=htmlFile,append=T)
+cat("\"gridPosition\": \"middle\",\n",file=htmlFile,append=T)
+cat("\"gridAlpha\": 0.2,\n",file=htmlFile,append=T)
+cat("\"tickPosition\": \"middle\",\n",file=htmlFile,append=T)
+cat("\"tickLength\": 20,\n",file=htmlFile,append=T)
+cat("\"labelRotation\": 90\n",file=htmlFile,append=T)
+cat("},\n",file=htmlFile,append=T)
+cat("\"export\": {\n",file=htmlFile,append=T)
+cat("\"enabled\": true\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("});\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)
+}  
+#amcharts
+#```
+
+#```{r}
 #image part
 funHeatMap<-function(){
 setwd(pathOutput)
@@ -189,9 +250,9 @@ cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
   "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 }
 #image part
-```
+#```
 
-```{r}
+#```{r}
 #arfima
 funARFIMA<-function(){
 #ARFIMA
@@ -297,7 +358,7 @@ arimaResult<-auto.arima(
   seasonal=T,
   ic="aic", #"aicc","aic","bic"
   stepwise=T,
-  trace=F,
+  trace=T,
   approximation=(length(objData)>100 | frequency(objData)>12),
   xreg=NULL,
   test="kpss", #"kpss","adf","pp"
@@ -351,6 +412,8 @@ dev.off()
 coefPhi<-arimaResult$model$phi  
 coefDelta<-arimaResult$model$Delta  
 coeftheta<-arimaResult$model$theta  
+coefIntercept<-as.vector(arimaResult$coef["intercept"])
+coefDrift<-as.vector(arimaResult$coef["drift"])  
 p<-length(coefPhi)  
 d<-length(coefDelta)  
 q<-length(coeftheta)  
@@ -369,7 +432,9 @@ if(q!=0){
   coefList<-paste(coefList,paste("q=",q,"(",paste(coeftheta,collapse=","),")",seP=""),"<br>")
 }else{
   coefList<-paste(coefList,"q=",q,"<br>")
-}  
+}
+coefList<-paste(coefList,paste("Intercept=",coefIntercept,seP=""),"<br>")
+coefList<-paste(coefList,paste("Drift=",coefDrift,seP=""),"<br>")  
 equation<-paste(
 "<hr><b>Equation</b><br>",  
 "ARIMA(p,d,q)<br>",
