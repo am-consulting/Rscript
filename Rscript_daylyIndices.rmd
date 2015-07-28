@@ -56,9 +56,9 @@ for(lll in 1:length(tsSource)){
   }
 }
 ##################################################### from FRED part ###########################################
-```
+#```
 
-```{r}
+#```{r}
 ################################################### JGB part ###################################################
 fredData<-fredData+1
 url<-c(
@@ -573,9 +573,9 @@ cat("</td></tr>",file=htmlFile,append=T)
 cat("</table><hr>",file=htmlFile,append=T)
 }
 #前日営業日比part
-```
+#```
 
-```{r}
+#```{r}
 #正規化パート。日米金利差が最後のdatasetでない場合は要修正
 #対象は日経×ドル円、ドルインデックス×ゴールド、ドルインデックス×WTI原油、米ドル×日米金利差、豪ドル×ゴールド、ランド×ゴールドとする
 funNormal<-function(){
@@ -598,11 +598,13 @@ tail(tmpallNormalData)
 colnames(tmpallNormalData)
 combi<-c(2,3,4,6,5,6,3,9,4,7,4,8)
 setwd(pathOutput)
+imageCNT<-0  
+cat("<table>\n",file=htmlFile,append=T)
 for(nnn in seq(1,length(combi),by=2)){
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste("change_",addVer,".png",sep="")
-png(file=png.file,width=1600,height=imageHeight)
+png(file=png.file,width=1000,height=imageHeight)
 par(ps=20,mar=marType,cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")   
 tmp<-na.omit(tmpallNormalData[,c(1,combi[nnn],combi[nnn+1])])
 buf<-colnames(tmp)  
@@ -638,10 +640,14 @@ loessResult02<-(loess(formula=tmp[,2]~as.numeric(tmp[,1]),tmp,span=alpha))$fitte
 loessResult03<-(loess(formula=tmp[,3]~as.numeric(tmp[,1]),tmp,span=alpha))$fitted  
 lines(x=tmp[,1],y=loessResult02,col=cols[1],lty=2,lwd=4)  
 lines(x=tmp[,1],y=loessResult03,col=cols[2],lty=2,lwd=4)  
-#loess part  
+#loess part
+imageCNT<-imageCNT+1  
 dev.off()
-cat(paste("<hr><img src=\"",png.file,"\" alt=\"",png.file,"\" width=\"100%\">",sep=""),file=htmlFile,append=T)
+if(imageCNT%%2==1){cat("<tr>\n",file=htmlFile,append=T)}  
+cat(paste("<td><img src=\"",png.file,"\" alt=\"",png.file,"\" width=\"100%\"></td>\n",sep=""),file=htmlFile,append=T)
+if(imageCNT%%2==0){cat("\n</tr>",file=htmlFile,append=T)}  
 }
+cat("</table>",file=htmlFile,append=T)
 }  
 #正規化パート
 ```
