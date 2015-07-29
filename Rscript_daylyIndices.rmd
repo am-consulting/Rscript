@@ -692,7 +692,7 @@ cat("\"borderThickness\": 1,\n",file=htmlFile,append=T)
 cat("\"shadowAlpha\": 0\n",file=htmlFile,append=T)  
 cat("},\n",file=htmlFile,append=T)  
 cat("\"graphs\": [\n",file=htmlFile,append=T)
-for(ccc in 2:length(forAmcahrts)){
+for(ccc in 2:ncol(forAmcahrts)){
 cat("{\n",file=htmlFile,append=T) 
 cat(paste("\"id\": \"g",ccc,"\",\n",sep=""),file=htmlFile,append=T) 
 cat("\"bullet\": \"round\",\n",file=htmlFile,append=T) 
