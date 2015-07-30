@@ -58,21 +58,21 @@ setwd(pathOutput)
 grobTableTail<-20
 needCSV<-2
 dateType<-2 #1:日次 2:月次 3:character(第*週他)
-#mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
-mainTitle<-"IMF Primary Commodity Prices - "
-mainTitle<-"週間石油在庫統計 - "
-mainTitle<-"預金・貸出合計 - "
-#dataSource<-"\nData Source:財務省"
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
+#mainTitle<-"IMF Primary Commodity Prices - "
+#mainTitle<-"週間石油在庫統計 - "
+#mainTitle<-"預金・貸出合計 - "
+dataSource<-"\nData Source:財務省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
-dataSource<-"\nData Source:U.S. Energy Information Administration"
+#dataSource<-"\nData Source:U.S. Energy Information Administration"
 #dataSource<-"\nData Source:International Monetary Fund"
-dataSource<-"\nData Source:日本銀行"
+#dataSource<-"\nData Source:日本銀行"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
-outputFolder<-1 #1:R_Data_Write,2:charts
+outputFolder<-2 #1:R_Data_Write,2:charts
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
@@ -95,6 +95,7 @@ for(ccc in 2:ncol(dataset)){
 setwd(pathOutput)
 buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
 if(mainTitle=="週間石油在庫統計 - "){  
+  tailNumber<-60
   buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
   buf.dataset<-data.frame(buf.dataset[-1,1],diff(buf.dataset[,2]))
   colnames(buf.dataset)<-colnames(dataset[,c(1,ccc)])
@@ -103,15 +104,16 @@ if(mainTitle=="週間石油在庫統計 - "){
   chartType<-2 #1:line , 2:bar
   fitType<-3 #1:lm , 2:loess , 3:none
   dataSource<-"\nData Source:U.S. Energy Information Administration"
-  tailNumber<-60
 }
 if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){  
+  tailNumber<-60
+  buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
   dateType<-3 #1:日次 2:月次 3:character(第*週他)
   dateFormat<-"%Y/%m/%d"
   chartType<-2 #1:line , 2:bar
   fitType<-3 #1:lm , 2:loess , 3:none
   dataSource<-"\nData Source:財務省"
-  tailNumber<-60
+  grobTableTail<-13
 }
 if(colnames(dataset)[1]=="Date"){
   buf.dataset[,1]<-as.Date(buf.dataset[,1])
