@@ -256,6 +256,106 @@ write.csv(tail(dataset[,c(1,ccc)],30),csvFile,row.names=F,append=F,quote=F,fileE
 ```
 
 ```{r}
+#amchartsPart
+forAmcahrts<-na.omit(dataset)
+forAmcahrts<-subset(forAmcahrts,as.Date("2013-01-01")<=forAmcahrts[,1])  
+forAmcahrts<-data.frame(Date=forAmcahrts[,1],apply(forAmcahrts[,-1],2,function(x) x/head(x,1)))
+colnames(forAmcahrts)<-colnames(dataset)
+head(forAmcahrts)
+tail(forAmcahrts)
+forAmcahrts<-head(forAmcahrts,5000000000000000000000)
+cat(paste("<hr><div style=\"text-align:center\"><b>第二次安倍政権発足以降の各種指標 - 発足日(月)を1とする</b></div>\n",sep=""),file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/amcharts.js\"></script>",file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/serial.js\"></script>",file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/themes/light.js\"></script>",file=htmlFile,append=T)
+cat("<style>#chartdiv{width:100%;height:900px;font-size:11px;}</style>",file=htmlFile,append=T)    	
+cat("<div id=\"chartdiv\"></div>\n",file=htmlFile,append=T)  
+cat("<script>var chart = AmCharts.makeChart(\"chartdiv\", {\n",file=htmlFile,append=T)  
+cat("\"type\": \"serial\",\n",file=htmlFile,append=T)  
+cat("\"theme\": \"light\",\n",file=htmlFile,append=T)  
+cat("\"marginRight\": 80,\n",file=htmlFile,append=T)  
+cat("\"autoMarginOffset\": 20,\n",file=htmlFile,append=T)  
+#cat("\"dataDateFormat\": \"YYYY-MM-DD\",\n",file=htmlFile,append=T)  
+cat("\"valueAxes\": [{\n",file=htmlFile,append=T)  
+cat("\"id\": \"v1\",\n",file=htmlFile,append=T)  
+cat("\"axisAlpha\": 0,\n",file=htmlFile,append=T)  
+cat("\"position\": \"left\"\n",file=htmlFile,append=T)  
+cat("}],\n",file=htmlFile,append=T)  
+cat("\"balloon\": {\n",file=htmlFile,append=T)
+cat("\"maxWidth\":1000,\n",file=htmlFile,append=T)
+cat("\"borderThickness\": 1,\n",file=htmlFile,append=T)  
+cat("\"shadowAlpha\": 0\n",file=htmlFile,append=T)  
+cat("},\n",file=htmlFile,append=T)  
+cat("\"graphs\": [\n",file=htmlFile,append=T)
+for(ccc in 2:ncol(forAmcahrts)){
+cat("{\n",file=htmlFile,append=T) 
+cat(paste("\"id\": \"g",ccc,"\",\n",sep=""),file=htmlFile,append=T) 
+cat("\"bullet\": \"round\",\n",file=htmlFile,append=T) 
+cat("\"bulletBorderAlpha\": 1,\n",file=htmlFile,append=T) 
+cat("\"bulletColor\": \"#FFFFFF\",\n",file=htmlFile,append=T) 
+cat("\"bulletSize\": 5,\n",file=htmlFile,append=T) 
+cat("\"hideBulletsCount\": 50,\n",file=htmlFile,append=T) 
+cat("\"lineThickness\": 2,\n",file=htmlFile,append=T) 
+cat("\"title\": \"red line\",\n",file=htmlFile,append=T) 
+cat("\"useLineColorForBulletBorder\": true,\n",file=htmlFile,append=T) 
+cat(paste("\"valueField\": \"value",ccc,"\",\n",sep=""),file=htmlFile,append=T) 
+cat(paste("\"balloonText\": \"<div style='margin:5px; font-size:19px;'><span style='font-size:13px;'>",colnames(forAmcahrts)[ccc],"</span> - [[value]]</div>\"\n",sep=""),file=htmlFile,append=T)
+#<span style='font-size:13px;'>[[category]]</span>  
+cat("}\n",file=htmlFile,append=T) 
+if(ccc!=length(forAmcahrts)){cat(",\n",file=htmlFile,append=T)} 
+}
+cat("],\n",file=htmlFile,append=T)
+cat("\"mouseWheelZoomEnabled\": true,\n",file=htmlFile,append=T)  
+cat("\"chartScrollbar\": {\n",file=htmlFile,append=T)
+cat("\"scrollbarHeight\":2,\n",file=htmlFile,append=T)
+cat("\"offset\":-1,\n",file=htmlFile,append=T)
+cat("\"backgroundAlpha\":0.1,\n",file=htmlFile,append=T)
+cat("\"backgroundColor\":\"#888888\",\n",file=htmlFile,append=T)
+cat("\"selectedBackgroundColor\":\"#67b7dc\",\n",file=htmlFile,append=T)
+cat("\"selectedBackgroundAlpha\":1\n",file=htmlFile,append=T)
+cat("},\n",file=htmlFile,append=T)
+cat("\"chartCursor\": {\n",file=htmlFile,append=T)
+cat("/*\n",file=htmlFile,append=T)  
+cat("\"pan\": true,\n",file=htmlFile,append=T)
+cat("\"valueLineEnabled\": true,\n",file=htmlFile,append=T)
+cat("\"valueLineBalloonEnabled\": true,\n",file=htmlFile,append=T)
+cat("\"cursorAlpha\":0,\n",file=htmlFile,append=T)
+cat("\"valueLineAlpha\":0.2\n",file=htmlFile,append=T)
+cat("*/\n",file=htmlFile,append=T)  
+cat("},\n",file=htmlFile,append=T)
+cat("\"categoryField\": \"date\",\n",file=htmlFile,append=T)
+cat("\"categoryAxis\": {\n",file=htmlFile,append=T)
+#cat("\"parseDates\": true,\n",file=htmlFile,append=T)
+cat("\"labelRotation\": 90,\n",file=htmlFile,append=T)
+cat("\"dashLength\": 1,\n",file=htmlFile,append=T)
+cat("\"minorGridEnabled\": true\n",file=htmlFile,append=T)
+cat("},\n",file=htmlFile,append=T)
+cat("\"export\": {\n",file=htmlFile,append=T)
+cat("\"enabled\": true\n",file=htmlFile,append=T)
+cat("},\n",file=htmlFile,append=T)
+cat("\"dataProvider\": [\n",file=htmlFile,append=T)
+for(rrr in 1:nrow(forAmcahrts)){
+  cat("{\n",file=htmlFile,append=T)
+  cat(paste("\"date\": \"",format(forAmcahrts[rrr,1],"%Y年%m月"),"\",\n",sep=""),file=htmlFile,append=T)
+  for(ccc in 2:ncol(forAmcahrts)){
+    cat(paste("\"value",ccc,"\":",signif(forAmcahrts[rrr,ccc],digits=4),"\n",sep=""),file=htmlFile,append=T)
+    if(ccc!=ncol(forAmcahrts)){cat(",\n",file=htmlFile,append=T)}
+  }
+  cat("}\n",file=htmlFile,append=T)
+  if(rrr!=nrow(forAmcahrts)){cat(",\n",file=htmlFile,append=T)}
+}
+cat("]\n",file=htmlFile,append=T)
+cat("});\n",file=htmlFile,append=T)
+cat("chart.addListener(\"rendered\", zoomChart);\n",file=htmlFile,append=T)
+cat("zoomChart();\n",file=htmlFile,append=T)
+cat("function zoomChart() {\n",file=htmlFile,append=T)
+cat("chart.zoomToIndexes(chart.dataProvider.length - ",nrow(forAmcahrts),", chart.dataProvider.length - 0);\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)
+#amchartsPart
+```
+
+```{r}
 ##########################################  bar chart  ##########################################
 ylimManual<-1
 grandTitle<-"貸出先別貸出金 四半期調査 3月"
