@@ -16,7 +16,7 @@ creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")
 setwd(pathOutput)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
-  dataset<<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F)
+  dataset<<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－","      "))
   print(head(dataset))
   print(tail(dataset))
 }
@@ -61,10 +61,12 @@ dateType<-2 #1:日次 2:月次 3:character(第*週他)
 #mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"IMF Primary Commodity Prices - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"預金・貸出合計 - "
 #dataSource<-"\nData Source:財務省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 #dataSource<-"\nData Source:International Monetary Fund"
+dataSource<-"\nData Source:日本銀行"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 tailNumber<-240
@@ -91,9 +93,9 @@ switch(dateType,
 colorList<-c("blue","red")
 for(ccc in 2:ncol(dataset)){
 setwd(pathOutput)
-buf.dataset<-tail(dataset[,c(1,ccc)],tailNumber)
+buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
 if(mainTitle=="週間石油在庫統計 - "){  
-  buf.dataset<-tail(dataset[,c(1,ccc)],tailNumber)
+  buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
   buf.dataset<-data.frame(buf.dataset[-1,1],diff(buf.dataset[,2]))
   colnames(buf.dataset)<-colnames(dataset[,c(1,ccc)])
   dateType<-1 #1:日次 2:月次 3:character(第*週他)
@@ -154,7 +156,7 @@ if(dateType!=3){#Date
     "-",
     format(tail(buf.dataset[,1],1),dateFormat),
     dataSource,
-    ". Max/Minの対象は",format(dataset[1,1],dateFormat),"以降"
+    ". Max/Minの対象は",format(na.omit(dataset[,c(1,ccc)])[1,1],dateFormat),"以降"
     )
   )
   g<-g+scale_x_date(labels=date_format(dateFormat))
@@ -165,7 +167,7 @@ if(dateType!=3){#Date
 }else{#Non-Date
   g<-g+theme(axis.text.x=element_text(size=30,angle=90,hjust=0.5,vjust=0.5)) 
   g<-g+ggtitle(paste(mainTitle,"対象期間:",head(buf.dataset[,1],1),"-",tail(buf.dataset[,1],1),dataSource,
-    ". Max/Minの対象は",dataset[1,1],"以降"))
+    ". Max/Minの対象は",na.omit(dataset[,c(1,ccc)])[1,1],"以降"))
   xL1<-1
   xR1<-floor(tailNumber/2)
   xL2<-floor(tailNumber/2)
@@ -174,7 +176,7 @@ if(dateType!=3){#Date
 g<-g+xlab("")
 g<-g+ylab("")
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
-grobTable<-dataset[,c(1,ccc)]
+grobTable<-na.omit(dataset[,c(1,ccc)])
 if(mainTitle=="週間石油在庫統計 - "){  
   grobTable<-data.frame(grobTable[-1,1],diff(grobTable[,2]))
 }
