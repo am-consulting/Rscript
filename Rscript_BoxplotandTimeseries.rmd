@@ -178,10 +178,11 @@ cat("\"dataProvider\": [\n",file=htmlFile,append=T)
 #data part  
 amchartsData<-data.frame(tmp.dataset[-1,1],diff(tmp.dataset[,2]))
 for(rrr in 1:nrow(amchartsData)){
+  if(0<=amchartsData[rrr,2]){colType<-"#4169E1"}else{colType<-"#FF0000"}
   if(rrr!=nrow(amchartsData)){  
-    cat(paste("{\"Date\": \"",format(amchartsData[rrr,1],dateFormat),"\",\"Ratio\":", amchartsData[rrr,2],"},\n",sep=""),file=htmlFile,append=T)
+    cat(paste("{\"Date\": \"",format(amchartsData[rrr,1],dateFormat),"\",\"Ratio\":", amchartsData[rrr,2],",\"color\":\"",colType,"\"},\n",sep=""),file=htmlFile,append=T)
   }else{
-    cat(paste("{\"Date\": \"",format(amchartsData[rrr,1],dateFormat),"\",\"Ratio\":", amchartsData[rrr,2],"}\n",sep=""),file=htmlFile,append=T)
+    cat(paste("{\"Date\": \"",format(amchartsData[rrr,1],dateFormat),"\",\"Ratio\":", amchartsData[rrr,2],",\"color\":\"",colType,"\"}\n",sep=""),file=htmlFile,append=T)
   }
 }
 #data part    
@@ -194,7 +195,8 @@ cat("\"balloonText\": \"[[category]]: <b>[[value]]</b>\",\n",file=htmlFile,appen
 cat("\"fillAlphas\": 0.8,\n",file=htmlFile,append=T)
 cat("\"lineAlpha\": 0.2,\n",file=htmlFile,append=T)
 cat("\"type\": \"column\",\n",file=htmlFile,append=T)
-cat("\"valueField\": \"Ratio\"\n",file=htmlFile,append=T)
+cat("\"valueField\": \"Ratio\",\n",file=htmlFile,append=T)
+cat("\"fillColorsField\": \"color\"\n",file=htmlFile,append=T)
 cat("}],\n",file=htmlFile,append=T)
 cat("\"chartCursor\": {\n",file=htmlFile,append=T)
 cat("\"categoryBalloonEnabled\": true,\n",file=htmlFile,append=T)
