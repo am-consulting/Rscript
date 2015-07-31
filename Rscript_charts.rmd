@@ -58,13 +58,13 @@ setwd(pathOutput)
 grobTableTail<-20
 needCSV<-2
 dateType<-2 #1:日次 2:月次 3:character(第*週他)
-mainTitle<-"平成22年基準消費者物価指数 - "
+mainTitle<-"住宅着工統計 - "
 #mainTitle<-"有効求人倍率 - "
 #mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 #mainTitle<-"IMF Primary Commodity Prices - "
 #mainTitle<-"週間石油在庫統計 - "
 #mainTitle<-"預金・貸出合計 - "
-dataSource<-"\nData Source:総務省"
+dataSource<-"\nData Source:国土交通省"
 #dataSource<-"\nData Source:厚生労働省"
 #dataSource<-"\nData Source:財務省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
@@ -240,10 +240,16 @@ if(perpbr==1){
   g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
   g<-g+theme(axis.text.y=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
 }  
-cat(paste("<div style=\"text-align:center\"><b>",colnames(buf.dataset)[2],"</b></div>",sep=""),file=htmlFile,append=T)  
+cat(paste("\n<div id=\"amccchart",ccc,"\" style=\"text-align:center\"><b>",colnames(buf.dataset)[2],"</b> - \n",sep=""),file=htmlFile,append=T)
+cat(paste("<select id=\"chartSelect",ccc,"\">\n",sep=""),file=htmlFile,append=T)
+cat("<option value=\"\">Selecet a chart</option>\n",file=htmlFile,append=T)
+for(zzz in 2:ncol(dataset)){  
+  cat(paste("<option value=\"#amccchart",zzz,"\">",colnames(dataset)[zzz],"</option>\n",sep=""),file=htmlFile,append=T)
+}
+cat("</select></div>\n",file=htmlFile,append=T)
 cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
     "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T)    
+    "\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T)
 print(g)
 dev.off()
 #CSV part
@@ -258,6 +264,15 @@ csvFile<-paste(colnames(dataset[,c(1,ccc)])[2],".csv",sep="")
 write.csv(tail(dataset[,c(1,ccc)],30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 }  
 }
+cat("<script>\n",file=htmlFile,append=T)
+for(ggg in 2:ncol(dataset)){
+cat(paste("document.getElementById(\"chartSelect",ggg,"\").onchange = function() {\n",sep=""),file=htmlFile,append=T)
+cat("if (this.selectedIndex!==0) {\n",file=htmlFile,append=T)
+cat("window.location.href = this.value;\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("};\n",file=htmlFile,append=T)
+}
+cat("</script>\n",file=htmlFile,append=T)
 ########################################## time series ##########################################
 ```
 
