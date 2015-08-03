@@ -14,7 +14,7 @@ username<-Sys.info()['user']
 SD<-Sys.Date()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
-  dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"))
+  dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
   dataset[,1]<-as.Date(dataset[,1])
   monthly<<-2 #日次
   if(unique(day(dataset[,1]))==1){#月次データの日付は月中に変更
@@ -124,11 +124,12 @@ tail(dataset,12)
 
 ```{r}
 commonTitle<-""
-dataSource<-"\nデータ出所:国土交通省"
-#Federal Reserve Bank of St. Louis 
-#株式会社東京商工リサーチ
-#The U.S. Census Bureau
-#内閣府
+#dataSource<-"\nデータ出所:国土交通省"
+#dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
+#dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
+#dataSource<-"\nデータ出所:The U.S. Census Bureau"
+#dataSource<-"\nデータ出所:内閣府"
+dataSource<-"\nデータ出所:株式会社東京証券取引所"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
