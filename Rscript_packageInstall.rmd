@@ -1,0 +1,34 @@
+```{r}
+requiredPackageList<-c(
+  "base64enc",
+  "classInt",
+  "devtools",
+  "fields",
+  "forecast",
+  "ggplot2",
+  "gridExtra",
+  "HH",
+  "lubridate",
+  "maps",
+  "maptools",
+  "plotrix",
+  "png",
+  "quantmod",
+  "raster",
+  "RColorBrewer",
+  "Rcpp",
+  "reshape",
+  "rworldmap",
+  "scales",
+  "tseries",
+  "viridis",
+  "XLConnect"
+)
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+notInstalledPackages
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+```
