@@ -129,7 +129,8 @@ commonTitle<-""
 #dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 #dataSource<-"\nデータ出所:The U.S. Census Bureau"
 #dataSource<-"\nデータ出所:内閣府"
-dataSource<-"\nデータ出所:株式会社東京証券取引所"
+dataSource<-"\nデータ出所:日本銀行"
+#dataSource<-"\nデータ出所:株式会社東京証券取引所"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
