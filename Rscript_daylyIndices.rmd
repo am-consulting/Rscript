@@ -654,7 +654,7 @@ cat("</table>",file=htmlFile,append=T)
 #正規化パート
 #amchartsPart
 funAmcharts<-function(){
-amchartsObj<-c("NIKKEI225","DEXJPUS","GOLDAMGBD228NLBM","DCOILWTICO","DJIA")
+amchartsObj<-c("NIKKEI225","DEXJPUS","GOLDAMGBD228NLBM","DCOILWTICO")#,"DJIA")
 for(nnn in 1:length(amchartsObj)){
   tmp<-dataset[[which(tsSource[[1]]==amchartsObj[nnn])-3]]
   if(nnn==1){amchartsAlldata<-tmp}else{
@@ -662,7 +662,7 @@ for(nnn in 1:length(amchartsObj)){
   }  
 }
 amchartsAlldata<-merge(amchartsAlldata,dataset[[fredData-1]],all=T)
-amchartsAlldata<-merge(amchartsAlldata,dataset[[fredData]],all=T)
+#amchartsAlldata<-merge(amchartsAlldata,dataset[[fredData]],all=T)
 forAmcahrts<-na.omit(amchartsAlldata)
 forAmcahrts<-subset(forAmcahrts,as.Date("2012-12-26")<=forAmcahrts[,1])  
 forAmcahrts<-data.frame(Date=forAmcahrts[,1],apply(forAmcahrts[,-1],2,function(x) x/head(x,1)))
@@ -688,6 +688,7 @@ cat("\"axisAlpha\": 0,\n",file=htmlFile,append=T)
 cat("\"position\": \"left\"\n",file=htmlFile,append=T)  
 cat("}],\n",file=htmlFile,append=T)  
 cat("\"balloon\": {\n",file=htmlFile,append=T)  
+cat("\"maxWidth\":1000,\n",file=htmlFile,append=T)  
 cat("\"borderThickness\": 1,\n",file=htmlFile,append=T)  
 cat("\"shadowAlpha\": 0\n",file=htmlFile,append=T)  
 cat("},\n",file=htmlFile,append=T)  
@@ -704,7 +705,7 @@ cat("\"lineThickness\": 2,\n",file=htmlFile,append=T)
 cat("\"title\": \"red line\",\n",file=htmlFile,append=T) 
 cat("\"useLineColorForBulletBorder\": true,\n",file=htmlFile,append=T) 
 cat(paste("\"valueField\": \"value",ccc,"\",\n",sep=""),file=htmlFile,append=T) 
-cat(paste("\"balloonText\": \"<div style='margin:5px; font-size:19px;'><span style='font-size:13px;'>",colnames(forAmcahrts)[ccc],"</span><br>[[value]]</div>\"\n",sep=""),file=htmlFile,append=T)
+cat(paste("\"balloonText\": \"<div style='margin:5px; font-size:19px;'><span style='font-size:13px;'>",colnames(forAmcahrts)[ccc],"</span> - [[value]]</div>\"\n",sep=""),file=htmlFile,append=T)
 #<span style='font-size:13px;'>[[category]]</span>  
 cat("}\n",file=htmlFile,append=T) 
 if(ccc!=length(forAmcahrts)){cat(",\n",file=htmlFile,append=T)} 
