@@ -160,6 +160,7 @@ for(ccc in 2:ncol(dataset)){
   #funARFIMA()
   funHeatMap()
   funAmcharts()
+  funSpeech()
 }  
 ```
 
@@ -632,7 +633,24 @@ addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),secon
 tableID<-paste("am-consulting",addVer,sep="")
 htmlFile<-paste(addVer,".html",sep="")
 htmlFile<<-htmlFile  
-cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+#speech part  
+cat("<form name=\"speechDIV\"><b>Speech Recognition APIを利用した簡易分析結果の読み上げ</b><br>\n",file=htmlFile,append=F)
+cat(" - 視聴可能ウェブブラウザは http://caniuse.com/#feat=speech-recognition で確認ください。<br>\n",file=htmlFile,append=T)
+cat(" - chrome44での動作は確認済みです。\n",file=htmlFile,append=T)
+cat("<div style=\"text-align:center\">\n",file=htmlFile,append=T)
+cat("<INPUT type=\"button\" value=\"聴 く\" onclick=\"speech();\">&nbsp;\n",file=htmlFile,append=T)
+cat("<INPUT type=\"button\" value=\"中 止\" onclick=\"speechStop();\">&nbsp;\n",file=htmlFile,append=T)
+cat("<INPUT type=\"button\" value=\"中 断\" onclick=\"speechPause();\">&nbsp;\n",file=htmlFile,append=T)
+cat("<INPUT type=\"button\" value=\"再 開\" onclick=\"speechResume();\">&nbsp;\n",file=htmlFile,append=T)
+cat("スピード:<select name=\"speechrate\">\n",file=htmlFile,append=T)
+cat("<option value=\"1\">1</option>\n",file=htmlFile,append=T)
+for(qqq in seq(0.5,2,by=0.1)){  
+  cat(paste("<option value=\"",qqq,"\">",qqq,"</option>\n",sep=""),file=htmlFile,append=T)
+}
+cat("</select>\n",file=htmlFile,append=T) 
+cat("</div></form><hr>\n",file=htmlFile,append=T)  
+#speech part  
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T)  
 cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>\n\n\n\n",file=htmlFile,append=T) 
 cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){\n",file=htmlFile,append=T)
@@ -971,10 +989,78 @@ plotText<<-paste(
 ```
 
 ```{r}
+funSpeech<-function(){
 #speech
-rankData<-tmp.dataset[,1:2]
-rankData[,2]<-rankData[,2]*-1
-rankAll<-rank(rankData[,2],ties.method="min")
-rank20<-rank(tail(rankData[,2],20),ties.method="min")
+rankList<-list()
+allSentence<-""
+bufcolnmaes<-colnames(tmp.dataset[,1:2])
+for(eee in 1:2){
+  if(eee==1){
+    rankData<-tmp.dataset[,1:2]
+    sentence<-"原数値について、"
+  }else{  
+    rankData<-data.frame(Date=tmp.dataset[-1,1],value=diff(tmp.dataset[,2]))
+    colnames(rankData)<-bufcolnmaes  
+    sentence<-"前月差について、"
+  }
+  rankRange<-c(6,12,60,120,180,240,nrow(rankData))
+  rankRange<-head(rankRange,tail(rank(rankRange),1)-1)
+  rankData[,2]<-rankData[,2]*-1
+  for(rrr in 1:length(rankRange)){
+    rankList[[rrr]]<-rank(tail(rankData[,2],rankRange[rrr]),ties.method="min")
+  }  
+  rankList[[rrr+1]]<-rank(tail(rankData[,2],nrow(rankData)),ties.method="min")
+  sentence<-paste(sentence,format(tail(rankData[,1],1),"%Y年%m月の結果は、"),tail(rankData[,2],1)*-1,"、です。",sep="")
+  sentence<-paste(sentence,"この結果は、",sep="")
+  rankSentence<-""
+  for(rrr in 1:(length(rankList)-1)){
+    rankSentence<-paste(rankSentence,"過去、",rankRange[rrr],"ヶ月で",tail(rankList[[rrr]],1),"番目に高く、",sep="")
+  }
+  rankSentence<-paste(rankSentence,"対象期間",nrow(rankData),"ヶ月中、",tail(rankList[[length(rankList)]],1),"番目の高さです。",sep="")
+  sentence<-paste(sentence,rankSentence,sep="")
+  allSentence<-paste(allSentence,sentence)
+}
 #speech
+#SpeechRecognitionAPI
+#冗長に過ぎるので要改良
+phrase<-gsub("、|。","<<>>",allSentence)
+phrase
+cat("\n\n\n\n<script>\n",file=htmlFile,append=T)
+cat("//Reference http://www.nickdesteffen.com/blog/html5-speech-synthesis-api-tips-and-tricks\n",file=htmlFile,append=T)
+cat("function speechStop(){\n",file=htmlFile,append=T)
+cat("window.speechSynthesis.cancel();\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("function speechPause(){\n",file=htmlFile,append=T)
+cat("window.speechSynthesis.pause();\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("function speechResume(){\n",file=htmlFile,append=T)
+cat("window.speechSynthesis.resume();\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("function speech(){\n",file=htmlFile,append=T)
+cat("window.speechSynthesis.cancel();\n",file=htmlFile,append=T)
+cat("today=new Date();\n",file=htmlFile,append=T)
+cat("hour=today.getHours();\n",file=htmlFile,append=T)
+cat("if(5<=hour && hour<=12){\n",file=htmlFile,append=T)
+cat("greeting=\"おはようございます\";\n",file=htmlFile,append=T)
+cat("}else if(12<hour && hour<=16){\n",file=htmlFile,append=T)
+cat("greeting=\"こんにちは\";\n",file=htmlFile,append=T)
+cat("}else{\n",file=htmlFile,append=T)
+cat("greeting=\"こんばんは\";\n",file=htmlFile,append=T)
+cat("}  \n",file=htmlFile,append=T)
+cat("greeting = greeting + \"<<>>アセットマネジメントコンサルティング株式会社です<<>>\"\n",file=htmlFile,append=T)
+cat(paste("phrase=\"",phrase,"\"\n",sep=""),file=htmlFile,append=T)
+cat("phrase = greeting + phrase\n",file=htmlFile,append=T)
+cat("phrase = phrase + \"以上となります<<>>ご聴取ありがとうございました\"\n",file=htmlFile,append=T)
+cat("sentences = phrase.split(\"<<>>\")\n",file=htmlFile,append=T)
+cat("for (i = 0; i < sentences.length; i++) {\n",file=htmlFile,append=T)
+cat("sentence = sentences[i]\n",file=htmlFile,append=T)
+cat("audio = new SpeechSynthesisUtterance(sentence)\n",file=htmlFile,append=T)
+cat("audio.lang = \"ja-JP\"\n",file=htmlFile,append=T)
+cat("audio.rate=parseFloat(document.speechDIV.speechrate.value);\n",file=htmlFile,append=T)
+cat("window.speechSynthesis.speak(audio)\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)
+#SpeechRecognitionAPI
+}
 ```
