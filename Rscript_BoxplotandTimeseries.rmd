@@ -125,19 +125,19 @@ tail(dataset,12)
 ```{r}
 commonTitle<-""
 #dataSource<-"\nデータ出所:国土交通省"
-#dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
+dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 #dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 #dataSource<-"\nデータ出所:The U.S. Census Bureau"
 #dataSource<-"\nデータ出所:内閣府"
-dataSource<-"\nデータ出所:日本銀行"
+#dataSource<-"\nデータ出所:日本銀行"
 #dataSource<-"\nデータ出所:株式会社東京証券取引所"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
 
 ```{r}
-tttS<-1
-tttE<-1
+tttS<-3
+tttE<-3
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -968,4 +968,13 @@ plotText<<-paste(
   sep=""
 )  
 }  
+```
+
+```{r}
+#speech
+rankData<-tmp.dataset[,1:2]
+rankData[,2]<-rankData[,2]*-1
+rankAll<-rank(rankData[,2],ties.method="min")
+rank20<-rank(tail(rankData[,2],20),ties.method="min")
+#speech
 ```
