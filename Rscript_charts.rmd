@@ -65,9 +65,11 @@ mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 #mainTitle<-"IMF Primary Commodity Prices - "
 #mainTitle<-"週間石油在庫統計 - "
 #mainTitle<-"預金・貸出合計 - "
+mainTitle<-"景気動向指数個別一致系列 - "
 #dataSource<-"\nData Source:国土交通省"
 #dataSource<-"\nData Source:厚生労働省"
-dataSource<-"\nData Source:財務省"
+#dataSource<-"\nData Source:財務省"
+dataSource<-"\nData Source:内閣府"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:U.S. Energy Information Administration"
 #dataSource<-"\nData Source:International Monetary Fund"
@@ -77,7 +79,7 @@ fitType<-2 #1:lm , 2:loess , 3:none
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
-outputFolder<-2 #1:R_Data_Write,2:charts
+outputFolder<-1 #1:R_Data_Write,2:charts
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
