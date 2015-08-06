@@ -125,10 +125,10 @@ tail(dataset,12)
 ```{r}
 commonTitle<-""
 #dataSource<-"\nデータ出所:国土交通省"
-dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
+#dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 #dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 #dataSource<-"\nデータ出所:The U.S. Census Bureau"
-#dataSource<-"\nデータ出所:内閣府"
+dataSource<-"\nデータ出所:内閣府"
 #dataSource<-"\nデータ出所:日本銀行"
 #dataSource<-"\nデータ出所:株式会社東京証券取引所"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
@@ -136,8 +136,8 @@ fun.readData()
 ```
 
 ```{r}
-tttS<-3
-tttE<-3
+tttS<-1
+tttE<-1
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -1001,7 +1001,7 @@ for(eee in 1:2){
   }else{  
     rankData<-data.frame(Date=tmp.dataset[-1,1],value=diff(tmp.dataset[,2]))
     colnames(rankData)<-bufcolnmaes  
-    sentence<-"前月差について、"
+    sentence<-"続いて前月差について、"
   }
   rankRange<-c(6,12,60,120,180,240,nrow(rankData))
   rankRange<-head(rankRange,tail(rank(rankRange),1)-1)
@@ -1049,7 +1049,7 @@ cat("greeting=\"こんばんは\";\n",file=htmlFile,append=T)
 cat("}  \n",file=htmlFile,append=T)
 cat("greeting = greeting + \"<<>>アセットマネジメントコンサルティング株式会社です<<>>\"\n",file=htmlFile,append=T)
 cat(paste("phrase=\"",phrase,"\"\n",sep=""),file=htmlFile,append=T)
-cat("phrase = greeting + phrase\n",file=htmlFile,append=T)
+cat(paste("phrase = greeting + \"", colnames(tmp.dataset)[2]  ,"の\" + phrase\n",sep=""),file=htmlFile,append=T)
 cat("phrase = phrase + \"以上となります<<>>ご聴取ありがとうございました\"\n",file=htmlFile,append=T)
 cat("sentences = phrase.split(\"<<>>\")\n",file=htmlFile,append=T)
 cat("for (i = 0; i < sentences.length; i++) {\n",file=htmlFile,append=T)
