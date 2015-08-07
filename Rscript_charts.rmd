@@ -45,8 +45,10 @@ colnames(dataset)[1]<-"Date"
 ```{r}
 fun.readData()
 # =YEAR(B16)&"年"&MONTH(B16)&"月第"&WEEKNUM(B16,1)-WEEKNUM(DATE(YEAR(B16),MONTH(B16),1),1)+1&"週"
+#↓規模別・業種別PER・PBR（連結・単体）一覧
 # =TEXT(ROW()-12,"00")&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(MID($A13,3,LEN($A13)),CHAR(32),""),CHAR(160),""),"・","."),"、",".")
-# =IF(H13="-",-9999,H13)
+# =IF(H13="-",-9999999,H13)
+#↑規模別・業種別PER・PBR（連結・単体）一覧
 ```
 
 ```{r}
@@ -57,7 +59,7 @@ if(colnames(dataset)[1]=="Date"){
 setwd(pathOutput)
 grobTableTail<-20
 needCSV<-2
-dateType<-2 #1:日次 2:月次 3:character(第*週他)
+dateType<-3 #1:日次 2:月次 3:character(第*週他)
 mainTitle<-"住宅着工統計 - "
 mainTitle<-"マネタリーベース - "
 #mainTitle<-"有効求人倍率 - "
@@ -74,11 +76,11 @@ dataSource<-"\nData Source:内閣府"
 #dataSource<-"\nData Source:U.S. Energy Information Administration"
 #dataSource<-"\nData Source:International Monetary Fund"
 #dataSource<-"\nData Source:日本銀行"
-chartType<-1 #1:line , 2:bar
+chartType<-2 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 tailNumber<-240
 annotation<-1 # need:1,no need:2
-perpbr<-0
+perpbr<-1
 outputFolder<-1 #1:R_Data_Write,2:charts
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
@@ -90,7 +92,13 @@ htmlFile<-"linktoImage.html"
 cat("",file=htmlFile,append=F)
 #####################
 if(perpbr==1){
-  dataset[dataset==-9999]<-NA  
+  dataset[dataset==-9999999]<-NA  
+  dateType<-3 #1:日次 2:月次 3:character(第*週他)
+  chartType<-2 #1:line , 2:bar
+  fitType<-3 #1:lm , 2:loess , 3:none
+  mainTitle<-"業種別PER･PBR 連結市場一部 2015/7月末"
+  dataSource<-"\nData Source:株式会社東京証券取引所"
+  annotation<-2 # need:1,no need:2
 }  
 switch(dateType,
   dateFormat<-"%Y/%m/%d",
@@ -239,6 +247,7 @@ g<-g+annotation_custom(
 }  
 if(perpbr==1){  
   g<-g+ggtitle(paste(mainTitle,dataSource))
+  g<-g+geom_text(data=melt.dataset,aes(x=Date,y=value,label=value),size=12)
   g<-g+coord_flip()
   g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
   g<-g+theme(axis.text.y=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
@@ -277,6 +286,14 @@ cat("};\n",file=htmlFile,append=T)
 }
 cat("</script>\n",file=htmlFile,append=T)
 ########################################## time series ##########################################
+```
+
+```{r}
+#youtubegallery
+cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+#youtubegallery
 ```
 
 ```{r}
