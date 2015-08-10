@@ -80,10 +80,11 @@ mainTitle<-"景気動向指数個別一致系列 - "
 mainTitle<-"日本の外貨準備等状況 - "
 mainTitle<-"日本の国際収支 - "
 mainTitle<-"日本の消費動向調査 - "
-#dataSource<-"\nData Source:国土交通省"
+mainTitle<-"日本の建設工事受注動態統計調査(単位:兆円) - "
+dataSource<-"\nData Source:国土交通省"
 #dataSource<-"\nData Source:厚生労働省"
-dataSource<-"\nData Source:財務省"
-dataSource<-"\nData Source:内閣府"
+#dataSource<-"\nData Source:財務省"
+#dataSource<-"\nData Source:内閣府"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:U.S. Energy Information Administration"
 #dataSource<-"\nData Source:International Monetary Fund"
@@ -206,6 +207,21 @@ if(dateType!=3){#Date
 }  
 g<-g+xlab("")
 g<-g+ylab("")
+#消費税パート
+value.y<-(max(buf.dataset[,2])+min(buf.dataset[,2]))/2  
+if(buf.dataset[1,1]<=as.Date("1989-04-01")){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date("1989-04-01")),linetype=1,colour="red",size=2)
+  g<-g+geom_text(aes(x=as.Date("1989-04-01"), y=value.y*0.9, label="1989年4月-消費税導入(3%)"), size=8,family="Meiryo",colour="black") 
+}
+if(buf.dataset[1,1]<=as.Date("1997-04-01")){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date("1997-04-01")),linetype=1,colour="red",size=2)
+  g<-g+geom_text(aes(x=as.Date("1997-04-01"), y=value.y*0.9, label="1997年4月-消費税増税(3%→5%)"), size=8,family="Meiryo",colour="black") 
+}
+if(buf.dataset[1,1]<=as.Date("2014-04-01")){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date("2014-04-01")),linetype=1,colour="red",size=2)
+  g<-g+geom_text(aes(x=as.Date("2014-04-01"), y=value.y*0.9, label="2014年4月\n消費税増税(5%→8%)"), size=8,family="Meiryo",colour="black") 
+}  
+#消費税パート  
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
 grobTable<-na.omit(dataset[,c(1,ccc)])
 if(mainTitle=="週間石油在庫統計 - "){  
