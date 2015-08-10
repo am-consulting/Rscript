@@ -128,7 +128,7 @@ commonTitle<-""
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 #dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 #dataSource<-"\nデータ出所:The U.S. Census Bureau"
-#dataSource<-"\nデータ出所:内閣府"
+dataSource<-"\nデータ出所:内閣府"
 #dataSource<-"\nデータ出所:日本銀行"
 #dataSource<-"\nデータ出所:株式会社東京証券取引所"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
@@ -136,9 +136,9 @@ fun.readData()
 ```
 
 ```{r}
-tttS<-3
-tttE<-3
-inverse<-1 #逆サイクル:1,非逆サイクル:2
+tttS<-1
+tttE<-1
+inverse<-2 #逆サイクル:1,非逆サイクル:2
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -619,6 +619,20 @@ for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   g<-g+scale_x_date(labels=date_format(dateFormat))
 #  g<-g+scale_x_date(labels=date_format("%Y-%m"))#当面日付タイプに係らず年-月とする
   g<-g+scale_y_continuous(labels=comma)#,limits=c(y0,(y1-y0)/5+y1))
+  #消費税パート
+  if(tmp.timeseries[1,1]<=as.Date("1989-04-01")){
+    g<-g+geom_vline(xintercept = as.numeric(as.Date("1989-04-01")),linetype=1,colour="red",size=2)
+    g<-g+geom_text(aes(x=as.Date("1989-04-01"), y=value.y*0.9, label="1989年4月-消費税導入(3%)"), size=8,family="Meiryo") 
+  }
+  if(tmp.timeseries[1,1]<=as.Date("1997-04-01")){
+    g<-g+geom_vline(xintercept = as.numeric(as.Date("1997-04-01")),linetype=1,colour="red",size=2)
+    g<-g+geom_text(aes(x=as.Date("1997-04-01"), y=value.y*0.9, label="1997年4月-消費税増税(3%→5%)"), size=8,family="Meiryo") 
+  }
+  if(tmp.timeseries[1,1]<=as.Date("2014-04-01")){
+    g<-g+geom_vline(xintercept = as.numeric(as.Date("2014-04-01")),linetype=1,colour="red",size=2)
+    g<-g+geom_text(aes(x=as.Date("2014-04-01"), y=value.y*0.9, label="2014年4月-消費税増税(5%→8%)"), size=8,family="Meiryo") 
+  }  
+  #消費税パート
   print(g)
   dev.off()
 if(ttt==1 | ttt==3){
@@ -1018,7 +1032,7 @@ for(eee in 1:2){
     rankList[[rrr]]<-rank(tail(rankData[,2],rankRange[rrr]),ties.method="min")
   }  
   rankList[[rrr+1]]<-rank(tail(rankData[,2],nrow(rankData)),ties.method="min")
-  sentence<-paste(sentence,format(tail(rankData[,1],1),"%Y年%m月の結果は、"),abs(tail(rankData[,2],1)),"、です。",sep="")
+  sentence<-paste(sentence,format(tail(rankData[,1],1),"%Y年%m月の結果は、"),round(abs(tail(rankData[,2],1)),6),"、です。",sep="")
   sentence<-paste(sentence,"この結果は、",sep="")
   rankSentence<-""
   for(rrr in 1:(length(rankList)-1)){
