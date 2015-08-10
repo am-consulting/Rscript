@@ -32,18 +32,26 @@ setwd(path)
 url<-"http://www.imf.org/external/np/res/commod/"
 filename<-"External_Data.xls"
 download.file(paste(url,filename,sep=""),filename,mode="wb")
-tmp<-readWorksheetFromFile(filename,1,header=F)
+tmp<-readWorksheetFromFile(filename,1,header=F,check.names=F)
 dataset<-tmp[-(1:4),]
 FUN.1<-function(x){as.numeric(x)}
 dataset<-data.frame(dataset[,1],apply(dataset[,-1],2,FUN.1))
 colnames(dataset)<-tmp[3,]
 dataset[,1]<-as.Date(paste(substr(dataset[,1],1,4),"-",substr(dataset[,1],6,7),"-1",sep=""))
 colnames(dataset)[1]<-"Date"
+tail(dataset,1)
+mainTitle<-"IMF Primary Commodity Prices - "
+dataSource<-"\nData Source:International Monetary Fund"
+dateType<-2 #1:日次 2:月次 3:character(第*週他)
+chartType<-1 #1:line , 2:bar
+fitType<-2 #1:lm , 2:loess , 3:none
+imfPCP<-1
 #IMF Primary Commodity Prices
 ```
 
 ```{r}
 fun.readData()
+imfPCP<-0
 # =YEAR(B16)&"年"&MONTH(B16)&"月第"&WEEKNUM(B16,1)-WEEKNUM(DATE(YEAR(B16),MONTH(B16),1),1)+1&"週"
 #↓規模別・業種別PER・PBR（連結・単体）一覧
 # =TEXT(ROW()-12,"00")&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(MID($A13,3,LEN($A13)),CHAR(32),""),CHAR(160),""),"・","."),"、",".")
@@ -59,6 +67,7 @@ if(colnames(dataset)[1]=="Date"){
 setwd(pathOutput)
 grobTableTail<-20
 needCSV<-2
+if(imfPCP==0){
 dateType<-2 #1:日次 2:月次 3:character(第*週他)
 mainTitle<-"住宅着工統計 - "
 mainTitle<-"マネタリーベース - "
@@ -79,6 +88,7 @@ dataSource<-"\nData Source:財務省"
 #dataSource<-"\nData Source:日本銀行"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
+}  
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
@@ -91,6 +101,7 @@ dammy
 setwd(pathOutput)
 htmlFile<-"linktoImage.html"  
 cat("",file=htmlFile,append=F)
+cat("<style>select {font-family: Meiryo;}</style>\n",file=htmlFile,append=F)
 #####################
 if(perpbr==1){
   dataset[dataset==-9999999]<-NA  
@@ -253,8 +264,8 @@ if(perpbr==1){
   g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
   g<-g+theme(axis.text.y=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
 }  
-cat(paste("\n<div id=\"amccchart",ccc,"\" style=\"text-align:center\"><b>",colnames(buf.dataset)[2],"</b> - \n",sep=""),file=htmlFile,append=T)
-cat(paste("<select id=\"chartSelect",ccc,"\">\n",sep=""),file=htmlFile,append=T)
+cat(paste("\n<div id=\"amccchart",ccc,"\" style=\"text-align:center\"><b>",colnames(buf.dataset)[2],"</b>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<br><select id=\"chartSelect",ccc,"\">\n",sep=""),file=htmlFile,append=T)
 cat("<option value=\"\">Selecet a chart</option>\n",file=htmlFile,append=T)
 for(zzz in 2:ncol(dataset)){  
   cat(paste("<option value=\"#amccchart",zzz,"\">",colnames(dataset)[zzz],"</option>\n",sep=""),file=htmlFile,append=T)
@@ -282,6 +293,7 @@ for(ggg in 2:ncol(dataset)){
 cat(paste("document.getElementById(\"chartSelect",ggg,"\").onchange = function() {\n",sep=""),file=htmlFile,append=T)
 cat("if (this.selectedIndex!==0) {\n",file=htmlFile,append=T)
 cat("window.location.href = this.value;\n",file=htmlFile,append=T)
+cat(paste("document.getElementById(\"chartSelect",ggg,"\").value = \"\";\n",sep=""),file=htmlFile,append=T)  
 cat("}\n",file=htmlFile,append=T)
 cat("};\n",file=htmlFile,append=T)
 }
