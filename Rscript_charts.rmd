@@ -81,14 +81,17 @@ mainTitle<-"日本の外貨準備等状況 - "
 mainTitle<-"日本の国際収支 - "
 mainTitle<-"日本の消費動向調査 - "
 mainTitle<-"日本の建設工事受注動態統計調査(単位:兆円) - "
+mainTitle<-"日本の特定サービス産業動態売上高指数 - "
+mainTitle<-"日本のマネーストック - "
 dataSource<-"\nData Source:国土交通省"
+dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:厚生労働省"
 #dataSource<-"\nData Source:財務省"
 #dataSource<-"\nData Source:内閣府"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:U.S. Energy Information Administration"
 #dataSource<-"\nData Source:International Monetary Fund"
-#dataSource<-"\nData Source:日本銀行"
+dataSource<-"\nData Source:日本銀行"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
@@ -375,7 +378,7 @@ cat("\"lineThickness\": 2,\n",file=htmlFile,append=T)
 cat("\"title\": \"red line\",\n",file=htmlFile,append=T) 
 cat("\"useLineColorForBulletBorder\": true,\n",file=htmlFile,append=T) 
 cat(paste("\"valueField\": \"value",ccc,"\",\n",sep=""),file=htmlFile,append=T) 
-cat(paste("\"balloonText\": \"<div style='margin:5px; font-size:19px;'><span style='font-size:13px;'>",colnames(forAmcahrts)[ccc],"</span> - [[value]]</div>\"\n",sep=""),file=htmlFile,append=T)
+cat(paste("\"balloonText\": \"<div style='margin:5px; font-size:19px;'><span style='font-size:13px;'>",colnames(forAmcahrts)[ccc],"</span>   [[value]]</div>\"\n",sep=""),file=htmlFile,append=T)
 #<span style='font-size:13px;'>[[category]]</span>  
 cat("}\n",file=htmlFile,append=T) 
 if(ccc!=length(forAmcahrts)){cat(",\n",file=htmlFile,append=T)} 
