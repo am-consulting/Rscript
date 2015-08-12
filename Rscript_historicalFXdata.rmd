@@ -2,6 +2,7 @@
 library(lubridate)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 SD<-Sys.Date()
 ```
 
@@ -37,18 +38,21 @@ variance<-function(x){
 }
 meanValue=as.vector(colMeans(buf[,-1]),mode='numeric')
 sdValue=as.vector(apply(buf[,-1],2,variance),mode='numeric')
+latest1Data<-as.vector(buf[nrow(buf)-0,-1],mode='numeric')
+latest2Data<-as.vector(buf[nrow(buf)-1,-1],mode='numeric')
 tmpDataset<-data.frame(
   通貨=colnames(buf[,-1]),
-  latest1=as.vector(buf[nrow(buf)-0,-1],mode='numeric'),
-  latest2=as.vector(buf[nrow(buf)-1,-1],mode='numeric'),
+  latest1=latest1Data,
+  latest2=latest2Data,
   中央値=as.vector(apply(buf[,-1],2,median),mode='numeric'),
   標本標準偏差=sdValue,
   最大値=as.vector(apply(buf[,-1],2,max),mode='numeric'),
   最小値=as.vector(apply(buf[,-1],2,min),mode='numeric'),
   変動係数=sdValue/meanValue*100,
+  前営業日比=(latest1Data-latest2Data)/latest2Data*100,
   row.names=NULL
 )
-tmpDataset[,c(5,8)]<-floor(100*(tmpDataset[,c(5,8)])+0.5)/100
+tmpDataset[,c(5,8,9)]<-floor(1000*(tmpDataset[,c(5,8,9)])+0.5)/1000
 colnames(tmpDataset)[2:3]<-c(as.character(buf[,1][nrow(buf)-0]),as.character(buf[,1][nrow(buf)-1]))
 dataset<-tmpDataset
 ```
@@ -78,8 +82,15 @@ ST<-Sys.time()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 tableID<-paste("am-consulting",addVer,sep="")
 htmlFile<-paste(addVer,".html",sep="")
+htmlFile<-"AssetManagementConsultingCorporation_historicalFXdata.html"
 cat("",file=htmlFile,append=F)
-cat("<style>td,th{white-space: nowrap;}</style>\n",file=htmlFile,append=T)
+cat("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=T)
+cat("<style>\n",file=htmlFile,append=T)
+cat("body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}\n",file=htmlFile,append=T)
+cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}\n",file=htmlFile,append=T)
+cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
+cat(".dataTables_filter input {width: 50%;}\n",file=htmlFile,append=T)
+cat("</style></head><body>\n",file=htmlFile,append=T)
 #speech part  
 cat("<form name=\"speechDIV\"><b>Speech Recognition APIを利用した簡易分析結果の読み上げ</b><br>\n",file=htmlFile,append=T)
 cat(" - 聴取可能ウェブブラウザは http://caniuse.com/#feat=speech-recognition で確認ください。<br>\n",file=htmlFile,append=T)
@@ -100,15 +111,38 @@ cat("</div></form><hr>\n",file=htmlFile,append=T)
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
 cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
-cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
-cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/dataTables.fixedColumns.js\"></script>\n",file=htmlFile,append=T)
+cat("<link href=\"http://archive.am-consulting.co.jp/dataTables.fixedColumns.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)
+cat("<script type=\"text/javascript\" charset=\"utf-8\">\n",file=htmlFile,append=T)
+cat("$(document).ready( function(){\n",file=htmlFile,append=T)
+cat(paste("var table =$('#",tableID,"').dataTable( {\n",sep=""),file=htmlFile,append=T)
 cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
 cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
 cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
-cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"},",file=htmlFile,append=T)
+cat("\"scrollX\": true,",file=htmlFile,append=T)
+cat("\"scrollCollapse\": true\n",file=htmlFile,append=T)
+#Row created callback JS
+cat(",\"createdRow\": function ( row, data, index ) {\n",file=htmlFile,append=T)
+for(ccc in 2:ncol(dataset)){
+  cat(paste("if ( data[",ccc-1,"].replace('', '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat("$('td', row).eq(",ccc-1,").addClass('highlight');\n",file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+}
+cat("}\n",file=htmlFile,append=T)  
+#Row created callback JS
 cat("});",file=htmlFile,append=T)
+#fixed column JS
+cat("new $.fn.dataTable.FixedColumns( table, {\n",file=htmlFile,append=T)
+cat("leftColumns: 1,\n",file=htmlFile,append=T)
+cat("rightColumns: 0\n",file=htmlFile,append=T)
+cat("});\n\n",file=htmlFile,append=T)
+#fixed column JS
 cat("});</script>",file=htmlFile,append=T)
+#datatabels css
+cat("<style>\ntd.highlight {font-weight: plain;color: red;} \ndiv.ColVis {float: left;}\n</style>\n",file=htmlFile,append=T) 
+#datatabels css
 for(ccc in 1:ncol(dataset)){
   if(ccc==1){
     switch(dateFormat,
@@ -135,10 +169,11 @@ write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
 cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
 #youtubegallery
-cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
-cat("<hr>",file=htmlFile,append=T)
-cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+#cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
+#cat("<hr>",file=htmlFile,append=T)
+#cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
 #youtubegallery
+cat("<hr><div style=\"text-align:center\">アセット･マネジメント･コンサルティング株式会社 <a href=\"http://am-consulting.co.jp\" target=\"_blank\">http://am-consulting.co.jp</a></div>",file=htmlFile,append=T)
 ```
 
 ```{r}
@@ -152,6 +187,8 @@ franc<-subset(dataset,dataset[,1]=="スイスフラン")
 aud<-subset(dataset,dataset[,1]=="オーストラリアドル")
 maxCurrency<-dataset[which.max(dataset[,8]),]#変動係数
 minCurrency<-dataset[which.min(dataset[,8]),]#変動係数
+maxCurrency2<-dataset[which.max(dataset[,9]),]#前営業日比
+minCurrency2<-dataset[which.min(dataset[,9]),]#前営業日比
 prePhrase<-list()
 prePhrase[[1]]="、アセットマネジメントコンサルティング株式会社、です。それでは為替レート簡易分析結果を紹介します。なお原数値データ引用元は、株式会社みずほ銀行、の、外国為替公示相場ヒストリカルデータ、です。"
 prePhrase[[2]]=paste(nDate,"営業日分、",head(buf[,1],1),"、から",tail(buf[,1],1),"、までの最高値、最安値、変動係数を紹介します。",sep="")
@@ -179,7 +216,9 @@ prePhrase[[23]]=paste("変動係数は、",aud[1,8],"パーセント、です。
 prePhrase[[24]]="対象期間内で、"
 prePhrase[[25]]=paste("最も変動係数の大きい通貨は、",maxCurrency[1,1],"、で",maxCurrency[1,8],"パーセント、",sep="")
 prePhrase[[26]]=paste("最も変動係数の小さい通貨は、",minCurrency[1,1],"、で",minCurrency[1,8],"パーセント、です。",sep="")
-prePhrase[[27]]="以上で終了です。ご聴取、ありがとうございました"
+prePhrase[[27]]=paste("最も前営業日比の大きい通貨は、",maxCurrency2[1,1],"、で",maxCurrency2[1,9],"パーセント、",sep="")
+prePhrase[[28]]=paste("最も前営業日比の小さい通貨は、",minCurrency2[1,1],"、で",minCurrency2[1,9],"パーセント、です。",sep="")
+prePhrase[[29]]="以上で終了です。ご聴取、ありがとうございました"
 for(ppp in 1:length(prePhrase)){
   phrase<-paste(phrase,prePhrase[[ppp]],sep="")
 }
@@ -220,4 +259,5 @@ cat("}\n",file=htmlFile,append=T)
 cat("}\n",file=htmlFile,append=T)
 cat("</script>\n",file=htmlFile,append=T)
 #SpeechRecognitionAPI
+cat("</body></html>\n",file=htmlFile,append=T)
 ```
