@@ -65,7 +65,7 @@ if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
 }
 setwd(pathOutput)
-grobTableTail<-20
+grobTableTail<-13
 needCSV<-2
 if(imfPCP==0){
 dateType<-2 #1:日次 2:月次 3:character(第*週他)
@@ -83,6 +83,7 @@ mainTitle<-"日本の消費動向調査 - "
 mainTitle<-"日本の建設工事受注動態統計調査(単位:兆円) - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 mainTitle<-"日本のマネーストック - "
+mainTitle<-"日本の国内企業物価指数 - "
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:厚生労働省"
@@ -213,15 +214,15 @@ g<-g+ylab("")
 #消費税パート
 value.y<-(max(buf.dataset[,2])+min(buf.dataset[,2]))/2  
 if(buf.dataset[1,1]<=as.Date("1989-04-01")){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date("1989-04-01")),linetype=1,colour="red",size=2)
-  g<-g+geom_text(aes(x=as.Date("1989-04-01"), y=value.y*0.9, label="1989年4月-消費税導入(3%)"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_vline(xintercept = as.numeric(as.Date("1989-04-01")),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_text(aes(x=as.Date("1989-04-01"), y=value.y*0.9, label="1989年4月\n消費税導入(3%)"), size=8,family="Meiryo",colour="black") 
 }
 if(buf.dataset[1,1]<=as.Date("1997-04-01")){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date("1997-04-01")),linetype=1,colour="red",size=2)
-  g<-g+geom_text(aes(x=as.Date("1997-04-01"), y=value.y*0.9, label="1997年4月-消費税増税(3%→5%)"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_vline(xintercept = as.numeric(as.Date("1997-04-01")),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_text(aes(x=as.Date("1997-04-01"), y=value.y*0.9, label="1997年4月\n消費税増税(3%→5%)"), size=8,family="Meiryo",colour="black") 
 }
 if(buf.dataset[1,1]<=as.Date("2014-04-01")){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date("2014-04-01")),linetype=1,colour="red",size=2)
+  g<-g+geom_vline(xintercept = as.numeric(as.Date("2014-04-01")),linetype=1,colour="#d2691e",size=2)
   g<-g+geom_text(aes(x=as.Date("2014-04-01"), y=value.y*0.9, label="2014年4月\n消費税増税(5%→8%)"), size=8,family="Meiryo",colour="black") 
 }  
 #消費税パート  
