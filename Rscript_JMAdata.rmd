@@ -46,7 +46,7 @@ fun.readData()
 ```
 
 ```{r}
-selecteddSource<-7
+selecteddSource<-3
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
