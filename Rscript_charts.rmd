@@ -85,22 +85,23 @@ mainTitle<-"日本のマネーストック - "
 mainTitle<-"日本の国内企業物価指数 - "
 mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
+mainTitle<-"日本の機械受注統計調査(季節調整値、億円) - "
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:厚生労働省"
-#dataSource<-"\nData Source:内閣府"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 #dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
+dataSource<-"\nData Source:内閣府"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
-outputFolder<-2 #1:R_Data_Write,2:charts
+outputFolder<-1 #1:R_Data_Write,2:charts
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
@@ -229,6 +230,14 @@ if(buf.dataset[1,1]<=as.Date("2014-04-01")){
   g<-g+geom_vline(xintercept = as.numeric(as.Date("2014-04-01")),linetype=1,colour="#d2691e",size=2)
   g<-g+geom_text(aes(x=as.Date("2014-04-01"), y=value.y*0.9, label="2014年4月\n消費税増税(5%→8%)"), size=8,family="Meiryo",colour="black") 
 }
+if(buf.dataset[1,1]<=as.Date("2013-01-01")){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date("2013-01-01")),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_text(aes(x=as.Date("2013-01-01"), y=value.y*0.7, label="2013年1月(2012/12/26)\n第二次安倍政権発足"), size=8,family="Meiryo",colour="black") 
+}
+if(buf.dataset[1,1]<=as.Date("2009-09-01")){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date("2009-09-01")),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_text(aes(x=as.Date("2009-09-01"), y=value.y*0.7, label="2009年9月(2009/9/16)\n民主党政権発足"), size=8,family="Meiryo",colour="black") 
+}
 }  
 #消費税パート  
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
@@ -353,7 +362,7 @@ cat(paste("<hr><div style=\"text-align:center\"><b>第二次安倍政権発足�
 cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/amcharts.js\"></script>",file=htmlFile,append=T)
 cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/serial.js\"></script>",file=htmlFile,append=T)
 cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/themes/light.js\"></script>",file=htmlFile,append=T)
-cat("<style>#chartdiv{width:100%;height:900px;font-size:11px;}</style>",file=htmlFile,append=T)    	
+cat("<style>#chartdiv{width:100%;height:800px;font-size:11px;}</style>",file=htmlFile,append=T)    	
 cat("<div id=\"chartdiv\"></div>\n",file=htmlFile,append=T)  
 cat("<script>var chart = AmCharts.makeChart(\"chartdiv\", {\n",file=htmlFile,append=T)  
 cat("\"type\": \"serial\",\n",file=htmlFile,append=T)  
