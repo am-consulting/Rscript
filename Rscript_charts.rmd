@@ -67,6 +67,7 @@ if(colnames(dataset)[1]=="Date"){
 setwd(pathOutput)
 grobTableTail<-13
 needCSV<-2
+consumptionTax<-1
 if(imfPCP==0){
 dateType<-2 #1:日次 2:月次 3:character(第*週他)
 mainTitle<-"住宅着工統計 - "
@@ -74,7 +75,6 @@ mainTitle<-"マネタリーベース - "
 #mainTitle<-"有効求人倍率 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 #mainTitle<-"IMF Primary Commodity Prices - "
-#mainTitle<-"週間石油在庫統計 - "
 #mainTitle<-"預金・貸出合計 - "
 mainTitle<-"景気動向指数個別一致系列 - "
 mainTitle<-"日本の外貨準備等状況 - "
@@ -84,22 +84,23 @@ mainTitle<-"日本の建設工事受注動態統計調査(単位:兆円) - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 mainTitle<-"日本のマネーストック - "
 mainTitle<-"日本の国内企業物価指数 - "
+mainTitle<-"週間石油在庫統計 - "
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:厚生労働省"
 #dataSource<-"\nData Source:財務省"
 #dataSource<-"\nData Source:内閣府"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
-#dataSource<-"\nData Source:U.S. Energy Information Administration"
 #dataSource<-"\nData Source:International Monetary Fund"
-dataSource<-"\nData Source:日本銀行"
+#dataSource<-"\nData Source:日本銀行"
+dataSource<-"\nData Source:U.S. Energy Information Administration"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
-outputFolder<-1 #1:R_Data_Write,2:charts
+outputFolder<-2 #1:R_Data_Write,2:charts
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
@@ -138,6 +139,7 @@ if(mainTitle=="週間石油在庫統計 - "){
   chartType<-2 #1:line , 2:bar
   fitType<-3 #1:lm , 2:loess , 3:none
   dataSource<-"\nData Source:U.S. Energy Information Administration"
+  consumptionTax<-0
 }
 if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){  
   tailNumber<-60
@@ -148,6 +150,7 @@ if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - 
   fitType<-3 #1:lm , 2:loess , 3:none
   dataSource<-"\nData Source:財務省"
   grobTableTail<-13
+  consumptionTax<-0
 }
 if(colnames(dataset)[1]=="Date"){
   buf.dataset[,1]<-as.Date(buf.dataset[,1])
@@ -212,6 +215,7 @@ if(dateType!=3){#Date
 g<-g+xlab("")
 g<-g+ylab("")
 #消費税パート
+if(consumptionTax==1){
 value.y<-(max(buf.dataset[,2])+min(buf.dataset[,2]))/2  
 if(buf.dataset[1,1]<=as.Date("1989-04-01")){
   g<-g+geom_vline(xintercept = as.numeric(as.Date("1989-04-01")),linetype=1,colour="#d2691e",size=2)
@@ -224,6 +228,7 @@ if(buf.dataset[1,1]<=as.Date("1997-04-01")){
 if(buf.dataset[1,1]<=as.Date("2014-04-01")){
   g<-g+geom_vline(xintercept = as.numeric(as.Date("2014-04-01")),linetype=1,colour="#d2691e",size=2)
   g<-g+geom_text(aes(x=as.Date("2014-04-01"), y=value.y*0.9, label="2014年4月\n消費税増税(5%→8%)"), size=8,family="Meiryo",colour="black") 
+}
 }  
 #消費税パート  
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
