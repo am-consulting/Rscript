@@ -31,6 +31,8 @@ title[[6]]<-"月平均雲量(10分比)"
 caution[[6]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。<br>- 官署(気象台等)のみ値があります。"
 title[[7]]<-"月最低気温(摂氏、度)"
 caution[[7]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化前の値を表示(格納)しない。"
+title[[8]]<-"日最高気温35℃以上日数(日)"
+caution[[8]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化にかかわらず、すべての期間の値を表示(格納)する。ただしデータの不均質を示す情報をつける。"
 ```
 
 ```{r}
@@ -46,7 +48,7 @@ fun.readData()
 ```
 
 ```{r}
-selecteddSource<-3
+selecteddSource<-8
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -71,6 +73,7 @@ htmlFile<-paste(addVer,".html",sep="")
 cat("",file=htmlFile,append=F)
 cat("<style>\n",file=htmlFile,append=T)
 cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
+cat("td.highlight {font-weight: plain;color: red;}\n",file=htmlFile,append=T)
 cat("</style>\n",file=htmlFile,append=T)
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
@@ -90,6 +93,15 @@ cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),fi
 cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
 cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+#Row created callback JS
+cat(",\"createdRow\": function ( row, data, index ) {\n",file=htmlFile,append=T)
+for(ccc in 2:ncol(dataset)){
+  cat(paste("if ( data[",ccc-1,"].replace(',','') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat("$('td', row).eq(",ccc-1,").addClass('highlight');\n",file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+}
+cat("}\n",file=htmlFile,append=T)  
+#Row created callback JS
 cat("});",file=htmlFile,append=T)
 #正規表現  
 cat(paste("$('#",tableID,"').dataTable();",sep=""),file=htmlFile,append=T)
@@ -144,9 +156,9 @@ for(ccc in 1:ncol(dataset)){
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
   }  
   grandData<-cbind(grandData,col[[ccc]])
-  header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+  header<-paste(header,"<th>",gsub("日最高気温","日最高気温<br>",gsub(" ","<br>",colnames(dataset)[ccc])),"</th>",sep="")  
 }
-tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
 tableHtml<-paste(tableHtml,header,"</thead>",sep="")
 cat(tableHtml,file=htmlFile,append=T)
 grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
@@ -186,6 +198,7 @@ for(ccc in 2:ncol(buf)){
     level.type<-2,#日照率
     level.type<-2,#月平均雲量
     level.type<-2,#月最低気温
+    level.type<-2,#日最高気温35℃以上日数(日)"
     level.type<-dammy
   )  
   if(level.type==2){
@@ -193,7 +206,9 @@ for(ccc in 2:ncol(buf)){
   }else{
     g<-g+geom_line(data=dataset,aes(x=Date,y=value),size=0.5,colour="blue",alpha=0.5)
   }
+  if(selecteddSource!=8){
   g<-g+geom_smooth(data=dataset,aes(x=Date,y=value,group=1),method=loess,lwd=2,color="red")
+  }
   g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
   g<-g+theme(axis.title.x=element_text(size=30)) 
   g<-g+theme(axis.title.y=element_text(size=25)) 
