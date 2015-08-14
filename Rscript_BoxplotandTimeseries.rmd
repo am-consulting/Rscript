@@ -131,6 +131,7 @@ dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:内閣府"
 dataSource<-"\nデータ出所:日本銀行"
 #dataSource<-"\nデータ出所:株式会社東京証券取引所"
+dataSource<-"\nデータ出所:経済産業省"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
@@ -622,15 +623,15 @@ for(ttt in tttS:tttE){ #ttt 1:首相 2:日銀総裁
   #消費税パート
   if(tmp.timeseries[1,1]<=as.Date("1989-04-15")){
     g<-g+geom_vline(xintercept = as.numeric(as.Date("1989-04-15")),linetype=1,colour="red",size=2)
-    g<-g+geom_text(aes(x=as.Date("1989-04-15"), y=value.y*0.9, label="1989年4月\n消費税導入(3%)"), size=8,family="Meiryo") 
+    g<-g+geom_text(aes(x=as.Date("1989-04-15"), y=value.y*0.7, label="1989年4月\n消費税導入(3%)"), size=8,family="Meiryo") 
   }
   if(tmp.timeseries[1,1]<=as.Date("1997-04-15")){
     g<-g+geom_vline(xintercept = as.numeric(as.Date("1997-04-15")),linetype=1,colour="red",size=2)
-    g<-g+geom_text(aes(x=as.Date("1997-04-15"), y=value.y*0.9, label="1997年4月\n消費税増税(3%→5%)"), size=8,family="Meiryo") 
+    g<-g+geom_text(aes(x=as.Date("1997-04-15"), y=value.y*0.7, label="1997年4月\n消費税増税(3%→5%)"), size=8,family="Meiryo") 
   }
   if(tmp.timeseries[1,1]<=as.Date("2014-04-15")){
     g<-g+geom_vline(xintercept = as.numeric(as.Date("2014-04-15")),linetype=1,colour="red",size=2)
-    g<-g+geom_text(aes(x=as.Date("2014-04-15"), y=value.y*0.9, label="2014年4月\n消費税増税(5%→8%)"), size=8,family="Meiryo") 
+    g<-g+geom_text(aes(x=as.Date("2014-04-15"), y=value.y*0.7, label="2014年4月\n消費税増税(5%→8%)"), size=8,family="Meiryo") 
   }  
   #消費税パート
   print(g)
@@ -703,7 +704,7 @@ cat("}\n",file=htmlFile,append=T)
 #Individual column searching part  
 #Row created callback  
 cat(",\"createdRow\": function ( row, data, index ) {\n",file=htmlFile,append=T)
-cat("if ( data[1].replace('', '') * 1 < 0 ) {\n",file=htmlFile,append=T)
+cat("if ( data[1].replace(',', '') * 1 < 0 ) {\n",file=htmlFile,append=T)
 cat("$('td', row).eq(1).addClass('highlight');\n",file=htmlFile,append=T)
 cat("}\n",file=htmlFile,append=T)
 cat("}\n",file=htmlFile,append=T)  
@@ -824,6 +825,7 @@ for(ccc in 1:ncol(htmldataset)){
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(htmldataset[,ccc]),dateFormat),"</td>",sep="")
   }else{  
     #col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+    #big.markを付けるとcalStat()が効かなくなる
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],scientific=F),"</td>",sep="")
   }  
   grandData<-cbind(grandData,col[[ccc]])
