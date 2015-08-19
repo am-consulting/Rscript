@@ -14,7 +14,6 @@ for(iii in 1:length(file.name)){
   if(grepl("d41ma.csv",url[[iii]])==T){
     dataset[[iii]]<-read.csv(url[[iii]],header=F,skip=0,stringsAsFactor=F)
     colnames(dataset[[iii]])<-c("Date",dataset[[iii]][3,2],dataset[[iii]][3,3])
-    colnames(dataset[[iii]])<-gsub("-",".",colnames(dataset[[iii]]))
     dataset[[iii]]<-dataset[[iii]][-c(1:4),]
     dataset[[iii]][,1]<-gsub("/","-",dataset[[iii]][,1])
     dataset[[iii]][,1]<-paste(dataset[[iii]][,1],"-01",sep="")
@@ -55,11 +54,11 @@ for(iii in 1:length(file.name)){
     tmp.date<-paste(tmp.date,"-01",sep="")
     tmp.date<-tmp.date[-c(1:7)]
     tmp.data<-cbind(date=tmp.date,tmp.value)
-    colnames(tmp.data)<-c("date",tmp.name)
+    colnames(tmp.data)<-c("Date",tmp.name)
     dataset[[iii]]<-tmp.data
   }
   dataset[[iii]][,1]<-as.Date(dataset[[iii]][,1])
-  FUN.1<-function(x){as.numeric(x)/(10^5)}
+  FUN.1<-function(x){as.numeric(x)/(10^5)}#単位を千円から億円に変換
   dataset[[iii]]<-cbind(dataset[[iii]][1],apply(dataset[[iii]][-1],2,FUN.1))
 ########## 全系列ともゼロ値またはNAの行を削除(オリジナルデータは最新年の12月分まで枠が生成されている ##########
   FUN.2<-function(x){all(x!=0)}
@@ -67,10 +66,25 @@ for(iii in 1:length(file.name)){
   dataset[[iii]]<-dataset[[iii]][rowNotZero,]
   dataset[[iii]]<-na.omit(dataset[[iii]])
 ########## 全系列ともゼロ値またはNAの行を削除(オリジナルデータは最新年の12月分まで枠が生成されている ##########
-  
 }
 username<-Sys.info()['user']
+#CSV part
+pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+folder.path<-file.path(pathInput)
+setwd(folder.path)
+tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
+setwd(dir.list)
+for(iii in 1:length(file.name)){
+  colnames(dataset[[iii]])[-1]<-paste(colnames(dataset[[iii]])[-1],"(億円)",sep="")
+  if(grepl("d41ma.csv",url[[iii]])==T){csvFile<-"財務省貿易統計.世界.輸出入総額.月別推移.csv"}
+  if(grepl("d51ma.csv",url[[iii]])==T){csvFile<-"財務省貿易統計.世界.輸出総額.月別推移.csv"}
+  if(grepl("d61ma.csv",url[[iii]])==T){csvFile<-"財務省貿易統計.世界.輸入総額.月別推移.csv"}
+  write.csv(dataset[[iii]],csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+} 
+#CSV part
 path<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(path)
 add.ver<-gsub("\\.","",paste("?var=",year(Sys.Date()),month(Sys.Date()),day(Sys.Date()),hour(Sys.time()),minute(Sys.time()),second(Sys.time()),sep=""))
 ```
 
