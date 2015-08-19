@@ -35,6 +35,8 @@ title[[8]]<-"日最高気温35℃以上日数(日)"
 caution[[8]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化にかかわらず、すべての期間の値を表示(格納)する。ただしデータの不均質を示す情報をつける。"
 title[[9]]<-"日最低気温0℃未満日数(日)"
 caution[[9]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化にかかわらず、すべての期間の値を表示(格納)する。ただしデータの不均質を示す情報をつける。"
+title[[10]]<-"日最高気温30℃以上日数(日)"
+caution[[10]]<-"- 利用上注意が必要なデータの扱い:値を表示(格納)しない。<br>- 観測環境などの変化の前後で、値が不均質となったデータの扱い:観測環境などの変化にかかわらず、すべての期間の値を表示(格納)する。ただしデータの不均質を示す情報をつける。"
 ```
 
 ```{r}
@@ -50,7 +52,7 @@ fun.readData()
 ```
 
 ```{r}
-selecteddSource<-9
+selecteddSource<-10
 menulength<-5
 orderColumn<-0
 orderDirection<-"desc" #asc desc
@@ -158,7 +160,7 @@ for(ccc in 1:ncol(dataset)){
     col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
   }  
   grandData<-cbind(grandData,col[[ccc]])
-  if(selecteddSource==8){
+  if(selecteddSource==8 | selecteddSource==10){
   header<-paste(header,"<th>",gsub("日最高気温","日最高気温<br>",gsub(" ","<br>",colnames(dataset)[ccc])),"</th>",sep="")  
   }
   if(selecteddSource==9){
@@ -207,6 +209,7 @@ for(ccc in 2:ncol(buf)){
     level.type<-2,#月最低気温
     level.type<-2,#日最高気温35℃以上日数(日)"
     level.type<-2,#日最低気温0℃未満日数(日)"
+    level.type<-2,#日最高気温30℃以上日数(日)"
     level.type<-dammy
   )  
   if(level.type==2){
@@ -214,7 +217,7 @@ for(ccc in 2:ncol(buf)){
   }else{
     g<-g+geom_line(data=dataset,aes(x=Date,y=value),size=0.5,colour="blue",alpha=0.5)
   }
-  if(selecteddSource!=8 & selecteddSource!=9){
+  if(selecteddSource!=8 & selecteddSource!=9 & selecteddSource!=10){
   g<-g+geom_smooth(data=dataset,aes(x=Date,y=value,group=1),method=loess,lwd=2,color="red")
   }
   g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
