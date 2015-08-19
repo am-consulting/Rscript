@@ -52,7 +52,7 @@ for(rrr in 1:length(url)){
 
 ```{r}
 pattern<-2
-sourceData<-4
+sourceData<-2
 switch(sourceData,
 sourceURL<-"\nData Source http://www.data.jma.go.jp/cpdinfo/temp/list/mon_wld.html",
 sourceURL<-"\nData Source http://www.data.jma.go.jp/cpdinfo/temp/list/mon_jpn.html",
@@ -66,7 +66,7 @@ title[[1]]<-"エルニーニョ監視海域(NINO.3) 海面水温の基準値と�
 title[[1]]<-"エルニーニョ監視海域(NINO.3) 海面水温(摂氏,度)"
 )  
 fun.readData<-function(){
-  origData[[1]]<<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=FALSE,na.strings=c("na","NA",99.9)) # 99.9をNAとはしていないソースか否か注意
+  origData[[1]]<<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=FALSE,na.strings=c("na","NA",99.9),check.names=FALSE) # 99.9をNAとはしていないソースか否か注意
   print(head(origData[[1]]))
   print(tail(origData[[1]]))
 }
@@ -89,6 +89,8 @@ for(rrr in 1:length(origData)){
   tempAnomalyXTS[[rrr]]<-as.xts(tempAnomalyDF[[rrr]][,-1],order.by=as.Date(tempAnomalyDF[[rrr]]$Date))
   tmp<-subset(tempAnomalyDF[[rrr]],(year(last(tempAnomalyDF[[rrr]][,1]))-1000)<=year(tempAnomalyDF[[rrr]][,1]))
   tempAnomalyTS[[rrr]]<-ts(tmp[,2],freq=12,start=c(year(tmp[1,1]),month(tmp[1,1]))) 
+  print(head(tempAnomalyDF[[rrr]]))
+  print(tail(tempAnomalyDF[[rrr]]))
 }
 ```
 
