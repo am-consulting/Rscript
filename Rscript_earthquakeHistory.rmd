@@ -19,7 +19,7 @@ pathEarthquake<-paste("C:/Users/",username,"/Desktop/Earthquake_Data/",sep="")
 buf<-read.table(file=paste(pathEarthquake,data.file,sep=""),sep=",",header=T,as.is=T,skip=0)
 SD<-Sys.Date()
 ST<-Sys.time() 
-buf<-subset(buf,7<=buf$mag)
+buf<-subset(buf,6<=buf$mag)
 JST<-as.POSIXct(sub("Z","",sub("T"," ",buf$time)))+3600*9 #UTC+9
 No<-seq(1,nrow(buf),by=1)
 GoogleMap<-paste("<a href=\"http://maps.google.co.jp/maps?ll=",buf$latitude,",",buf$longitude,"&z=4&q=loc:",buf$latitude,"+",buf$longitude,"\" target=\"_blank\">Google Map</a>",sep="")
@@ -51,11 +51,17 @@ dataset<-tail(tmp,tailLength)
 
 ```{r}
 #only html
+borderM<-6
+tmpDataset<-dataset
+dataset<-subset(dataset,borderM<=dataset$M)
 setwd(pathOutput)
 col<-list()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 htmlFile<-"earthquakeTable.html"
 cat("<html><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=F)
+cat("<meta http-equiv=\"Pragma\" content=\"no-cache\" />\n",file=htmlFile,append=T)
+cat("<meta http-equiv=\"cache-control\" content=\"no-cache\" />\n",file=htmlFile,append=T)
+cat("<meta http-equiv=\"expires\" content=\"0\" />\n",file=htmlFile,append=T)
 cat("<style>\n",file=htmlFile,append=T)
 cat("body{\n",file=htmlFile,append=T)
 cat("font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;\n",file=htmlFile,append=T)
@@ -65,10 +71,12 @@ cat("</style>\n",file=htmlFile,append=T)
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
 cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+cat("<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>",file=htmlFile,append=T)
 grandData<-NULL
 header<-NULL
 tableID<-paste("am-consulting",addVer,sep="")
-cat("<body><b>西暦1900年以降に発生したマグニチュード7.0以上の地震リスト</b><br>\n",file=htmlFile,append=T) 
+cat("<body><b>西暦1900年以降に発生したマグニチュード",borderM,"以上の地震リスト</b><br>\n",file=htmlFile,append=T) 
 cat("- 表中\"M\"はマグニチュード<br>\n",file=htmlFile,append=T) 
 cat("- マグニチュードタイプ(Mタイプ)はデータ毎に異なります<br>\n",file=htmlFile,append=T) 
 cat("- ソースデータ:http://earthquake.usgs.gov/<br>\n",file=htmlFile,append=T) 
@@ -140,7 +148,11 @@ cat(tableHtml,file=htmlFile,append=T)
 grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
-cat("Powered by DataTables( http://datatables.net/ )<br>",file=htmlFile,append=T)
+cat("Powered by<br>",file=htmlFile,append=T)
+cat("- jQuery : <a href=\"https://jquery.com/\" target=\"_blank\">https://jquery.com/</a><br>",file=htmlFile,append=T)
+cat("- DataTables : <a href=\"http://datatables.net/\" target=\"_blank\">http://datatables.net/</a><br>",file=htmlFile,append=T)
+cat("- PACE : <a href=\"http://github.hubspot.com/pace/docs/welcome/\" target=\"_blank\">http://github.hubspot.com/pace/docs/welcome/</a>",file=htmlFile,append=T)
+cat("<hr><div style=\"text-align:center\"><a href=\"http://am-consulting.co.jp/\" target=\"_blank\">アセット･マネジメント･コンサルティング株式会社</a></div>",file=htmlFile,append=T)
 #ga  
 cat("<script>\n",file=htmlFile,append=T)
 cat("(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){\n",file=htmlFile,append=T)
@@ -152,11 +164,16 @@ cat("ga('send', 'pageview');\n",file=htmlFile,append=T)
 cat("</script>\n",file=htmlFile,append=T)
 #ga  
 cat("</body></html>",file=htmlFile,append=T)
+dataset<-tmpDataset
+#only html
 ```
 
 ```{r}
 #kml part
-for(magBorder in 7:9){
+borderM<-7
+tmpDataset<-dataset
+dataset<-subset(dataset,borderM<=dataset$M)
+for(magBorder in borderM:9){
 kmlDataset<-dataset
 kmlDataset<-subset(kmlDataset,magBorder<=kmlDataset[,6] & kmlDataset[,6]<(magBorder+1))
 setwd(pathOutput)
@@ -228,15 +245,22 @@ cat("</Placemark>\n",file=kmlFile,append=T)
 cat("</Document>",file=kmlFile,append=T)
 cat("</kml>",file=kmlFile,append=T)
 }
+dataset<-tmpDataset
 #kml part
 ```
 
 ```{r}
 #kml用html
-for(magBorder in 7:9){
+borderM<-7
+tmpDataset<-dataset
+dataset<-subset(dataset,borderM<=dataset$M)
+for(magBorder in borderM:9){
 setwd(pathOutput)
 kmlhtml<-paste("earthquakesOverMagnitude",magBorder,"afterY1900",".html",sep="")
 cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=kmlhtml,append=F)
+cat("<meta http-equiv=\"Pragma\" content=\"no-cache\" />\n",file=htmlFile,append=T)
+cat("<meta http-equiv=\"cache-control\" content=\"no-cache\" />\n",file=htmlFile,append=T)
+cat("<meta http-equiv=\"expires\" content=\"0\" />\n",file=htmlFile,append=T)
 cat("<style>\n",file=kmlhtml,append=T)
 cat("body{\n",file=kmlhtml,append=T)
 cat("font-family:'ヒラギノ角ゴ Pro W3','Hiragino Kaku Gothic Pro','Meiryo UI','メイリオ',Verdana,'ＭＳ Ｐゴシック',sans-serif;\n",file=kmlhtml,append=T)
@@ -297,5 +321,6 @@ cat("ga('send', 'pageview');\n",file=kmlhtml,append=T)
 cat("</script>\n",file=kmlhtml,append=T)
 #ga  
 }  
+dataset<-tmpDataset
 #kml用html
 ```
