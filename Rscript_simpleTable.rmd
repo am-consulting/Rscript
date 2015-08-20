@@ -1,0 +1,121 @@
+```{r}
+library(lubridate)
+username<-Sys.info()['user']
+SD<-Sys.Date()
+```
+
+```{r}
+mainTitle<-"電力調査統計 発電設備利用率(一般電気事業者,%)"
+dataSource<-"\nデータ出所:国土交通省"
+dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
+dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
+dataSource<-"\nデータ出所:The U.S. Census Bureau"
+dataSource<-"\nデータ出所:内閣府"
+dataSource<-"\nデータ出所:日本銀行"
+dataSource<-"\nデータ出所:経済産業省"
+dataSource<-"\nデータ出所:資源エネルギー庁"
+dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
+dataset<-cbind(dataset,dataset[,1])
+colnames(dataset)[ncol(dataset)]<-colnames(dataset)[1]
+print(head(dataset),3)
+print(tail(dataset),3)
+```
+
+```{r}
+menulength<-"[[-1,10,20], [\"All\",10,20]]"
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+```
+
+```{r}
+htmlFile<-"am-consultingTable.html"
+cat("",file=htmlFile,append=F)
+```
+
+```{r}
+#only html
+htmldataset<-dataset
+col<-list()
+grandData<-NULL
+header<-NULL
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>\n",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)  
+cat("<script src=\"http://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js\"></script>\n\n",file=htmlFile,append=T) 
+cat("<style>\n",file=htmlFile,append=T)
+cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}\n",file=htmlFile,append=T)
+cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
+cat("td.highlight {font-weight: plain;color: red;}\n",file=htmlFile,append=T) 
+cat("</style>\n",file=htmlFile,append=T)
+cat("<script type=\"text/javascript\" charset=\"utf-8\">\n",file=htmlFile,append=T)
+cat("$(document).ready( function(){\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {\n",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\":",menulength,"\n",file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]]\n",sep=""),file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+cat("\"searching\": true\n",file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"]\n",file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}\n",file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+#Individual column searching part  
+cat("initComplete: function () {\n",file=htmlFile,append=T)
+cat("this.api().columns().every( function () {\n",file=htmlFile,append=T)
+cat("var column = this;\n",file=htmlFile,append=T)
+cat("var select = $('<select><option value=\"\"></option></select>')\n",file=htmlFile,append=T)
+cat(".appendTo( $(column.footer()).empty() )\n",file=htmlFile,append=T)
+cat(".on( 'change', function () {\n",file=htmlFile,append=T)
+cat("var val = $.fn.dataTable.util.escapeRegex(\n",file=htmlFile,append=T)
+cat("$(this).val()\n",file=htmlFile,append=T)
+cat(");\n",file=htmlFile,append=T)
+cat("column\n",file=htmlFile,append=T)
+cat(".search( val ? '^'+val+'$' : '', true, false )\n",file=htmlFile,append=T)
+cat(".draw();\n",file=htmlFile,append=T)
+cat("} );\n",file=htmlFile,append=T)
+cat("column.data().unique().sort().each( function ( d, j ) {\n",file=htmlFile,append=T)
+cat("select.append( '<option value=\"'+d+'\">'+d+'</option>' )\n",file=htmlFile,append=T)
+cat("} );\n",file=htmlFile,append=T)
+cat("} );\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+#Individual column searching part  
+cat(",\n",file=htmlFile,append=T)
+#Row created callback  
+cat("createdRow: function ( row, data, index ) {\n",file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset)){
+  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+}
+cat("}\n",file=htmlFile,append=T)  
+#Row created callback  
+cat("});\n",file=htmlFile,append=T)
+cat("});</script>\n\n\n\n\n",file=htmlFile,append=T)
+cat("<div style=\"text-align:center\"><b>",mainTitle,"</b></div><br>",file=htmlFile,append=T)
+cat(dataSource,"<br>",file=htmlFile,append=T)
+cat("- 最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
+cat("- -9999は「データなし」または「データ欠損」または「NA」を意味します<br>",file=htmlFile,append=T)
+for(ccc in 1:ncol(htmldataset)){
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead><tfoot>",sep="")
+tableHtml<-paste(tableHtml,header,"</tfoot>",sep="")
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("</div>\n",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
+cat("<hr>",file=htmlFile,append=T)
+#only html
+```
