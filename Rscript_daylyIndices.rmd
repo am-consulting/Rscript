@@ -124,14 +124,37 @@ for(cnt in 1:nData){
 }
 funNormal()
 funAmcharts()
+#select box part
+cat("<script>\n",file=htmlFile,append=T)
+for(ggg in 1:nData){
+cat(paste("document.getElementById(\"chartSelect",ggg,"\").onchange = function() {\n",sep=""),file=htmlFile,append=T)
+cat("if (this.selectedIndex!==0) {\n",file=htmlFile,append=T)
+cat("window.location.href = this.value;\n",file=htmlFile,append=T)
+cat(paste("document.getElementById(\"chartSelect",ggg,"\").value = \"\";\n",sep=""),file=htmlFile,append=T)  
+cat("}\n",file=htmlFile,append=T)
+cat("};\n",file=htmlFile,append=T)
+}
+cat("</script>\n",file=htmlFile,append=T)
+#select box part
 cat("</body></html>",file=htmlFile,append=T)
 ```
 
 ```{r}
 funARIMA<-function(){
-cat(paste("<a href=\"#",colnames(dataset[[cnt]])[2],"\"></a>",sep=""),file=htmlFile,append=T)
+#select box part
+cat(paste("<div id=\"amccchart",cnt,"\"></div>\n",sep=""),file=htmlFile,append=T)
+#select box part
 cat(paste("<div style=\"text-align:center\"><b>",colnames(dataset[[cnt]])[2]," - ",sep=""),file=htmlFile,append=T)
-cat(paste("データ確認日:",year(SD),"年",month(SD),"月",day(SD),"日 - Data Source:Federal Reserve Bank of St. Louis , 財務省</b></div>",sep=""),file=htmlFile,append=T)
+cat(paste("データ確認日:",year(SD),"年",month(SD),"月",day(SD),"日 - Data Source:Federal Reserve Bank of St. Louis , 財務省</b>",sep=""),file=htmlFile,append=T)
+#select box part
+cat(paste("<br>\n<select id=\"chartSelect",cnt,"\">\n",sep=""),file=htmlFile,append=T)
+cat("<option value=\"\">Selecet a chart</option>\n",file=htmlFile,append=T)
+for(zzz in 1:nData){  
+  cat(paste("<option value=\"#amccchart",zzz,"\">",colnames(dataset[[zzz]])[2],"</option>\n",sep=""),file=htmlFile,append=T)
+}
+cat("</select>\n",file=htmlFile,append=T)  
+cat("</div>\n",file=htmlFile,append=T)
+#select box part
 tmp<-na.omit(dataset[[cnt]])
 objData<-tmp[,2]
 arimaResult<-auto.arima(
