@@ -46,6 +46,8 @@ for(iii in 1:length(file.name)){
       }      
     }
     tmp.name<-tmp.name[tmp.name!=""]
+    if(grepl("d51ma.csv",url[[iii]])==T){tmp.name<-paste("輸出-",tmp.name,sep="")} 
+    if(grepl("d61ma.csv",url[[iii]])==T){tmp.name<-paste("輸入-",tmp.name,sep="")} 
     tmp.name
     tmp.logical<-tmp.data[6,]=="金額"  
     tmp.value<-tmp.data[,tmp.logical==TRUE]
