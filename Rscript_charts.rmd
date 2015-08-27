@@ -89,6 +89,9 @@ mainTitle<-"日本の建設総合統計 - "
 mainTitle<-"日本の企業向けサービス価格指数 - "
 mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
+mainTitle<-"財務省貿易統計(億円) - "
+mainTitle<-"財務省貿易統計 輸出 主要商品別(億円) - "
+mainTitle<-"財務省貿易統計 輸入 主要商品別(億円) - "
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:厚生労働省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
@@ -104,7 +107,10 @@ fitType<-2 #1:lm , 2:loess , 3:none
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
-outputFolder<-2 #1:R_Data_Write,2:charts
+outputFolder<-1 #1:R_Data_Write,2:charts
+if(mainTitle=="週間石油在庫統計 - " | mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){
+  outputFolder<-2 #1:R_Data_Write,2:charts
+}  
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
