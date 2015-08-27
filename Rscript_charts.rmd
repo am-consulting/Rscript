@@ -86,15 +86,16 @@ mainTitle<-"日本の国内企業物価指数 - "
 mainTitle<-"日本の機械受注統計調査(機械別受注額、原系列、億円) - "
 mainTitle<-"日本の国内総生産 - "
 mainTitle<-"日本の建設総合統計 - "
+mainTitle<-"日本の企業向けサービス価格指数 - "
 mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:厚生労働省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
-#dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:国土交通省"
+dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
 chartType<-1 #1:line , 2:bar
@@ -143,6 +144,7 @@ if(mainTitle=="週間石油在庫統計 - "){
   fitType<-3 #1:lm , 2:loess , 3:none
   dataSource<-"\nData Source:U.S. Energy Information Administration"
   consumptionTax<-0
+  needCSV<-1
 }
 if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){  
   tailNumber<-60
@@ -154,6 +156,7 @@ if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - 
   dataSource<-"\nData Source:財務省"
   grobTableTail<-13
   consumptionTax<-0
+  needCSV<-1
 }
 if(colnames(dataset)[1]=="Date"){
   buf.dataset[,1]<-as.Date(buf.dataset[,1])
@@ -326,6 +329,7 @@ csvFile<-paste(colnames(dataset[,c(1,ccc)])[2],".csv",sep="")
 write.csv(tail(dataset[,c(1,ccc)],30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 }  
 }
+setwd(pathOutput)
 cat("<script>\n",file=htmlFile,append=T)
 for(ggg in 2:ncol(dataset)){
 cat(paste("document.getElementById(\"chartSelect",ggg,"\").onchange = function() {\n",sep=""),file=htmlFile,append=T)
