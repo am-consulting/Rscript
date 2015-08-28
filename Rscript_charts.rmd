@@ -66,13 +66,12 @@ if(colnames(dataset)[1]=="Date"){
 }
 setwd(pathOutput)
 grobTableTail<-13
-needCSV<-2
+needCSV<-1
 consumptionTax<-1
 if(imfPCP==0){
 dateType<-2 #1:日次 2:月次 3:character(第*週他)
 mainTitle<-"住宅着工統計 - "
 mainTitle<-"マネタリーベース - "
-#mainTitle<-"有効求人倍率 - "
 #mainTitle<-"IMF Primary Commodity Prices - "
 #mainTitle<-"預金・貸出合計 - "
 mainTitle<-"景気動向指数個別一致系列 - "
@@ -92,8 +91,11 @@ mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"財務省貿易統計(億円) - "
 mainTitle<-"財務省貿易統計 輸出 主要商品別(億円) - "
 mainTitle<-"財務省貿易統計 輸入 主要商品別(億円) - "
+mainTitle<-"日本の労働力調査 - "
+mainTitle<-"有効求人倍率 - "
+mainTitle<-"日本の消費者物価指数 - "
+mainTitle<-"日本の労働力調査 - 役員を除く雇用形態別雇用者(万人)"
 dataSource<-"\nData Source:経済産業省"
-#dataSource<-"\nData Source:厚生労働省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:内閣府"
@@ -101,6 +103,8 @@ dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
+dataSource<-"\nData Source:厚生労働省"
+dataSource<-"\nData Source:総務省"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
