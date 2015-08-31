@@ -2,6 +2,7 @@
 library(lubridate)
 username<-Sys.info()['user']
 SD<-Sys.Date()
+needRightRow<-2
 ```
 
 ```{r}
@@ -9,25 +10,28 @@ mainTitle<-"電力調査統計 発電設備利用率(一般電気事業者,%)"
 mainTitle<-"日本の人口推計 平成27年8月概算値(万人,%)"
 mainTitle<-"出入国管理統計(人)"
 mainTitle<-"住民基本台帳人口移動報告 2015年7月(外国人を含む移動者、人)"
+mainTitle<-"『日本経済の変貌と量的･質的金融緩和』の抽出語出現回数表"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
 dataSource<-"\nデータ出所:内閣府"
-dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:経済産業省"
 dataSource<-"\nデータ出所:資源エネルギー庁"
 dataSource<-"\nデータ出所:法務省"
 dataSource<-"\nデータ出所:総務省"
+dataSource<-"\nデータ出所:日本銀行"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
-dataset<-cbind(dataset,dataset[,1])
-colnames(dataset)[ncol(dataset)]<-colnames(dataset)[1]
+if(needRightRow==1){
+  dataset<-cbind(dataset,dataset[,1])
+  colnames(dataset)[ncol(dataset)]<-colnames(dataset)[1]
+}  
 print(head(dataset),3)
 print(tail(dataset),3)
 ```
 
 ```{r}
-menulength<-"[[-1,10,20], [\"All\",10,20]]"
+menulength<-"[[5,-1,10,20], [5,\"All\",10,20]]"
 orderColumn<-1
 orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
