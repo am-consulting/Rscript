@@ -16,7 +16,7 @@ creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")
 setwd(pathOutput)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
-  dataset<<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－","      "),check.names=FALSE)
+  dataset<<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－","      ","***"),check.names=FALSE)
   print(head(dataset))
   print(tail(dataset))
 }
@@ -96,16 +96,17 @@ mainTitle<-"日本の消費者物価指数 - "
 mainTitle<-"日本の労働力調査 - 役員を除く雇用形態別雇用者(万人)"
 mainTitle<-"住宅着工統計 - "
 mainTitle<-"建築着工統計 - "
+mainTitle<-"設備投資(当期末新設固定資産合計,百万円)-全規模 - "
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:国土交通省"
+dataSource<-"\nData Source:財務省"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
