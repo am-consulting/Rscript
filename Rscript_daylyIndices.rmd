@@ -504,9 +504,9 @@ btitle<-c(
 )
 cat(paste(
   "<br><hr><b>対象期間:</b>",
-  format(first(tmp[,1]),"%Y/%m"),
+  format(first(tmp[,1]),"%Y/%m/%d"),
   "-",
-  format(last(tmp[,1]),"%Y/%m"),
+  format(last(tmp[,1]),"%Y/%m/%d"),
   "\n",
   sep=""),file=htmlFile,append=T
 )
