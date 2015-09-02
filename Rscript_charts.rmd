@@ -70,7 +70,6 @@ needCSV<-1
 consumptionTax<-1
 if(imfPCP==0){
 dateType<-2 #1:日次 2:月次 3:character(第*週他)
-mainTitle<-"マネタリーベース - "
 #mainTitle<-"IMF Primary Commodity Prices - "
 #mainTitle<-"預金・貸出合計 - "
 mainTitle<-"景気動向指数個別一致系列 - "
@@ -97,16 +96,17 @@ mainTitle<-"日本の労働力調査 - 役員を除く雇用形態別雇用者(�
 mainTitle<-"住宅着工統計 - "
 mainTitle<-"建築着工統計 - "
 mainTitle<-"設備投資(当期末新設固定資産合計,百万円)-全規模 - "
+mainTitle<-"日本のマネタリーベース(兆円,%) - "
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:内閣府"
-dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:財務省"
+dataSource<-"\nData Source:日本銀行"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
@@ -114,8 +114,10 @@ tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
 outputFolder<-1 #1:R_Data_Write,2:charts
+autoChartType<-0
 if(mainTitle=="週間石油在庫統計 - " | mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){
   outputFolder<-2 #1:R_Data_Write,2:charts
+  autoChartType<-1
 }  
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
@@ -143,6 +145,9 @@ switch(dateType,
 )  
 colorList<-c("blue","red")
 for(ccc in 2:ncol(dataset)){
+if(autoChartType==0){ 
+if(regexpr("比",colnames(dataset)[ccc])!=-1){chartType<-2}else{chartType<-1}  
+}
 setwd(pathOutput)
 buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
 if(mainTitle=="週間石油在庫統計 - "){  
@@ -306,7 +311,7 @@ g<-g+annotation_custom(
   ),
   xmin=xL2,
   xmax=xR2,
-  ymin=min(na.omit(buf.dataset)[,2]),
+  ymin=(max(na.omit(buf.dataset)[,2])+min(na.omit(buf.dataset)[,2]))/2,
   ymax=max(na.omit(buf.dataset)[,2])
 )
 }  
