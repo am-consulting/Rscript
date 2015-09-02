@@ -97,6 +97,7 @@ mainTitle<-"住宅着工統計 - "
 mainTitle<-"建築着工統計 - "
 mainTitle<-"設備投資(当期末新設固定資産合計,百万円)-全規模 - "
 mainTitle<-"日本のマネタリーベース(兆円,%) - "
+mainTitle<-"利益剰余金(全産業、全規模、兆円) - "
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
@@ -105,8 +106,8 @@ dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:国土交通省"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:日本銀行"
+dataSource<-"\nData Source:財務省"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
@@ -376,7 +377,7 @@ if(colnames(dataset)[1]=="Date"){
 setwd(pathOutput)
 forAmcahrts<-na.omit(dataset)
 forAmcahrts<-subset(forAmcahrts,as.Date("2013-01-01")<=forAmcahrts[,1])  
-forAmcahrts<-data.frame(Date=forAmcahrts[,1],apply(forAmcahrts[,-1],2,function(x) x/head(x,1)))
+forAmcahrts<-data.frame(Date=forAmcahrts[,1],apply(forAmcahrts[,-1,drop=F],2,function(x) x/head(x,1)))
 colnames(forAmcahrts)<-colnames(dataset)
 head(forAmcahrts)
 tail(forAmcahrts)
