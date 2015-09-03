@@ -84,7 +84,6 @@ mainTitle<-"日本の機械受注統計調査(機械別受注額、原系列、�
 mainTitle<-"日本の国内総生産 - "
 mainTitle<-"日本の建設総合統計 - "
 mainTitle<-"日本の企業向けサービス価格指数 - "
-mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"財務省貿易統計(億円) - "
 mainTitle<-"財務省貿易統計 輸出 主要商品別(億円) - "
 mainTitle<-"財務省貿易統計 輸入 主要商品別(億円) - "
@@ -98,24 +97,26 @@ mainTitle<-"設備投資(当期末新設固定資産合計,百万円)-全規模 
 mainTitle<-"日本のマネタリーベース(兆円,%) - "
 mainTitle<-"利益剰余金(全産業、全規模、兆円) - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"日本の建設労働需給調査(%) - "
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:総務省"
-dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:日本銀行"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
-chartType<-1 #1:line , 2:bar
-fitType<-2 #1:lm , 2:loess , 3:none
+dataSource<-"\nData Source:国土交通省"
+dataSource<-"\nData Source:財務省"
+chartType<-2 #1:line , 2:bar
+fitType<-3 #1:lm , 2:loess , 3:none
 }  
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
 outputFolder<-1 #1:R_Data_Write,2:charts
-autoChartType<-0
+autoChartType<-2
 if(mainTitle=="週間石油在庫統計 - " | mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){
   outputFolder<-2 #1:R_Data_Write,2:charts
   autoChartType<-1
