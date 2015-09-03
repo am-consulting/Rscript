@@ -69,7 +69,7 @@ grobTableTail<-13
 needCSV<-1
 consumptionTax<-1
 if(imfPCP==0){
-dateType<-2 #1:日次 2:月次 3:character(第*週他)
+dateType<-4 #1:日次 2:月次 3:character(第*週他) 4:年次
 #mainTitle<-"IMF Primary Commodity Prices - "
 #mainTitle<-"預金・貸出合計 - "
 mainTitle<-"景気動向指数個別一致系列 - "
@@ -99,6 +99,9 @@ mainTitle<-"利益剰余金(全産業、全規模、兆円) - "
 mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"日本の建設労働需給調査(%) - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
+mainTitle<-"日本の法人税課税状況 - "
+mainTitle<-"日本の申告所得税額 - "
+mainTitle<-"日本の源泉所得税課税状況 - "
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
@@ -109,6 +112,7 @@ dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:財務省"
+dataSource<-"\nData Source:国税庁"
 chartType<-2 #1:line , 2:bar
 fitType<-3 #1:lm , 2:loess , 3:none
 }  
@@ -143,7 +147,8 @@ if(perpbr==1){
 switch(dateType,
   dateFormat<-"%Y/%m/%d",
   dateFormat<-"%Y/%m",
-  dateFormat<-"dammy"
+  dateFormat<-"dammy",
+  dateFormat<-"%Y"
 )  
 colorList<-c("blue","red")
 for(ccc in 2:ncol(dataset)){
@@ -241,27 +246,42 @@ g<-g+xlab("")
 g<-g+ylab("")
 #消費税パート
 if(consumptionTax==1){
-value.y<-(max(buf.dataset[,2])+min(buf.dataset[,2]))/2  
-if(buf.dataset[1,1]<=as.Date("1989-04-01")){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date("1989-04-01")),linetype=1,colour="#d2691e",size=2)
-  g<-g+geom_text(aes(x=as.Date("1989-04-01"), y=value.y*0.9, label="1989年4月\n消費税導入(3%)"), size=8,family="Meiryo",colour="black") 
+value.y<-(max(buf.dataset[,2])+min(buf.dataset[,2]))/2
+#1989年4月消費税  
+if(dateType!=4){taxDate1<-"1989-04-01"}else{taxDate1<-"1989-01-01"}  
+if(buf.dataset[1,1]<=as.Date(taxDate1)){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate1)),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_text(aes(x=as.Date(taxDate1), y=value.y*0.9, label="1989年4月\n消費税導入\n(3%)"), size=8,family="Meiryo",colour="black") 
 }
-if(buf.dataset[1,1]<=as.Date("1997-04-01")){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date("1997-04-01")),linetype=1,colour="#d2691e",size=2)
-  g<-g+geom_text(aes(x=as.Date("1997-04-01"), y=value.y*0.9, label="1997年4月\n消費税増税(3%→5%)"), size=8,family="Meiryo",colour="black") 
+#1989年4月消費税  
+#1997年4月消費税  
+if(dateType!=4){taxDate2<-"1997-04-01"}else{taxDate2<-"1997-01-01"}  
+if(buf.dataset[1,1]<=as.Date(taxDate2)){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate2)),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_text(aes(x=as.Date(taxDate2), y=value.y*0.9, label="1997年4月\n消費税導入\n(3%→5%)"), size=8,family="Meiryo",colour="black") 
 }
-if(buf.dataset[1,1]<=as.Date("2014-04-01")){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date("2014-04-01")),linetype=1,colour="#d2691e",size=2)
-  g<-g+geom_text(aes(x=as.Date("2014-04-01"), y=value.y*0.9, label="2014年4月\n消費税増税(5%→8%)"), size=8,family="Meiryo",colour="black") 
+#1997年4月消費税  
+#2014年4月消費税  
+if(dateType!=4){taxDate3<-"2014-04-01"}else{taxDate3<-"2014-01-01"}  
+if(buf.dataset[1,1]<=as.Date(taxDate3) & tail(buf.dataset[,1],1)>=as.Date(taxDate3)){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate3)),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_text(aes(x=as.Date(taxDate3), y=value.y*0.9, label="2014年4月\n消費税導入\n(5%→8%)"), size=8,family="Meiryo",colour="black") 
 }
-if(buf.dataset[1,1]<=as.Date("2013-01-01")){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date("2013-01-01")),linetype=1,colour="#d2691e",size=2)
-  g<-g+geom_text(aes(x=as.Date("2013-01-01"), y=value.y*1.1, label="2013年1月(2012/12/26)\n第二次安倍政権発足"), size=8,family="Meiryo",colour="black") 
+#2014年4月消費税  
+#第二次安倍政権発足  
+if(dateType!=4){taxDate4<-"2013-01-01"}else{taxDate4<-"2013-01-01"}  
+if(buf.dataset[1,1]<=as.Date(taxDate4)){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate4)),linetype=1,colour="#DC143C",size=2)
+  g<-g+geom_text(aes(x=as.Date(taxDate4), y=value.y*1.6, label="2013年1月\n(2012/12/26)\n第二次安倍政権発足"), size=8,family="Meiryo",colour="black") 
 }
-if(buf.dataset[1,1]<=as.Date("2009-09-01")){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date("2009-09-01")),linetype=1,colour="#d2691e",size=2)
-  g<-g+geom_text(aes(x=as.Date("2009-09-01"), y=value.y*1.1, label="2009年9月(2009/9/16)\n民主党政権発足"), size=8,family="Meiryo",colour="black") 
+#第二次安倍政権発足  
+#民主党政権発足  
+if(dateType!=4){taxDate5<-"2009-09-01"}else{taxDate5<-"2009-01-01"}  
+if(buf.dataset[1,1]<=as.Date(taxDate5)){
+  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate5)),linetype=1,colour="#DC143C",size=2)
+  g<-g+geom_text(aes(x=as.Date(taxDate5), y=value.y*1.3, label="2009年9月\n(2009/9/16)\n民主党政権発足"), size=8,family="Meiryo",colour="black") 
 }
+#民主党政権発足  
 }  
 #消費税パート  
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
