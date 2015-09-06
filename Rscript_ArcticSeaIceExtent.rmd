@@ -1,0 +1,199 @@
+```{r}
+library(lubridate)
+library(httr)
+library(ggplot2)
+library(reshape2)
+library(scales)
+library(forecast)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+dataSource<-"北極域データアーカイブ(国立極地研究所国際北極環境研究センター)"
+```
+
+```{r}
+url<-"https://ads.nipr.ac.jp/vishop/data/graph/plot_extent_n_v2.csv"
+#データ出所:北極域データアーカイブ(国立極地研究所国際北極環境研究センター)
+buf<-content(GET(url),header=T,skip=0,na.strings=c("-9999","NA"),check.names=FALSE)
+print(head(buf))
+print(tail(buf))
+colnames(buf)
+class(buf)
+```
+
+```{r}
+startCol<-6
+preDataset<-NULL
+preDate<-NULL
+for(ccc in startCol:ncol(buf)){
+  preDataset<-append(preDataset,buf[,ccc])
+  preDate<-append(preDate,paste(colnames(buf)[ccc],"-",formatC(buf[,1],width=2,flag="0"),"-",formatC(buf[,2],width=2,flag="0"),sep=""))
+}
+dataset<-data.frame(Date=preDate,value=as.numeric(preDataset))
+nrow(dataset)
+dataset<-na.omit(dataset)
+dataset[,1]<-as.Date(dataset[,1])
+dataset[,2]<-dataset[,2]*10^-6
+colnames(dataset)[2]<-"北極海氷面積(百万平方km)"
+head(dataset)
+tail(dataset)
+```
+
+```{r}
+#only html
+setwd(pathOutput)
+menulength<-6
+orderColumn<-0
+orderDirection<-"desc" #asc desc
+dateFormat<-4 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+switch(dateFormat,
+  dateFormatType<-"",
+  dateFormatType<-"",
+  dateFormatType<-"%Y/%m",
+  dateFormatType<-"%Y/%m/%d",
+  dateFormatType<-"%Y"
+)  
+col<-list()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+htmlFile<-paste(addVer,".html",sep="")
+cat("",file=htmlFile,append=F)
+cat("<style>select {font-family: Meiryo;}</style>\n",file=htmlFile,append=T)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
+cat("<script src=\"http://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
+grandData<-NULL
+header<-NULL
+tableID<-paste("am-consulting",addVer,sep="")
+cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
+cat("\"searching\": true,",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}",file=htmlFile,append=T)
+cat("});",file=htmlFile,append=T)
+cat("});</script>",file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset)){
+  if(ccc==1){
+    switch(dateFormat,
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",dataset[,ccc],"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep=""),
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(as.Date(dataset[,ccc]),dateFormatType),"</td>",sep="")
+    )
+  }else{  
+    col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(dataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  }  
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(dataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead>",sep="")
+mainTitle<-paste("北極海氷面積(百万平方km)<br>",head(dataset[,1],1),"~",tail(dataset[,1],1),sep="")
+cat("<div style=\"text-align:center\"><b>",mainTitle,file=htmlFile,append=T)
+cat("<br>データ出所:",dataSource,"</b></div>",file=htmlFile,append=T)
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F,append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+```
+
+```{r}
+########## seasonplot
+setwd(pathOutput)
+mainTitle<-paste("北極海氷面積(百万平方km)\n",head(dataset[,1],1),"~",tail(dataset[,1],1),sep="")
+seasonData<-data.frame(dataset,month=month.abb[month(dataset[,1])])
+seasonData$month<-factor(seasonData$month,levels=month.abb)
+colnames(seasonData)[2]<-"value"
+g1<-ggplot(data=seasonData,aes(x=month,y=value))
+g1<-g1+geom_boxplot(lwd=2)
+g1<-g1+theme(plot.title=element_text(size=30,family="Meiryo"))
+g1<-g1+theme(axis.title.x=element_text(size=30)) 
+g1<-g1+theme(axis.title.y=element_text(size=25)) 
+g1<-g1+theme(axis.text.x=element_text(size=30,angle=0,hjust=0.5,vjust=0.5)) 
+g1<-g1+theme(axis.text.y=element_text(size=30)) 
+g1<-g1+ggtitle(paste(mainTitle,"\nデータ出所:",dataSource))
+g1<-g1+xlab("")
+g1<-g1+ylab(colnames(dataset)[2]) 
+ST<-Sys.time() 
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1600,height=1000)
+print(g1)
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T)
+########## seasonplot
+```
+
+```{r}
+########################################## time series ##########################################
+setwd(pathOutput)
+dateType<-1 #1:日次 2:月次 3:年次 4:character(第*週他) 
+tailNumber<-6000
+outputFolder<-1 #1:R_Data_Write,2:charts
+switch(outputFolder,
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
+pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
+dammy  
+)  
+setwd(pathOutput)
+#####################
+switch(dateType,
+  dateFormat<-"%Y/%m/%d",
+  dateFormat<-"%Y/%m",
+  dateFormat<-"%Y",
+  dateFormat<-"dammy"
+)  
+colorList<-c("blue","red")
+setwd(pathOutput)
+buf.dataset<-tail(dataset,tailNumber)
+melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])#系列が一つでも強制的にmelt
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1600,height=1000)
+g<-ggplot(data=melt.dataset,aes(x=Date,y=value,color=variable))+geom_line(size=1)
+g<-g+scale_y_continuous(labels=comma)
+g<-g+geom_smooth(data=melt.dataset,aes(x=Date,y=value),method=lm,lwd=1,color="red")
+g<-g+scale_color_manual(values=colorList) 
+g<-g+scale_fill_manual(values=colorList) 
+g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
+g<-g+theme(axis.title.x=element_text(size=30)) 
+g<-g+theme(axis.title.y=element_text(size=30)) 
+g<-g+theme(axis.text.y=element_text(size=30,angle=90)) 
+g<-g+theme(legend.text=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
+g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold"))   
+g<-g+theme(legend.position="top")          
+g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=0.5,vjust=0.5)) 
+g<-g+ggtitle(paste(mainTitle,"\nデータ出所:",dataSource))
+g<-g+scale_x_date(labels=date_format(dateFormat))
+g<-g+xlab("")
+g<-g+ylab("")
+#max line 
+max<-buf.dataset[which.max(buf.dataset[,2]),]
+g<-g+geom_vline(xintercept=as.numeric(as.Date(max[1,1])),linetype=2,colour="#d2691e",size=1)
+g<-g+geom_hline(yintercept=max[1,2],linetype=2,colour="#d2691e",size=1)
+g<-g+geom_text(aes(x=max[1,1],y=max[1,2],label=paste("最大:",as.Date(max[1,1]),max[1,2]),hjust=0),size=8,family="Meiryo",colour="black") 
+#max line 
+#min line 
+min<-buf.dataset[which.min(buf.dataset[,2]),]
+g<-g+geom_vline(xintercept=as.numeric(as.Date(min[1,1])),linetype=2,colour="#d2691e",size=1)
+g<-g+geom_hline(yintercept=min[1,2],linetype=2,colour="#d2691e",size=1)
+g<-g+geom_text(aes(x=min[1,1],y=min[1,2], label=paste("最小:",as.Date(min[1,1]),min[1,2]),hjust=1),size=8,family="Meiryo",colour="black") 
+#min line 
+print(g)
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T)
+########################################## time series ##########################################
+```
