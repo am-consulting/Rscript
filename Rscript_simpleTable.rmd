@@ -13,6 +13,7 @@ mainTitle<-"住民基本台帳人口移動報告 2015年7月(外国人を含む�
 mainTitle<-"『日本経済の変貌と量的･質的金融緩和』の抽出語出現回数表"
 mainTitle<-"被保護者調査-生活保護の被保護世帯数及び実人員(2015年6月分概数)"
 mainTitle<-"被保護者調査-生活保護の種類別にみた扶助人員(2015年6月分概数)"
+mainTitle<-"日本銀行オペレーション<br>(国債買入,国庫短期証券買入･売却,社債等買入,CP等買入,指数連動型上場投資信託受益権買入,不動産投資法人投資口買入オペレーション)"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
@@ -22,8 +23,8 @@ dataSource<-"\nデータ出所:経済産業省"
 dataSource<-"\nデータ出所:資源エネルギー庁"
 dataSource<-"\nデータ出所:法務省"
 dataSource<-"\nデータ出所:総務省"
-dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:厚生労働省"
+dataSource<-"\nデータ出所:日本銀行"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
@@ -34,8 +35,10 @@ print(tail(dataset),3)
 ```
 
 ```{r}
-menulength<-"[[-1,10,20], [\"All\",10,20]]"
-orderColumn<-1
+cnt<-1
+sumColumn<-2
+menulength<-"[[10,20,-1], [10,20,\"All\"]]"
+orderColumn<-0
 orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
@@ -50,6 +53,7 @@ cat("",file=htmlFile,append=F)
 ```{r}
 #only html
 htmldataset<-dataset
+cat("<div style=\"text-align:center\"><b>",mainTitle,"</b></div><br>",file=htmlFile,append=T)
 col<-list()
 grandData<-NULL
 header<-NULL
@@ -108,13 +112,79 @@ for(ccc in 1:ncol(dataset)){
 cat("}\n",file=htmlFile,append=T)  
 #Row created callback  
 cat("});\n",file=htmlFile,append=T)
+#calStat part-datatables  
+cat(paste("$('#",tableID,"')\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'column-sizing.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'column-visibility.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'destroy.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'draw.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'init.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'length.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'order.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'page.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'pre.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'preXhr.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'processing.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'search.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'stateLoaded.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'stateLoadParams.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'stateSaveParams.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(paste(".on( 'xhr.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
+cat(".dataTable();\n",file=htmlFile,append=T)
+#calStat part-datatables  
 cat("});</script>\n\n\n\n\n",file=htmlFile,append=T)
-cat("<div style=\"text-align:center\"><b>",mainTitle,"</b></div><br>",file=htmlFile,append=T)
+#calStat part-javascript  
+cat(paste("<script>window.onload = function(){calStat",cnt,"()};</script>\n",sep=""),file=htmlFile,append=T)
+cat("<script>\n",file=htmlFile,append=T)
+cat(paste("function calStat",cnt,"(){\n",sep=""),file=htmlFile,append=T)
+cat(paste("var sum01 = 0 , count01 = 0 , variance01 = 0, countPlus01 = 0;\n",sep=""),file=htmlFile,append=T)
+cat(paste("var sum02 = 0 , count02 = 0 , variance02 = 0, countPlus02 = 0;\n",sep=""),file=htmlFile,append=T)
+cat(paste("all = $('#",tableID," > tbody > tr');\n",sep=""),file=htmlFile,append=T)
+#対象列
+cat("all.each(function() {\n",file=htmlFile,append=T)
+cat(paste("sum01 += +$('td:eq(",sumColumn,")', this).text();\n",sep=""),file=htmlFile,append=T)
+cat("count01++;\n",file=htmlFile,append=T)
+cat("});\n",file=htmlFile,append=T)
+cat("mean01 = sum01 / count01;\n",file=htmlFile,append=T)
+cat("all.each(function() {\n",file=htmlFile,append=T)
+cat(paste("tmp = $('td:eq(",sumColumn,")', this).text()-mean01;\n",sep=""),file=htmlFile,append=T)
+cat("variance01 = variance01 + tmp*tmp;\n",file=htmlFile,append=T)
+cat(paste("if( 0<= $('td:eq(",sumColumn,")', this).text() ){countPlus01++}\n",sep=""),file=htmlFile,append=T)
+cat("});\n",file=htmlFile,append=T)
+cat("variance01 = variance01 / count01;\n",file=htmlFile,append=T)
+cat("deviation01 = Math.pow(variance01,0.5);\n",file=htmlFile,append=T)
+cat(paste("document.form1",cnt,".sum01.value",sep=""),"= sum01.toFixed(2);\n",file=htmlFile,append=T)
+cat(paste("document.form1",cnt,".mean01.value",sep=""),"= mean01.toFixed(2);\n",file=htmlFile,append=T)
+#cat(paste("document.form1",cnt,".variance01.value",sep=""),"= variance01.toFixed(2);\n",file=htmlFile,append=T)
+#cat(paste("document.form1",cnt,".deviation01.value",sep=""),"= deviation01.toFixed(2);\n",file=htmlFile,append=T)
+cat(paste("document.form1",cnt,".countPlus01.value",sep=""),"= countPlus01;\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)
+#calStat part-javascript  
+#calStat part-html  
+cat(paste("<form name=\"form1",cnt,"\">\n",sep=""),file=htmlFile,append=T)
+cat("<table width=\"90%\"><tbody>\n",file=htmlFile,append=T)
+cat("<tr>\n",file=htmlFile,append=T)
+cat(paste("<td style=\"text-align:center\" colspan=\"6\"><b>テーブル表示範囲の基本統計量 - ",colnames(htmldataset)[sumColumn+1],"</b></td>\n"),file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+cat("<tr>\n",file=htmlFile,append=T)
+cat("<td style=\"width:15%;text-align:right\" bgcolor=\"#F5F5F5\">平均値</td>\n",file=htmlFile,append=T)
+cat("<td style=\"width:15%;\"><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"mean01\" size=\"10\"></td>\n",file=htmlFile,append=T)
+cat("<td style=\"width:15%;text-align:right\" bgcolor=\"#F5F5F5\">回数</td>\n",file=htmlFile,append=T)
+cat("<td style=\"width:15%;\"><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"countPlus01\" size=\"10\"></td>\n",file=htmlFile,append=T)
+cat("<td style=\"width:15%;text-align:right\" bgcolor=\"#F5F5F5\">合計</td>\n",file=htmlFile,append=T)
+cat("<td style=\"width:15%;\"><input type=\"number\" style=\"ime-mode:disabled;text-align:right\" name=\"sum01\" size=\"10\"></td>\n",file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+cat("</tbody></table>\n",file=htmlFile,append=T)
+cat("</form>\n",file=htmlFile,append=T)
+#Reference http://stackoverflow.com/questions/12212567/jquery-calculate-average-of-column-values-and-put-it-in-each-td-of-another-co  
+#calStat part-html
 cat(dataSource,"<br>",file=htmlFile,append=T)
 cat("- 最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
 cat("- -9999は「データなし」または「データ欠損」または「NA」を意味します<br>",file=htmlFile,append=T)
 for(ccc in 1:ncol(htmldataset)){
-  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  #col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",htmldataset[,ccc],"</td>",sep="")
   grandData<-cbind(grandData,col[[ccc]])
   header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
 }
