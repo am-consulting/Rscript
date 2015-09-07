@@ -48,7 +48,7 @@ menulength<-6
 orderColumn<-0
 orderDirection<-"desc" #asc desc
 dateFormat<-4 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
-columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+columnWidth<-"{\"width\":\"40%\",\"targets\":0}"
 switch(dateFormat,
   dateFormatType<-"",
   dateFormatType<-"",
@@ -196,4 +196,41 @@ cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
     "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
     "\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T)
 ########################################## time series ##########################################
+```
+
+```{r}
+#histogram
+ST<-Sys.time()  
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1600,height=1000)
+yearlongData<-subset(dataset,colnames(buf)[startCol+1]==year(dataset[,1]) | year(dataset[,1])==colnames(buf)[ncol(buf)-1])
+yearlongData<-data.frame(year=paste("Y",year(yearlongData[,1]),sep=""),yearlongData[,-1,drop=F])
+head(yearlongData)
+yearlongData<-melt(yearlongData,id="year")
+g<-ggplot()
+g<-g+geom_histogram(data=yearlongData,aes(x=value,fill=year),position="identity",binwidth=0.5,alpha=0.5,colour="black")
+g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
+g<-g+theme(axis.title.x=element_text(size=30,family="Meiryo")) 
+g<-g+theme(axis.title.y=element_text(size=30,family="Meiryo")) 
+g<-g+theme(axis.text.y=element_text(size=30,angle=90,family="Meiryo")) 
+g<-g+theme(legend.text=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
+g<-g+theme(legend.title=element_text(colour="white",size=0,face="bold",family="Meiryo"))   
+g<-g+theme(legend.position="right")          
+g<-g+theme(axis.text.x=element_text(size=20,angle=0,hjust=0.5,vjust=0.5,family="Meiryo")) 
+g<-g+ggtitle(paste(mainTitle,"\nデータ出所:",dataSource))
+g<-g+xlab(colnames(dataset)[2])
+g<-g+ylab("頻度")
+g<-g+scale_x_continuous(breaks=seq(floor(min(yearlongData[,3])),ceiling(max(yearlongData[,3])),by=0.5))
+print(g)
+#Example of Message
+#Using year as id variables
+#No id variables; using all as measure variables
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T)
+#histogram
 ```
