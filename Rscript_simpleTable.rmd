@@ -3,6 +3,7 @@ library(lubridate)
 username<-Sys.info()['user']
 SD<-Sys.Date()
 needRightRow<-1
+needCalStat<-0
 ```
 
 ```{r}
@@ -14,6 +15,7 @@ mainTitle<-"『日本経済の変貌と量的･質的金融緩和』の抽出�
 mainTitle<-"被保護者調査-生活保護の被保護世帯数及び実人員(2015年6月分概数)"
 mainTitle<-"被保護者調査-生活保護の種類別にみた扶助人員(2015年6月分概数)"
 mainTitle<-"日本銀行オペレーション<br>(国債買入,国庫短期証券買入･売却,社債等買入,CP等買入,指数連動型上場投資信託受益権買入,不動産投資法人投資口買入オペレーション)"
+mainTitle<-"日本の学校基本調査 卒業後の状況調査(平成27年3月卒業) 大学院の専攻別"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
@@ -25,6 +27,7 @@ dataSource<-"\nデータ出所:法務省"
 dataSource<-"\nデータ出所:総務省"
 dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:日本銀行"
+dataSource<-"\nデータ出所:文部科学省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
@@ -39,7 +42,7 @@ cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
 orderColumn<-0
-orderDirection<-"desc" #asc desc
+orderDirection<-"asc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
@@ -113,6 +116,7 @@ cat("}\n",file=htmlFile,append=T)
 #Row created callback  
 cat("});\n",file=htmlFile,append=T)
 #calStat part-datatables  
+if(needCalStat==1){
 cat(paste("$('#",tableID,"')\n",sep=""),file=htmlFile,append=T)
 cat(paste(".on( 'column-sizing.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
 cat(paste(".on( 'column-visibility.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
@@ -131,9 +135,11 @@ cat(paste(".on( 'stateLoadParams.dt', function () {calStat",cnt,"()} )\n",sep=""
 cat(paste(".on( 'stateSaveParams.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
 cat(paste(".on( 'xhr.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlFile,append=T)
 cat(".dataTable();\n",file=htmlFile,append=T)
+}
 #calStat part-datatables  
 cat("});</script>\n\n\n\n\n",file=htmlFile,append=T)
 #calStat part-javascript  
+if(needCalStat==1){
 cat(paste("<script>window.onload = function(){calStat",cnt,"()};</script>\n",sep=""),file=htmlFile,append=T)
 cat("<script>\n",file=htmlFile,append=T)
 cat(paste("function calStat",cnt,"(){\n",sep=""),file=htmlFile,append=T)
@@ -179,6 +185,7 @@ cat("</tbody></table>\n",file=htmlFile,append=T)
 cat("</form>\n",file=htmlFile,append=T)
 #Reference http://stackoverflow.com/questions/12212567/jquery-calculate-average-of-column-values-and-put-it-in-each-td-of-another-co  
 #calStat part-html
+}  
 cat(dataSource,"<br>",file=htmlFile,append=T)
 cat("- 最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
 cat("- -9999は「データなし」または「データ欠損」または「NA」を意味します<br>",file=htmlFile,append=T)
