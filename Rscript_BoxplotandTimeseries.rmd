@@ -129,9 +129,9 @@ dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 #dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 #dataSource<-"\nデータ出所:The U.S. Census Bureau"
 dataSource<-"\nデータ出所:内閣府"
-dataSource<-"\nデータ出所:日本銀行"
 #dataSource<-"\nデータ出所:株式会社東京証券取引所"
 dataSource<-"\nデータ出所:経済産業省"
+dataSource<-"\nデータ出所:日本銀行"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
@@ -160,7 +160,7 @@ for(ccc in 2:ncol(dataset)){
   funBoxplot()
   funARIMA()
   #funARFIMA()
-  funHeatMap()
+  #funHeatMap()
   funAmcharts()
   funSpeech()
 }
