@@ -17,7 +17,7 @@ fun.readData<-function(){
   dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
   dataset[,1]<-as.Date(dataset[,1])
   monthly<<-2 #日次
-  if(unique(day(dataset[,1]))==1){#月次データの日付は月中に変更
+  if(length(unique(day(dataset[,1])))==1){#月次データの日付は月中に変更
     dataset[,1]<-as.Date(paste(year(dataset[,1]),"-",month(dataset[,1]),"-",floor(days_in_month(dataset[,1])/2),sep=""))
     monthly<<-1 #月次
   }
@@ -125,18 +125,19 @@ tail(dataset,12)
 ```{r}
 commonTitle<-""
 #dataSource<-"\nデータ出所:国土交通省"
-dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 #dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 #dataSource<-"\nデータ出所:The U.S. Census Bureau"
-dataSource<-"\nデータ出所:内閣府"
 #dataSource<-"\nデータ出所:株式会社東京証券取引所"
 dataSource<-"\nデータ出所:経済産業省"
 dataSource<-"\nデータ出所:日本銀行"
+dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis,株式会社東京証券取引所"
+dataSource<-"\nデータ出所:内閣府"
 forcedlevel.type<-0#レベル系列のチャートタイプ　0:as is , 1:line , 2:bar
 fun.readData()
 ```
 
 ```{r}
+datasetTail<-3000
 tttS<-1
 tttE<-1
 inverse<-2 #逆サイクル:1,非逆サイクル:2
@@ -150,6 +151,7 @@ switch(monthly,
   dateFormat<-"%Y/%m",
   dateFormat<-"%Y/%m/%d"
 )
+dataset<-tail(dataset,datasetTail)
 funSuccessiveCabinets()
 for(ccc in 2:ncol(dataset)){
   invisible(replicate(20, gc()))
@@ -186,7 +188,7 @@ cat("\"type\": \"serial\",\n",file=htmlFile,append=T)
 cat("\"theme\": \"light\",\n",file=htmlFile,append=T)
 cat("\"dataProvider\": [\n",file=htmlFile,append=T)
 #data part  
-amchartsData<-data.frame(tmp.dataset[-1,1],diff(tmp.dataset[,2]))
+amchartsData<-data.frame(tmp.dataset[-1,1],round(diff(tmp.dataset[,2]),10))
 for(rrr in 1:nrow(amchartsData)){
   if(0<=amchartsData[rrr,2]){colType<-"#4169E1"}else{colType<-"#FF0000"}
   if(rrr!=nrow(amchartsData)){  
