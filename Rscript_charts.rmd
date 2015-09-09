@@ -71,13 +71,11 @@ consumptionTax<-1
 if(imfPCP==0){
 dateType<-2 #1:日次 2:月次 3:character(第*週他) 4:年次
 #mainTitle<-"IMF Primary Commodity Prices - "
-#mainTitle<-"預金・貸出合計 - "
 mainTitle<-"景気動向指数個別一致系列 - "
 mainTitle<-"日本の外貨準備等状況 - "
 mainTitle<-"日本の消費動向調査 - "
 mainTitle<-"日本の建設工事受注動態統計調査(単位:兆円) - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
-mainTitle<-"日本のマネーストック - "
 mainTitle<-"日本の国内企業物価指数 - "
 mainTitle<-"日本の機械受注統計調査(機械別受注額、原系列、億円) - "
 mainTitle<-"日本の国内総生産 - "
@@ -103,6 +101,8 @@ mainTitle<-"日本の申告所得税額 - "
 mainTitle<-"日本の源泉所得税課税状況 - "
 mainTitle<-"日本の出生数及び合計特殊出生率 - "
 mainTitle<-"日本の国際収支 - "
+mainTitle<-"預金・貸出合計 - "
+mainTitle<-"日本のマネーストック - "
 dataSource<-"\nData Source:経済産業省"
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
@@ -115,14 +115,14 @@ dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:日本銀行"
-chartType<-2 #1:line , 2:bar
-fitType<-3 #1:lm , 2:loess , 3:none
+chartType<-1 #1:line , 2:bar
+fitType<-2 #1:lm , 2:loess , 3:none
 }  
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
 outputFolder<-1 #1:R_Data_Write,2:charts
-autoChartType<-2
+autoChartType<-0
 if(mainTitle=="週間石油在庫統計 - " | mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){
   outputFolder<-2 #1:R_Data_Write,2:charts
   autoChartType<-1
@@ -274,14 +274,14 @@ if(buf.dataset[1,1]<=as.Date(taxDate3) & tail(buf.dataset[,1],1)>=as.Date(taxDat
 if(dateType!=4){taxDate4<-"2013-01-01"}else{taxDate4<-"2013-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate4) & tail(buf.dataset[,1],1)>=as.Date(taxDate4)){
   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate4)),linetype=1,colour="#DC143C",size=2)
-  g<-g+geom_text(aes(x=as.Date(taxDate4), y=value.y*1.6, label="2013年1月\n(2012/12/26)\n第二次安倍政権発足"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_text(aes(x=as.Date(taxDate4), y=value.y*1.0, label="2013年1月\n(2012/12/26)\n第二次安倍政権\n発足"), size=8,family="Meiryo",colour="black") 
 }
 #第二次安倍政権発足  
 #民主党政権発足  
 if(dateType!=4){taxDate5<-"2009-09-01"}else{taxDate5<-"2009-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate5)){
   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate5)),linetype=1,colour="#DC143C",size=2)
-  g<-g+geom_text(aes(x=as.Date(taxDate5), y=value.y*1.3, label="2009年9月\n(2009/9/16)\n民主党政権発足"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_text(aes(x=as.Date(taxDate5), y=value.y*1.0, label="2009年9月\n(2009/9/16)\n民主党政権\n発足"), size=8,family="Meiryo",colour="black") 
 }
 #民主党政権発足  
 }  
