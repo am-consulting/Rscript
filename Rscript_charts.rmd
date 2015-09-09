@@ -66,7 +66,8 @@ if(colnames(dataset)[1]=="Date"){
 }
 setwd(pathOutput)
 grobTableTail<-13
-needCSV<-0
+csvTail<-100000
+needCSV<-1
 consumptionTax<-1
 if(imfPCP==0){
 dateType<-2 #1:日次 2:月次 3:character(第*週他) 4:年次
@@ -75,7 +76,6 @@ mainTitle<-"景気動向指数個別一致系列 - "
 mainTitle<-"日本の外貨準備等状況 - "
 mainTitle<-"日本の消費動向調査 - "
 mainTitle<-"日本の建設工事受注動態統計調査(単位:兆円) - "
-mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 mainTitle<-"日本の国内企業物価指数 - "
 mainTitle<-"日本の機械受注統計調査(機械別受注額、原系列、億円) - "
 mainTitle<-"日本の国内総生産 - "
@@ -103,7 +103,7 @@ mainTitle<-"日本の出生数及び合計特殊出生率 - "
 mainTitle<-"日本の国際収支 - "
 mainTitle<-"預金・貸出合計 - "
 mainTitle<-"日本のマネーストック - "
-dataSource<-"\nData Source:経済産業省"
+mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:内閣府"
@@ -115,6 +115,7 @@ dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:日本銀行"
+dataSource<-"\nData Source:経済産業省"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
@@ -367,8 +368,9 @@ tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA
 dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(dir.list)
 csvFile<-paste(colnames(dataset[,c(1,ccc)])[2],".csv",sep="")    
-write.csv(tail(dataset[,c(1,ccc)],30),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 }  
+#CSV part
 }
 setwd(pathOutput)
 cat("<script>\n",file=htmlFile,append=T)
