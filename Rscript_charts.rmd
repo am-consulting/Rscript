@@ -52,6 +52,12 @@ imfPCP<-1
 ```{r}
 fun.readData()
 imfPCP<-0
+inverse<-2 #逆サイクル:1,非逆サイクル:2
+needWeekly<-1
+weeklyText<-"weeklyResult.html"  
+setwd(paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""))
+#cat("",file=weeklyText,append=F)
+setwd(pathOutput)
 # =YEAR(B16)&"年"&MONTH(B16)&"月第"&WEEKNUM(B16,1)-WEEKNUM(DATE(YEAR(B16),MONTH(B16),1),1)+1&"週"
 #↓規模別・業種別PER・PBR（連結・単体）一覧
 # =TEXT(ROW()-12,"00")&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(MID($A13,3,LEN($A13)),CHAR(32),""),CHAR(160),""),"・","."),"、",".")
@@ -95,35 +101,40 @@ mainTitle<-"日本のマネタリーベース(兆円,%) - "
 mainTitle<-"利益剰余金(全産業、全規模、兆円) - "
 mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"日本の建設労働需給調査(%) - "
-mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"日本の法人税課税状況 - "
 mainTitle<-"日本の申告所得税額 - "
 mainTitle<-"日本の源泉所得税課税状況 - "
 mainTitle<-"日本の出生数及び合計特殊出生率 - "
-mainTitle<-"日本の国際収支 - "
 mainTitle<-"預金・貸出合計 - "
 mainTitle<-"日本のマネーストック - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
+mainTitle<-"景気動向指数"
+mainTitle<-"日本の国際収支 - "
+mainTitle<-"日本の景気ウォッチャー調査 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
-dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:国土交通省"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
-dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:経済産業省"
+dataSource<-"\nData Source:財務省"
+dataSource<-"\nData Source:日本銀行"
+dataSource<-"\nData Source:内閣府"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
+autoChartType<-1
 tailNumber<-240
 annotation<-1 # need:1,no need:2
 perpbr<-0
 outputFolder<-1 #1:R_Data_Write,2:charts
-autoChartType<-0
+if(needWeekly==1){
+outputFolder<-3 #3:weeklyResult
+}
 if(mainTitle=="週間石油在庫統計 - " | mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){
   outputFolder<-2 #1:R_Data_Write,2:charts
   autoChartType<-1
@@ -131,6 +142,7 @@ if(mainTitle=="週間石油在庫統計 - " | mainTitle=="対外及び対内証�
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
+pathOutput<-paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""),
 dammy  
 )  
 setwd(pathOutput)
@@ -346,7 +358,159 @@ if(perpbr==1){
   g<-g+coord_flip()
   g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
   g<-g+theme(axis.text.y=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
+}
+#weekly summary 
+if(needWeekly==1){
+sentence<-paste(colnames(buf.dataset)[2],"について",sep="")  
+rankList<-list()
+allSentence<-""
+rankData<-buf.dataset
+rankRange<-c(6,12,60,120,180,240,nrow(rankData))
+rankRange<-head(rankRange,tail(rank(rankRange),1)-1)
+if(inverse!=1){#非逆サイクルの場合
+  rankData[,2]<-rankData[,2]*-1
+}
+for(rrr in 1:length(rankRange)){
+  rankList[[rrr]]<-rank(tail(rankData[,2],rankRange[rrr]),ties.method="min")
 }  
+rankList[[rrr+1]]<-rank(tail(rankData[,2],nrow(rankData)),ties.method="min")
+sentence<-paste(sentence,format(tail(rankData[,1],1),"%Y年%m月の結果は"),round(abs(tail(rankData[,2],1)),6),"です。",sep="")
+sentence<-paste(sentence,"この結果は、",sep="")
+rankSentence<-""
+for(rrr in 1:(length(rankList)-1)){
+  if(inverse!=1){
+    rankSentence<-paste(rankSentence,"過去",rankRange[rrr],"ヶ月で",tail(rankList[[rrr]],1),"番目に高く、",sep="")
+  }else{
+    rankSentence<-paste(rankSentence,"過去",rankRange[rrr],"ヶ月で",tail(rankList[[rrr]],1),"番目に低く、",sep="")
+  }  
+}
+if(inverse!=1){
+  rankSentence<-paste(rankSentence,"対象期間",nrow(rankData),"ヶ月中、",tail(rankList[[length(rankList)]],1),"番目の高さです。",sep="")
+}else{  
+  rankSentence<-paste(rankSentence,"対象期間",nrow(rankData),"ヶ月中、",tail(rankList[[length(rankList)]],1),"番目の低さです。",sep="")
+}
+sentence<-paste(sentence,rankSentence,sep="")
+successiveCabinets<-list()  
+funSuccessiveCabinets<-function(){
+successiveCabinets[[1]]<-c(
+"1937-6-4","近衛文麿",
+"1939-1-5","平沼騏一郎",
+"1939-8-30","阿部信行",
+"1940-1-16","米内光政",
+"1940-7-22","近衛文麿(2次)",
+"1941-10-18","東條英機",
+"1944-7-22","小磯國昭",
+"1945-4-7","鈴木貫太郎",
+"1945-8-17","東久邇宮稔彦王",
+"1945-10-9","幣原喜重郎",
+"1946-5-22","吉田茂",
+"1947-5-24","片山哲",
+"1948-3-10","芦田均",
+"1948-10-15","吉田茂(2-5次)",
+"1954-12-10","鳩山一郎",
+"1956-12-23","石橋湛山",
+"1957-2-25","岸信介",
+"1960-7-19","池田勇人",
+"1964-11-9","佐藤栄作",
+"1972-7-7","田中角栄",
+"1974-12-9","三木武夫",
+"1976-12-24","福田赳夫",
+"1978-12-7","大平正芳",
+"1980-7-17","鈴木善幸",
+"1982-11-27","中曽根康弘",
+"1987-11-6","竹下登",
+"1989-6-3","宇野宗佑",
+"1989-8-10","海部俊樹",
+"1991-11-5","宮沢喜一",
+"1993-8-9","細川護熙",
+"1994-4-28","羽田孜",
+"1994-6-30","村山富市",
+"1996-1-11","橋本龍太郎",
+"1998-7-30","小渕恵三",
+"2000-4-5","森喜朗",
+"2001-4-26","小泉純一郎",
+"2006-9-26","安倍晋三(1次)",
+"2007-9-26","福田康夫",
+"2008-9-24","麻生太郎",
+"2009-9-16","鳩山由紀夫",
+"2010-6-8","菅直人",
+"2011-9-2","野田佳彦",
+"2012-12-26","安倍晋三(2次-)"
+)
+successiveCabinets[[2]]<-c(
+"1937-7-27","結城豊太郎",
+"1944-3-18","渋沢敬三",
+"1945-10-9","新木榮吉",
+"1946-6-1","一万田尚登",
+"1954-12-11","新木榮吉(2次)",
+"1956-11-30","山際正道",
+"1964-12-17","宇佐美洵",
+"1969-12-17","佐々木直",
+"1974-12-17","森永貞一郎",
+"1979-12-17","前川春雄",
+"1984-12-17","澄田智",
+"1989-12-17","三重野康",
+"1994-12-17","松下康雄",
+"1998-3-20","速水優",
+"2003-3-20","福井俊彦",
+"2008-4-9","白川方明",
+"2013-3-20","黒田東彦"
+)
+successiveCabinets[[3]]<-c(
+"1933-3-4","Franklin Delano Roosevelt",  
+"1945-4-12","Harry S. Truman",
+"1953-1-20","Dwight David Eisenhower",
+"1961-1-20","John Fitzgerald Kennedy",
+"1963-11-22","Lyndon Baines Johnson",
+"1969-1-20","Richard Milhouse Nixon",
+"1974-8-9","Gerald Rudolph Ford Jr.",
+"1977-1-20","James Earl Carter",
+"1981-1-20","Ronald Wilson Reagan",
+"1989-1-20","George H.W Bush",
+"1993-1-20","Bill Clinton",
+"2001-1-20","George W. Bush",
+"2009-1-20","Barack Obama"
+)
+successiveCabinets[[4]]<-c(
+"1934-11-15","Marriner Eccles",
+"1948-4-15","Thomas B. McCabe",
+"1951-4-2","William M. Martin",
+"1970-2-1","Arthur F.Burns",
+"1978-3-8","G.William Miller",
+"1987-8-11","Alan Greenspan",
+"2006-2-1","Ben S.Bernanke",
+"2014-2-1","Janet Yellen"
+)
+for(ttt in 1:length(successiveCabinets)){
+  tmp<-successiveCabinets[[ttt]]
+  inaugural.date<-as.Date(tmp[seq(1,length(tmp),by=2)])
+  resignation.date<-c((inaugural.date-1)[-1],Sys.Date()+31) # 最後のSys.Date()+31は現職用
+  Name<-tmp[seq(2,length(tmp),by=2)]
+  successiveCabinets[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
+  successiveCabinets[[ttt]][,3]<-ordered(successiveCabinets[[ttt]][,3],levels=successiveCabinets[[ttt]][,3][1:nrow(successiveCabinets[[ttt]])])
+  order(successiveCabinets[[ttt]][,3])
+  successiveCabinets[[ttt]]<<-successiveCabinets[[ttt]] #caution
+}
+}  
+funSuccessiveCabinets()  
+maxData<-buf.dataset[which.max(buf.dataset[,2]),]  
+minData<-buf.dataset[which.min(buf.dataset[,2]),]
+maxResult<-subset(
+  successiveCabinets[[1]],
+  format(maxData[1,1],"%Y%m")>=format(successiveCabinets[[1]][,1],"%Y%m") & 
+  format(maxData[1,1],"%Y%m")<=format(successiveCabinets[[1]][,2],"%Y%m")  
+)  
+minResult<-subset(
+  successiveCabinets[[1]],
+  format(minData[1,1],"%Y%m")>=format(successiveCabinets[[1]][,1],"%Y%m") & 
+  format(minData[1,1],"%Y%m")<=format(successiveCabinets[[1]][,2],"%Y%m")  
+)  
+maxSentence<-paste("過去",nrow(rankData),"ヶ月の最大値は",as.vector(maxResult[,3]),"政権時の",maxData[1,2],sep="")  
+minSentence<-paste("、最小値は",as.vector(minResult[,3]),"政権時の",minData[1,2],"です。\n\n\n\n",sep="")  
+sentence<-paste(sentence,maxSentence,minSentence,sep="")  
+cat(sentence,file=weeklyText,append=T) 
+}
+#weekly summary  
 cat(paste("\n<div id=\"amccchart",ccc,"\" style=\"text-align:center\"><b>",colnames(buf.dataset)[2],"</b>\n",sep=""),file=htmlFile,append=T)
 cat(paste("<br><select id=\"chartSelect",ccc,"\">\n",sep=""),file=htmlFile,append=T)
 cat("<option value=\"\">Selecet a chart</option>\n",file=htmlFile,append=T)
