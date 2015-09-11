@@ -17,6 +17,8 @@ mainTitle<-"被保護者調査-生活保護の種類別にみた扶助人員(201
 mainTitle<-"日本銀行オペレーション<br>(国債買入,国庫短期証券買入･売却,社債等買入,CP等買入,指数連動型上場投資信託受益権買入,不動産投資法人投資口買入オペレーション)"
 mainTitle<-"日本の学校基本調査 卒業後の状況調査(平成27年3月卒業) 大学院の専攻別"
 mainTitle<-"日経平均株価"
+mainTitle<-"都道府県別建設工事受注高前年同月比"
+mainTitle<-"都道府県別法人税(法人所得金額)"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
@@ -30,6 +32,8 @@ dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:文部科学省"
 dataSource<-"\nデータ出所:株式会社東京証券取引所"
+dataSource<-"\nデータ出所:国土交通省"
+dataSource<-"\nデータ出所:国税庁"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
@@ -44,7 +48,7 @@ print(tail(dataset),3)
 cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
-orderColumn<-0
+orderColumn<-1
 orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
