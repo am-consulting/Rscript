@@ -195,9 +195,11 @@ for(ccc in 1:length(currency)){
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1920,height=1080)
-  mainTitle<-paste(currency[ccc],":",unit[ccc]," , Period:",first(tmp[,1]),"-",last(tmp[,1]),
-    "\n上段:原数値コントラクト , 下段:前週差 , value:コントラクト , Data Source:U.S.Commodity Futures Trading Commission")
+  mainTitle<-paste("\n",currency[ccc],":",unit[ccc]," , Period:",first(tmp[,1]),"-",last(tmp[,1]),
+    "\n上段:原数値コントラクト , 下段:前週差 , 単位:コントラクト , Data Source:U.S.Commodity Futures Trading Commission")
   grid.arrange(g1,g3,g5,g2,g4,g6,nrow=2,main=textGrob(mainTitle,gp=gpar(fontsize=29, fontfamily="Meiryo")))
   dev.off()
+#テキスト出力パート  
+#テキスト出力パート  
 }
 ```
