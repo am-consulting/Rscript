@@ -60,6 +60,7 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 ```
 
 ```{r}
+cftcText<-"cftcResult.html"
 pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
 folder.path<-file.path(pathInput)
 setwd(folder.path)
@@ -199,7 +200,38 @@ for(ccc in 1:length(currency)){
     "\n上段:原数値コントラクト , 下段:前週差 , 単位:コントラクト , Data Source:U.S.Commodity Futures Trading Commission")
   grid.arrange(g1,g3,g5,g2,g4,g6,nrow=2,main=textGrob(mainTitle,gp=gpar(fontsize=29, fontfamily="Meiryo")))
   dev.off()
-#テキスト出力パート  
+#テキスト出力パート
+if(regexpr("japanese",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"日本円"}
+if(regexpr("euro",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"ユーロ"}
+if(regexpr("australian",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"豪ドル"}
+if(regexpr("british",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"イギリスポンド"}
+if(regexpr("swiss",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"スイスフラン"}
+if(regexpr("new",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"ニュージーランドドル"}
+if(regexpr("canadian",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"カナダドル"}
+if(regexpr("russian",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"ロシアルーブル"}
+if(regexpr("mexican",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"メキシコペソ"}
+if(regexpr("real",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"ブラジルレアル"}
+if(regexpr("gold",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"ゴールド"}
+cftcResult<-paste(
+  "直近、",
+  format(tail(plotData[[1]],1)[1,1],"%Y年%m月%d日"),
+  "の",
+  textObjCurrency,
+  "について、ロングポジション数は",
+  tail(plotData[[1]],1)[1,2],
+  "、ショートポジション数は",
+  tail(plotData[[3]],1)[1,2],
+  "、ネットポジション数は",
+  tail(plotData[[5]],1)[1,2],
+  "、ネットポジション数の前週差は",
+  tail(plotData[[6]],1)[1,2],
+  "、過去",
+  nrow(plotData[[5]]),
+  "週分のネットポジション数を、プラス値からマイナス値へと降順に並べ替えた場合、直近のネットポジション数は",
+  tail(rank((plotData[[5]][,2])*-1,ties.method="min"),1),
+  "番目となります。 https://github.com/am-consulting/CSVDataAtGitHub/blob/master/",csvFile," (Data Source:CFTC)\n\n",
+  sep="")
+  cat(cftcResult,file=cftcText,append=T)
 #テキスト出力パート  
 }
 ```
