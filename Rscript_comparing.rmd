@@ -7,6 +7,7 @@ library(reshape)
 library(tseries)
 library(quantmod)
 library(PerformanceAnalytics)
+library(RCurl)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
@@ -15,7 +16,7 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 dataset<-list()
 fun.readData<-function(){
   cnt<<-cnt+1
-  dataset[[cnt]]<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"))
+  dataset[[cnt]]<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－","#N/A"),check.names=FALSE)
   print(head(dataset[[cnt]]))
   print(tail(dataset[[cnt]]))
   dataset[[cnt]]<<-dataset[[cnt]] # caution
@@ -31,6 +32,25 @@ funPreTitle<-function(){
   preTitle<<-preTitle
 }
 cnt<-0
+```
+
+```{r}
+#基本データの読み込み
+target<-4
+url<-list()
+url[[1]]<-"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/basicData/monetarybaseJapan.csv"
+url[[2]]<-"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/basicData/moneystockM2Japan.csv"
+url[[3]]<-"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/basicData/EXJPUS.csv"
+url[[4]]<-"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/basicData/NIKKEI225.csv"
+cnt<-cnt+1
+tmp<-getURL(url[[target]])
+dataset[[cnt]]<-read.csv(text=tmp,header=T,skip=0,na.strings=c("-9999","NA","#N/A"),check.names=FALSE)
+dataset[[cnt]][,1]<-as.Date(dataset[[cnt]][,1])
+print(head(dataset[[cnt]]))
+print(tail(dataset[[cnt]]))
+colnames(dataset[[cnt]])
+class(dataset[[cnt]])
+#基本データの読み込み
 ```
 
 ```{r}
@@ -143,6 +163,63 @@ png(file=png.file,width=1920,height=1080)
 grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
 dev.off()
 pngFile01<-png.file#ソロスチャート用
+```
+
+```{r}
+#前年同月比パート
+mainTitle<-paste("\n前年同月比(%)と単位根検定(calculated by adf.test{tseries}-R package)\n",format(head(allData[,1],1),"%Y/%m"),"-",format(tail(allData[,1],1),"%Y/%m"))
+plotText1<-NULL
+originalSeries<-(tail(allData[,2],-12)-head(allData[,2],-12))/head(allData[,2],-12)*100
+result<-capture.output(adf.test(originalSeries))
+for(ttt in 1:length(result)){plotText1<-paste(plotText1,result[ttt],"\n")}
+y0<-min(originalSeries)
+y1<-max(originalSeries)
+#####################################
+g1<-ggplot()
+g1<-g1+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g1<-g1+geom_line(aes(x=tail(allData[,1],-12),y=originalSeries),size=1)
+g1<-g1+geom_smooth(aes(x=tail(allData[,1],-12),y=originalSeries),method=loess,color="red")
+g1<-g1+ggtitle(paste(colnames(allData)[2]))
+g1<-g1+xlab("") 
+g1<-g1+ylab("") 
+g1<-g1+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo",angle=90,hjust=0.5))          
+g1<-g1+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
+g1<-g1+scale_x_date(labels=date_format("%Y/%m"))
+g1<-g1+annotate("text",x=allData[1,1],y=y1+(y1-y0)/5,label=plotText1,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
+#####################################
+plotText2<-NULL
+originalSeries<-(tail(allData[,3],-12)-head(allData[,3],-12))/head(allData[,3],-12)*100
+result<-capture.output(adf.test(originalSeries))
+for(ttt in 1:length(result)){plotText2<-paste(plotText2,result[ttt],"\n")}
+y0<-min(originalSeries)
+y1<-max(originalSeries)
+#####################################
+g2<-ggplot()
+g2<-g2+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
+g2<-g2+geom_line(aes(x=tail(allData[,1],-12),y=originalSeries),size=1)
+g2<-g2+geom_smooth(aes(x=tail(allData[,1],-12),y=originalSeries),method=loess,color="red")
+g2<-g2+ggtitle(paste(colnames(allData)[3]))
+g2<-g2+xlab("") 
+g2<-g2+ylab("") 
+g2<-g2+theme(axis.text.x=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(axis.text.y=element_text(size=30,face="bold",family="Meiryo",angle=90,hjust=0.5))          
+g2<-g2+theme(axis.title.x=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(axis.title.y=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+theme(title=element_text(size=30,face="bold",family="Meiryo"))          
+g2<-g2+scale_x_date(labels=date_format("%Y/%m"))
+g2<-g2+annotate("text",x=allData[1,1],y=y1+(y1-y0)/5,label=plotText2,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
+setwd(pathOutput)
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
+dev.off()
+#pngFile01<-png.file#ソロスチャート用
+#前年同月比パート
 ```
 
 ```{r}
