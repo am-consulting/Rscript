@@ -32,24 +32,27 @@ funPreTitle<-function(){
   preTitle<<-preTitle
 }
 cnt<-0
+sorosChart<-0
 ```
 
 ```{r}
 #基本データの読み込み
-target<-4
 url<-list()
 url[[1]]<-"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/basicData/monetarybaseJapan.csv"
 url[[2]]<-"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/basicData/moneystockM2Japan.csv"
 url[[3]]<-"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/basicData/EXJPUS.csv"
 url[[4]]<-"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/basicData/NIKKEI225.csv"
+target<-c(3,4)
+for(uuu in target){
 cnt<-cnt+1
-tmp<-getURL(url[[target]])
+tmp<-getURL(url[[uuu]])
 dataset[[cnt]]<-read.csv(text=tmp,header=T,skip=0,na.strings=c("-9999","NA","#N/A"),check.names=FALSE)
 dataset[[cnt]][,1]<-as.Date(dataset[[cnt]][,1])
 print(head(dataset[[cnt]]))
 print(tail(dataset[[cnt]]))
 colnames(dataset[[cnt]])
 class(dataset[[cnt]])
+}
 #基本データの読み込み
 ```
 
@@ -67,6 +70,7 @@ colnames(dataset[[cnt]])[2]<-preTitle
 
 ```{r}
 #ソロスチャート用チャンク
+sorosChart<-1
 exSource<-list()
 exSource[[1]]<-c("FRED",1,"AMBNS","EXJPUS")
 for(lll in 1:length(exSource)){
@@ -163,13 +167,20 @@ png(file=png.file,width=1920,height=1080)
 grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
 dev.off()
 pngFile01<-png.file#ソロスチャート用
+funNormal()
 ```
 
 ```{r}
 #前年同月比パート
 mainTitle<-paste("\n前年同月比(%)と単位根検定(calculated by adf.test{tseries}-R package)\n",format(head(allData[,1],1),"%Y/%m"),"-",format(tail(allData[,1],1),"%Y/%m"))
+yyExplain<-(tail(allData[,2],-12)-head(allData[,2],-12))/head(allData[,2],-12)*100
+yyObject<-(tail(allData[,3],-12)-head(allData[,3],-12))/head(allData[,3],-12)*100
+bufColnames<-paste("前年同月比(%).",colnames(allData),sep="")
+allData<-data.frame(Date=tail(allData[,1],-12),yyExplain,yyObject)
+colnames(allData)<-c("Date",bufColnames[2:3])
+bufColnames<-colnames(allData)
 plotText1<-NULL
-originalSeries<-(tail(allData[,2],-12)-head(allData[,2],-12))/head(allData[,2],-12)*100
+originalSeries<-allData[,2]
 result<-capture.output(adf.test(originalSeries))
 for(ttt in 1:length(result)){plotText1<-paste(plotText1,result[ttt],"\n")}
 y0<-min(originalSeries)
@@ -177,8 +188,8 @@ y1<-max(originalSeries)
 #####################################
 g1<-ggplot()
 g1<-g1+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
-g1<-g1+geom_line(aes(x=tail(allData[,1],-12),y=originalSeries),size=1)
-g1<-g1+geom_smooth(aes(x=tail(allData[,1],-12),y=originalSeries),method=loess,color="red")
+g1<-g1+geom_line(data=allData,aes(x=allData[,1],y=allData[,2]),size=1)
+g1<-g1+geom_smooth(data=allData,aes(x=allData[,1],y=allData[,2]),method=loess,color="red")
 g1<-g1+ggtitle(paste(colnames(allData)[2]))
 g1<-g1+xlab("") 
 g1<-g1+ylab("") 
@@ -191,7 +202,7 @@ g1<-g1+scale_x_date(labels=date_format("%Y/%m"))
 g1<-g1+annotate("text",x=allData[1,1],y=y1+(y1-y0)/5,label=plotText1,size=8,family="Meiryo",hjust=0,vjust=0.9,col="black")
 #####################################
 plotText2<-NULL
-originalSeries<-(tail(allData[,3],-12)-head(allData[,3],-12))/head(allData[,3],-12)*100
+originalSeries<-allData[,3]
 result<-capture.output(adf.test(originalSeries))
 for(ttt in 1:length(result)){plotText2<-paste(plotText2,result[ttt],"\n")}
 y0<-min(originalSeries)
@@ -199,8 +210,8 @@ y1<-max(originalSeries)
 #####################################
 g2<-ggplot()
 g2<-g2+scale_y_continuous(labels=comma,limits=c(y0,y1+(y1-y0)/5))
-g2<-g2+geom_line(aes(x=tail(allData[,1],-12),y=originalSeries),size=1)
-g2<-g2+geom_smooth(aes(x=tail(allData[,1],-12),y=originalSeries),method=loess,color="red")
+g2<-g2+geom_line(data=allData,aes(x=allData[,1],y=allData[,3]),size=1)
+g2<-g2+geom_smooth(data=allData,aes(x=allData[,1],y=allData[,3]),method=loess,color="red")
 g2<-g2+ggtitle(paste(colnames(allData)[3]))
 g2<-g2+xlab("") 
 g2<-g2+ylab("") 
@@ -218,8 +229,9 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1920,height=1080)
 grid.arrange(g1,g2,ncol=2,main=textGrob(mainTitle,gp=gpar(fontsize=40,fontfamily="Meiryo")))
 dev.off()
-#pngFile01<-png.file#ソロスチャート用
+pngFile01<-png.file#ソロスチャート用
 #前年同月比パート
+funNormal()
 ```
 
 ```{r}
@@ -277,6 +289,7 @@ pngFile02<-png.file#ソロスチャート用
 
 ```{r}
 #正規化:平均=0,標準偏差=1
+funNormal<-function(){
 colorList<-c("blue","red") #改良余地あり
 allDataNormal<-data.frame(Date=allData[,1],scale(allData[,-1]))
 colnames(allDataNormal)<-bufColnames
@@ -312,7 +325,9 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=1920,height=1080)
 print(g)
 dev.off()
-pngFile03<-png.file#ソロスチャート用
+pngFile03<<-png.file#ソロスチャート用
+}  
+#正規化:平均=0,標準偏差=1
 ```
 
 ```{r}
@@ -348,7 +363,7 @@ dev.off()
 
 ```{r}
 setwd(pathOutput)
-for(ppp in 1:3){
+for(ppp in 3:3){
 if(ppp==1){
   firstDifference1<-na.omit(diff(allData[,2],lag=1,diff=1))
   firstDifference2<-na.omit(diff(allData[,3],lag=1,diff=1))
@@ -360,7 +375,7 @@ if(ppp==1){
 }else{
   firstDifference1<-allData[,2]
   firstDifference2<-allData[,3]
-  title0<-"原系列の相互相関係数(単位根検定結果に注意ください)\n"
+  title0<-"相互相関係数(単位根検定結果に注意ください)\n"
 }  
 title<-paste(
   title0,
@@ -551,6 +566,7 @@ for(ddd in 1:length(rollingData)){
   cat("<hr>",file=htmlFile,append=T)
 }  
 cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
+if(sorosChart==1){
 cat(paste("<a href=\"http://archive.am-consulting.co.jp/",pngFile01,
   "\"><img src=\"http://archive.am-consulting.co.jp/",pngFile01,
   "\" alt=\"",pngFile01,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
@@ -559,6 +575,7 @@ cat(paste("<a href=\"http://archive.am-consulting.co.jp/",pngFile02,
   "\" alt=\"",pngFile02,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
 cat(paste("<a href=\"http://archive.am-consulting.co.jp/",pngFile03,
   "\"><img src=\"http://archive.am-consulting.co.jp/",pngFile03,
-  "\" alt=\"",pngFile03,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T) 
+  "\" alt=\"",pngFile03,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+}  
 #ローリング回帰only html
 ```
