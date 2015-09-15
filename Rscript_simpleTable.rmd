@@ -19,6 +19,7 @@ mainTitle<-"日本の学校基本調査 卒業後の状況調査(平成27年3月
 mainTitle<-"日経平均株価"
 mainTitle<-"都道府県別建設工事受注高前年同月比"
 mainTitle<-"都道府県別法人税(法人所得金額)"
+mainTitle<-"都道府県別合計特殊出生率"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
@@ -28,12 +29,12 @@ dataSource<-"\nデータ出所:経済産業省"
 dataSource<-"\nデータ出所:資源エネルギー庁"
 dataSource<-"\nデータ出所:法務省"
 dataSource<-"\nデータ出所:総務省"
-dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:文部科学省"
 dataSource<-"\nデータ出所:株式会社東京証券取引所"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:国税庁"
+dataSource<-"\nデータ出所:厚生労働省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
@@ -48,7 +49,7 @@ print(tail(dataset),3)
 cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
-orderColumn<-1
+orderColumn<-3
 orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
