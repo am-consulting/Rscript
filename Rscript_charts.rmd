@@ -46,6 +46,8 @@ dateType<-2 #1:日次 2:月次 3:character(第*週他)
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 imfPCP<-1
+needWeekly<-0
+consumptionTax<-0
 #IMF Primary Commodity Prices
 ```
 
@@ -53,6 +55,7 @@ imfPCP<-1
 fun.readData()
 imfPCP<-0
 inverse<-2 #逆サイクル:1,非逆サイクル:2
+consumptionTax<-1
 needWeekly<-1
 weeklyText<-"weeklyResult.html"  
 setwd(paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""))
@@ -74,7 +77,6 @@ setwd(pathOutput)
 grobTableTail<-13
 csvTail<-100000
 needCSV<-2
-consumptionTax<-1
 if(imfPCP==0){
 dateType<-2 #1:日次 2:月次 3:character(第*週他) 4:年次
 #mainTitle<-"IMF Primary Commodity Prices - "
