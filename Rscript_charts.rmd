@@ -60,12 +60,19 @@ needWeekly<-1
 weeklyText<-"weeklyResult.html"  
 setwd(paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""))
 #cat("",file=weeklyText,append=F)
-setwd(pathOutput)
+gitURL<-list()
 # =YEAR(B16)&"年"&MONTH(B16)&"月第"&WEEKNUM(B16,1)-WEEKNUM(DATE(YEAR(B16),MONTH(B16),1),1)+1&"週"
 #↓規模別・業種別PER・PBR（連結・単体）一覧
 # =TEXT(ROW()-12,"00")&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(MID($A13,3,LEN($A13)),CHAR(32),""),CHAR(160),""),"・","."),"、",".")
 # =IF(H13="-",-9999999,H13)
 #↑規模別・業種別PER・PBR（連結・単体）一覧
+```
+
+```{r}
+setwd(pathOutput)
+htmlFile<-"linktoImage.html"  
+cat("",file=htmlFile,append=F)
+cat("<style>select {font-family: Meiryo;}</style>\n",file=htmlFile,append=T)
 ```
 
 ```{r}
@@ -149,9 +156,6 @@ pathOutput<-paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""),
 dammy  
 )  
 setwd(pathOutput)
-htmlFile<-"linktoImage.html"  
-cat("",file=htmlFile,append=F)
-cat("<style>select {font-family: Meiryo;}</style>\n",file=htmlFile,append=F)
 #####################
 if(perpbr==1){
   dataset[dataset==-9999999]<-NA  
@@ -180,6 +184,7 @@ if(mainTitle=="週間石油在庫統計 - "){
   buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
   buf.dataset<-data.frame(buf.dataset[-1,1],diff(buf.dataset[,2]))
   colnames(buf.dataset)<-colnames(dataset[,c(1,ccc)])
+  colnames(buf.dataset)[2]<-paste("前週差_",colnames(buf.dataset)[2],sep="")
   dateType<-1 #1:日次 2:月次 3:character(第*週他)
   dateFormat<-"%Y/%m/%d"
   chartType<-2 #1:line , 2:bar
@@ -187,6 +192,7 @@ if(mainTitle=="週間石油在庫統計 - "){
   dataSource<-"\nData Source:U.S. Energy Information Administration"
   consumptionTax<-0
   needCSV<-1
+  needWeekly<-0
 }
 if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){  
   tailNumber<-60
@@ -199,6 +205,7 @@ if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - 
   grobTableTail<-13
   consumptionTax<-0
   needCSV<-1
+  needWeekly<-1
 }
 if(colnames(dataset)[1]=="Date"){
   buf.dataset[,1]<-as.Date(buf.dataset[,1])
@@ -534,12 +541,24 @@ setwd(folder.path)
 tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
 dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(dir.list)
-csvFile<-paste(colnames(dataset[,c(1,ccc)])[2],".csv",sep="")    
+csvFile<-gsub("\\s","",colnames(dataset[,c(1,ccc)])[2])
+csvFile<-paste(csvFile,".csv",sep="")
 write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 }  
 #CSV part
+#link to git part  
+gitURL[[ccc]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,"<br>\n",sep="")  
+#link to git part  
 }
 setwd(pathOutput)
+#link to git part
+cat(paste("\n\n<br><b>Link to csv file</b><br>",sep=""),file=htmlFile,append=T)
+cat(paste(dataSource,"<br>\n",sep=""),file=htmlFile,append=T)
+for(ccc in 2:ncol(dataset)){
+cat(gitURL[[ccc]],file=htmlFile,append=T)
+}
+cat("\n\n\n",file=htmlFile,append=T)
+#link to git part  
 cat("<script>\n",file=htmlFile,append=T)
 for(ggg in 2:ncol(dataset)){
 cat(paste("document.getElementById(\"chartSelect",ggg,"\").onchange = function() {\n",sep=""),file=htmlFile,append=T)
