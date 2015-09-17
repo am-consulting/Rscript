@@ -131,8 +131,8 @@ for(ttt in 1:length(successiveCabinets)){
 }  
 funSuccessiveCabinets() 
 for(ttt in 1:length(successiveCabinets)){
-head(successiveCabinets[[ttt]])
-tail(successiveCabinets[[ttt]])
+print(head(successiveCabinets[[ttt]]))
+print(tail(successiveCabinets[[ttt]]))
 }  
 #PMパート
 ```
@@ -226,7 +226,6 @@ mainTitle<-"日本の源泉所得税課税状況 - "
 mainTitle<-"日本の出生数及び合計特殊出生率 - "
 mainTitle<-"預金・貸出合計 - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
-mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"景気動向指数"
 mainTitle<-"日本の国際収支 - "
 mainTitle<-"日本の景気ウォッチャー調査 - "
@@ -234,6 +233,7 @@ mainTitle<-"日本のマネーストック - "
 mainTitle<-"日本の国内企業物価指数 - "
 mainTitle<-"日本の預金動向 - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
@@ -242,10 +242,10 @@ dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:経済産業省"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
+dataSource<-"\nData Source:財務省"
 chartType<-2 #1:line , 2:bar
 fitType<-3 #1:lm , 2:loess , 3:none
 }  
@@ -285,6 +285,9 @@ switch(dateType,
   dateFormat<-"%Y"
 )  
 colorList<-c("blue","red")
+#row title
+colnames(dataset)[-1]<-paste(mainTitle,colnames(dataset)[-1],sep="")
+#row title
 for(ccc in 2:ncol(dataset)){
 if(autoChartType==0){ 
 if(regexpr("比",colnames(dataset)[ccc])!=-1){chartType<-2}else{chartType<-1}  
@@ -317,7 +320,7 @@ if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - 
   grobTableTail<-13
   consumptionTax<-0
   needCSV<-1
-  needWeekly<-1
+  needWeekly<-0
 }
 if(colnames(dataset)[1]=="Date"){
   buf.dataset[,1]<-as.Date(buf.dataset[,1])
@@ -553,20 +556,22 @@ setwd(dir.list)
 csvFile<-gsub("\\s","",colnames(dataset[,c(1,ccc)])[2])
 csvFile<-paste(csvFile,".csv",sep="")
 write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#link to git part  
+gitURL[[ccc]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,sep="")  
+#link to git part  
 }  
 #CSV part
-#link to git part  
-gitURL[[ccc]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,"<br>\n",sep="")  
-#link to git part  
 }
 setwd(pathOutput)
 #link to git part
-cat(paste("\n\n<br><b>Link to csv file</b><br>",sep=""),file=htmlFile,append=T)
-cat(paste(dataSource,"<br>\n",sep=""),file=htmlFile,append=T)
+if(needCSV==1){
+cat(paste("\n\n<br><b>Link to csv file</b>(",sep=""),file=htmlFile,append=T)
+cat(paste(dataSource," )<br>\n",sep=""),file=htmlFile,append=T)
 for(ccc in 2:ncol(dataset)){
-cat(gitURL[[ccc]],file=htmlFile,append=T)
+cat(paste("- <a href=\"",gitURL[[ccc]],"\">",colnames(dataset)[ccc],"</a><br>\n",sep=""),file=htmlFile,append=T)
 }
 cat("\n\n\n",file=htmlFile,append=T)
+}
 #link to git part  
 cat("<script>\n",file=htmlFile,append=T)
 for(ggg in 2:ncol(dataset)){
