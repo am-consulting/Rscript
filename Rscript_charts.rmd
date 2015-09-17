@@ -26,6 +26,118 @@ fun.round<-function(buf){
 ```
 
 ```{r}
+#PMパート
+successiveCabinets<-list()  
+funSuccessiveCabinets<-function(){
+successiveCabinets[[1]]<-c(
+"1937-6-4","近衛文麿",
+"1939-1-5","平沼騏一郎",
+"1939-8-30","阿部信行",
+"1940-1-16","米内光政",
+"1940-7-22","近衛文麿(2次)",
+"1941-10-18","東條英機",
+"1944-7-22","小磯國昭",
+"1945-4-7","鈴木貫太郎",
+"1945-8-17","東久邇宮稔彦王",
+"1945-10-9","幣原喜重郎",
+"1946-5-22","吉田茂",
+"1947-5-24","片山哲",
+"1948-3-10","芦田均",
+"1948-10-15","吉田茂(2-5次)",
+"1954-12-10","鳩山一郎",
+"1956-12-23","石橋湛山",
+"1957-2-25","岸信介",
+"1960-7-19","池田勇人",
+"1964-11-9","佐藤栄作",
+"1972-7-7","田中角栄",
+"1974-12-9","三木武夫",
+"1976-12-24","福田赳夫",
+"1978-12-7","大平正芳",
+"1980-7-17","鈴木善幸",
+"1982-11-27","中曽根康弘",
+"1987-11-6","竹下登",
+"1989-6-3","宇野宗佑",
+"1989-8-10","海部俊樹",
+"1991-11-5","宮沢喜一",
+"1993-8-9","細川護熙",
+"1994-4-28","羽田孜",
+"1994-6-30","村山富市",
+"1996-1-11","橋本龍太郎",
+"1998-7-30","小渕恵三",
+"2000-4-5","森喜朗",
+"2001-4-26","小泉純一郎",
+"2006-9-26","安倍晋三(1次)",
+"2007-9-26","福田康夫",
+"2008-9-24","麻生太郎",
+"2009-9-16","鳩山由紀夫",
+"2010-6-8","菅直人",
+"2011-9-2","野田佳彦",
+"2012-12-26","安倍晋三(2次-)"
+)
+successiveCabinets[[2]]<-c(
+"1937-7-27","結城豊太郎",
+"1944-3-18","渋沢敬三",
+"1945-10-9","新木榮吉",
+"1946-6-1","一万田尚登",
+"1954-12-11","新木榮吉(2次)",
+"1956-11-30","山際正道",
+"1964-12-17","宇佐美洵",
+"1969-12-17","佐々木直",
+"1974-12-17","森永貞一郎",
+"1979-12-17","前川春雄",
+"1984-12-17","澄田智",
+"1989-12-17","三重野康",
+"1994-12-17","松下康雄",
+"1998-3-20","速水優",
+"2003-3-20","福井俊彦",
+"2008-4-9","白川方明",
+"2013-3-20","黒田東彦"
+)
+successiveCabinets[[3]]<-c(
+"1933-3-4","Franklin Delano Roosevelt",  
+"1945-4-12","Harry S. Truman",
+"1953-1-20","Dwight David Eisenhower",
+"1961-1-20","John Fitzgerald Kennedy",
+"1963-11-22","Lyndon Baines Johnson",
+"1969-1-20","Richard Milhouse Nixon",
+"1974-8-9","Gerald Rudolph Ford Jr.",
+"1977-1-20","James Earl Carter",
+"1981-1-20","Ronald Wilson Reagan",
+"1989-1-20","George H.W Bush",
+"1993-1-20","Bill Clinton",
+"2001-1-20","George W. Bush",
+"2009-1-20","Barack Obama"
+)
+successiveCabinets[[4]]<-c(
+"1934-11-15","Marriner Eccles",
+"1948-4-15","Thomas B. McCabe",
+"1951-4-2","William M. Martin",
+"1970-2-1","Arthur F.Burns",
+"1978-3-8","G.William Miller",
+"1987-8-11","Alan Greenspan",
+"2006-2-1","Ben S.Bernanke",
+"2014-2-1","Janet Yellen"
+)
+for(ttt in 1:length(successiveCabinets)){
+  tmp<-successiveCabinets[[ttt]]
+  inaugural.date<-as.Date(tmp[seq(1,length(tmp),by=2)])
+  resignation.date<-c((inaugural.date-1)[-1],Sys.Date()+31) # 最後のSys.Date()+31は現職用
+  Name<-tmp[seq(2,length(tmp),by=2)]
+  successiveCabinets[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
+  successiveCabinets[[ttt]][,3]<-ordered(successiveCabinets[[ttt]][,3],levels=successiveCabinets[[ttt]][,3][1:nrow(successiveCabinets[[ttt]])])
+  order(successiveCabinets[[ttt]][,3])
+  successiveCabinets[[ttt]]<<-successiveCabinets[[ttt]] #caution
+}
+}  
+funSuccessiveCabinets() 
+for(ttt in 1:length(successiveCabinets)){
+head(successiveCabinets[[ttt]])
+tail(successiveCabinets[[ttt]])
+}  
+#PMパート
+```
+
+```{r}
 #IMF Primary Commodity Prices
 path<-paste("C:/Users/",username,"/Desktop/downloadExcelData/",sep="")
 setwd(path)
@@ -400,109 +512,6 @@ if(inverse!=1){
   rankSentence<-paste(rankSentence,"対象期間",nrow(rankData),"ヶ月中、",tail(rankList[[length(rankList)]],1),"番目の低さです。",sep="")
 }
 sentence<-paste(sentence,rankSentence,sep="")
-successiveCabinets<-list()  
-funSuccessiveCabinets<-function(){
-successiveCabinets[[1]]<-c(
-"1937-6-4","近衛文麿",
-"1939-1-5","平沼騏一郎",
-"1939-8-30","阿部信行",
-"1940-1-16","米内光政",
-"1940-7-22","近衛文麿(2次)",
-"1941-10-18","東條英機",
-"1944-7-22","小磯國昭",
-"1945-4-7","鈴木貫太郎",
-"1945-8-17","東久邇宮稔彦王",
-"1945-10-9","幣原喜重郎",
-"1946-5-22","吉田茂",
-"1947-5-24","片山哲",
-"1948-3-10","芦田均",
-"1948-10-15","吉田茂(2-5次)",
-"1954-12-10","鳩山一郎",
-"1956-12-23","石橋湛山",
-"1957-2-25","岸信介",
-"1960-7-19","池田勇人",
-"1964-11-9","佐藤栄作",
-"1972-7-7","田中角栄",
-"1974-12-9","三木武夫",
-"1976-12-24","福田赳夫",
-"1978-12-7","大平正芳",
-"1980-7-17","鈴木善幸",
-"1982-11-27","中曽根康弘",
-"1987-11-6","竹下登",
-"1989-6-3","宇野宗佑",
-"1989-8-10","海部俊樹",
-"1991-11-5","宮沢喜一",
-"1993-8-9","細川護熙",
-"1994-4-28","羽田孜",
-"1994-6-30","村山富市",
-"1996-1-11","橋本龍太郎",
-"1998-7-30","小渕恵三",
-"2000-4-5","森喜朗",
-"2001-4-26","小泉純一郎",
-"2006-9-26","安倍晋三(1次)",
-"2007-9-26","福田康夫",
-"2008-9-24","麻生太郎",
-"2009-9-16","鳩山由紀夫",
-"2010-6-8","菅直人",
-"2011-9-2","野田佳彦",
-"2012-12-26","安倍晋三(2次-)"
-)
-successiveCabinets[[2]]<-c(
-"1937-7-27","結城豊太郎",
-"1944-3-18","渋沢敬三",
-"1945-10-9","新木榮吉",
-"1946-6-1","一万田尚登",
-"1954-12-11","新木榮吉(2次)",
-"1956-11-30","山際正道",
-"1964-12-17","宇佐美洵",
-"1969-12-17","佐々木直",
-"1974-12-17","森永貞一郎",
-"1979-12-17","前川春雄",
-"1984-12-17","澄田智",
-"1989-12-17","三重野康",
-"1994-12-17","松下康雄",
-"1998-3-20","速水優",
-"2003-3-20","福井俊彦",
-"2008-4-9","白川方明",
-"2013-3-20","黒田東彦"
-)
-successiveCabinets[[3]]<-c(
-"1933-3-4","Franklin Delano Roosevelt",  
-"1945-4-12","Harry S. Truman",
-"1953-1-20","Dwight David Eisenhower",
-"1961-1-20","John Fitzgerald Kennedy",
-"1963-11-22","Lyndon Baines Johnson",
-"1969-1-20","Richard Milhouse Nixon",
-"1974-8-9","Gerald Rudolph Ford Jr.",
-"1977-1-20","James Earl Carter",
-"1981-1-20","Ronald Wilson Reagan",
-"1989-1-20","George H.W Bush",
-"1993-1-20","Bill Clinton",
-"2001-1-20","George W. Bush",
-"2009-1-20","Barack Obama"
-)
-successiveCabinets[[4]]<-c(
-"1934-11-15","Marriner Eccles",
-"1948-4-15","Thomas B. McCabe",
-"1951-4-2","William M. Martin",
-"1970-2-1","Arthur F.Burns",
-"1978-3-8","G.William Miller",
-"1987-8-11","Alan Greenspan",
-"2006-2-1","Ben S.Bernanke",
-"2014-2-1","Janet Yellen"
-)
-for(ttt in 1:length(successiveCabinets)){
-  tmp<-successiveCabinets[[ttt]]
-  inaugural.date<-as.Date(tmp[seq(1,length(tmp),by=2)])
-  resignation.date<-c((inaugural.date-1)[-1],Sys.Date()+31) # 最後のSys.Date()+31は現職用
-  Name<-tmp[seq(2,length(tmp),by=2)]
-  successiveCabinets[[ttt]]<-data.frame(inaugural.date,resignation.date,Name)
-  successiveCabinets[[ttt]][,3]<-ordered(successiveCabinets[[ttt]][,3],levels=successiveCabinets[[ttt]][,3][1:nrow(successiveCabinets[[ttt]])])
-  order(successiveCabinets[[ttt]][,3])
-  successiveCabinets[[ttt]]<<-successiveCabinets[[ttt]] #caution
-}
-}  
-funSuccessiveCabinets()  
 maxData<-buf.dataset[which.max(buf.dataset[,2]),]  
 minData<-buf.dataset[which.min(buf.dataset[,2]),]
 maxResult<-subset(
