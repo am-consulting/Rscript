@@ -172,8 +172,8 @@ consumptionTax<-0
 fun.readData()
 imfPCP<-0
 inverse<-2 #逆サイクル:1,非逆サイクル:2
-consumptionTax<-0
-needWeekly<-0
+consumptionTax<-1
+needWeekly<-1
 weeklyText<-"weeklyResult.html"  
 setwd(paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""))
 #cat("",file=weeklyText,append=F)
@@ -186,7 +186,7 @@ gitURL<-list()
 ```
 
 ```{r}
-outputFolder<-1
+outputFolder<-3
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
@@ -247,6 +247,7 @@ mainTitle<-"日本の預金動向 - "
 mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"資金循環統計 - "
+mainTitle<-"第3次産業活動指数 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
@@ -254,11 +255,11 @@ dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
-dataSource<-"\nData Source:経済産業省"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:日本銀行"
+dataSource<-"\nData Source:経済産業省"
 chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 }  
@@ -299,7 +300,7 @@ switch(dateType,
 )  
 colorList<-c("blue","red")
 #row title
-colnames(dataset)[-1]<-paste(mainTitle,colnames(dataset)[-1],sep="")
+#colnames(dataset)[-1]<-paste(mainTitle,colnames(dataset)[-1],sep="")
 #row title
 for(ccc in 2:ncol(dataset)){
 if(autoChartType==0){ 
@@ -404,21 +405,21 @@ value.y<-(max(buf.dataset[,2])+min(buf.dataset[,2]))/2
 if(dateType!=4){taxDate1<-"1989-04-01"}else{taxDate1<-"1989-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate1)){
   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate1)),linetype=1,colour="#d2691e",size=2)
-  g<-g+geom_text(aes(x=as.Date(taxDate1), y=value.y*0.9, label="1989年4月\n消費税導入\n(3%)"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_text(aes(x=as.Date(taxDate1), y=value.y*0.975, label="1989年4月\n消費税導入\n(3%)"), size=8,family="Meiryo",colour="black") 
 }
 #1989年4月消費税  
 #1997年4月消費税  
 if(dateType!=4){taxDate2<-"1997-04-01"}else{taxDate2<-"1997-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate2)){
   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate2)),linetype=1,colour="#d2691e",size=2)
-  g<-g+geom_text(aes(x=as.Date(taxDate2), y=value.y*0.9, label="1997年4月\n消費税導入\n(3%→5%)"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_text(aes(x=as.Date(taxDate2), y=value.y*0.975, label="1997年4月\n消費税導入\n(3%→5%)"), size=8,family="Meiryo",colour="black") 
 }
 #1997年4月消費税  
 #2014年4月消費税  
 if(dateType!=4){taxDate3<-"2014-04-01"}else{taxDate3<-"2014-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate3) & tail(buf.dataset[,1],1)>=as.Date(taxDate3)){
   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate3)),linetype=1,colour="#d2691e",size=2)
-  g<-g+geom_text(aes(x=as.Date(taxDate3), y=value.y*0.9, label="2014年4月\n消費税導入\n(5%→8%)"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_text(aes(x=as.Date(taxDate3), y=value.y*0.975, label="2014年4月\n消費税導入\n(5%→8%)"), size=8,family="Meiryo",colour="black") 
 }
 #2014年4月消費税  
 #第二次安倍政権発足  
@@ -566,7 +567,7 @@ setwd(folder.path)
 tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
 dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(dir.list)
-csvFile<-gsub("\\s","",colnames(dataset[,c(1,ccc)])[2])
+csvFile<-gsub("\\s","",paste(mainTitle,colnames(dataset[,c(1,ccc)])[2]))
 csvFile<-paste(csvFile,".csv",sep="")
 write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 #link to git part  
@@ -574,7 +575,7 @@ gitURL[[ccc]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtG
 setwd(pathOutput)
 cat(paste("\n\n<br><b>Link to csv file</b>(",sep=""),file=htmlFile,append=T)
 cat(paste(dataSource," )<br>\n",sep=""),file=htmlFile,append=T)
-cat(paste("- <a href=\"",gitURL[[ccc]],"\">",colnames(dataset)[ccc],"</a><hr>\n",sep=""),file=htmlFile,append=T)
+cat(paste("- <a href=\"",gitURL[[ccc]],"\">",mainTitle,colnames(dataset)[ccc],"</a><hr>\n",sep=""),file=htmlFile,append=T)
 cat("\n\n\n",file=htmlFile,append=T)
 #link to git part  
 }  
