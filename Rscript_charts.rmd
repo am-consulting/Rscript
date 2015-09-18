@@ -170,14 +170,27 @@ consumptionTax<-0
 
 ```{r}
 fun.readData()
+gitURL<-list()
 imfPCP<-0
-inverse<-2 #逆サイクル:1,非逆サイクル:2
+inverse<-1 #逆サイクル:1,非逆サイクル:2
 consumptionTax<-1
 needWeekly<-1
+grobTableTail<-13
+csvTail<-100000
+needCSV<-1
+dateType<-2 #1:日次 2:月次 3:character(第*週他) 4:年次
+chartType<-1 #1:line , 2:bar
+fitType<-2 #1:lm , 2:loess , 3:none
+autoChartType<-0
+tailNumber<-10000000000
+annotation<-1 # need:1,no need:2
+perpbr<-0
+outputFolder<-1 #1:R_Data_Write,2:charts,3:weeklyResult
 weeklyText<-"weeklyResult.html"  
-setwd(paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""))
+htmlFile<-"linktoImage.html"  
+#setwd(paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""))
 #cat("",file=weeklyText,append=F)
-gitURL<-list()
+#cat("",file=htmlFile,append=F)
 # =YEAR(B16)&"年"&MONTH(B16)&"月第"&WEEKNUM(B16,1)-WEEKNUM(DATE(YEAR(B16),MONTH(B16),1),1)+1&"週"
 #↓規模別・業種別PER・PBR（連結・単体）一覧
 # =TEXT(ROW()-12,"00")&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(MID($A13,3,LEN($A13)),CHAR(32),""),CHAR(160),""),"・","."),"、",".")
@@ -186,7 +199,6 @@ gitURL<-list()
 ```
 
 ```{r}
-outputFolder<-3
 switch(outputFolder,
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep=""),
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep=""),
@@ -194,11 +206,9 @@ pathOutput<-paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""),
 dammy  
 )  
 setwd(pathOutput)
-htmlFile<-"linktoImage.html"  
 ```
 
 ```{r}
-cat("",file=htmlFile,append=F)
 cat("<style>select {font-family: Meiryo;}</style>\n",file=htmlFile,append=T)
 ```
 
@@ -208,12 +218,7 @@ if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
 }
 setwd(pathOutput)
-grobTableTail<-13
-csvTail<-100000
-needCSV<-1
 if(imfPCP==0){
-dateType<-2 #1:日次 2:月次 3:character(第*週他) 4:年次
-#mainTitle<-"IMF Primary Commodity Prices - "
 mainTitle<-"景気動向指数個別一致系列 - "
 mainTitle<-"日本の外貨準備等状況 - "
 mainTitle<-"日本の消費動向調査 - "
@@ -253,6 +258,7 @@ mainTitle<-"第3次産業活動指数 - "
 mainTitle<-"鉱工業指数 - "
 mainTitle<-"建設総合統計 - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
+mainTitle<-"株式平均利回り - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
@@ -265,16 +271,10 @@ dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:経済産業省"
-chartType<-1 #1:line , 2:bar
-fitType<-1 #1:lm , 2:loess , 3:none
+dataSource<-"\nData Source:株式会社日本取引所グループ"
 }  
-autoChartType<-1
-tailNumber<-10000000000
-annotation<-1 # need:1,no need:2
-perpbr<-0
-outputFolder<-1 #1:R_Data_Write,2:charts
 if(needWeekly==1){
-outputFolder<-3 #3:weeklyResult
+#outputFolder<-3 #3:weeklyResult
 }
 if(mainTitle=="週間石油在庫統計 - " | mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){
   outputFolder<-2 #1:R_Data_Write,2:charts
@@ -308,9 +308,12 @@ colorList<-c("blue","red")
 #colnames(dataset)[-1]<-paste(mainTitle,colnames(dataset)[-1],sep="")
 #row title
 for(ccc in 2:ncol(dataset)){
-if(autoChartType==0){ 
-if(regexpr("比",colnames(dataset)[ccc])!=-1){chartType<-2}else{chartType<-1}  
+#チャートタイプ選択パート
+if(autoChartType==0){
+if(nrow(subset(dataset,dataset[,2]<0))==0 | nrow(subset(dataset,dataset[,2]>0))==0){chartType<-1}else{chartType<-2} 
+#if(regexpr("比",colnames(dataset)[ccc])!=-1){chartType<-2}else{chartType<-1}  
 }
+#チャートタイプ選択パート
 setwd(pathOutput)
 buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
 if(mainTitle=="週間石油在庫統計 - "){  
@@ -578,7 +581,7 @@ write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F
 #link to git part  
 gitURL[[ccc]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,sep="")  
 setwd(pathOutput)
-cat(paste("\n\n<br><b>Link to csv file</b>(",sep=""),file=htmlFile,append=T)
+cat(paste("\n\n<br><b>Link to csv file</b>( Original ",sep=""),file=htmlFile,append=T)
 cat(paste(dataSource," )<br>\n",sep=""),file=htmlFile,append=T)
 cat(paste("- <a href=\"",gitURL[[ccc]],"\">",mainTitle,colnames(dataset)[ccc],"</a><hr>\n",sep=""),file=htmlFile,append=T)
 cat("\n\n\n",file=htmlFile,append=T)
@@ -588,7 +591,7 @@ cat("\n\n\n",file=htmlFile,append=T)
 }
 #link to git part
 if(needCSV==1){
-cat(paste("\n\n<br><b>Link to csv file</b>(",sep=""),file=htmlFile,append=T)
+cat(paste("\n\n<br><b>Link to csv file</b>( Original ",sep=""),file=htmlFile,append=T)
 cat(paste(dataSource," )<br>\n",sep=""),file=htmlFile,append=T)
 for(ccc in 2:ncol(dataset)){
 cat(paste("- <a href=\"",gitURL[[ccc]],"\">",colnames(dataset)[ccc],"</a><br>\n",sep=""),file=htmlFile,append=T)
