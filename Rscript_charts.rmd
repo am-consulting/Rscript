@@ -240,7 +240,6 @@ mainTitle<-"日本の申告所得税額 - "
 mainTitle<-"日本の源泉所得税課税状況 - "
 mainTitle<-"日本の出生数及び合計特殊出生率 - "
 mainTitle<-"預金・貸出合計 - "
-mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 mainTitle<-"景気動向指数"
 mainTitle<-"日本の国際収支 - "
 mainTitle<-"日本の景気ウォッチャー調査 - "
@@ -253,6 +252,7 @@ mainTitle<-"資金循環統計 - "
 mainTitle<-"第3次産業活動指数 - "
 mainTitle<-"鉱工業指数 - "
 mainTitle<-"建設総合統計 - "
+mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
@@ -263,10 +263,10 @@ dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:日本銀行"
-dataSource<-"\nData Source:経済産業省"
 dataSource<-"\nData Source:国土交通省"
-chartType<-2 #1:line , 2:bar
-fitType<-3 #1:lm , 2:loess , 3:none
+dataSource<-"\nData Source:経済産業省"
+chartType<-1 #1:line , 2:bar
+fitType<-1 #1:lm , 2:loess , 3:none
 }  
 autoChartType<-1
 tailNumber<-10000000000
