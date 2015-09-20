@@ -61,6 +61,7 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 
 ```{r}
 cftcText<-"cftcResult.html"
+cftcTextWITHOUTLINK<-"cftcResultWITHOUTLINK.html"
 pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
 folder.path<-file.path(pathInput)
 setwd(folder.path)
@@ -212,7 +213,7 @@ if(regexpr("russian",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"ロシ�
 if(regexpr("mexican",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"メキシコペソ"}
 if(regexpr("real",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"ブラジルレアル"}
 if(regexpr("gold",currency[ccc],ignore.case=T)!=-1){textObjCurrency<-"ゴールド"}
-cftcResult<-paste(
+cftcResultWITHOUTLINK<-paste(
   "直近、",
   format(tail(plotData[[1]],1)[1,1],"%Y年%m月%d日"),
   "の",
@@ -229,10 +230,15 @@ cftcResult<-paste(
   nrow(plotData[[5]]),
   "週分のネットポジション数を、プラス値からマイナス値へと降順に並べ替えた場合、直近のネットポジション数は",
   tail(rank((plotData[[5]][,2])*-1,ties.method="min"),1),
-  "番目となります。\n<br> - <a href=\"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,"\">",textObjCurrency,
+  "番目となります。\n\n",
+  sep="")
+cftcResult<-paste(
+  cftcResultWITHOUTLINK,
+  "\n<br> - <a href=\"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,"\">",textObjCurrency,
   "のIMMポジション時系列推移</a> (Original Data Source:Commodity Futures Trading Commission(CFTC))<br><br>\n\n",
   sep="")
   cat(cftcResult,file=cftcText,append=T)
+  cat(cftcResultWITHOUTLINK,file=cftcTextWITHOUTLINK,append=T)
 #テキスト出力パート  
 }
 ```
