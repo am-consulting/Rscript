@@ -229,7 +229,8 @@ cftcResult<-paste(
   nrow(plotData[[5]]),
   "週分のネットポジション数を、プラス値からマイナス値へと降順に並べ替えた場合、直近のネットポジション数は",
   tail(rank((plotData[[5]][,2])*-1,ties.method="min"),1),
-  "番目となります。 https://github.com/am-consulting/CSVDataAtGitHub/blob/master/",csvFile," (Data Source:CFTC)\n\n",
+  "番目となります。\n<br> - <a href=\"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,"\">",textObjCurrency,
+  "のIMMポジション時系列推移</a> (Original Data Source:Commodity Futures Trading Commission(CFTC))<br><br>\n\n",
   sep="")
   cat(cftcResult,file=cftcText,append=T)
 #テキスト出力パート  
