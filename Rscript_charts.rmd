@@ -185,7 +185,7 @@ autoChartType<-0
 tailNumber<-10000000000
 annotation<-1 # need:1,no need:2
 perpbr<-0
-outputFolder<-1 #1:R_Data_Write,2:charts,3:weeklyResult
+outputFolder<-2 #1:R_Data_Write,2:charts,3:weeklyResult
 weeklyText<-"weeklyResult.html"  
 htmlFile<-"linktoImage.html"  
 #setwd(paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""))
@@ -210,6 +210,7 @@ setwd(pathOutput)
 
 ```{r}
 cat("<style>select {font-family: Meiryo;}</style>\n",file=htmlFile,append=T)
+cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=T)
 ```
 
 ```{r}
@@ -251,7 +252,6 @@ mainTitle<-"日本の景気ウォッチャー調査 - "
 mainTitle<-"日本のマネーストック - "
 mainTitle<-"日本の国内企業物価指数 - "
 mainTitle<-"日本の預金動向 - "
-mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"資金循環統計 - "
 mainTitle<-"第3次産業活動指数 - "
@@ -259,6 +259,7 @@ mainTitle<-"鉱工業指数 - "
 mainTitle<-"建設総合統計 - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 mainTitle<-"株式平均利回り - "
+mainTitle<-"週間石油在庫統計 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
@@ -266,12 +267,12 @@ dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:内閣府"
-dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:経済産業省"
 dataSource<-"\nData Source:株式会社日本取引所グループ"
+dataSource<-"\nData Source:U.S. Energy Information Administration"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
