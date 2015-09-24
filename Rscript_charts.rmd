@@ -172,7 +172,7 @@ consumptionTax<-0
 fun.readData()
 gitURL<-list()
 imfPCP<-0
-inverse<-1 #逆サイクル:1,非逆サイクル:2
+inverse<-2 #逆サイクル:1,非逆サイクル:2
 consumptionTax<-1
 needWeekly<-1
 grobTableTail<-13
@@ -188,6 +188,7 @@ perpbr<-0
 outputFolder<-2 #1:R_Data_Write,2:charts,3:weeklyResult
 weeklyText<-"weeklyResult.html"  
 htmlFile<-"linktoImage.html"  
+onlyLink<-"onlyLink.html"  
 #setwd(paste("C:/Users/",username,"/Desktop/weeklyResult/",sep=""))
 #cat("",file=weeklyText,append=F)
 #cat("",file=htmlFile,append=F)
@@ -209,8 +210,16 @@ setwd(pathOutput)
 ```
 
 ```{r}
-cat("<style>select {font-family: Meiryo;}</style>\n",file=htmlFile,append=T)
+cat("",file=htmlFile,append=F)
+cat("",file=onlyLink,append=F)
+cat("",file=weeklyText,append=F)
+```
+
+```{r}
 cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=T)
+cat("<style>select {font-family: Meiryo;}</style>\n",file=htmlFile,append=T)
+cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=onlyLink,append=T)
+cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=weeklyText,append=T)
 ```
 
 ```{r}
@@ -260,6 +269,7 @@ mainTitle<-"建設総合統計 - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 mainTitle<-"株式平均利回り - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"全産業活動指数 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
@@ -270,9 +280,9 @@ dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:国土交通省"
-dataSource<-"\nData Source:経済産業省"
 dataSource<-"\nData Source:株式会社日本取引所グループ"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
+dataSource<-"\nData Source:経済産業省"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
@@ -592,12 +602,12 @@ cat("\n\n\n",file=htmlFile,append=T)
 }
 #link to git part
 if(needCSV==1){
-cat(paste("\n\n<br><b>Link to csv file</b>( Original ",sep=""),file=htmlFile,append=T)
-cat(paste(dataSource," )<br>\n",sep=""),file=htmlFile,append=T)
+cat(paste("\n\n<br><b>Link to csv file</b>( Original ",sep=""),file=onlyLink,append=T)
+cat(paste(dataSource," )<br>\n",sep=""),file=onlyLink,append=T)
 for(ccc in 2:ncol(dataset)){
-cat(paste("- <a href=\"",gitURL[[ccc]],"\">",colnames(dataset)[ccc],"</a><br>\n",sep=""),file=htmlFile,append=T)
+cat(paste("- <a href=\"",gitURL[[ccc]],"\">",colnames(dataset)[ccc],"</a><br>\n",sep=""),file=onlyLink,append=T)
 }
-cat("\n\n\n",file=htmlFile,append=T)
+cat("\n\n\n",file=onlyLink,append=T)
 }
 #link to git part  
 cat("<script>\n",file=htmlFile,append=T)
