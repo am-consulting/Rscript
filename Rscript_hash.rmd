@@ -1,0 +1,35 @@
+```{r}
+requiredPackageList<-c("digest")
+colnames(installed.packages())
+#apply logical vector to requiredPackageList
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] 
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathForHash<-paste("C:/Users/",username,"/Desktop/hashFiles/",sep="")
+files<-dir(pathForHash)
+algo<-"sha256"
+#"md5", "sha1", "crc32", "sha256", "sha512", "xxhash32", "xxhash64", "murmur32"
+if(1<=length(files)){
+  for(fff in 1:length(files)){
+    hash<-digest(
+      paste(pathForHash,files[fff],sep=""),
+      algo,
+      serialize=T,
+      file=T,
+      length=Inf,
+      skip=0,
+      ascii=F,
+      raw=F,
+      seed=0
+    )
+    cat("No.",fff,"\n")
+    cat("FileName",files[fff],"\n")
+    cat("Algorithm",algo,"\n")
+    cat("Hash",hash,"\n\n")
+  }
+}
+```
