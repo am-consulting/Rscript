@@ -608,7 +608,7 @@ if(needCSV==1){
 cat(paste("\n\n<br><b>Link to csv file</b>( Original ",sep=""),file=onlyLink,append=T)
 cat(paste(dataSource," )<br>\n",sep=""),file=onlyLink,append=T)
 for(ccc in 2:ncol(dataset)){
-cat(paste("- <a href=\"",gitURL[[ccc]],"\">",colnames(dataset)[ccc],"</a><br>\n",sep=""),file=onlyLink,append=T)
+cat(paste("- <a href=\"",gitURL[[ccc]],"\">",mainTitle,colnames(dataset)[ccc],"</a><br>\n",sep=""),file=onlyLink,append=T)
 }
 cat("\n\n\n",file=onlyLink,append=T)
 }
