@@ -20,6 +20,7 @@ fun.readData<-function(){
   #ファイル名禁則文字対策
   #禁則文字(ファイル名,フォルダー名)
   #半角記号の \　/　:　*　?　"　<　>　|
+  colnames(dataset)<-gsub("/","／",colnames(dataset))
   #ファイル名禁則文字対策
   dataset<<-dataset
   print(head(dataset))
@@ -242,7 +243,6 @@ mainTitle<-"財務省貿易統計 輸出 主要商品別(億円) - "
 mainTitle<-"財務省貿易統計 輸入 主要商品別(億円) - "
 mainTitle<-"日本の労働力調査 - "
 mainTitle<-"有効求人倍率 - "
-mainTitle<-"日本の消費者物価指数 - "
 mainTitle<-"日本の労働力調査 - 役員を除く雇用形態別雇用者(万人)"
 mainTitle<-"住宅着工統計 - "
 mainTitle<-"建築着工統計 - "
@@ -269,19 +269,21 @@ mainTitle<-"建設総合統計 - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - "
 mainTitle<-"株式平均利回り - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"日本の企業向けサービス価格指数 - "
+mainTitle<-"日本の消費者物価指数 - "
 mainTitle<-"全産業活動指数 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
-dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:財務省"
-dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:株式会社日本取引所グループ"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
+dataSource<-"\nData Source:日本銀行"
+dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:経済産業省"
 }  
 if(needWeekly==1){
@@ -324,6 +326,7 @@ if(autoChartType==0){
 if(nrow(subset(dataset,dataset[,2]<0))==0 | nrow(subset(dataset,dataset[,2]>0))==0){chartType<-1}else{chartType<-2} 
 #if(regexpr("比",colnames(dataset)[ccc])!=-1){chartType<-2}else{chartType<-1}  
 }
+if(chartType==2){fitType<-3}  
 #チャートタイプ選択パート
 setwd(pathOutput)
 buf.dataset<-tail(na.omit(dataset[,c(1,ccc)]),tailNumber)
