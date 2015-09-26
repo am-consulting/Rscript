@@ -235,7 +235,7 @@ cftcResultWITHOUTLINK<-paste(
 cftcResult<-paste(
   cftcResultWITHOUTLINK,
   "\n<br> - <a href=\"https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,"\">",textObjCurrency,
-  "のIMMポジション時系列推移</a> (Original Data Source:Commodity Futures Trading Commission(CFTC))<br><br>\n\n",
+  "のIMMポジション時系列推移</a>\n<br> - Original Data Source:Commodity Futures Trading Commission<br><br>\n\n",
   sep="")
   cat(cftcResult,file=cftcText,append=T)
   cat(cftcResultWITHOUTLINK,file=cftcTextWITHOUTLINK,append=T)
