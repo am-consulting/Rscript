@@ -23,6 +23,7 @@ mainTitle<-"都道府県別合計特殊出生率"
 mainTitle<-"2015年 訪日外客数(人)"
 mainTitle<-"都道府県別交通事故発生状況 2015年8月中(件数、%)"
 mainTitle<-"平成27年都道府県地価調査"
+mainTitle<-"新規学卒者の産業別職業紹介状況の推移 高卒者"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
@@ -36,10 +37,10 @@ dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:文部科学省"
 dataSource<-"\nデータ出所:株式会社東京証券取引所"
 dataSource<-"\nデータ出所:国税庁"
-dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:日本政府観光局"
 dataSource<-"\nデータ出所:警察庁"
 dataSource<-"\nデータ出所:国土交通省"
+dataSource<-"\nデータ出所:厚生労働省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- "),check.names=FALSE)
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
@@ -54,7 +55,7 @@ print(tail(dataset),3)
 cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
-orderColumn<-2
+orderColumn<-0
 orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
