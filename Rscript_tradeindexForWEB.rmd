@@ -17,14 +17,20 @@ path<-paste("C:/Users/",username,"/Desktop",sep="")
 folder.path<-file.path(path,folder.name)
 setwd(folder.path)
 for(iii in 1:length(dir(folder.path))){
-  ts.data[[iii]]<-read.table(file=dir(folder.path)[iii],header=T,sep=",",as.is=T,skip=1,stringsAsFactor=F) 
+  ts.data[[iii]]<-read.table(file=dir(folder.path)[iii],header=T,sep=",",as.is=T,skip=1,stringsAsFactor=F,check.names=FALSE) 
 }
 ```
 
 ```{r}
+needCSV<-1
+gitURL<-list()
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
-setwd(pathOutput)
+prepathToCSV<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+setwd(prepathToCSV)
+tmp<-read.csv(file=dir(prepathToCSV),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+pathToCSV<-paste("C:/Users/",username,tmp[1,2],sep="")
+setwd(pathToCSV)
 SD<-Sys.Date()
 #http://www.e-stat.go.jp/SG1/estat/OtherList.do?bid=000001008860&cycode=1
 year<-c(2009:2015)
@@ -55,15 +61,18 @@ for(aaa in 1:length(area)){
   colnames(tmp)[1]<-colnames(data[[aaa]])[1]<-"Date"
   ST<-Sys.time()  
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-  csvFile<-paste(addVer,".csv",sep="")    
-#  write.csv(tmp[,c(1,4,7,10,13)],csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
+  csvFile<-paste("財務省貿易統計指数.",tmp[1,2],".csv",sep="") 
+  write.csv(tmp[,c(1,4,7,10,13)],csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
   grandALLData<-rbind(grandALLData,data[[aaa]])
+  #link to git part  
+  gitURL[[aaa]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,sep="")  
+  #link to git part  
 }
 colnames(data[[1]])
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-csvFile<-paste(addVer,".csv",sep="")
-#write.csv(grandALLData,csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
+csvFile<-paste("財務省貿易統計指数",".csv",sep="")
+write.csv(grandALLData,csvFile,row.names=F,quote=F,fileEncoding="UTF-8")
 ```
 
 ```{r}
@@ -368,7 +377,12 @@ for(ddd in 1:length(data)){
   dev.off()
   cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
     "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)   
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)  
+  #link to CSV
+  cat(paste("\n\n<br><b>Link to csv file</b>( Original Data Source:財務省 )<br>\n",sep=""),file=htmlFile,append=T)
+  cat(paste("- <a href=\"",gitURL[[ddd]],"\">","財務省貿易統計指数 地域:",data[[ddd]][1,2],"</a><hr>\n",sep=""),file=htmlFile,append=T)
+  cat("\n\n\n",file=htmlFile,append=T)
+  #link to CSV
 }  
 ```
 
