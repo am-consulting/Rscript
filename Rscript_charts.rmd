@@ -276,6 +276,7 @@ mainTitle<-"全産業活動指数 - "
 mainTitle<-"鉱工業生産指数前月比 - "
 mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
+mainTitle<-"軽四輪車新車販売台数 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
@@ -289,6 +290,7 @@ dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:経済産業省"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
+dataSource<-"\nData Source:一般社団法人全国軽自動車協会連合会"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
