@@ -1,5 +1,5 @@
 ```{r}
-requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape","gridExtra","XLConnect")
+requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape","gridExtra","XLConnect","eeptools")
 colnames(installed.packages())
 notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
 if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
@@ -17,6 +17,10 @@ setwd(pathOutput)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
   dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－","      ","***"),check.names=FALSE)
+  #comma削除
+  tmp<-apply(dataset[,-1],2,decomma)
+  dataset<-cbind(dataset[,1,drop=F],tmp)
+  #comma削除
   #ファイル名禁則文字対策
   #禁則文字(ファイル名,フォルダー名)
   #半角記号の \　/　:　*　?　"　<　>　|
@@ -261,7 +265,6 @@ mainTitle<-"日本の景気ウォッチャー調査 - "
 mainTitle<-"日本のマネーストック - "
 mainTitle<-"日本の国内企業物価指数 - "
 mainTitle<-"日本の預金動向 - "
-mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"資金循環統計 - "
 mainTitle<-"第3次産業活動指数 - "
 mainTitle<-"建設総合統計 - "
@@ -272,19 +275,20 @@ mainTitle<-"日本の消費者物価指数 - "
 mainTitle<-"全産業活動指数 - "
 mainTitle<-"鉱工業生産指数前月比 - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:内閣府"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:株式会社日本取引所グループ"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:経済産業省"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
+dataSource<-"\nData Source:財務省"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
