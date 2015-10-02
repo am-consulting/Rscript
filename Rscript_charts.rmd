@@ -174,6 +174,7 @@ consumptionTax<-0
 ```
 
 ```{r}
+#csv出力する際、列名(=個々のファイル名)には少なくとも半角の,%は利用しないこと。必ず全角とする。git上で文字化けが発生するため。
 fun.readData()
 gitURL<-list()
 imfPCP<-0
@@ -277,8 +278,8 @@ mainTitle<-"建設工事費デフレーター - "
 mainTitle<-"建設労働需給調査(%) - "
 mainTitle<-"日本の労働力調査 - "
 mainTitle<-"有効求人倍率 - "
-mainTitle<-"日本のマネタリーベース(%) - "
 mainTitle<-"日銀短観 - "
+mainTitle<-"日本のマネタリーベース - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:国税庁"
@@ -331,7 +332,7 @@ colorList<-c("blue","red")
 for(ccc in 2:ncol(dataset)){
 #チャートタイプ選択パート
 if(autoChartType==0){
-if(nrow(subset(dataset,dataset[,2]<0))==0 | nrow(subset(dataset,dataset[,2]>0))==0){chartType<-1}else{chartType<-2} 
+if(nrow(subset(dataset,dataset[,ccc]<0))==0 | nrow(subset(dataset,dataset[,ccc]>0))==0){chartType<-1}else{chartType<-2} 
 #if(regexpr("比",colnames(dataset)[ccc])!=-1){chartType<-2}else{chartType<-1}  
 }
 if(chartType==2){fitType<-3}  
@@ -648,7 +649,7 @@ cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resour
 ```{r}
 #amchartsPart
 #正規化タイプ
-typeNormal<-2 #1比率 or 2差
+typeNormal<-1 #1比率 or 2差
 #正規化タイプ
 if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
