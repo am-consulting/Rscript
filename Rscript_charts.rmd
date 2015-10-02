@@ -18,7 +18,7 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 fun.readData<-function(){
   dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－","      ","***"),check.names=FALSE)
   #comma削除
-  tmp<-apply(dataset[,-1],2,decomma)
+  tmp<-apply(dataset[,-1,drop=F],2,decomma)
   dataset<-cbind(dataset[,1,drop=F],tmp)
   #comma削除
   #ファイル名禁則文字対策
@@ -245,15 +245,9 @@ mainTitle<-"日本の企業向けサービス価格指数 - "
 mainTitle<-"財務省貿易統計(億円) - "
 mainTitle<-"財務省貿易統計 輸出 主要商品別(億円) - "
 mainTitle<-"財務省貿易統計 輸入 主要商品別(億円) - "
-mainTitle<-"日本の労働力調査 - "
-mainTitle<-"有効求人倍率 - "
 mainTitle<-"日本の労働力調査 - 役員を除く雇用形態別雇用者(万人)"
-mainTitle<-"住宅着工統計 - "
-mainTitle<-"建築着工統計 - "
 mainTitle<-"設備投資(当期末新設固定資産合計,百万円)-全規模 - "
-mainTitle<-"日本のマネタリーベース(兆円,%) - "
 mainTitle<-"利益剰余金(全産業、全規模、兆円) - "
-mainTitle<-"日本の建設労働需給調査(%) - "
 mainTitle<-"日本の法人税課税状況 - "
 mainTitle<-"日本の申告所得税額 - "
 mainTitle<-"日本の源泉所得税課税状況 - "
@@ -277,20 +271,28 @@ mainTitle<-"鉱工業生産指数前月比 - "
 mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"軽四輪車新車販売台数 - "
+mainTitle<-"住宅着工統計 - "
+mainTitle<-"建築着工統計 - "
+mainTitle<-"建設工事費デフレーター - "
+mainTitle<-"建設労働需給調査(%) - "
+mainTitle<-"日本の労働力調査 - "
+mainTitle<-"有効求人倍率 - "
+mainTitle<-"日本のマネタリーベース(%) - "
+mainTitle<-"日銀短観 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
-dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:内閣府"
-dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:株式会社日本取引所グループ"
-dataSource<-"\nData Source:日本銀行"
-dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:経済産業省"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:一般社団法人全国軽自動車協会連合会"
+dataSource<-"\nData Source:国土交通省"
+dataSource<-"\nData Source:総務省"
+dataSource<-"\nData Source:厚生労働省"
+dataSource<-"\nData Source:日本銀行"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
@@ -429,6 +431,7 @@ g<-g+ylab("")
 #消費税パート
 if(consumptionTax==1){
 value.y<-(max(buf.dataset[,2])+min(buf.dataset[,2]))/2
+value.y<-max(buf.dataset[,2])
 #1989年4月消費税  
 if(dateType!=4){taxDate1<-"1989-04-01"}else{taxDate1<-"1989-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate1)){
@@ -450,20 +453,20 @@ if(buf.dataset[1,1]<=as.Date(taxDate3) & tail(buf.dataset[,1],1)>=as.Date(taxDat
   g<-g+geom_text(aes(x=as.Date(taxDate3), y=value.y*0.975, label="2014年4月\n消費税導入\n(5%→8%)"), size=8,family="Meiryo",colour="black") 
 }
 #2014年4月消費税  
-#第二次安倍政権発足  
-if(dateType!=4){taxDate4<-"2013-01-01"}else{taxDate4<-"2013-01-01"}  
-if(buf.dataset[1,1]<=as.Date(taxDate4) & tail(buf.dataset[,1],1)>=as.Date(taxDate4)){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate4)),linetype=1,colour="#DC143C",size=2)
-  g<-g+geom_text(aes(x=as.Date(taxDate4), y=value.y*1.0, label="2013年1月\n(2012/12/26)\n第二次安倍政権\n発足"), size=8,family="Meiryo",colour="black") 
-}
-#第二次安倍政権発足  
-#民主党政権発足  
-if(dateType!=4){taxDate5<-"2009-09-01"}else{taxDate5<-"2009-01-01"}  
-if(buf.dataset[1,1]<=as.Date(taxDate5)){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate5)),linetype=1,colour="#DC143C",size=2)
-  g<-g+geom_text(aes(x=as.Date(taxDate5), y=value.y*1.0, label="2009年9月\n(2009/9/16)\n民主党政権\n発足"), size=8,family="Meiryo",colour="black") 
-}
-#民主党政権発足  
+# #第二次安倍政権発足  
+# if(dateType!=4){taxDate4<-"2013-01-01"}else{taxDate4<-"2013-01-01"}  
+# if(buf.dataset[1,1]<=as.Date(taxDate4) & tail(buf.dataset[,1],1)>=as.Date(taxDate4)){
+#   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate4)),linetype=1,colour="#DC143C",size=2)
+#   g<-g+geom_text(aes(x=as.Date(taxDate4), y=value.y*0.2, label="2013年1月\n(2012/12/26)\n第二次安倍政権\n発足"), size=8,family="Meiryo",colour="black") 
+# }
+# #第二次安倍政権発足  
+# #民主党政権発足  
+# if(dateType!=4){taxDate5<-"2009-09-01"}else{taxDate5<-"2009-01-01"}  
+# if(buf.dataset[1,1]<=as.Date(taxDate5)){
+#   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate5)),linetype=1,colour="#DC143C",size=2)
+#   g<-g+geom_text(aes(x=as.Date(taxDate5), y=value.y*0.2, label="2009年9月\n(2009/9/16)\n民主党政権\n発足"), size=8,family="Meiryo",colour="black") 
+# }
+# #民主党政権発足  
 }  
 #消費税パート  
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
@@ -568,11 +571,13 @@ minResult<-subset(
   successiveCabinets[[1]],
   format(minData[1,1],"%Y%m")>=format(successiveCabinets[[1]][,1],"%Y%m") & 
   format(minData[1,1],"%Y%m")<=format(successiveCabinets[[1]][,2],"%Y%m")  
-)  
+)
+maxResult<-tail(maxResult,1)  
+minResult<-tail(minResult,1)  
 maxSentence<-paste("過去",nrow(rankData),"ヶ月の最大値は",as.vector(maxResult[,3]),"政権時の",maxData[1,2],sep="")  
 minSentence<-paste("、最小値は",as.vector(minResult[,3]),"政権時の",minData[1,2],"です。\n\n\n\n",sep="")  
-sentence<-paste(sentence,maxSentence,minSentence,sep="")  
-cat(sentence,file=weeklyText,append=T) 
+totalSentence<-paste(sentence,maxSentence,minSentence,sep="")  
+cat(totalSentence,file=weeklyText,append=T) 
 }
 #weekly summary  
 cat(paste("\n<div id=\"amccchart",ccc,"\" style=\"text-align:center\"><b>",colnames(buf.dataset)[2],"</b>\n",sep=""),file=htmlFile,append=T)
