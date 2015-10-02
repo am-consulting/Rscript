@@ -647,18 +647,29 @@ cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resour
 
 ```{r}
 #amchartsPart
+#正規化タイプ
+typeNormal<-2 #1比率 or 2差
+#正規化タイプ
 if(colnames(dataset)[1]=="Date"){
   dataset[,1]<-as.Date(dataset[,1])
 }
 setwd(pathOutput)
 forAmcahrts<-na.omit(dataset)
 forAmcahrts<-subset(forAmcahrts,as.Date("2013-01-01")<=forAmcahrts[,1])  
-forAmcahrts<-data.frame(Date=forAmcahrts[,1],apply(forAmcahrts[,-1,drop=F],2,function(x) x/head(x,1)))
+#正規化タイプ
+if(typeNormal==1){
+  forAmcahrts<-data.frame(Date=forAmcahrts[,1],apply(forAmcahrts[,-1,drop=F],2,function(x) x/head(x,1)))
+  typeExplanation<-"を1とした比"
+}else{
+  forAmcahrts<-data.frame(Date=forAmcahrts[,1],apply(forAmcahrts[,-1,drop=F],2,function(x) x-head(x,1)))
+  typeExplanation<-"を0とした差"
+}
+#正規化タイプ
 colnames(forAmcahrts)<-colnames(dataset)
 head(forAmcahrts)
 tail(forAmcahrts)
 forAmcahrts<-head(forAmcahrts,5000000000000000000000)
-cat(paste("<hr><div style=\"text-align:center\"><b>第二次安倍政権発足以降の各種指標 - 発足日(月)を1とする</b></div>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<hr><div style=\"text-align:center\"><b>第二次安倍政権発足以降の各種指標 - 発足日(月)",typeExplanation,"</b></div>\n",sep=""),file=htmlFile,append=T)
 cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/amcharts.js\"></script>",file=htmlFile,append=T)
 cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/serial.js\"></script>",file=htmlFile,append=T)
 cat("<script src=\"http://archive.am-consulting.co.jp/amcharts315/themes/light.js\"></script>",file=htmlFile,append=T)
