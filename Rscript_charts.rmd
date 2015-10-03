@@ -182,7 +182,7 @@ fun.readData()
 gitURL<-list()
 imfPCP<-0
 inverse<-2 #逆サイクル:1,非逆サイクル:2
-consumptionTax<-1
+consumptionTax<-11
 needWeekly<-1
 grobTableTail<-13
 csvTail<-100000
