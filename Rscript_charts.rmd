@@ -25,6 +25,9 @@ fun.readData<-function(){
   #禁則文字(ファイル名,フォルダー名)
   #半角記号の \　/　:　*　?　"　<　>　|
   colnames(dataset)<-gsub("/","／",colnames(dataset))
+  colnames(dataset)<-gsub(":","：",colnames(dataset))
+  colnames(dataset)<-gsub(",","、",colnames(dataset))
+  colnames(dataset)<-gsub("\\$","＄",colnames(dataset))
   #ファイル名禁則文字対策
   dataset<<-dataset
   print(head(dataset))
@@ -174,7 +177,7 @@ consumptionTax<-0
 ```
 
 ```{r}
-#csv出力する際、列名(=個々のファイル名)には少なくとも半角の,%は利用しないこと。必ず全角とする。git上で文字化けが発生するため。
+#csv出力する際、列名(=個々のファイル名)には少なくとも半角の"," , "%" , "$"は利用しないこと。必ず全角とする。git上で文字化けが発生するため。
 fun.readData()
 gitURL<-list()
 imfPCP<-0
@@ -280,6 +283,7 @@ mainTitle<-"日本の労働力調査 - "
 mainTitle<-"有効求人倍率 - "
 mainTitle<-"日銀短観 - "
 mainTitle<-"日本のマネタリーベース - "
+mainTitle<-"米国の時間当たり賃金 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:国税庁"
@@ -294,6 +298,7 @@ dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:日本銀行"
+dataSource<-"\nData Source:Federal Reserve Bank of St. Louis"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
