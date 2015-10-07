@@ -183,6 +183,8 @@ consumptionTax<-0
 #csv出力する際、列名(=個々のファイル名)には少なくとも半角の"," , "%" , "$"は利用しないこと。必ず全角とする。git上で文字化けが発生するため。
 fun.readData()
 gitURL<-list()
+chartSelectNo<-c(1,3)
+annotationPosition<-0.9999
 imfPCP<-0
 inverse<-2 #逆サイクル:1,非逆サイクル:2
 consumptionTax<-1
@@ -274,7 +276,6 @@ mainTitle<-"日本の企業向けサービス価格指数 - "
 mainTitle<-"日本の消費者物価指数 - "
 mainTitle<-"全産業活動指数 - "
 mainTitle<-"鉱工業生産指数前月比 - "
-mainTitle<-"週間石油在庫統計 - "
 mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"軽四輪車新車販売台数 - "
 mainTitle<-"住宅着工統計 - "
@@ -287,21 +288,23 @@ mainTitle<-"日銀短観 - "
 mainTitle<-"日本のマネタリーベース - "
 mainTitle<-"米国の時間当たり賃金 - "
 mainTitle<-"日本の景気動向指数 - "
+mainTitle<-"被保護者調査 - "
+mainTitle<-"週間石油在庫統計 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:株式会社日本取引所グループ"
 dataSource<-"\nData Source:経済産業省"
-dataSource<-"\nData Source:U.S. Energy Information Administration"
 dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:一般社団法人全国軽自動車協会連合会"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:総務省"
-dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:Federal Reserve Bank of St. Louis"
 dataSource<-"\nData Source:内閣府"
+dataSource<-"\nData Source:厚生労働省"
+dataSource<-"\nData Source:U.S. Energy Information Administration"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
@@ -361,6 +364,7 @@ if(mainTitle=="週間石油在庫統計 - "){
   consumptionTax<-0
   needCSV<-1
   needWeekly<-0
+  chartSelectNo<-c(1:1)
 }
 if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){  
   tailNumber<-60
@@ -374,6 +378,7 @@ if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - 
   consumptionTax<-0
   needCSV<-1
   needWeekly<-0
+  chartSelectNo<-c(1:1)
 }
 if(colnames(dataset)[1]=="Date"){
   buf.dataset[,1]<-as.Date(buf.dataset[,1])
@@ -387,7 +392,8 @@ if(colnames(dataset)[1]=="Date"){
 }
 #1原数値 2第二次安倍政権 32014年増税  
 tmpbuf.dataset<-buf.dataset
-for(chartNo in 1:3){ 
+#for(chartNo in 1:3){ 
+for(chartNo in chartSelectNo){ 
 switch(chartNo,  
   buf.dataset<-buf.dataset,
   buf.dataset<-subset(buf.dataset,as.Date("2013/1/1")<=buf.dataset[,1]),
@@ -471,21 +477,21 @@ value.y<-max(buf.dataset[,2])
 if(dateType!=4){taxDate1<-"1989-04-01"}else{taxDate1<-"1989-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate1)){
   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate1)),linetype=1,colour="#d2691e",size=1)
-  g<-g+geom_text(aes(x=as.Date(taxDate1), y=value.y*0.975, label="1989年4月\n消費税導入\n(3%)"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_text(aes(x=as.Date(taxDate1), y=value.y*annotationPosition, label="1989年4月\n消費税導入\n(3%)"), size=8,family="Meiryo",colour="black") 
 }
 #1989年4月消費税  
 #1997年4月消費税  
 if(dateType!=4){taxDate2<-"1997-04-01"}else{taxDate2<-"1997-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate2)){
   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate2)),linetype=1,colour="#d2691e",size=1)
-  g<-g+geom_text(aes(x=as.Date(taxDate2), y=value.y*0.975, label="1997年4月\n消費税導入\n(3%→5%)"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_text(aes(x=as.Date(taxDate2), y=value.y*annotationPosition, label="1997年4月\n消費税導入\n(3%→5%)"), size=8,family="Meiryo",colour="black") 
 }
 #1997年4月消費税  
 #2014年4月消費税  
 if(dateType!=4){taxDate3<-"2014-04-01"}else{taxDate3<-"2014-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate3) & tail(buf.dataset[,1],1)>=as.Date(taxDate3)){
   g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate3)),linetype=1,colour="#d2691e",size=1)
-  g<-g+geom_text(aes(x=as.Date(taxDate3), y=value.y*0.975, label="2014年4月\n消費税導入\n(5%→8%)"), size=8,family="Meiryo",colour="black") 
+  g<-g+geom_text(aes(x=as.Date(taxDate3), y=value.y*annotationPosition, label="2014年4月\n消費税導入\n(5%→8%)"), size=8,family="Meiryo",colour="black") 
 }
 #2014年4月消費税  
 # #第二次安倍政権発足  
@@ -507,9 +513,11 @@ if(buf.dataset[1,1]<=as.Date(taxDate3) & tail(buf.dataset[,1],1)>=as.Date(taxDat
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
 #grobTable<-na.omit(dataset[,c(1,ccc)])
 grobTable<-buf.dataset
-if(mainTitle=="週間石油在庫統計 - "){  
-  grobTable<-data.frame(grobTable[-1,1],diff(grobTable[,2]))
-}
+#直前の処理により以下は不要  
+#if(mainTitle=="週間石油在庫統計 - "){  
+#  grobTable<-data.frame(grobTable[-1,1],diff(grobTable[,2]))
+#}
+#直前の処理により以上は不要  
 colnames(grobTable)<-c("Date","Value")  
 if(dateType!=3){
   grobTable[,1]<-format(as.Date(grobTable[,1]),dateFormat)
@@ -651,9 +659,16 @@ setwd(folder.path)
 tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
 dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(dir.list)
-csvFile<-gsub("\\s","",paste(mainTitle,colnames(dataset[,c(1,ccc)])[2]))
+#常に原数値をcsv出力  
+#csvFile<-gsub("\\s","",paste(mainTitle,colnames(dataset[,c(1,ccc)])[2]))
+#csvFile<-paste(csvFile,".csv",sep="")
+#write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#常に原数値をcsv出力  
+#前週差等をcsv出力  
+csvFile<-gsub("\\s","",paste(mainTitle,colnames(buf.dataset)[2]))
 csvFile<-paste(csvFile,".csv",sep="")
-write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+write.csv(tail(buf.dataset,csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#前週差等をcsv出力  
 #link to git part  
 gitURL[[ccc]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,sep="")  
 setwd(pathOutput)
