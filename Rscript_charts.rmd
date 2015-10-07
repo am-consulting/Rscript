@@ -660,14 +660,14 @@ tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA
 dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(dir.list)
 #常に原数値をcsv出力  
-#csvFile<-gsub("\\s","",paste(mainTitle,colnames(dataset[,c(1,ccc)])[2]))
-#csvFile<-paste(csvFile,".csv",sep="")
-#write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+csvFile<-gsub("\\s","",paste(mainTitle,colnames(dataset[,c(1,ccc)])[2]))
+csvFile<-paste(csvFile,".csv",sep="")
+write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 #常に原数値をcsv出力  
 #前週差等をcsv出力  
-csvFile<-gsub("\\s","",paste(mainTitle,colnames(buf.dataset)[2]))
-csvFile<-paste(csvFile,".csv",sep="")
-write.csv(tail(buf.dataset,csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#csvFile<-gsub("\\s","",paste(mainTitle,colnames(buf.dataset)[2]))
+#csvFile<-paste(csvFile,".csv",sep="")
+#write.csv(tail(buf.dataset,csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 #前週差等をcsv出力  
 #link to git part  
 gitURL[[ccc]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,sep="")  
