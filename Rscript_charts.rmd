@@ -182,7 +182,7 @@ fun.readData()
 gitURL<-list()
 imfPCP<-0
 inverse<-2 #逆サイクル:1,非逆サイクル:2
-consumptionTax<-11
+consumptionTax<-1
 needWeekly<-1
 grobTableTail<-13
 csvTail<-100000
@@ -238,7 +238,6 @@ if(colnames(dataset)[1]=="Date"){
 }
 setwd(pathOutput)
 if(imfPCP==0){
-mainTitle<-"景気動向指数個別一致系列 - "
 mainTitle<-"日本の外貨準備等状況 - "
 mainTitle<-"日本の消費動向調査 - "
 mainTitle<-"日本の建設工事受注動態統計調査(単位:兆円) - "
@@ -284,10 +283,10 @@ mainTitle<-"有効求人倍率 - "
 mainTitle<-"日銀短観 - "
 mainTitle<-"日本のマネタリーベース - "
 mainTitle<-"米国の時間当たり賃金 - "
+mainTitle<-"日本の景気動向指数 - 一致系列 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:国税庁"
-dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:株式会社日本取引所グループ"
 dataSource<-"\nData Source:経済産業省"
@@ -299,6 +298,7 @@ dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:Federal Reserve Bank of St. Louis"
+dataSource<-"\nData Source:内閣府"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
