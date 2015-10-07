@@ -29,6 +29,9 @@ fun.readData<-function(){
   colnames(dataset)<-gsub(",","、",colnames(dataset))
   colnames(dataset)<-gsub("\\$","＄",colnames(dataset))
   #ファイル名禁則文字対策
+  #改行削除
+  colnames(dataset)<-gsub("\n","",colnames(dataset))
+  #改行削除
   dataset<<-dataset
   print(head(dataset))
   print(tail(dataset))
@@ -283,7 +286,7 @@ mainTitle<-"有効求人倍率 - "
 mainTitle<-"日銀短観 - "
 mainTitle<-"日本のマネタリーベース - "
 mainTitle<-"米国の時間当たり賃金 - "
-mainTitle<-"日本の景気動向指数 - 一致系列 - "
+mainTitle<-"日本の景気動向指数 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:国税庁"
@@ -382,7 +385,32 @@ if(colnames(dataset)[1]=="Date"){
   }
   colnames(buf.dataset)[1]<-"Date"
 }
+#1原数値 2第二次安倍政権 32014年増税  
+tmpbuf.dataset<-buf.dataset
+for(chartNo in 1:3){ 
+switch(chartNo,  
+  buf.dataset<-buf.dataset,
+  buf.dataset<-subset(buf.dataset,as.Date("2013/1/1")<=buf.dataset[,1]),
+  buf.dataset<-subset(buf.dataset,as.Date("2014/4/1")<=buf.dataset[,1])
+)
+#正規化
+titleAdd<-""
+typeExplanation<-""  
+if(chartNo!=1){
+if(chartNo==2){titleAdd<-"\n第二次安倍政権発足時"}  
+if(chartNo==3){titleAdd<-"\n消費税増税(5%→8%)時"}  
+if(chartType==1){
+  buf.dataset<-data.frame(Date=buf.dataset[,1],apply(buf.dataset[,-1,drop=F],2,function(x) x/head(x,1)))
+  typeExplanation<-"を1とした比"
+}else{
+  buf.dataset<-data.frame(Date=buf.dataset[,1],apply(buf.dataset[,-1,drop=F],2,function(x) x-head(x,1)))
+  typeExplanation<-"を0とした差"
+}
+colnames(buf.dataset)<-colnames(tmpbuf.dataset)  
+}  
+#正規化
 melt.dataset<-melt(buf.dataset,id=colnames(buf.dataset)[1])#系列が一つでも強制的にmelt
+#1原数値 2第二次安倍政権 32014年増税
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste(addVer,".png",sep="")
@@ -415,7 +443,8 @@ if(dateType!=3){#Date
     "-",
     format(tail(buf.dataset[,1],1),dateFormat),
     dataSource,
-    ". Max/Minの対象は",format(na.omit(dataset[,c(1,ccc)])[1,1],dateFormat),"以降"
+    ". Max/Minの対象は",format(na.omit(dataset[,c(1,ccc)])[1,1],dateFormat),"以降",
+    titleAdd,typeExplanation
     )
   )
   g<-g+scale_x_date(labels=date_format(dateFormat))
@@ -441,21 +470,21 @@ value.y<-max(buf.dataset[,2])
 #1989年4月消費税  
 if(dateType!=4){taxDate1<-"1989-04-01"}else{taxDate1<-"1989-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate1)){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate1)),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate1)),linetype=1,colour="#d2691e",size=1)
   g<-g+geom_text(aes(x=as.Date(taxDate1), y=value.y*0.975, label="1989年4月\n消費税導入\n(3%)"), size=8,family="Meiryo",colour="black") 
 }
 #1989年4月消費税  
 #1997年4月消費税  
 if(dateType!=4){taxDate2<-"1997-04-01"}else{taxDate2<-"1997-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate2)){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate2)),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate2)),linetype=1,colour="#d2691e",size=1)
   g<-g+geom_text(aes(x=as.Date(taxDate2), y=value.y*0.975, label="1997年4月\n消費税導入\n(3%→5%)"), size=8,family="Meiryo",colour="black") 
 }
 #1997年4月消費税  
 #2014年4月消費税  
 if(dateType!=4){taxDate3<-"2014-04-01"}else{taxDate3<-"2014-01-01"}  
 if(buf.dataset[1,1]<=as.Date(taxDate3) & tail(buf.dataset[,1],1)>=as.Date(taxDate3)){
-  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate3)),linetype=1,colour="#d2691e",size=2)
+  g<-g+geom_vline(xintercept = as.numeric(as.Date(taxDate3)),linetype=1,colour="#d2691e",size=1)
   g<-g+geom_text(aes(x=as.Date(taxDate3), y=value.y*0.975, label="2014年4月\n消費税導入\n(5%→8%)"), size=8,family="Meiryo",colour="black") 
 }
 #2014年4月消費税  
@@ -476,7 +505,8 @@ if(buf.dataset[1,1]<=as.Date(taxDate3) & tail(buf.dataset[,1],1)>=as.Date(taxDat
 }  
 #消費税パート  
 #g<-g+geom_text(aes(x=tail(buf.dataset[,1],1),y=as.numeric(tail(buf.dataset[,-1],1)),label=paste(format(tail(buf.dataset[,1],1),dateFormat),":",as.numeric(tail(buf.dataset[,-1],1)))),size=10,hjust=1)
-grobTable<-na.omit(dataset[,c(1,ccc)])
+#grobTable<-na.omit(dataset[,c(1,ccc)])
+grobTable<-buf.dataset
 if(mainTitle=="週間石油在庫統計 - "){  
   grobTable<-data.frame(grobTable[-1,1],diff(grobTable[,2]))
 }
@@ -535,7 +565,8 @@ if(perpbr==1){
   g<-g+theme(axis.text.x=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
   g<-g+theme(axis.text.y=element_text(size=30,angle=0,hjust=1,vjust=0.5))  
 }
-#weekly summary 
+#weekly summary
+if(chartNo==1){  
 if(needWeekly==1){
 sentence<-paste(colnames(buf.dataset)[2],"について",sep="")  
 rankList<-list()
@@ -585,7 +616,9 @@ minSentence<-paste("、最小値は",as.vector(minResult[,3]),"政権時の",min
 totalSentence<-paste(sentence,maxSentence,minSentence,sep="")  
 cat(totalSentence,file=weeklyText,append=T) 
 }
-#weekly summary  
+}  
+#weekly summary
+if(chartNo==1){  
 cat(paste("\n<div id=\"amccchart",ccc,"\" style=\"text-align:center\"><b>",colnames(buf.dataset)[2],"</b>\n",sep=""),file=htmlFile,append=T)
 cat(paste("<br><select id=\"chartSelect",ccc,"\">\n",sep=""),file=htmlFile,append=T)
 cat("<option value=\"\">Selecet a chart</option>\n",file=htmlFile,append=T)
@@ -593,11 +626,23 @@ for(zzz in 2:ncol(dataset)){
   cat(paste("<option value=\"#amccchart",zzz,"\">",colnames(dataset)[zzz],"</option>\n",sep=""),file=htmlFile,append=T)
 }
 cat("</select></div>\n",file=htmlFile,append=T)
+}
 cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
     "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
     "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+#1原数値 2第二次安倍政権 32014年増税
+if(chartNo!=1){  
+if(chartType==1){  
+g<-g+geom_hline(yintercept = as.integer(1),linetype=1,colour="green",size=1)
+}else{
+g<-g+geom_hline(yintercept = as.integer(0),linetype=1,colour="green",size=1)
+}
+}  
 print(g)
 dev.off()
+}  
+buf.dataset<-tmpbuf.dataset
+#1原数値 2第二次安倍政権 32014年増税  
 #CSV part
 if(needCSV==1){
 pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
