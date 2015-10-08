@@ -183,8 +183,8 @@ consumptionTax<-0
 #csv出力する際、列名(=個々のファイル名)には少なくとも半角の"," , "%" , "$"は利用しないこと。必ず全角とする。git上で文字化けが発生するため。
 fun.readData()
 gitURL<-list()
-chartSelectNo<-c(1,3)
-annotationPosition<-0.9999
+chartSelectNo<-c(1,2,3)
+annotationPosition<-0.99
 imfPCP<-0
 inverse<-2 #逆サイクル:1,非逆サイクル:2
 consumptionTax<-1
@@ -276,7 +276,6 @@ mainTitle<-"日本の企業向けサービス価格指数 - "
 mainTitle<-"日本の消費者物価指数 - "
 mainTitle<-"全産業活動指数 - "
 mainTitle<-"鉱工業生産指数前月比 - "
-mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"軽四輪車新車販売台数 - "
 mainTitle<-"住宅着工統計 - "
 mainTitle<-"建築着工統計 - "
@@ -290,21 +289,23 @@ mainTitle<-"米国の時間当たり賃金 - "
 mainTitle<-"日本の景気動向指数 - "
 mainTitle<-"被保護者調査 - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
+mainTitle<-"日本の経常収支と貿易収支 - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:国税庁"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:株式会社日本取引所グループ"
 dataSource<-"\nData Source:経済産業省"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:一般社団法人全国軽自動車協会連合会"
 dataSource<-"\nData Source:国土交通省"
 dataSource<-"\nData Source:総務省"
-dataSource<-"\nData Source:日本銀行"
 dataSource<-"\nData Source:Federal Reserve Bank of St. Louis"
 dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
+dataSource<-"\nData Source:財務省"
+dataSource<-"\nData Source:日本銀行"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
