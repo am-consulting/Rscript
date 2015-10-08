@@ -29,6 +29,7 @@ mainTitle<-"民間給与実態統計調査結果-1年勤続者の業種別平均
 mainTitle<-"継続等区分別集落営農数"
 mainTitle<-"都道府県別預金・現金・貸出金（8月、%、兆円）"
 mainTitle<-"被保護者調査 都道府県統計表 2015年7月分"
+mainTitle<-"日本の対中国ODA実績と両国のGDPの推移 1979年から2013年(単位:ODA 億ドル,実質GDP 10億ドル)"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
@@ -47,6 +48,7 @@ dataSource<-"\nデータ出所:国税庁"
 dataSource<-"\nデータ出所:農林水産省"
 dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:厚生労働省"
+dataSource<-"\nデータ出所:外務省,IMF"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- "),check.names=FALSE)
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
