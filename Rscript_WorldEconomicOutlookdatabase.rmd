@@ -37,13 +37,18 @@ tmp<-tmp[tmp[,1]!="",]
 tmp[is.na(tmp)==T]<--9999
 tmp[tmp==""]<-"-"
 dataset<-tmp
+```
+
+```{r}
 #項目絞り込み
 selectedData<-list()
 tableItem<-unique(dataset[,2])
-nItem<-12
+nItem<-4
 nLoop<-ceiling(length(tableItem)/nItem)
 sItem<-1  
-eItem<-1*nItem  
+eItem<-1*nItem
+subjectHtml<-"subjectHtml.html"
+cat("",file=subjectHtml,append=F)
 for(ggg in 1:nLoop){
   selectItem<-na.omit(tableItem[sItem:eItem])
   selectedData[[ggg]]<-subset(dataset,dataset[,2] %in% selectItem)
@@ -53,6 +58,8 @@ for(ggg in 1:nLoop){
   print(head(selectedData[[ggg]]))
   sItem<-eItem+1  
   eItem<-eItem+nItem  
+  cat(paste("<b>世界経済の見通し一覧表",ggg,"</b><br>\n"),file=subjectHtml,append=T)
+  cat(paste(unique(selectedData[[ggg]][,2]),col="<br>",sep=""),file=subjectHtml,append=T)
 }
 #項目絞り込み
 #World Economic Outlook database
@@ -94,8 +101,8 @@ cat("<link href=\"http://archive.am-consulting.co.jp/jquery.dataTables.1.10.7.cs
 cat("<script src=\"http://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js\"></script>\n",file=htmlFile,append=T) 
 cat("<script src=\"http://archive.am-consulting.co.jp/dataTables.colVis.js\"></script>\n",file=htmlFile,append=T)
 cat("<link href=\"http://archive.am-consulting.co.jp/dataTables.colVis.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)
-cat("<script src=\"http://archive.am-consulting.co.jp/dataTables.fixedColumns.js\"></script>\n",file=htmlFile,append=T)
-cat("<link href=\"http://archive.am-consulting.co.jp/dataTables.fixedColumns.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)
+#cat("<script src=\"http://archive.am-consulting.co.jp/dataTables.fixedColumns.js\"></script>\n",file=htmlFile,append=T)
+#cat("<link href=\"http://archive.am-consulting.co.jp/dataTables.fixedColumns.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)
 cat("<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">",file=htmlFile,append=T)
 cat("<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>",file=htmlFile,append=T)
 cat("</head>\n",file=htmlFile,append=T)
@@ -109,8 +116,8 @@ cat(" \"lengthMenu\": [[",menulength,",10,20,-1,100,200], [",menulength,",10,20,
 cat(paste(" \"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],\n",sep=""),file=htmlFile,append=T)
 cat(" \"searching\": true,\n",file=htmlFile,append=T)
 cat(" \"columnDefs\":[",columnWidth,"],\n",file=htmlFile,append=T)
-cat(" \"scrollX\": true,\n",file=htmlFile,append=T)
-cat(" \"scrollCollapse\": true,\n",file=htmlFile,append=T)
+#cat(" \"scrollX\": true,\n",file=htmlFile,append=T)
+#cat(" \"scrollCollapse\": true,\n",file=htmlFile,append=T)
 cat(" \"language\": {\"decimal\": \".\",\"thousands\": \",\"}\n",file=htmlFile,append=T)
 #Individual column searching part  
 cat(" ,initComplete: function () {\n",file=htmlFile,append=T)
@@ -143,10 +150,10 @@ cat("  }\n",file=htmlFile,append=T)
 #Row created callback  
 cat("});\n\n",file=htmlFile,append=T)
 #fixed column JS
-cat("new $.fn.dataTable.FixedColumns( table, {\n",file=htmlFile,append=T)
-cat("leftColumns: 2,\n",file=htmlFile,append=T)
-cat("rightColumns: 0\n",file=htmlFile,append=T)
-cat("});\n\n",file=htmlFile,append=T)
+#cat("new $.fn.dataTable.FixedColumns( table, {\n",file=htmlFile,append=T)
+#cat("leftColumns: 2,\n",file=htmlFile,append=T)
+#cat("rightColumns: 0\n",file=htmlFile,append=T)
+#cat("});\n\n",file=htmlFile,append=T)
 #fixed column JS
 #正規表現  
 cat(paste("$('#",tableID,"').dataTable();\n",sep=""),file=htmlFile,append=T)
@@ -282,10 +289,12 @@ for(ccc in 1:ncol(htmldataset)){
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
 tableHtml<-paste(tableHtml,header,"</thead><tfoot>",sep="")
 tableHtml<-paste(tableHtml,header,"</tfoot>",sep="")
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)  
 cat(tableHtml,file=htmlFile,append=T)
 grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
+cat("</div>\n",file=htmlFile,append=T)
 cat("Powered by<br>",file=htmlFile,append=T)
 cat("- jQuery : <a href=\"https://jquery.com/\" target=\"_blank\">https://jquery.com/</a><br>",file=htmlFile,append=T)
 cat("- DataTables : <a href=\"http://datatables.net/\" target=\"_blank\">http://datatables.net/</a><br>",file=htmlFile,append=T)
