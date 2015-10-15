@@ -31,12 +31,12 @@ mainTitle<-"都道府県別預金・現金・貸出金（8月、%、兆円）"
 mainTitle<-"被保護者調査 都道府県統計表 2015年7月分"
 mainTitle<-"日本の対中国ODA実績と両国のGDPの推移 1979年から2013年(単位:ODA 億ドル,実質GDP 10億ドル)"
 mainTitle<-"体力･運動能力調査 平成26年度 年齢別体格測定の結果"
+mainTitle<-"日本の鉱工業生産指数 業種別 前月比 2015年8月分(%)"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
 dataSource<-"\nデータ出所:内閣府"
-dataSource<-"\nデータ出所:経済産業省"
 dataSource<-"\nデータ出所:資源エネルギー庁"
 dataSource<-"\nデータ出所:総務省"
 dataSource<-"\nデータ出所:株式会社東京証券取引所"
@@ -50,6 +50,7 @@ dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:外務省,IMF"
 dataSource<-"\nデータ出所:文部科学省"
+dataSource<-"\nデータ出所:経済産業省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
@@ -232,5 +233,10 @@ cat("</table>",file=htmlFile,append=T)
 cat("</div>\n",file=htmlFile,append=T)
 cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
 cat("<hr>",file=htmlFile,append=T)
+#youtubegallery
+cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+#youtubegallery
 #only html
 ```
