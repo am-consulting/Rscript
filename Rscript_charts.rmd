@@ -197,6 +197,9 @@ chartType<-1 #1:line , 2:bar
 fitType<-2 #1:lm , 2:loess , 3:none
 autoChartType<-0
 tailNumber<-10000000000
+#gridExtraの仕様変更によりエラーがでる  
+#http://stackoverflow.com/questions/31796219/grid-table-and-tablegrob-in-gridextra-package
+#確認、修正するまで一旦回避  
 annotation<-1 # need:1,no need:2
 perpbr<-0
 outputFolder<-1 #1:R_Data_Write,2:charts,3:weeklyResult
@@ -547,7 +550,8 @@ g<-g+annotation_custom(
 noteTable<-rbind(
   data.frame(grobTable[which.max(grobTable[,2]),],Note="Max"),  
   data.frame(grobTable[which.min(grobTable[,2]),],Note="Min")  
-)  
+)
+if(annotation==1){  
 g<-g+annotation_custom(
   tableGrob(
     noteTable,
@@ -566,6 +570,7 @@ g<-g+annotation_custom(
   ymin=(max(na.omit(buf.dataset)[,2])+min(na.omit(buf.dataset)[,2]))/2,
   ymax=max(na.omit(buf.dataset)[,2])
 )
+}  
 }  
 if(perpbr==1){  
   g<-g+ggtitle(paste(mainTitle,dataSource))
