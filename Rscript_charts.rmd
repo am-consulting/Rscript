@@ -176,6 +176,27 @@ fitType<-2 #1:lm , 2:loess , 3:none
 imfPCP<-1
 needWeekly<-0
 consumptionTax<-0
+perpbr<-0
+outputFolder<-1 #1:R_Data_Write,2:charts,3:weeklyResult
+autoChartType<-0
+needCSV<-1
+tailNumber<-10000000000
+weeklyText<-"weeklyResult.html"  
+htmlFile<-"linktoImage.html"  
+onlyLink<-"onlyLink.html"  
+gitURL<-list()
+chartSelectNo<-c(1)
+annotation<-1 # need:1,no need:2
+grobTableTail<-13
+csvTail<-100000
+#ファイル名禁則文字対策
+#禁則文字(ファイル名,フォルダー名)
+#半角記号の \　/　:　*　?　"　<　>　|
+colnames(dataset)<-gsub("/","／",colnames(dataset))
+colnames(dataset)<-gsub(":","：",colnames(dataset))
+colnames(dataset)<-gsub(",","、",colnames(dataset))
+colnames(dataset)<-gsub("\\$","＄",colnames(dataset))
+#ファイル名禁則文字対策
 #IMF Primary Commodity Prices
 ```
 
