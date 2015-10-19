@@ -32,6 +32,7 @@ mainTitle<-"被保護者調査 都道府県統計表 2015年7月分"
 mainTitle<-"日本の対中国ODA実績と両国のGDPの推移 1979年から2013年(単位:ODA 億ドル,実質GDP 10億ドル)"
 mainTitle<-"体力･運動能力調査 平成26年度 年齢別体格測定の結果"
 mainTitle<-"日本の鉱工業生産指数 業種別 前月比 2015年8月分(%)"
+mainTitle<-"Crude Oil - Closing stocks(kbbl)"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
@@ -51,6 +52,7 @@ dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:外務省,IMF"
 dataSource<-"\nデータ出所:文部科学省"
 dataSource<-"\nデータ出所:経済産業省"
+dataSource<-"\nデータ出所:Joint Organisations Data Initiative"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
