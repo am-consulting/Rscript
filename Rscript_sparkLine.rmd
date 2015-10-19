@@ -1,0 +1,54 @@
+```{r}
+#Application
+# http://omnipotent.net/jquery.sparkline/#s-about
+# https://jquery.com/
+library(lubridate)
+username<-Sys.info()['user']
+```
+
+```{r}
+mainTitle<-"消費者物価指数 東京都区部 前月比(%)"
+dataSource<-"\nデータ出所:総務省"
+origDataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=F)
+origDataset[is.na(origDataset)==T]<--9999
+origDataset[,1]<-as.Date(origDataset[,1])
+print(head(origDataset),3)
+print(tail(origDataset),3)
+```
+
+```{r}
+borderDate<-as.Date("2013/1/1")
+dateFormat<-"%Y/%m"
+dataset<-subset(origDataset,borderDate<=origDataset[,1])
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+```
+
+```{r}
+htmlFile<-"am-consultingSparkLine.html"
+cat("",file=htmlFile,append=F)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>\n",file=htmlFile,append=T)
+cat("<script src=\"http://archive.am-consulting.co.jp/jquery.sparkline.2.1.2.js\"></script>\n",file=htmlFile,append=T)
+cat("<style type=\"text/css\">\n",file=htmlFile,append=T)
+cat("div.amc {float:left;border-right: 1px solid #000000;border-bottom: 1px solid #000000;}</style>\n",file=htmlFile,append=T)
+cat("</style>\n",file=htmlFile,append=T)
+cat("<script type=\"text/javascript\">$(function(){\n\n",file=htmlFile,append=T)
+for(ccc in 2:ncol(dataset)){
+tmp<-paste(dataset[,ccc],collapse=",")  
+cat(paste("$(\"#amccsparkline",ccc,"\").sparkline([",tmp,"], {\n",sep=""),file=htmlFile,append=T)
+cat("type: 'bar',\n",file=htmlFile,append=T)
+cat("width: '100',\n",file=htmlFile,append=T)
+cat("height: '100'\n",file=htmlFile,append=T)
+cat("});\n\n",file=htmlFile,append=T)
+}  
+cat("});</script>\n\n",file=htmlFile,append=T)
+cat(paste("<div align=\"center\"><b>",mainTitle,"</b></div>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<div align=\"center\">",dataSource,"</div>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<div align=\"center\">期間:",format(head(dataset[,1],1),dateFormat),"-",format(tail(dataset[,1],1),dateFormat),"</div>\n",sep=""),file=htmlFile,append=T)
+cat("<div align=\"center\">Powered by jQuery Sparklines( http://omnipotent.net/jquery.sparkline/#s-about )</div>",file=htmlFile,append=T)  
+cat("<hr>",file=htmlFile,append=T)
+for(ccc in 2:ncol(dataset)){
+addText<-paste(colnames(dataset[ccc]),"<br>",format(tail(dataset[,1],1),dateFormat),":",tail(dataset[ccc],1))
+cat(paste("<div class=\"amc\" align=\"center\"><font size=\"2\">",addText,"</font><div id=\"amccsparkline",ccc,"\"></div></div>\n",sep=""),file=htmlFile,append=T)
+}
+```
