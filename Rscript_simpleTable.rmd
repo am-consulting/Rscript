@@ -1,5 +1,6 @@
 ```{r}
 library(lubridate)
+library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
 needRightRow<-1
@@ -33,7 +34,8 @@ mainTitle<-"日本の対中国ODA実績と両国のGDPの推移 1979年から201
 mainTitle<-"体力･運動能力調査 平成26年度 年齢別体格測定の結果"
 mainTitle<-"日本の鉱工業生産指数 業種別 前月比 2015年8月分(%)"
 mainTitle<-"Crude Oil - Closing stocks(kbbl)"
-dataSource<-"\nデータ出所:国土交通省"
+mainTitle<-"日本の建設総合統計 出来高(億円)"
+mainTitle<-"ミシガン大学消費者信頼感指数"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -53,12 +55,22 @@ dataSource<-"\nデータ出所:外務省,IMF"
 dataSource<-"\nデータ出所:文部科学省"
 dataSource<-"\nデータ出所:経済産業省"
 dataSource<-"\nデータ出所:Joint Organisations Data Initiative"
+dataSource<-"\nデータ出所:国土交通省"
+dataSource<-"\nデータ出所:The Regents of the University of Michigan"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
+#comma削除
+tmp<-apply(dataset[,-1,drop=F],2,decomma)
+dataset<-cbind(dataset[,1,drop=F],tmp)
+#comma削除
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
   colnames(dataset)[ncol(dataset)]<-colnames(dataset)[1]
 } 
 dataset[is.na(dataset)==T]<--9999
+#dateType
+if(length(unique(day(dataset[,1])))==1 & length(unique(month(dataset[,1])))==1){dataset[,1]<-format(as.Date(dataset[,1]),"%Y")}else
+if(length(unique(day(dataset[,1])))==1 & length(unique(month(dataset[,1])))!=1){dataset[,1]<-format(as.Date(dataset[,1]),"%Y/%m")}
+#dateType
 print(head(dataset),3)
 print(tail(dataset),3)
 ```
@@ -68,10 +80,15 @@ cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
 orderColumn<-0
-orderDirection<-"asc" #asc desc
+orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
+#sparkline
+sparklineWidth<-50
+sparklineHeight<-50
+sparklineType<-"line"
+#sparkline
 ```
 
 ```{r}
@@ -92,6 +109,7 @@ tableID<-paste("am-consulting",addVer,sep="")
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>\n",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)  
 cat("<script src=\"http://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js\"></script>\n\n",file=htmlFile,append=T) 
+cat("<script src=\"http://archive.am-consulting.co.jp/jquery.sparkline.2.1.2.js\"></script>\n",file=htmlFile,append=T)
 cat("<style>\n",file=htmlFile,append=T)
 cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}\n",file=htmlFile,append=T)
 cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
@@ -224,8 +242,25 @@ for(ccc in 1:ncol(htmldataset)){
   grandData<-cbind(grandData,col[[ccc]])
   header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
 }
+#sparkline
+cat("<script type=\"text/javascript\">$(function(){\n\n",file=htmlFile,append=T)
+for(ccc in 2:(ncol(htmldataset)-1)){
+tmp<-paste(htmldataset[,ccc],collapse=",")  
+cat(paste("$(\"#amccsparkline",ccc,"\").sparkline([",tmp,"], {\n",sep=""),file=htmlFile,append=T)
+cat(paste("type: '",sparklineType,"',\n",sep=""),file=htmlFile,append=T)
+cat(paste("width: '",sparklineWidth,"',\n",sep=""),file=htmlFile,append=T)
+cat(paste("height: '",sparklineHeight,"'\n",sep=""),file=htmlFile,append=T)
+cat("});\n\n",file=htmlFile,append=T)
+}  
+cat("});</script>\n\n",file=htmlFile,append=T)
+sparkLineHeader<-""
+for(ccc in 2:(ncol(htmldataset)-1)){
+sparkLineHeader<-paste(sparkLineHeader,"<th><div id=\"amccsparkline",ccc,"\"></div></th>",sep="")
+}
+sparkLineHeader<-paste("<tr><th>Sparkline</th>",sparkLineHeader,"<th>Sparkline</th></tr>",sep="")
+#sparkline
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
-tableHtml<-paste(tableHtml,header,"</thead><tfoot>",sep="")
+tableHtml<-paste(tableHtml,sparkLineHeader,header,"</thead><tfoot>",sep="")
 tableHtml<-paste(tableHtml,header,"</tfoot>",sep="")
 cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
 cat(tableHtml,file=htmlFile,append=T)
@@ -233,7 +268,8 @@ grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
 cat("</div>\n",file=htmlFile,append=T)
-cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
+cat("Powered by<br>-DataTables( http://datatables.net/ )<br>",file=htmlFile,append=T)  
+cat("-jQuery Sparklines( http://omnipotent.net/jquery.sparkline/#s-about )",file=htmlFile,append=T)  
 cat("<hr>",file=htmlFile,append=T)
 #youtubegallery
 cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
