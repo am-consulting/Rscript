@@ -5,6 +5,9 @@ username<-Sys.info()['user']
 SD<-Sys.Date()
 needRightRow<-1
 needCalStat<-0
+typeData<-0 #0 非時系列 1 時系列
+nonNumeric<-c(1:4)
+needsparkline<-0
 ```
 
 ```{r}
@@ -36,6 +39,7 @@ mainTitle<-"日本の鉱工業生産指数 業種別 前月比 2015年8月分(%)
 mainTitle<-"Crude Oil - Closing stocks(kbbl)"
 mainTitle<-"日本の建設総合統計 出来高(億円)"
 mainTitle<-"ミシガン大学消費者信頼感指数"
+mainTitle<-"毎月勤労統計 毎勤原表 2015年8月"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -50,17 +54,17 @@ dataSource<-"\nデータ出所:法務省"
 dataSource<-"\nデータ出所:国税庁"
 dataSource<-"\nデータ出所:農林水産省"
 dataSource<-"\nデータ出所:日本銀行"
-dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:外務省,IMF"
 dataSource<-"\nデータ出所:文部科学省"
 dataSource<-"\nデータ出所:経済産業省"
 dataSource<-"\nデータ出所:Joint Organisations Data Initiative"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:The Regents of the University of Michigan"
+dataSource<-"\nデータ出所:厚生労働省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
-tmp<-apply(dataset[,-1,drop=F],2,decomma)
-dataset<-cbind(dataset[,1,drop=F],tmp)
+tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
+dataset<-cbind(dataset[,nonNumeric,drop=F],tmp)
 #comma削除
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,1])
@@ -68,8 +72,10 @@ if(needRightRow==1){
 } 
 dataset[is.na(dataset)==T]<--9999
 #dateType
+if(typeData==1){
 if(length(unique(day(dataset[,1])))==1 & length(unique(month(dataset[,1])))==1){dataset[,1]<-format(as.Date(dataset[,1]),"%Y")}else
 if(length(unique(day(dataset[,1])))==1 & length(unique(month(dataset[,1])))!=1){dataset[,1]<-format(as.Date(dataset[,1]),"%Y/%m")}
+}
 #dateType
 print(head(dataset),3)
 print(tail(dataset),3)
@@ -79,7 +85,7 @@ print(tail(dataset),3)
 cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
-orderColumn<-0
+orderColumn<-4
 orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
@@ -92,7 +98,11 @@ sparklineType<-"line"
 ```
 
 ```{r}
+if(grep("毎月勤労統計 毎勤原表",mainTitle)==1){
+htmlFile<-"am-consultingMonthlyLabourSurveyTable.html"
+}else{  
 htmlFile<-"am-consultingTable.html"
+}
 cat("",file=htmlFile,append=F)
 ```
 
@@ -243,6 +253,8 @@ for(ccc in 1:ncol(htmldataset)){
   header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
 }
 #sparkline
+sparkLineHeader<-""
+if(needsparkline==1){
 cat("<script type=\"text/javascript\">$(function(){\n\n",file=htmlFile,append=T)
 for(ccc in 2:(ncol(htmldataset)-1)){
 tmp<-paste(htmldataset[,ccc],collapse=",")  
@@ -253,11 +265,11 @@ cat(paste("height: '",sparklineHeight,"'\n",sep=""),file=htmlFile,append=T)
 cat("});\n\n",file=htmlFile,append=T)
 }  
 cat("});</script>\n\n",file=htmlFile,append=T)
-sparkLineHeader<-""
 for(ccc in 2:(ncol(htmldataset)-1)){
 sparkLineHeader<-paste(sparkLineHeader,"<th><div id=\"amccsparkline",ccc,"\"></div></th>",sep="")
 }
 sparkLineHeader<-paste("<tr><th>Sparkline</th>",sparkLineHeader,"<th>Sparkline</th></tr>",sep="")
+}
 #sparkline
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
 tableHtml<-paste(tableHtml,sparkLineHeader,header,"</thead><tfoot>",sep="")
