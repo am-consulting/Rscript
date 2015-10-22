@@ -189,6 +189,7 @@ chartSelectNo<-c(1)
 annotation<-1 # need:1,no need:2
 grobTableTail<-13
 csvTail<-100000
+origorbuf<-1 #1 orig , 2 buf
 #ファイル名禁則文字対策
 #禁則文字(ファイル名,フォルダー名)
 #半角記号の \　/　:　*　?　"　<　>　|
@@ -204,6 +205,7 @@ colnames(dataset)<-gsub("\\$","＄",colnames(dataset))
 #csv出力する際、列名(=個々のファイル名)には少なくとも半角の"," , "%" , "$"は利用しないこと。必ず全角とする。git上で文字化けが発生するため。
 fun.readData()
 gitURL<-list()
+origorbuf<-1 #1 orig , 2 buf
 chartSelectNo<-c(1,2,3)
 annotationPosition<-0.99
 imfPCP<-0
@@ -313,8 +315,8 @@ mainTitle<-"日本の経常収支と貿易収支 - "
 mainTitle<-"日本の特定サービス産業動態売上高指数 - 前年同月比(％)"
 mainTitle<-"日本のマネーストック - "
 mainTitle<-"日本の国内企業物価指数 - "
-mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:国税庁"
@@ -328,8 +330,8 @@ dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:経済産業省"
 dataSource<-"\nData Source:日本銀行"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
+dataSource<-"\nData Source:財務省"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
@@ -390,6 +392,7 @@ if(mainTitle=="週間石油在庫統計 - "){
   needCSV<-1
   needWeekly<-0
   chartSelectNo<-c(1:1)
+  origorbuf<-2 #1 orig , 2 buf
 }
 if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - "){  
   tailNumber<-60
@@ -404,6 +407,7 @@ if(mainTitle=="対外及び対内証券投資売買契約等の状況(億円) - 
   needCSV<-1
   needWeekly<-0
   chartSelectNo<-c(1:1)
+  origorbuf<-1 #1 orig , 2 buf
 }
 if(colnames(dataset)[1]=="Date"){
   buf.dataset[,1]<-as.Date(buf.dataset[,1])
@@ -686,16 +690,19 @@ setwd(folder.path)
 tmp<-read.csv(file=dir(folder.path),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
 dir.list<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(dir.list)
+if(origorbuf==1){ 
 #常に原数値をcsv出力  
 csvFile<-gsub("\\s","",paste(mainTitle,colnames(dataset[,c(1,ccc)])[2]))
 csvFile<-paste(csvFile,".csv",sep="")
 write.csv(tail(na.omit(dataset[,c(1,ccc)]),csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
-#常に原数値をcsv出力  
+#常に原数値をcsv出力
+}else{  
 #前週差等をcsv出力  
-#csvFile<-gsub("\\s","",paste(mainTitle,colnames(buf.dataset)[2]))
-#csvFile<-paste(csvFile,".csv",sep="")
-#write.csv(tail(buf.dataset,csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+csvFile<-gsub("\\s","",paste(mainTitle,colnames(buf.dataset)[2]))
+csvFile<-paste(csvFile,".csv",sep="")
+write.csv(tail(buf.dataset,csvTail),csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
 #前週差等をcsv出力  
+}
 #link to git part  
 gitURL[[ccc]]<-paste("https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",csvFile,sep="")  
 setwd(pathOutput)
