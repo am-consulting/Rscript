@@ -3,11 +3,12 @@ library(lubridate)
 library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
-needRightRow<-1
+needRightRow<-0
 needCalStat<-0
 typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1:4)
+nonNumeric<-c(1,3)
 needsparkline<-0
+needRegular<-1
 ```
 
 ```{r}
@@ -40,6 +41,7 @@ mainTitle<-"Crude Oil - Closing stocks(kbbl)"
 mainTitle<-"日本の建設総合統計 出来高(億円)"
 mainTitle<-"ミシガン大学消費者信頼感指数"
 mainTitle<-"毎月勤労統計 毎勤原表 2015年8月"
+mainTitle<-"国・地域別犯罪率 2013年(10万人当たり) "
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -61,6 +63,7 @@ dataSource<-"\nデータ出所:Joint Organisations Data Initiative"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:The Regents of the University of Michigan"
 dataSource<-"\nデータ出所:厚生労働省"
+dataSource<-"\nデータ出所:United Nations Office on Drugs and Crime(国連薬物・犯罪事務所)"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
@@ -85,8 +88,8 @@ print(tail(dataset),3)
 cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
-orderColumn<-4
-orderDirection<-"desc" #asc desc
+orderColumn<-0
+orderDirection<-"asc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
@@ -98,7 +101,7 @@ sparklineType<-"line"
 ```
 
 ```{r}
-if(grep("毎月勤労統計 毎勤原表",mainTitle)==1){
+if(length(grep("毎月勤労統計 毎勤原表",mainTitle))!=0){
 htmlFile<-"am-consultingMonthlyLabourSurveyTable.html"
 }else{  
 htmlFile<-"am-consultingTable.html"
@@ -191,6 +194,19 @@ cat(paste(".on( 'xhr.dt', function () {calStat",cnt,"()} )\n",sep=""),file=htmlF
 cat(".dataTable();\n",file=htmlFile,append=T)
 }
 #calStat part-datatables  
+#正規表現
+if(needRegular==1){
+#javascript
+cat(paste("$('#",tableID,"').dataTable();",sep=""),file=htmlFile,append=T)
+cat("$('input.global_filter').on( 'keyup click', function () {",file=htmlFile,append=T)
+cat("filterGlobal();",file=htmlFile,append=T)
+cat("} );",file=htmlFile,append=T)
+cat("$('input.column_filter').on( 'keyup click', function () {",file=htmlFile,append=T)
+cat("filterColumn( $(this).parents('tr').attr('data-column') );",file=htmlFile,append=T)
+cat("} );  ",file=htmlFile,append=T)
+#javascript
+}
+#正規表現
 cat("});</script>\n\n\n\n\n",file=htmlFile,append=T)
 #calStat part-javascript  
 if(needCalStat==1){
@@ -239,7 +255,42 @@ cat("</tbody></table>\n",file=htmlFile,append=T)
 cat("</form>\n",file=htmlFile,append=T)
 #Reference http://stackoverflow.com/questions/12212567/jquery-calculate-average-of-column-values-and-put-it-in-each-td-of-another-co  
 #calStat part-html
+}
+#正規表現パート
+if(needRegular==1){
+#html
+cat("<b>正規表現対応フィルターボックス</b>",file=htmlFile,append=T)  
+cat("\n<table width=\"100%\"><thead><tr><th width=\"15%\" style=\"text-align:center\">Target</th><th width=\"75%\" style=\"text-align:center\">Search text</th><th style=\"text-align:center\">Regex</th></tr></thead><tbody>\n",file=htmlFile,append=T)
+for(rccc in 1:ncol(htmldataset)){
+cat(paste("<tr id=\"filter_col",rccc,"\" data-column=\"",rccc-1,"\">\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td>",colnames(htmldataset)[rccc],"</td>",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"text\" class=\"column_filter\" id=\"col",rccc-1,"_filter\"  style=\"width:100%\"></td>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_regex\" checked=\"checked\"></td>\n",sep=""),file=htmlFile,append=T)
+#cat(paste("<td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_smart\" checked=\"checked\"></td>\n",sep=""),file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
 }  
+cat("\n</tbody></table>",file=htmlFile,append=T)  
+#html
+#javascript
+cat("<script>\n",file=htmlFile,append=T)  
+cat("function filterGlobal () {\n",file=htmlFile,append=T) 
+cat(paste("$('#",tableID,"').DataTable().search(\n",sep=""),file=htmlFile,append=T) 
+cat("$('#global_filter').val(),\n",file=htmlFile,append=T) 
+cat("$('#global_regex').prop('checked'),\n",file=htmlFile,append=T) 
+cat("$('#global_smart').prop('checked')\n",file=htmlFile,append=T) 
+cat(").draw();\n",file=htmlFile,append=T) 
+cat("}\n",file=htmlFile,append=T) 
+cat("function filterColumn ( i ) {\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').DataTable().column( i ).search(\n",sep=""),file=htmlFile,append=T)
+cat("$('#col'+i+'_filter').val(),\n",file=htmlFile,append=T)
+cat("$('#col'+i+'_regex').prop('checked'),\n",file=htmlFile,append=T)
+cat("$('#col'+i+'_smart').prop('checked')\n",file=htmlFile,append=T)
+cat(").draw();\n",file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)  
+#javascript
+}  
+#正規表現パート
 cat(dataSource,"<br>",file=htmlFile,append=T)
 cat("- 最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
 cat("- -9999は「データなし」または「データ欠損」または「NA」を意味します<br>",file=htmlFile,append=T)
@@ -280,8 +331,10 @@ grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
 cat("</div>\n",file=htmlFile,append=T)
-cat("Powered by<br>-DataTables( http://datatables.net/ )<br>",file=htmlFile,append=T)  
-cat("-jQuery Sparklines( http://omnipotent.net/jquery.sparkline/#s-about )",file=htmlFile,append=T)  
+cat("Powered by<br>-DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
+if(needsparkline==1){
+cat("<br>-jQuery Sparklines( http://omnipotent.net/jquery.sparkline/#s-about )",file=htmlFile,append=T)  
+}  
 cat("<hr>",file=htmlFile,append=T)
 #youtubegallery
 cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
