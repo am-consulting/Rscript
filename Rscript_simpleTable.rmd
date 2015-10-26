@@ -6,9 +6,9 @@ SD<-Sys.Date()
 needRightRow<-0
 needCalStat<-0
 typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1,3)
+nonNumeric<-c(1)
 needsparkline<-0
-needRegular<-1
+needRegular<-0
 ```
 
 ```{r}
@@ -42,6 +42,7 @@ mainTitle<-"日本の建設総合統計 出来高(億円)"
 mainTitle<-"ミシガン大学消費者信頼感指数"
 mainTitle<-"毎月勤労統計 毎勤原表 2015年8月"
 mainTitle<-"国・地域別犯罪率 2013年(10万人当たり) "
+mainTitle<-"出入国管理統計-外国人入国者数-2015年9月"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -52,7 +53,6 @@ dataSource<-"\nデータ出所:株式会社東京証券取引所"
 dataSource<-"\nデータ出所:日本政府観光局"
 dataSource<-"\nデータ出所:警察庁"
 dataSource<-"\nデータ出所:国土交通省"
-dataSource<-"\nデータ出所:法務省"
 dataSource<-"\nデータ出所:国税庁"
 dataSource<-"\nデータ出所:農林水産省"
 dataSource<-"\nデータ出所:日本銀行"
@@ -64,6 +64,7 @@ dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:The Regents of the University of Michigan"
 dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:United Nations Office on Drugs and Crime(国連薬物・犯罪事務所)"
+dataSource<-"\nデータ出所:法務省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
@@ -88,8 +89,8 @@ print(tail(dataset),3)
 cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
-orderColumn<-0
-orderDirection<-"asc" #asc desc
+orderColumn<-1
+orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
