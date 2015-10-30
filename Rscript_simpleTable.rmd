@@ -6,7 +6,7 @@ SD<-Sys.Date()
 needRightRow<-0
 needCalStat<-0
 typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1)
+nonNumeric<-c(1,2)
 needsparkline<-0
 needRegular<-0
 ```
@@ -44,6 +44,7 @@ mainTitle<-"毎月勤労統計 毎勤原表 2015年8月"
 mainTitle<-"国・地域別犯罪率 2013年(10万人当たり) "
 mainTitle<-"出入国管理統計-外国人入国者数-2015年9月"
 mainTitle<-"平成26年度被保護者調査 - 被保護人員数"
+mainTitle<-"日本の都道府県別有効求人倍率"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -90,8 +91,8 @@ print(tail(dataset),3)
 cnt<-1
 sumColumn<-2
 menulength<-"[[10,20,-1], [10,20,\"All\"]]"
-orderColumn<-1
-orderDirection<-"desc" #asc desc
+orderColumn<-0
+orderDirection<-"asc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
