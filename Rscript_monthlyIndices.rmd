@@ -1,0 +1,251 @@
+```{r}
+library(lubridate)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+SD<-Sys.Date()
+```
+
+```{r}
+#当面月次データ(日付と原系列の2列)のみとする。日次から平均をとって月次とするかは未定。
+datasource<-"Federal Reserve Bank of St. Louis , 株式会社日本経済新聞社"
+spanMonth<-240
+dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
+dataset<-na.omit(dataset)
+dataset[,1]<-as.Date(dataset[,1])
+head(dataset)
+tail(dataset)
+mtom<-data.frame(dataset[-1,] ,diff(dataset[,2],lag=1) /head(dataset[,2],-1) *100)
+ytoy<-data.frame(dataset[-(1:12),],diff(dataset[,2],lag=12)/head(dataset[,2],-12)*100)
+head(mtom)
+tail(mtom)
+head(ytoy)
+tail(ytoy)
+title<-colnames(dataset)[2]
+```
+
+```{r}
+objectMonth<-11
+#前年同月比
+  bufytoy<-subset(ytoy,month(ytoy[,1])==objectMonth)
+  ytoyPlus <-bufytoy[0<=bufytoy[,3],]
+  ytoyMinus<-bufytoy[0>bufytoy[,3],]
+#前月比
+  bufmtom<-subset(mtom,month(mtom[,1])==objectMonth)
+  mtomPlus <-bufmtom[0<=bufmtom[,3],]
+  mtomMinus<-bufmtom[0>bufmtom[,3],]
+#前年同月比のプラス値割合(%)
+  ytoyPlusRatio<-round(nrow(ytoyPlus)/nrow(bufytoy)*100,digits=2)
+#前年同月比のマイナス値割合(%)
+  ytoyMinusRatio<-100-ytoyPlusRatio
+#前月比のプラス値割合(%)
+  mtomPlusRatio<-round(nrow(mtomPlus)/nrow(bufmtom)*100,digits=2)
+#前月比のマイナス値割合(%)
+  mtomMinusRatio<-100-mtomPlusRatio
+#前年同月比がプラス、前月比がプラスの割合
+  yPlusmPlus<-merge(ytoyPlus,mtomPlus,all=F)
+  yPlusmPlusRatio<-round(nrow(yPlusmPlus)/nrow(bufytoy)*100,digits=2)
+#前年同月比がプラス、前月比がマイナスの割合
+  yPlusmMinus<-merge(ytoyPlus,mtomMinus,all=F)
+  yPlusmMinusRatio<-round(nrow(yPlusmMinus)/nrow(bufytoy)*100,digits=2)
+#前年同月比がマイナス、前月比がプラスの割合
+  yMinusmPlus<-merge(ytoyMinus,mtomPlus,all=F)
+  yMinusmPlusRatio<-round(nrow(yMinusmPlus)/nrow(bufytoy)*100,digits=2)
+#前年同月比がマイナス、前月比がマイナスの割合
+  yMinusmMinus<-merge(ytoyMinus,mtomMinus,all=F)
+  yMinusmMinusRatio<-round(nrow(yMinusmMinus)/nrow(bufytoy)*100,digits=2)
+#対象月が暦年最高値となった割合
+  dateList<-NULL
+  for(yyyy in min(year(dataset[,1])):max(year(dataset[,1]))){
+    tmp<-subset(dataset,year(dataset[,1])==yyyy)
+    tmp<-tmp[which.max(tmp[,2]),]
+    dateList<-rbind(dateList,tmp)
+  }
+  tmp<-subset(dateList,month(dateList[,1])==objectMonth)
+  tmp
+  count<-nrow(tmp)
+  maxYCY<-round(count/nrow(bufytoy)*100,2)
+#対象月が暦年最低値となった割合
+  dateList<-NULL
+  for(yyyy in min(year(dataset[,1])):max(year(dataset[,1]))){
+    tmp<-subset(dataset,year(dataset[,1])==yyyy)
+    tmp<-tmp[which.min(tmp[,2]),]
+    dateList<-rbind(dateList,tmp)
+  }
+  tmp<-subset(dateList,month(dateList[,1])==objectMonth)
+  tmp
+  count<-nrow(tmp)
+  minYCY<-round(count/nrow(bufytoy)*100,2)
+#前年同月比が最後にプラスとなった年
+  lastyyPlus<-year(tail(ytoyPlus,1)[,1])
+#前年同月比が最後にマイナスとなった年
+  lastyyMinus<-year(tail(ytoyMinus,1)[,1])
+#前月比が最後にプラスとなった年
+  lastmmPlus<-year(tail(mtomPlus,1)[,1])
+#前月比が最後にマイナスとなった年
+  lastmmMinus<-year(tail(mtomMinus,1)[,1])
+#前年同月比最長連続プラス
+  tmp<-subset(ytoy,0<=ytoy[,3])
+  count<-1
+  for(mm in 1:(nrow(tmp)-1)){
+    if(count==1){startDateyyplus<-tmp[mm,1]}  
+    if((tmp[mm+1,1]-tmp[mm,1])<=31){
+      count<-count+1
+      countyyPlus<-count
+      endDateyyplus<-tmp[mm+1,1]
+    }else{
+      count<-1
+    }  
+  }
+  startDateyyplus<-format(startDateyyplus,"%Y/%m")
+  endDateyyplus<-format(endDateyyplus,"%Y/%m")
+#前年同月比最長連続マイナス
+  tmp<-subset(ytoy,0>ytoy[,3])
+  count<-1
+  for(mm in 1:(nrow(tmp)-1)){
+    if(count==1){startDateyyminus<-tmp[mm,1]}  
+    if((tmp[mm+1,1]-tmp[mm,1])<=31){
+      count<-count+1
+      countyyMinus<-count
+      endDateyyminus<-tmp[mm+1,1]
+    }else{
+      count<-1
+    }  
+  }
+  startDateyyminus<-format(startDateyyminus,"%Y/%m")
+  endDateyyminus<-format(endDateyyminus,"%Y/%m")
+#html part
+htmlFile<-"monthlyIndices.html" 
+cat("",file=htmlFile,append=F)
+#cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=T)
+cat("<style>\n",file=htmlFile,append=T)
+cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}\n",file=htmlFile,append=T)
+cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
+cat("</style>\n",file=htmlFile,append=T)
+cat(paste("<div align=\"center\"><b>",title,"に関する",objectMonth,"月の統計値</b><br>"),file=htmlFile,append=T)
+cat(paste("対象期間:",format(head(dataset[,1],1),"%Y/%m"),"-",format(tail(dataset[,1],1),"%Y/%m")),file=htmlFile,append=T)
+cat(paste(" , データ出所:",datasource,"</div>"),file=htmlFile,append=T)
+cat("",file=htmlFile,append=T)
+cat("<table>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比がプラス値の割合(%)</td><td>",ytoyPlusRatio,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比がマイナス値の割合(%)</td><td>",ytoyMinusRatio,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前月比がプラス値の割合(%)</td><td>",mtomPlusRatio,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前月比がマイナス値の割合(%)</td><td>",mtomMinusRatio,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比がプラス値、前月比がプラス値の割合(%)</td><td>",yPlusmPlusRatio,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比がプラス値、前月比がマイナス値の割合(%)</td><td>",yPlusmMinusRatio,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比がマイナス値、前月比がプラス値の割合(%)</td><td>",yMinusmPlusRatio,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比がマイナス値、前月比がマイナス値の割合(%)</td><td>",yMinusmMinusRatio,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>対象月が暦年最高値となった割合(%)</td><td>",maxYCY,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>対象月が暦年最低値となった割合(%)</td><td>",minYCY,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比が最後にプラス値であった年</td><td>",lastyyPlus,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比が最後にマイナス値であった年</td><td>",lastyyMinus,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前月比が最後にプラス値であった年</td><td>",lastmmPlus,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前月比が最後にマイナス値であった年</td><td>",lastmmMinus,"</td></tr>\n",file=htmlFile,append=T)
+cat("</table>\n",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+cat(paste("<div align=\"center\"><b>",title,"に関する統計値</b><br>"),file=htmlFile,append=T)
+cat(paste("対象期間:",format(head(dataset[,1],1),"%Y/%m"),"-",format(tail(dataset[,1],1),"%Y/%m")),file=htmlFile,append=T)
+cat(paste(" , データ出所:",datasource,"</div>"),file=htmlFile,append=T)
+cat("<table>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比最長連続プラス値</td><td>",countyyPlus,"</td><td>",startDateyyplus,"-",endDateyyplus,"</td></tr>\n",file=htmlFile,append=T)
+cat("<tr><td>前年同月比最長連続マイナス値</td><td>",countyyMinus,"</td><td>",startDateyyminus,"-",endDateyyminus,"</td></tr>\n",file=htmlFile,append=T)
+cat("</table>\n",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+cat(paste("<div align=\"center\"><b>",title,"に関する正規性検定(H0:標本は正規分布に従う)</b><br>"),file=htmlFile,append=T)
+cat(paste("対象期間:",format(tail(dataset[,1],spanMonth)[1],"%Y/%m"),"-",format(tail(dataset[,1],1),"%Y/%m")),file=htmlFile,append=T)
+cat(paste(" , データ出所:",datasource,"</div>"),file=htmlFile,append=T)
+yearToyear<-tail(ytoy[,3],spanMonth)
+tmp<-ks.test(yearToyear,"pnorm",mean=mean(yearToyear),sd=sd(yearToyear))
+tmp<-capture.output(tmp)
+resultYY<-NULL
+for(ttt in 1:length(tmp)){resultYY<-paste(resultYY,tmp[ttt],"<br>")}
+cat(resultYY,file=htmlFile,append=T)
+#chart part
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1600,height=400)
+par(ps=20,mar=c(5,10,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")
+maintitle<-paste("ヒストグラム-前年同月比\n",format(tail(dataset[,1],spanMonth)[1],"%Y/%m"),"-",format(tail(dataset[,1],1),"%Y/%m"))
+hist(yearToyear,family="Meiryo",main=maintitle,breaks=seq(floor(min(yearToyear)),ceiling(max(yearToyear))+5,5))
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+#chart part
+cat("<br><br>",file=htmlFile,append=T)
+monthTomonth<-tail(mtom[,3],spanMonth)
+tmp<-ks.test(monthTomonth,"pnorm",mean=mean(monthTomonth),sd=sd(monthTomonth))
+tmp<-capture.output(tmp)
+resultMM<-NULL
+for(ttt in 1:length(tmp)){resultMM<-paste(resultMM,tmp[ttt],"<br>")}
+cat(resultMM,file=htmlFile,append=T)
+#chart part
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1600,height=400)
+par(ps=20,mar=c(5,10,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")
+maintitle<-paste("ヒストグラム-前月比\n",format(tail(dataset[,1],spanMonth)[1],"%Y/%m"),"-",format(tail(dataset[,1],1),"%Y/%m"))
+hist(monthTomonth,family="Meiryo",main=maintitle,breaks=seq(floor(min(monthTomonth)),ceiling(max(monthTomonth)),1))
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+#chart part
+#html part
+```
+
+```{r}
+cat("<hr>",file=htmlFile,append=T)
+cat(paste("<div align=\"center\"><b>チャート</b></div>"),file=htmlFile,append=T)
+setwd(pathOutput)
+#原系列プロット
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1600,height=400)
+par(ps=20,mar=c(5,10,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")
+maintitle<-paste("原数値\n",format(head(dataset[,1],1),"%Y/%m"),"-",format(tail(dataset[,1],1),"%Y/%m"))
+plot(dataset[,1],dataset[,2],type="l",family="Meiryo",xlab="",ylab="",panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),xaxt="n",main=maintitle)
+abline(h=mean(dataset[,2]),col="red",lwd=2)
+axis.Date(side=1,at=dataset[,1],format="%Y/%m",padj=1)
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+#前年同月比プロット
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1600,height=400)
+par(ps=20,mar=c(5,10,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")
+maintitle<-paste("前年同月比\n",format(head(ytoy[,1],1),"%Y/%m"),"-",format(tail(ytoy[,1],1),"%Y/%m"))
+plot(ytoy[,1],ytoy[,3],type="l",family="Meiryo",xlab="",ylab="",panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),xaxt="n",main=maintitle)
+abline(h=mean(ytoy[,3]),col="red",lwd=2)
+axis.Date(side=1,at=ytoy[,1],format="%Y/%m",padj=1)
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+#前月比プロット
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1600,height=400)
+par(ps=20,mar=c(5,10,5,5),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo")
+maintitle<-paste("前月比\n",format(head(mtom[,1],1),"%Y/%m"),"-",format(tail(mtom[,1],1),"%Y/%m"))
+plot(mtom[,1],mtom[,3],type="l",family="Meiryo",xlab="",ylab="",panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),xaxt="n",main=maintitle)
+abline(h=mean(mtom[,3]),col="red",lwd=2)
+axis.Date(side=1,at=mtom[,1],format="%Y/%m",padj=1)
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+    "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+#youtubegallery
+cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=5 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+#youtubegallery
+```
