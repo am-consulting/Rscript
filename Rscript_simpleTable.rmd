@@ -3,7 +3,8 @@ library(lubridate)
 library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
-needRightRow<-0
+needRightRow<-1
+addRightRow<-2
 needCalStat<-0
 typeData<-0 #0 非時系列 1 時系列
 nonNumeric<-c(1,2)
@@ -45,6 +46,7 @@ mainTitle<-"国・地域別犯罪率 2013年(10万人当たり) "
 mainTitle<-"出入国管理統計-外国人入国者数-2015年9月"
 mainTitle<-"平成26年度被保護者調査 - 被保護人員数"
 mainTitle<-"日本の都道府県別有効求人倍率"
+mainTitle<-"平成27年度　9月末租税及び印紙収入、収入額調(百万円、%)"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -67,14 +69,15 @@ dataSource<-"\nデータ出所:The Regents of the University of Michigan"
 dataSource<-"\nデータ出所:United Nations Office on Drugs and Crime(国連薬物・犯罪事務所)"
 dataSource<-"\nデータ出所:法務省"
 dataSource<-"\nデータ出所:厚生労働省"
+dataSource<-"\nデータ出所:財務省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
 dataset<-cbind(dataset[,nonNumeric,drop=F],tmp)
 #comma削除
 if(needRightRow==1){
-  dataset<-cbind(dataset,dataset[,1])
-  colnames(dataset)[ncol(dataset)]<-colnames(dataset)[1]
+  dataset<-cbind(dataset,dataset[,addRightRow])
+  colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addRightRow]
 } 
 dataset[is.na(dataset)==T]<--9999
 #dateType
@@ -90,7 +93,7 @@ print(tail(dataset),3)
 ```{r}
 cnt<-1
 sumColumn<-2
-menulength<-"[[10,20,-1], [10,20,\"All\"]]"
+menulength<-"[[20,-1], [20,\"All\"]]"
 orderColumn<-0
 orderDirection<-"asc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
