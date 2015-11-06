@@ -9,7 +9,7 @@ SD<-Sys.Date()
 
 ```{r}
 #当面月次データ(日付と原系列の2列)のみとする。日次から平均をとって月次とするかは未定。
-datasource<-"Federal Reserve Bank of St. Louis , 株式会社日本経済新聞社"
+datasource<-"Federal Reserve Bank of St. Louis"
 spanMonth<-240
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"),check.names=FALSE)
 dataset<-na.omit(dataset)
@@ -118,16 +118,18 @@ objectMonth<-11
 #html part
 htmlFile<-"monthlyIndices.html" 
 cat("",file=htmlFile,append=F)
-#cat("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n",file=htmlFile,append=T)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>\n",file=htmlFile,append=T)
 cat("<style>\n",file=htmlFile,append=T)
 cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}\n",file=htmlFile,append=T)
 cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
+cat("table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}\n",file=htmlFile,append=T)
+cat("table.amcc tr:nth-child(even){background-color: #FFFFFF;}\n",file=htmlFile,append=T)
 cat("</style>\n",file=htmlFile,append=T)
 cat(paste("<div align=\"center\"><b>",title,"に関する",objectMonth,"月の統計値</b><br>"),file=htmlFile,append=T)
 cat(paste("対象期間:",format(head(dataset[,1],1),"%Y/%m"),"-",format(tail(dataset[,1],1),"%Y/%m")),file=htmlFile,append=T)
-cat(paste(" , データ出所:",datasource,"</div>"),file=htmlFile,append=T)
+cat(paste(" , データ出所:",datasource,"</div>\n"),file=htmlFile,append=T)
 cat("",file=htmlFile,append=T)
-cat("<table>\n",file=htmlFile,append=T)
+cat("<table class=\"amcc\">\n",file=htmlFile,append=T)
 cat("<tr><td>前年同月比がプラス値の割合(%)</td><td>",ytoyPlusRatio,"</td></tr>\n",file=htmlFile,append=T)
 cat("<tr><td>前年同月比がマイナス値の割合(%)</td><td>",ytoyMinusRatio,"</td></tr>\n",file=htmlFile,append=T)
 cat("<tr><td>前月比がプラス値の割合(%)</td><td>",mtomPlusRatio,"</td></tr>\n",file=htmlFile,append=T)
@@ -146,8 +148,8 @@ cat("</table>\n",file=htmlFile,append=T)
 cat("<hr>",file=htmlFile,append=T)
 cat(paste("<div align=\"center\"><b>",title,"に関する統計値</b><br>"),file=htmlFile,append=T)
 cat(paste("対象期間:",format(head(dataset[,1],1),"%Y/%m"),"-",format(tail(dataset[,1],1),"%Y/%m")),file=htmlFile,append=T)
-cat(paste(" , データ出所:",datasource,"</div>"),file=htmlFile,append=T)
-cat("<table>\n",file=htmlFile,append=T)
+cat(paste(" , データ出所:",datasource,"</div>\n"),file=htmlFile,append=T)
+cat("<table class=\"amcc\">\n",file=htmlFile,append=T)
 cat("<tr><td>前年同月比最長連続プラス値</td><td>",countyyPlus,"</td><td>",startDateyyplus,"-",endDateyyplus,"</td></tr>\n",file=htmlFile,append=T)
 cat("<tr><td>前年同月比最長連続マイナス値</td><td>",countyyMinus,"</td><td>",startDateyyminus,"-",endDateyyminus,"</td></tr>\n",file=htmlFile,append=T)
 cat("</table>\n",file=htmlFile,append=T)
@@ -194,6 +196,12 @@ cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
     "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
     "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 #chart part
+cat("<script>\n",file=htmlFile,append=T)
+cat("$(\"tr\").hover(\n",file=htmlFile,append=T)
+cat("function () {$(this).css(\"background\",\"#AFEEEE\");},\n",file=htmlFile,append=T) 
+cat("function () {$(this).css(\"background\",\"\");}\n",file=htmlFile,append=T)
+cat(");\n",file=htmlFile,append=T)
+cat("</script>\n",file=htmlFile,append=T)
 #html part
 ```
 
