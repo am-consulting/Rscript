@@ -3,12 +3,12 @@ library(lubridate)
 library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
-needRightRow<-1
-addRightRow<-2
+needRightRow<-0
+addRightRow<-1
 needCalStat<-0
-typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1,2)
-needsparkline<-0
+typeData<-1 #0 非時系列 1 時系列
+nonNumeric<-c(1,5)
+needsparkline<-1
 needRegular<-0
 ```
 
@@ -47,12 +47,14 @@ mainTitle<-"出入国管理統計-外国人入国者数-2015年9月"
 mainTitle<-"平成26年度被保護者調査 - 被保護人員数"
 mainTitle<-"日本の都道府県別有効求人倍率"
 mainTitle<-"平成27年度　9月末租税及び印紙収入、収入額調(百万円、%)"
+mainTitle<-"各国成人喫煙率(WHO:Tobacco Atlas(2002))"
+mainTitle<-"各国肺がん死亡率(Age-standardised rates per 100 000 population / 10万人あたりの年齢調整死亡率)"
+mainTitle<-"日本の就業者数(万人)"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
 dataSource<-"\nデータ出所:内閣府"
 dataSource<-"\nデータ出所:資源エネルギー庁"
-dataSource<-"\nデータ出所:総務省"
 dataSource<-"\nデータ出所:株式会社東京証券取引所"
 dataSource<-"\nデータ出所:日本政府観光局"
 dataSource<-"\nデータ出所:警察庁"
@@ -70,6 +72,9 @@ dataSource<-"\nデータ出所:United Nations Office on Drugs and Crime(国連�
 dataSource<-"\nデータ出所:法務省"
 dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:財務省"
+dataSource<-"\nデータ出所:公益財団法人 健康・体力づくり事業財団"
+dataSource<-"\nデータ出所:OECD iLibrary"
+dataSource<-"\nデータ出所:総務省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
@@ -298,11 +303,17 @@ cat("</script>\n",file=htmlFile,append=T)
 }  
 #正規表現パート
 cat(dataSource,"<br>",file=htmlFile,append=T)
-cat("- 最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
+#cat("- 最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
 cat("- -9999は「データなし」または「データ欠損」または「NA」を意味します<br>",file=htmlFile,append=T)
 for(ccc in 1:ncol(htmldataset)){
   if(needCalStat!=1){
+  tmpCheck<-(nonNumeric==ccc)  
+  tmpCheck<-length(tmpCheck[tmpCheck==TRUE])  
+  if(tmpCheck==0){  
   col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  }else{
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",htmldataset[,ccc],"</td>",sep="")
+  }  
   }else{
   col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",htmldataset[,ccc],"</td>",sep="")
   }  
