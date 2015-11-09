@@ -5,11 +5,11 @@ username<-Sys.info()['user']
 SD<-Sys.Date()
 needRightRow<-0
 addRightRow<-1
-needCalStat<-0
+needCalStat<-0 #日銀オペレーション用
 typeData<-1 #0 非時系列 1 時系列
-nonNumeric<-c(1,5)
+nonNumeric<-c(1,2,3)
 needsparkline<-1
-needRegular<-0
+needRegular<-1
 ```
 
 ```{r}
@@ -49,7 +49,7 @@ mainTitle<-"日本の都道府県別有効求人倍率"
 mainTitle<-"平成27年度　9月末租税及び印紙収入、収入額調(百万円、%)"
 mainTitle<-"各国成人喫煙率(WHO:Tobacco Atlas(2002))"
 mainTitle<-"各国肺がん死亡率(Age-standardised rates per 100 000 population / 10万人あたりの年齢調整死亡率)"
-mainTitle<-"日本の就業者数(万人)"
+mainTitle<-"月例経済報告と政権・マネタリーベース・日経平均株価・完全失業率"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -74,7 +74,7 @@ dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:財務省"
 dataSource<-"\nデータ出所:公益財団法人 健康・体力づくり事業財団"
 dataSource<-"\nデータ出所:OECD iLibrary"
-dataSource<-"\nデータ出所:総務省"
+dataSource<-"\nデータ出所:内閣府、日本銀行、株式会社日本経済新聞社、総務省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
@@ -96,16 +96,18 @@ print(tail(dataset),3)
 ```
 
 ```{r}
+if(needRightRow==1){nonNumeric<-c(nonNumeric,addRightRow)}
+tablefontsize<-90 #%
 cnt<-1
 sumColumn<-2
 menulength<-"[[20,-1], [20,\"All\"]]"
 orderColumn<-0
-orderDirection<-"asc" #asc desc
+orderDirection<-"desc" #asc desc
 columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
 #sparkline
-sparklineWidth<-50
+sparklineWidth<-180
 sparklineHeight<-50
 sparklineType<-"line"
 #sparkline
@@ -114,6 +116,8 @@ sparklineType<-"line"
 ```{r}
 if(length(grep("毎月勤労統計 毎勤原表",mainTitle))!=0){
 htmlFile<-"am-consultingMonthlyLabourSurveyTable.html"
+}else if(length(grep("月例経済報告と政権・マネタリーベース・日経平均株価・完全失業率",mainTitle))!=0){
+htmlFile<-"am-consultingMonthlyEconomicReport7117.html"
 }else{  
 htmlFile<-"am-consultingTable.html"
 }
@@ -135,7 +139,7 @@ cat("<link href=\"http://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css
 cat("<script src=\"http://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js\"></script>\n\n",file=htmlFile,append=T) 
 cat("<script src=\"http://archive.am-consulting.co.jp/jquery.sparkline.2.1.2.js\"></script>\n",file=htmlFile,append=T)
 cat("<style>\n",file=htmlFile,append=T)
-cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}\n",file=htmlFile,append=T)
+cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;font-size:",tablefontsize,"%;}\n",file=htmlFile,append=T)
 cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
 cat("td.highlight {font-weight: plain;color: red;}\n",file=htmlFile,append=T) 
 cat("</style>\n",file=htmlFile,append=T)
@@ -324,19 +328,30 @@ for(ccc in 1:ncol(htmldataset)){
 sparkLineHeader<-""
 if(needsparkline==1){
 cat("<script type=\"text/javascript\">$(function(){\n\n",file=htmlFile,append=T)
-for(ccc in 2:(ncol(htmldataset)-1)){
-tmp<-paste(htmldataset[,ccc],collapse=",")  
+for(ccc in 1:(ncol(htmldataset))){
+tmpCheck<-(nonNumeric==ccc)  
+tmpCheck<-length(tmpCheck[tmpCheck==TRUE])  
+if(tmpCheck==0){    
+#tmp<-paste(htmldataset[,ccc],collapse=",") 
+tmp<-paste(htmldataset[,ccc][-9999!=htmldataset[,ccc]],collapse=",")
 cat(paste("$(\"#amccsparkline",ccc,"\").sparkline([",tmp,"], {\n",sep=""),file=htmlFile,append=T)
 cat(paste("type: '",sparklineType,"',\n",sep=""),file=htmlFile,append=T)
 cat(paste("width: '",sparklineWidth,"',\n",sep=""),file=htmlFile,append=T)
 cat(paste("height: '",sparklineHeight,"'\n",sep=""),file=htmlFile,append=T)
 cat("});\n\n",file=htmlFile,append=T)
+}
 }  
 cat("});</script>\n\n",file=htmlFile,append=T)
-for(ccc in 2:(ncol(htmldataset)-1)){
+for(ccc in 1:(ncol(htmldataset))){
+tmpCheck<-(nonNumeric==ccc)  
+tmpCheck<-length(tmpCheck[tmpCheck==TRUE])  
+if(tmpCheck==0){    
 sparkLineHeader<-paste(sparkLineHeader,"<th><div id=\"amccsparkline",ccc,"\"></div></th>",sep="")
+}else{  
+sparkLineHeader<-paste(sparkLineHeader,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")
+}  
 }
-sparkLineHeader<-paste("<tr><th>Sparkline</th>",sparkLineHeader,"<th>Sparkline</th></tr>",sep="")
+sparkLineHeader<-paste("<tr>",sparkLineHeader,"</tr>",sep="")
 }
 #sparkline
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
