@@ -139,7 +139,7 @@ cat("<link href=\"http://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css
 cat("<script src=\"http://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js\"></script>\n\n",file=htmlFile,append=T) 
 cat("<script src=\"http://archive.am-consulting.co.jp/jquery.sparkline.2.1.2.js\"></script>\n",file=htmlFile,append=T)
 cat("<style>\n",file=htmlFile,append=T)
-cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;font-size:",tablefontsize,"%;}\n",file=htmlFile,append=T)
+cat(paste("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;font-size:",tablefontsize,"%;}\n",sep=""),file=htmlFile,append=T)
 cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
 cat("td.highlight {font-weight: plain;color: red;}\n",file=htmlFile,append=T) 
 cat("</style>\n",file=htmlFile,append=T)
