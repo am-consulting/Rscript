@@ -10,6 +10,19 @@ typeData<-1 #0 非時系列 1 時系列
 nonNumeric<-c(1,2,3)
 needsparkline<-1
 needRegular<-1
+youtubechannel<-1
+```
+
+```{r}
+#毎月勤労統計調査
+needRightRow<-1
+addRightRow<-1
+typeData<-0 #0 非時系列 1 時系列
+nonNumeric<-c(1,2,3,4)
+needsparkline<-0
+needRegular<-0
+youtubechannel<-0
+#毎月勤労統計調査
 ```
 
 ```{r}
@@ -41,7 +54,6 @@ mainTitle<-"日本の鉱工業生産指数 業種別 前月比 2015年8月分(%)
 mainTitle<-"Crude Oil - Closing stocks(kbbl)"
 mainTitle<-"日本の建設総合統計 出来高(億円)"
 mainTitle<-"ミシガン大学消費者信頼感指数"
-mainTitle<-"毎月勤労統計 毎勤原表 2015年8月"
 mainTitle<-"国・地域別犯罪率 2013年(10万人当たり) "
 mainTitle<-"出入国管理統計-外国人入国者数-2015年9月"
 mainTitle<-"平成26年度被保護者調査 - 被保護人員数"
@@ -50,6 +62,7 @@ mainTitle<-"平成27年度　9月末租税及び印紙収入、収入額調(百�
 mainTitle<-"各国成人喫煙率(WHO:Tobacco Atlas(2002))"
 mainTitle<-"各国肺がん死亡率(Age-standardised rates per 100 000 population / 10万人あたりの年齢調整死亡率)"
 mainTitle<-"月例経済報告と政権・マネタリーベース・日経平均株価・完全失業率"
+mainTitle<-"毎月勤労統計 毎勤原表 2015年9月"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -70,11 +83,11 @@ dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:The Regents of the University of Michigan"
 dataSource<-"\nデータ出所:United Nations Office on Drugs and Crime(国連薬物・犯罪事務所)"
 dataSource<-"\nデータ出所:法務省"
-dataSource<-"\nデータ出所:厚生労働省"
 dataSource<-"\nデータ出所:財務省"
 dataSource<-"\nデータ出所:公益財団法人 健康・体力づくり事業財団"
 dataSource<-"\nデータ出所:OECD iLibrary"
 dataSource<-"\nデータ出所:内閣府、日本銀行、株式会社日本経済新聞社、総務省"
+dataSource<-"\nデータ出所:厚生労働省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
@@ -116,6 +129,7 @@ sparklineType<-"line"
 ```{r}
 if(length(grep("毎月勤労統計 毎勤原表",mainTitle))!=0){
 htmlFile<-"am-consultingMonthlyLabourSurveyTable.html"
+orderColumn<-4
 }else if(length(grep("月例経済報告と政権・マネタリーベース・日経平均株価・完全失業率",mainTitle))!=0){
 htmlFile<-"am-consultingMonthlyEconomicReport7117.html"
 }else{  
@@ -363,15 +377,16 @@ grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
 cat("</div>\n",file=htmlFile,append=T)
-cat("Powered by<br>-DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
+cat("Powered by<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )",file=htmlFile,append=T)  
 if(needsparkline==1){
 cat("<br>-jQuery Sparklines( http://omnipotent.net/jquery.sparkline/#s-about )",file=htmlFile,append=T)  
 }  
-cat("<hr>",file=htmlFile,append=T)
 #youtubegallery
+if(youtubechannel==1){
 cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
 cat("<hr>",file=htmlFile,append=T)
-cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q playlist=PLu2t-yT4OTt-iS_cv9NAOUaWQ3SKZzWJA resource=2 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+}
 #youtubegallery
 #only html
 ```
