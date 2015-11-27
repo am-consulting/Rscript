@@ -316,8 +316,8 @@ mainTitle<-"日本の景気動向指数 - 一致系列 - "
 mainTitle<-"日本の労働力調査 - "
 mainTitle<-"日本の有効求人倍率 - "
 mainTitle<-"日本のマネタリーベース(兆円、％) - "
-mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 mainTitle<-"週間石油在庫統計 - "
+mainTitle<-"対外及び対内証券投資売買契約等の状況(億円) - "
 #dataSource<-"\nData Source:Hellenic Statistical Authority"
 #dataSource<-"\nData Source:International Monetary Fund"
 dataSource<-"\nData Source:国税庁"
@@ -331,8 +331,8 @@ dataSource<-"\nData Source:内閣府"
 dataSource<-"\nData Source:総務省"
 dataSource<-"\nData Source:厚生労働省"
 dataSource<-"\nData Source:日本銀行"
-dataSource<-"\nData Source:財務省"
 dataSource<-"\nData Source:U.S. Energy Information Administration"
+dataSource<-"\nData Source:財務省"
 }  
 if(needWeekly==1){
 #outputFolder<-3 #3:weeklyResult
@@ -740,9 +740,12 @@ cat("</script>\n",file=htmlFile,append=T)
 
 ```{r}
 #youtubegallery
-cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
-cat("<hr>",file=htmlFile,append=T)
-cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+#cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>",file=htmlFile,append=T)
+#cat("<hr>",file=htmlFile,append=T)
+#cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+cat("<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>
+<hr>
+[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q playlist=PLu2t-yT4OTt-iS_cv9NAOUaWQ3SKZzWJA resource=2 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
 #youtubegallery
 ```
 
