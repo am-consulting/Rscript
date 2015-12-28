@@ -1,5 +1,5 @@
 ```{r}
-requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape","quantmod","lmtest","forecast","viridis","tseries")
+requiredPackageList<-c("ggplot2","lubridate","scales","maps","maptools","RColorBrewer","fields","rworldmap","classInt","plotrix","HH","reshape","quantmod","lmtest","forecast","viridis","tseries","beepr")
 notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] 
 #apply logical vector to requiredPackageList
 if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
@@ -137,6 +137,7 @@ cat("};\n",file=htmlFile,append=T)
 cat("</script>\n",file=htmlFile,append=T)
 #select box part
 cat("</body></html>",file=htmlFile,append=T)
+beep(3)
 ```
 
 ```{r}
