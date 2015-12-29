@@ -1,0 +1,80 @@
+```{r}
+library(lubridate)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+SD<-Sys.Date()
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+pathInput<-paste("C:/Users/",username,"/Desktop/pathToCSV/",sep="")
+folderPath<-file.path(pathInput)
+```
+
+```{r}
+setwd(folderPath)
+tmp<-read.csv(file=dir(folderPath),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+csvFolder<-paste("C:/Users/",username,tmp[1,2],sep="")
+setwd(csvFolder)
+fileName<-dir(csvFolder,pattern=".*?対外及び対内.*?.csv|.*?IMM.*?.csv")
+setwd(pathOutput)
+htmlFile<-"numericalTable.html"
+cat("",file=htmlFile,append=F)
+tmp<-paste("
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta http-equiv=\"Pragma\" content=\"no-cache\">
+<meta http-equiv=\"Cache-Control\" content=\"no-cache\">
+<meta http-equiv=\"Expires\" content=\"0\">
+</head>
+<body>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;font-size:80%;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;}
+tr,td,th{white-space:nowrap;}
+th{background-color:#F5F5F5;}
+td,th{border:1px #808080 solid;}
+</style>
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>
+<link  href=\"http://cdn.datatables.net/1.10.10/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.10/js/jquery.dataTables.min.js\"></script>  
+<script src=\"http://archive.am-consulting.co.jp/jQueryJS/jquery.csvToTable.js\"></script>
+"
+,sep=""
+)  
+cat(tmp,file=htmlFile,append=T)
+cat("<script>",file=htmlFile,append=T)
+for(fff in 1:length(fileName)){
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+csvID<-formatC(fff,width=5,flag="0")  
+tmp<-paste(
+  "$(function(){$('#",csvID,"').CSVToTable('https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/",fileName[fff],"?var=",addVer,"',{startLine:0}).bind(
+  \"loadComplete\",
+  function(){$('#",csvID,"').find('TABLE').dataTable(
+    {
+    \"searching\": false,
+    \"columnDefs\":[{\"width\":\"20%\",\"targets\":0}],
+    \"language\": {\"decimal\": \".\",\"thousands\": \",\"},
+    \"lengthMenu\": [[1,-1], [1,\"All\"]],
+    \"order\": [[ 0,\"desc\"]],
+    \"paging\":true,
+    \"info\":false
+    }
+    )
+    });
+    });\n\n
+  ",sep=""
+)
+cat(tmp,file=htmlFile,append=T)
+}  
+cat("</script>",file=htmlFile,append=T)
+for(fff in 1:length(fileName)){
+csvID<-formatC(fff,width=5,flag="0")  
+tmp<-paste("<b>",fileName[fff],"</b>","<div id=\"",csvID,"\"></div><br><hr><br>",sep="")
+#tmp<-paste("<b>",gsub(".csv","",fileName[fff]),"</b>","<div id=\"",csvID,"\"></div><br><hr><br>",sep="")
+#tmp<-paste("<div id=\"",csvID,"\"></div><br><hr><br>",sep="")
+cat(tmp,file=htmlFile,append=T)
+}
+tmp<-paste("\n\n\n\n</body></html>")  
+cat(tmp,file=htmlFile,append=T)
+```
