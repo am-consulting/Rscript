@@ -13,7 +13,7 @@ setwd(folderPath)
 tmp<-read.csv(file=dir(folderPath),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
 csvFolder<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(csvFolder)
-fileName<-dir(csvFolder,pattern=".*?対外及び対内.*?.csv|.*?IMM.*?.csv")
+fileName<-dir(csvFolder,pattern=".*?対外及び対内.*?.csv|.*?IMM.*?.csv|.*?金融調整.*?.csv|.*?建設労働需給調査.*?.csv|.*?日本のMB.*?.csv")
 setwd(pathOutput)
 htmlFile<-"numericalTable.html"
 cat("",file=htmlFile,append=F)
