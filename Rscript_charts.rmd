@@ -188,7 +188,7 @@ gitURL<-list()
 chartSelectNo<-c(1)
 annotation<-1 # need:1,no need:2
 grobTableTail<-13
-csvTail<-100000
+csvTail<-100 #100000
 origorbuf<-1 #1 orig , 2 buf
 #ファイル名禁則文字対策
 #禁則文字(ファイル名,フォルダー名)
@@ -213,7 +213,7 @@ inverse<-2 #逆サイクル:1,非逆サイクル:2
 consumptionTax<-1
 needWeekly<-1
 grobTableTail<-13
-csvTail<-100000
+csvTail<-100 #100000
 needCSV<-1
 dateType<-2 #1:日次 2:月次 3:character(第*週他) 4:年次
 chartType<-1 #1:line , 2:bar
