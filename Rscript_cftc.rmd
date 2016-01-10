@@ -9,7 +9,7 @@ library(quantmod)
 library(scales)
 library(reshape2)
 library(lubridate)
-year<-c(2005:2015)
+year<-c((year(Sys.Date())-10):year(Sys.Date()))
 location<-2 #1:local 2:web
 username<-Sys.info()['user']
 path01<-paste("C:/Users/",username,"/Desktop/CFTC/",sep="")
