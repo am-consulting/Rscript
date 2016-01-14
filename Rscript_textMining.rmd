@@ -1,0 +1,102 @@
+```{r}
+#install.packages("Rcampdf", repos = "http://datacube.wu.ac.at/", type = "source")
+requiredPackageList<-c("lubridate","tm","SnowballC","RColorBrewer","ggplot2","wordcloud","biclust","cluster","igraph","fpc")
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+########################################################################################
+#Reference https://rstudio-pubs-static.s3.amazonaws.com/31867_8236987cf0a8444e962ccd2aec46d9c3.html
+minFreq<-3
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+username<-Sys.info()['user']
+SD<-Sys.Date()
+pathInput<-paste("C:/Users/",username,"/Desktop/textMining/",sep="")
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+folderPath<-file.path(pathInput)
+chartTitle<-gsub(".txt","",dir(folderPath))
+setwd(folderPath)
+removedWord<-c("per","cent","percent")
+docs <- Corpus(DirSource(folderPath)) 
+docs <- tm_map(docs, removePunctuation)
+docs <- tm_map(docs, removeNumbers)  
+docs <- tm_map(docs, tolower)
+docs <- tm_map(docs, removeWords, stopwords("english"))
+docs <- tm_map(docs, removeWords, removedWord)
+docs <- tm_map(docs, stemDocument) 
+docs <- tm_map(docs, stripWhitespace) 
+docs <- tm_map(docs, PlainTextDocument)   
+dtm <- DocumentTermMatrix(docs) 
+dtms <- removeSparseTerms(dtm, 0.1)
+tdm <- TermDocumentMatrix(docs) 
+freq <- sort(colSums(as.matrix(dtm)), decreasing=TRUE)   
+head(freq, 14)   
+wf <- data.frame(word=names(freq), freq=freq)   
+head(wf) 
+setwd(pathOutput)
+htmlFile<-"textMining.html"  
+cat("",file=htmlFile,append=F)
+cat("<b>Text Mining</b>",file=htmlFile,append=T)
+#Plot Word Frequencies
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1000,height=700)
+g<-ggplot(subset(wf, freq>minFreq), aes(word, freq))    
+g<-g+geom_bar(stat="identity")   
+g<-g+ggtitle(chartTitle)
+g<-g+theme(plot.title=element_text(size=20,family="Meiryo"))
+g<-g+theme(axis.title.x=element_text(size=20,family="Meiryo")) 
+g<-g+theme(axis.title.y=element_text(size=20,family="Meiryo")) 
+g<-g+theme(axis.text.x=element_text(size=20,angle=45,hjust=1,family="Meiryo")) 
+g<-g+theme(axis.text.y=element_text(size=20,angle=90,hjust=1,family="Meiryo")) 
+print(g)
+dev.off() 
+cat(paste("<div style=\"text-align:center\">
+  <img src=\"http://archive.am-consulting.co.jp/",addVer,
+  ".png\" alt=\"\" title=\"\" width=\"100%\">
+  </div>\n\n",sep=""),file=htmlFile,append=T)
+#Plot Word Clouds
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1000,height=700)
+cloudImg<-wordcloud(names(freq), freq, min.freq=20, scale=c(5, .1), colors=brewer.pal(6, "Dark2"))  
+print(cloudImg)
+dev.off()
+cat(paste("<div style=\"text-align:center\">
+  <img src=\"http://archive.am-consulting.co.jp/",addVer,
+  ".png\" alt=\"\" title=\"\" width=\"100%\">
+  </div>\n\n",sep=""),file=htmlFile,append=T)
+#Hierarchal Clustering
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1000,height=700)
+dtmss <- removeSparseTerms(dtm, 0.15)
+d <- dist(t(dtmss), method="euclidian")   
+fit <- hclust(d=d, method="ward")   
+plot(fit,hang=-1,family="Meiryo") 
+dev.off()
+cat(paste("<div style=\"text-align:center\">
+  <img src=\"http://archive.am-consulting.co.jp/",addVer,
+  ".png\" alt=\"\" title=\"\" width=\"100%\">
+  </div>\n\n",sep=""),file=htmlFile,append=T)
+#K-means clustering
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste(addVer,".png",sep="")
+png(file=png.file,width=1000,height=700)
+d <- dist(t(dtmss), method="euclidian")   
+kfit <- kmeans(d, 2)   
+clusplot(as.matrix(d), kfit$cluster, color=T, shade=T, labels=2, lines=0)
+dev.off()
+cat(paste("<div style=\"text-align:center\">
+  <img src=\"http://archive.am-consulting.co.jp/",addVer,
+  ".png\" alt=\"\" title=\"\" width=\"100%\">
+  </div>\n\n",sep=""),file=htmlFile,append=T)
+cat("<b>Reference</b><br> - https://rstudio-pubs-static.s3.amazonaws.com/31867_8236987cf0a8444e962ccd2aec46d9c3.html<br> - http://datacube.wu.ac.at/",file=htmlFile,append=T)
+```
