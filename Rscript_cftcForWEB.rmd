@@ -1,4 +1,13 @@
 ```{r}
+#本スクリプトに必要とするパッケージのバージョン
+#ggplot2:1.0.0 (注意)少なくとも2.0.0ではevaluation nested too deeplyがでる。
+#gridExtra:0.9.1
+#packageurl <- "http://cran.r-project.org/src/contrib/Archive/ggplot2/ggplot2_1.0.0.tar.gz"
+#install.packages(packageurl, repos=NULL, type="source")
+#packageurl <- "http://cran.r-project.org/src/contrib/Archive/gridExtra/gridExtra_0.9.1.tar.gz"
+#install.packages(packageurl, repos=NULL, type="source")
+#Reference http://stackoverflow.com/questions/17082341/installing-older-version-of-r-package
+#grid.arrangeでエラーが出る。
 library(xts)
 library(ggplot2)
 library(gridExtra)
