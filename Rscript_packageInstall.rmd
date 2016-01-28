@@ -54,4 +54,5 @@ install.packages(packageurl, repos=NULL, type="source")
 ```{r}
 devtools::install_github("PMassicotte/gtrendsR")
 devtools::install_github("lionel-/gghorizon")
+devtools::install_github("animalito/rformat")
 ```
