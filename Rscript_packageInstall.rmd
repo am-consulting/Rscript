@@ -34,8 +34,9 @@ requiredPackageList<-c(
   "scatterplot3d",
   "gtrendsR",
   "RCurl",
-  "dplyr" #Pipe Operator %>% dataset<-tmp%>%filter(nikkei225 < 20000, usdjpy > 100)
-#http://www.r-statistics.com/2014/08/simpler-r-coding-with-pipes-the-present-and-future-of-the-magrittr-package/
+  "dplyr", #Pipe Operator %>% dataset<-tmp%>%filter(nikkei225 < 20000, usdjpy > 100)
+  #http://www.r-statistics.com/2014/08/simpler-r-coding-with-pipes-the-present-and-future-of-the-magrittr-package/
+  "XML"
 )
 colnames(installed.packages())
 notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
