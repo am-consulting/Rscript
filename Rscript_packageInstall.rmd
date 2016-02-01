@@ -23,7 +23,7 @@ requiredPackageList<-c(
   "tseries",
   "viridis",
   "XLConnect",
-  "ggrepel",
+  "ggrepel", #Error: package ‘ggplot2’ 1.0.0 is loaded, but >= 2.0.0 is required by ‘ggrepel’
   "proto", #ggplot2のインストールに必須
   "knitr",
   "PerformanceAnalytics",
