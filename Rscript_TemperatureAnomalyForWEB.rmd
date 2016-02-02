@@ -20,8 +20,9 @@ tempAnomalyTS<-list()
 
 ```{r}
 #綾里及び南鳥島は欠損があるため当面与那国島のみとする
-omitNA<-1
+omitNA<-0#2016/02/02 原則として本チャンクでomitしない
 pattern<-1
+sourceData<-5
 sourceURL<-"\nhttp://ds.data.jma.go.jp/ghg/kanshi/info_co2.html"
 url<-c(
   "http://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_ryo.csv",
@@ -126,8 +127,9 @@ addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),secon
 switch(sourceData,
 htmlFile<-paste("amcc_monthlyTemperatureWorld.html",sep=""),
 htmlFile<-paste("amcc_monthlyTemperatureJapan.html",sep=""),
-htmlFile<-paste("elninoMonthlyDiff.html",sep=""),
-htmlFile<-paste("elninoMonthlyTempDiff.html",sep="")
+htmlFile<-paste("amcc_elninoMonthlyDiff.html",sep=""),
+htmlFile<-paste("amcc_elninoMonthlyTempDiff.html",sep=""),
+htmlFile<-paste("amcc_monthlyCarbonDioxide.html",sep="")
 ) 
 cat("
 <!DOCTYPE HTML>
@@ -149,12 +151,17 @@ td,th{border:1px #808080 solid;}
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
 cat("<script src=\"http://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
-cat("<div align=\"center\"><b>",title[[1]],"</b><br>データ出所：気象庁</div>",file=htmlFile,append=T)
+if(sourceData!=5){
+cat("<div align=\"center\"><b>",title[[1]],"</b><br>データ出所：気象庁<br>表中、-9999は欠損値を表す</div>",file=htmlFile,append=T)
+}else{
+cat("<div align=\"center\">データ出所：気象庁<br>表中、-9999は欠損値を表す</div>",file=htmlFile,append=T)
+}  
 for(rrr in 1:length(origData)){
   grandData<-NULL
   header<-NULL
   tableID<-paste("am-consulting",rrr,addVer,sep="")
   dataset<-tempAnomalyDF[[rrr]]
+  dataset[is.na(dataset)]<--9999#sort対策
   colnames(dataset)[2]<-title[[rrr]]  
   cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){",file=htmlFile,append=T)
   cat(paste("$('#",tableID,"').dataTable( {",sep=""),file=htmlFile,append=T)
@@ -195,6 +202,7 @@ cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
 ########## timeseries & seasonplot
 setwd(pathOutput)
 for(rrr in 1:length(origData)){
+  tempAnomalyDF[[rrr]]<-na.omit(tempAnomalyDF[[rrr]])#2016/02/02
   f.date<-format(first(tempAnomalyDF[[rrr]][,1]),"%Y/%m")
   e.date<-format(last(tempAnomalyDF[[rrr]][,1]),"%Y/%m")
   mainTitle<-paste(title[[rrr]],"\n期間",f.date,"-",e.date,"\nData Source ",sourceURL)
@@ -267,8 +275,8 @@ for(rrr in 1:length(origData)){
   result.arima<-auto.arima(tempAnomalyDF[[rrr]][,2],ic="aic",trace=F,stepwise=T)
   result.forecast<-forecast(result.arima,level=c(90,95,99),h=forecast.interval) 
   switch(pattern,
-  caution<-paste("注意:本チャートは",f.date,"から",e.date,"の",title[[rrr]],"データにARIMAモデルを適用し、\n", gsub(" ","",result.forecast$method),"の下(信頼区間:90%,95%,99%)、",forecast.interval,"ヶ月分を単純に外挿したものであり、\nモデル採択に関してその統計学的適否(分散の時間依存の有無,残差の正規性その他)は検討していない。\nまた同外挿に際して",title[[rrr]],"に対する人為的背景(工業活動その他に伴う二酸化炭素排出その他)や\n非人為的背景(海洋からの排出、大気温度その他)は考慮しておらず、\nさらにそれら背景が",title[[rrr]],"の変動に影響を与えるのか否かも検討していない。",sep=""),
-  caution<-paste("注意:本チャートは",f.date,"から",e.date,"の",title[[rrr]],"データにARIMAモデルを適用し、\n", gsub(" ","",result.forecast$method),"の下(信頼区間:90%,95%,99%)、",forecast.interval,"ヶ月分を単純に外挿したものであり、\nモデル採択に関してその統計学的適否(分散の時間依存の有無,残差の正規性その他)は検討していない。\nまた同外挿に際して",title[[rrr]],"に対する人為的背景(工業活動その他に伴う二酸化炭素排出その他)や\n非人為的背景(二酸化炭素、海流、水蒸気、太陽活動その他)は考慮しておらず、\nさらにそれら背景が",title[[rrr]],"の変動に影響を与えるのか否かも検討していない。",sep="")
+  caution<-paste("注意:本チャートは",f.date,"から",e.date,"の",title[[rrr]],"データにARIMAモデルを適用し、\n", gsub(" ","",result.forecast$method),"の下(信頼区間:90%,95%,99%)、",forecast.interval,"ヶ月分を単純に外挿したものであり、\nモデル採択に関してその統計学的適否(分散の時間依存の有無,残差の正規性その他)は検討していない。\nまた同外挿に際して",title[[rrr]],"に対する人為的背景(工業活動その他に伴う二酸化炭素排出その他)や\n非人為的背景(海洋からの排出、大気温度その他)は考慮しておらず、\nさらにそれら背景が",title[[rrr]],"の変動に影響を与えるのか否かも検討していない。また欠損値の補間も取っていない。",sep=""),
+  caution<-paste("注意:本チャートは",f.date,"から",e.date,"の",title[[rrr]],"データにARIMAモデルを適用し、\n", gsub(" ","",result.forecast$method),"の下(信頼区間:90%,95%,99%)、",forecast.interval,"ヶ月分を単純に外挿したものであり、\nモデル採択に関してその統計学的適否(分散の時間依存の有無,残差の正規性その他)は検討していない。\nまた同外挿に際して",title[[rrr]],"に対する人為的背景(工業活動その他に伴う二酸化炭素排出その他)や\n非人為的背景(二酸化炭素、海流、水蒸気、太陽活動その他)は考慮しておらず、\nさらにそれら背景が",title[[rrr]],"の変動に影響を与えるのか否かも検討していない。また欠損値の補間も取っていない。",sep="")
   )
   subTitle<-paste("\n予測範囲:",format(last(tempAnomalyDF[[rrr]][,1])+months(1),"%Y/%m"),"-",format(last(tempAnomalyDF[[rrr]][,1])+months(forecast.interval),"%Y/%m"),sep="")
   ST<-Sys.time() 
@@ -290,6 +298,14 @@ for(rrr in 1:length(origData)){
 }
 ########## arima
 #table output
+if(sourceData!=5){
 print(xtable(origData[[1]]),file=htmlFile,append=T,type="html",include.rownames=F)
+}else{
+for(uuu in 1:length(origData)){ 
+cat("<hr>",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>",colnames(origData[[uuu]])[2],"</b></div>",file=htmlFile,append=T)  
+print(xtable(ts(origData[[uuu]][,2],frequency=12,start=c(year(origData[[uuu]][1,1]),month(origData[[uuu]][1,1])))),file=htmlFile,append=T,type="html",include.rownames=T)  
+}  
+}  
 cat("\n\n\n\n</body></html>",file=htmlFile,append=T)
 ```
