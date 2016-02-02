@@ -36,7 +36,12 @@ requiredPackageList<-c(
   "RCurl",
   "dplyr", #Pipe Operator %>% dataset<-tmp%>%filter(nikkei225 < 20000, usdjpy > 100)
   #http://www.r-statistics.com/2014/08/simpler-r-coding-with-pipes-the-present-and-future-of-the-magrittr-package/
-  "XML"
+  "XML",
+  "viridis",
+  #要求されたパッケージ viridis をロード中です 
+  #Error in loadNamespace(j <- i[[1L]], c(lib.loc, .libPaths()), versionCheck = vI[[j]]) : 
+  #名前空間 ‘ggplot2’ 1.0.0 は既にロードされましたが、>= 1.0.1 が要求されています 
+  "installr"
 )
 colnames(installed.packages())
 notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
@@ -49,6 +54,7 @@ if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages
 
 ```{r}
 packageurl <- "http://cran.r-project.org/src/contrib/Archive/ggplot2/ggplot2_1.0.0.tar.gz"
+packageurl <- "http://cran.r-project.org/src/contrib/Archive/ggplot2/ggplot2_1.0.1.tar.gz"
 install.packages(packageurl, repos=NULL, type="source")
 packageurl <- "http://cran.r-project.org/src/contrib/Archive/gridExtra/gridExtra_0.9.1.tar.gz"
 install.packages(packageurl, repos=NULL, type="source")
@@ -58,4 +64,23 @@ install.packages(packageurl, repos=NULL, type="source")
 devtools::install_github("PMassicotte/gtrendsR")
 devtools::install_github("lionel-/gghorizon")
 devtools::install_github("animalito/rformat")
+```
+
+```{r}
+#https://cran.r-project.org/web/packages/gpclib/index.html
+fileName<-"gpclib_1.5-5.tar.gz"
+URL<-paste("https://cran.r-project.org/src/contrib/",fileName,sep="")
+username<-Sys.info()['user']
+path<-paste("C:/Users/",username,"/Desktop/packageForR/",sep="")
+setwd(path)
+download.file(url=URL,destfile=fileName,mode="wb")
+install.packages(paste(path,fileName,sep=""),repos=NULL,type="source")
+# > gpclibPermit()
+# [1] TRUE
+# Warning message:
+# In gpclibPermit() :
+#   support for gpclib will be withdrawn from maptools at the next major release
+#> packageVersion("maptools")
+#[1] ‘0.8.37’
+#https://cran.r-project.org/src/contrib/maptools_0.8-39.tar.gz
 ```
