@@ -1,5 +1,5 @@
 ```{r}
-requiredPackageList<-c("tseries","ggplot2","scales","gridExtra","knitr","lubridate","reshape2","forecast","viridis")
+requiredPackageList<-c("tseries","ggplot2","scales","gridExtra","knitr","lubridate","reshape2","forecast","viridis","xtable")
 colnames(installed.packages())
 notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
 if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
@@ -16,18 +16,18 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 ```{r}
 ssn<-list()
 url<-c(
-  "http://solarscience.msfc.nasa.gov/greenwch/spot_num.txt",
+  #"http://solarscience.msfc.nasa.gov/greenwch/spot_num.txt",
   "http://solarscience.msfc.nasa.gov/greenwch/sunspot_area.txt",
   "http://solarscience.msfc.nasa.gov/greenwch/sunspot_area_north.txt",
   "http://solarscience.msfc.nasa.gov/greenwch/sunspot_area_south.txt"
 )
 chartTitle<-c(
-  "太陽黒点数(SSN)と標準偏差(DEV)",
+  #"太陽黒点数(SSN)と標準偏差(DEV)",
   "黒点総面積(単位:millionths of a hemisphere)",
   "北半球黒点総面積(単位:millionths of a hemisphere)",
   "南半球黒点総面積(単位:millionths of a hemisphere)"
 )  
-for(iii in 1:length(url)){
+for(iii in 1:length(url)){#黒点数は更新が止まっている。
   ssn[[iii]]<-read.table(url[[iii]],header=T,skip=0,as.is=T,stringsAsFactor=FALSE)
   print(head(ssn[[iii]]))
   if(grepl("_num",url[[iii]])==T){
@@ -76,8 +76,26 @@ setwd(pathOutput)
 col<-list()
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-htmlFile<-paste(addVer,".html",sep="")
-cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+htmlFile<-paste("amcc_monthlySunSpot.html",sep="")
+cat("
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta http-equiv=\"Pragma\" content=\"no-cache\">
+<meta http-equiv=\"Cache-Control\" content=\"no-cache\">
+<meta http-equiv=\"Expires\" content=\"0\">
+</head>
+<body>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;font-size:80%;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;}
+tr,td,th{white-space:nowrap;}
+th{background-color:#F5F5F5;}
+td,th{border:1px #808080 solid;}
+</style>",file=htmlFile,append=F)
+cat("<div align=\"center\"><b>太陽黒点面積の時系列推移</b><br>データ出所:National Aeronautics and Space Administration</div>",file=htmlFile,append=T)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
 cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
 for(rrr in 1:length(ssn)){
@@ -85,7 +103,7 @@ for(rrr in 1:length(ssn)){
   header<-NULL
   tableID<-paste("am-consulting",rrr,addVer,sep="")
   dataset<-tail(ssn[[rrr]],tailLength)
-  if(rrr!=5){
+  if(rrr!=4){
     cat(chartTitle[[rrr]],"\n",file=htmlFile,append=T) 
   }else{
     cat("総合\n",file=htmlFile,append=T) 
@@ -139,7 +157,7 @@ for(ppp in 1:3){
     date.e<-format(tmp[,1][nrow(tmp)],"%Y/%m")
     if(ppp==1 | ppp==3){
       g<-ggplot()
-      if(iii==1){
+      if(iii==1000000000000){#dammy 黒点数用
         ssnTS<-melt(tmp,id="date") 
         g<-g+geom_line(data=ssnTS,aes(x=date,y=value,colour=variable),alpha=0.7,size=0.5)
         g<-g+scale_colour_manual("時系列データ",values=lineColor)
@@ -158,23 +176,23 @@ for(ppp in 1:3){
       g<-g+scale_x_date(labels=date_format("%Y/%m"))
       plot.title<-"時系列チャート-"
     }else{
-      g<-ggplot(data=tmp,aes(x=tmp[,2]))
-      if(iii==1){
-        bw<-10  
-      }else{
-        bw<-100
-      }  
-      g<-g+geom_histogram(binwidth=bw,fill="blue",alpha=0.4,color="black")
-      plot.title<-"ヒストグラム-"
-      if(iii==1){mainTitle<-"太陽黒点数(SSN)"}
+       g<-ggplot(data=tmp,aes(x=tmp[,2]))
+       if(iii==1000000000000){#dammy 黒点数用
+         bw<-10  
+       }else{
+         bw<-100
+       }  
+       g<-g+geom_histogram(binwidth=bw,fill="blue",alpha=0.4,color="black")
+       plot.title<-"ヒストグラム-"
+       if(iii==1000000000000){mainTitle<-"太陽黒点数(SSN)"}#dammy 黒点数用
     }
     g<-g+ggtitle(paste(plot.title,mainTitle,"\n期間:",date.s,"-",date.e,subTitle,datasourceURL,sep=""))
-    g<-g+theme(axis.text=element_text(size=32,family="Meiryo"))
-    g<-g+theme(axis.title=element_text(size=32,face="plain",family="Meiryo"))
-    g<-g+theme(title=element_text(size=32,face="plain",family="Meiryo"))
+    g<-g+theme(axis.text=element_text(size=25,family="Meiryo"))
+    g<-g+theme(axis.title=element_text(size=25,face="plain",family="Meiryo"))
+    g<-g+theme(title=element_text(size=25,face="plain",family="Meiryo"))
     g<-g+theme(legend.position="top")
-    g<-g+theme(legend.text=element_text(colour="black",size=32,face="plain",family="Meiryo"))
-    g<-g+theme(legend.title=element_text(colour="black",size=32,face="plain",family="Meiryo"))
+    g<-g+theme(legend.text=element_text(colour="black",size=25,face="plain",family="Meiryo"))
+    g<-g+theme(legend.title=element_text(colour="black",size=25,face="plain",family="Meiryo"))
     g<-g+xlab("")+ylab("")
     ST<-Sys.time()  
     addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
@@ -182,9 +200,9 @@ for(ppp in 1:3){
     png(file=png.file,width=1600,height=1000)
     print(g)
     dev.off()
-    cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+    cat(paste("<hr><div align=\"center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
       "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-      "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)    
+      "\" alt=\"",png.file,"\" width=\"80%\"></div></a>",sep=""),file=htmlFile,append=T)    
   }
 }
 ```
@@ -193,7 +211,7 @@ for(ppp in 1:3){
 setwd(pathOutput)
 for(ppp in 1:(length(url))){
   mainTitle<-chartTitle[ppp]
-  if(ppp==1){mainTitle<-"太陽黒点数(SSN)"}
+  if(ppp==1000000000000){mainTitle<-"太陽黒点数(SSN)"}#dammy 黒点数用
   tmp<-na.omit(ssn[[ppp]])
   date.s<-format(tmp[,1][1],"%Y/%m")
   date.e<-format(tmp[,1][nrow(tmp)],"%Y/%m")
@@ -201,7 +219,7 @@ for(ppp in 1:(length(url))){
   addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste(addVer,".png",sep="")
   png(file=png.file,width=1600,height=1000)
-  par(cex.main=3,cex.axis=3,cex.lab=3,cex.sub=4,mar=c(8,8,14,2))
+  par(cex.main=2,cex.axis=2,cex.lab=2,cex.sub=2,mar=c(8,8,14,2))
   SolarData<-tmp[,2]
   MainTitle<-paste("自己相関関数-",mainTitle,"\n期間:",date.s,"-",date.e,"\n原系列の単位根検定(H1:stationary) p値=",adf.test(SolarData,k=1)$p.value,datasourceURL)
   result<-acf(tmp[,2],type="correlation",main=MainTitle,lag=1200,ci=c(0.9,0.95),family="Meiryo")
@@ -216,11 +234,11 @@ for(ppp in 1:(length(url))){
   g<-g+coord_flip()
   g<-g+ylab("自己相関係数")+xlab("ラグ(ヶ月)")
   g<-g+ggtitle(MainTitle)
-  g<-g+theme(axis.text=element_text(size=30,family="Meiryo"))   
-  g<-g+theme(axis.title=element_text(colour="black",size=30,face="plain",family="Meiryo"))   
-  g<-g+theme(title=element_text(size=30,face="plain",family="Meiryo"))   
+  g<-g+theme(axis.text=element_text(size=25,family="Meiryo"))   
+  g<-g+theme(axis.title=element_text(colour="black",size=25,face="plain",family="Meiryo"))   
+  g<-g+theme(title=element_text(size=25,face="plain",family="Meiryo"))   
   g<-g+theme(legend.position="bottom")   
-  g<-g+theme(legend.text=element_text(colour="black",size=40,face="plain",family="Meiryo"))   
+  g<-g+theme(legend.text=element_text(colour="black",size=25,face="plain",family="Meiryo"))   
   g<-g+theme(legend.title=element_text(colour="white",size=20,face="plain",family="Meiryo"))
   g<-g+geom_text(data=tmp,aes(x=tmp[,1],y=tmp[,2],label=tmp[,2]),vjust=0.5,hjust=2,size=5,face="bold",family="Meiryo")
   ST<-Sys.time()  
@@ -229,9 +247,9 @@ for(ppp in 1:(length(url))){
   png(file=png.file,width=1600,height=1000)
   print(g)
   dev.off()
-  cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  cat(paste("<hr><div align=\"center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
     "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)    
+    "\" alt=\"",png.file,"\" width=\"80%\"></a></div>",sep=""),file=htmlFile,append=T)    
 }
 ```
 
@@ -243,7 +261,7 @@ ST<-Sys.time()
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste("heat_",addVer,".png",sep="")
 png(file=png.file,width=1600,height=1000)
-par(ps=20,mar=c(5,10,10,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo") 
+par(ps=20,mar=c(5,10,10,3),cex.main=1.0,cex.lab=1.0,cex.axis=1.0,family="Meiryo") 
 imageData<-ssn[[ppp]][,1:2] 
 tmpMatrix<-matrix(nrow=length(unique(year(imageData[,1]))),ncol=12)
 for(ddd in 1:length(imageData[,2])){
@@ -260,9 +278,17 @@ nColor<-256
 colType<-viridis(nColor,alpha=1)#heat.colors(nColor),terrain.colors(nColor),topo.colors(nColor),cm.colors(nColor)
 image(x=xF:xL,y=1:12,tmpMatrix,col=colType,xaxs="i",yaxs="i",xlab="Year",ylab="Month",useRaster=T,main=mainTitle)
 dev.off()
-cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+cat(paste("<hr><div align=\"center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
   "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
+  "\" alt=\"",png.file,"\" width=\"80%\"></a></div>",sep=""),file=htmlFile,append=T)
 }  
 #image part
+#table output
+for(iii in 1:length(url)){
+cat("<hr>",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>",colnames(ssn[[iii]])[2],"</b></div>",file=htmlFile,append=T)  
+print(xtable(ts(ssn[[iii]][,2],frequency=12,start=c(year(ssn[[iii]][1,1]),month(ssn[[iii]][1,1])))),file=htmlFile,append=T,type="html",include.rownames=T)  
+}
+cat("\n\n\n\n</body></html>",file=htmlFile,append=T)
+
 ```
