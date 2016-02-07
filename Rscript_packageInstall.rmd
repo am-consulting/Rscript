@@ -41,7 +41,8 @@ requiredPackageList<-c(
   #要求されたパッケージ viridis をロード中です 
   #Error in loadNamespace(j <- i[[1L]], c(lib.loc, .libPaths()), versionCheck = vI[[j]]) : 
   #名前空間 ‘ggplot2’ 1.0.0 は既にロードされましたが、>= 1.0.1 が要求されています 
-  "installr"
+  "installr",
+  "compare"
 )
 colnames(installed.packages())
 notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
