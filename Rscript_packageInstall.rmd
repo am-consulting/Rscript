@@ -61,12 +61,23 @@ packageurl <- "http://cran.r-project.org/src/contrib/Archive/ggplot2/ggplot2_1.0
 install.packages(packageurl, repos=NULL, type="source")
 packageurl <- "http://cran.r-project.org/src/contrib/Archive/gridExtra/gridExtra_0.9.1.tar.gz"
 install.packages(packageurl, repos=NULL, type="source")
+packageurl <- "http://cran.r-project.org/src/contrib/Archive/seasonal/seasonal_0.80.0.tar.gz"
+install.packages(packageurl, repos=NULL, type="source")
+```
+
+```{r}
+username<-Sys.info()['user']
+Sys.setenv(X13_PATH=paste("C:\\Users\\",username,"\\Downloads\\x13asall_V1.1_B19\\x13as",sep=""))
 ```
 
 ```{r}
 devtools::install_github("PMassicotte/gtrendsR")
 devtools::install_github("lionel-/gghorizon")
 devtools::install_github("animalito/rformat")
+devtools::install_github("am-consulting/performanceAsLeader")
+#devtools::install_github("christophsax/seasonal")
+devtools::install_github("ellisp/ggseas/pkg")
+devtools::install_github("rstudio/addinexamples", type = "source")
 ```
 
 ```{r}
@@ -86,4 +97,15 @@ install.packages(paste(path,fileName,sep=""),repos=NULL,type="source")
 #> packageVersion("maptools")
 #[1] ‘0.8.37’
 #https://cran.r-project.org/src/contrib/maptools_0.8-39.tar.gz
+```
+
+```{r}
+#https://cran.r-project.org/web/packages/x13binary/index.html
+fileName<-"x13binary_0.1.0.tar.gz"
+URL<-paste("https://cran.r-project.org/src/contrib/",fileName,sep="")
+username<-Sys.info()['user']
+path<-paste("C:/Users/",username,"/Desktop/packageForR/",sep="")
+setwd(path)
+download.file(url=URL,destfile=fileName,mode="wb")
+install.packages(paste(path,fileName,sep=""),repos=NULL,type="source")
 ```
