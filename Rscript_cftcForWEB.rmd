@@ -13,6 +13,8 @@ library(ggplot2)
 library(gridExtra)
 library(scales)
 library(lubridate)
+packageVersion("ggplot2")
+packageVersion("gridExtra")
 SD<-Sys.Date()
 year<-c((year(SD)-5):year(SD))
 username<-Sys.info()['user']
