@@ -1,0 +1,143 @@
+```{r}
+library(tseries);library(lubridate);library(ggplot2);library(scales);library(dplyr);library(reshape2);library(xtable)
+dataSource<-"National Snow and Ice Data Center"
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+SD<-Sys.Date()
+dataset<-list()
+dataUrl<-c(
+  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/NH_seaice_extent_final.csv",
+  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/NH_seaice_extent_nrt.csv",
+  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/daily/data/SH_seaice_extent_final.csv",
+  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/daily/data/SH_seaice_extent_nrt.csv"
+)
+chkNH<-0
+chkSH<-0
+for(ddd in 1:length(dataUrl)){
+  buf<-read.csv(dataUrl[ddd],header=T,skip=0,stringsAsFactor=F,na.strings=c(""))
+  tmp<-apply(buf[-1,-6],2,as.numeric)
+  if(regexpr("NH_seaice",dataUrl[ddd])!=-1){
+    ppp<-1  
+    if(chkNH==0){dataset[[ppp]]<-tmp;chkNH<-1}else{dataset[[ppp]]<-rbind(dataset[[ppp]],tmp)}
+  }else{
+    ppp<-2  
+    if(chkSH==0){dataset[[ppp]]<-tmp;chkSH<-1}else{dataset[[ppp]]<-rbind(dataset[[ppp]],tmp)}
+  }
+}
+for(ppp in 1:2){
+  colnames(dataset[[ppp]])
+  Date<-as.Date(paste(dataset[[ppp]][,1],"-",dataset[[ppp]][,2],"-",dataset[[ppp]][,3],sep=""))
+  if(ppp==1){
+    colnames(dataset[[ppp]])<-paste("NH_",colnames(dataset[[ppp]]),sep="")
+  }else{
+    colnames(dataset[[ppp]])<-paste("SH_",colnames(dataset[[ppp]]),sep="")
+  }
+  dataset[[ppp]]<-data.frame(dataset[[ppp]],Date,check.names=FALSE)
+}
+dataset[[3]]<-merge(dataset[[1]],dataset[[2]])
+colnames(dataset[[3]])
+dataset[[3]]$TotalExtent<-as.numeric(dataset[[3]][,5])+as.numeric(dataset[[3]][,10])
+##### plot part
+htmlFile<-"amcc_SeaIceIndexData.html"
+cat("
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta http-equiv=\"Pragma\" content=\"no-cache\">
+<meta http-equiv=\"Cache-Control\" content=\"no-cache\">
+<meta http-equiv=\"Expires\" content=\"0\">
+</head>
+<body><div align=\"center\"><b>Sea Ice Index Data</b><br>Data Sourece:",dataSource,"</div>",file=htmlFile,append=F)
+for(ccc in 1:3){
+  ST<-Sys.time()  
+  timeStamp<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  if(ccc<=2){valueColumn<-4}else{valueColumn<-12}
+  if(regexpr("NH_",colnames(dataset[[ccc]])[1])!=-1){
+    premainTitle<-"Sea Ice Index Data:North"
+  }else if(regexpr("SH_",colnames(dataset[[ccc]]))[1]!=-1){
+    premainTitle<-"Sea Ice Index Data:South"
+  }else{
+    premainTitle<-"Sea Ice Index Data:Total(North+South)"
+  }
+  mainTitle<-paste(premainTitle,"\nPeriod:",first(dataset[[ccc]]$Date),"-",last(dataset[[ccc]]$Date),sep="")  
+  ##### timeseries plot
+  print(tail(dataset[[ccc]],2))  
+  pngfile<-paste(timeStamp,".ts.png",sep="")
+  png(filename=pngfile,width=1500,height=700)
+  g<-ggplot()
+  g<-g+geom_line(data=dataset[[ccc]],aes(x=Date,y=dataset[[ccc]][,valueColumn]),size=0.5,col="black")
+  g<-g+geom_smooth(data=dataset[[ccc]],aes(x=Date,y=dataset[[ccc]][,valueColumn]),method=lm,lwd=1,col="red")
+  g<-g+scale_x_date(labels=date_format("%Y/%m"))
+  g<-g+theme(plot.title=element_text(size=15,family="Meiryo"))
+  g<-g+theme(axis.title.x=element_text(size=15,family="Meiryo")) 
+  g<-g+theme(axis.title.y=element_text(size=15,family="Meiryo")) 
+  g<-g+theme(axis.text.x=element_text(size=15,angle=0,family="Meiryo")) 
+  g<-g+theme(axis.text.y=element_text(size=15,angle=90,family="Meiryo")) 
+  g<-g+xlab("")
+  g<-g+ylab(paste(colnames(buf)[4],"(",unlist(buf[1,][4]),")"))
+  lmResult<-lm(dataset[[ccc]][,valueColumn]~dataset[[ccc]]$Date)
+  g<-g+ggtitle(paste(
+  mainTitle,
+  "\nLiner Model Slope:",lmResult$coefficients[2],
+  "\nUnit Root Test p-value:",adf.test(dataset[[ccc]][,valueColumn])$p.value
+  )
+  )
+  print(g)
+  dev.off()
+  cat(paste("<div align=\"center\"><a href=\"http://archive.am-consulting.co.jp/",
+    pngfile,"\"><img src=\"http://archive.am-consulting.co.jp/",pngfile,
+    "\" alt=\"",pngfile,"\" width=\"80%\"></a></div><hr>",sep=""),file=htmlFile,append=T)
+  ##### timeseries plot
+  ##### seasonplot
+  seasonData<-data.frame(dataset[[ccc]],month=month.abb[month(dataset[[ccc]]$Date)])
+  seasonData$month<-factor(seasonData$month,levels=month.abb)
+  pngfile<-paste(timeStamp,".sp.png",sep="")
+  png(filename=pngfile,width=1500,height=700)
+  g1<-ggplot(data=seasonData,aes(x=month,y=seasonData[,valueColumn]))
+  g1<-g1+geom_boxplot(lwd=1)
+  g1<-g1+theme(plot.title=element_text(size=15,family="Meiryo"))
+  g1<-g1+theme(axis.title.x=element_text(size=15)) 
+  g1<-g1+theme(axis.title.y=element_text(size=15)) 
+  g1<-g1+theme(axis.text.x=element_text(size=15,angle=0,hjust=0.5,vjust=0.5)) 
+  g1<-g1+theme(axis.text.y=element_text(size=15)) 
+  g1<-g1+ggtitle(paste(mainTitle,"\nData Source:",dataSource))
+  g1<-g1+xlab("")
+  g1<-g1+ylab(paste(colnames(buf)[4],"(",unlist(buf[1,][4]),")")) 
+  print(g1)
+  dev.off()
+  cat(paste("<div align=\"center\"><a href=\"http://archive.am-consulting.co.jp/",
+    pngfile,"\"><img src=\"http://archive.am-consulting.co.jp/",pngfile,
+    "\" alt=\"",pngfile,"\" width=\"80%\"></a></div><hr>",sep=""),file=htmlFile,append=T)
+  ##### acfplot
+  pngfile<-paste(timeStamp,".acf.png",sep="")
+  png(filename=pngfile,width=1500,height=700)
+  par(ps=18,mar=c(5,5,5,3),cex.main=1.0,cex.lab=1,cex.axis=1.0,family="Meiryo") 
+  acf(dataset[[ccc]][,valueColumn],lag=1000,panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=F),main=mainTitle,family="Meiryo") 
+  dev.off()
+  cat(paste("<div align=\"center\"><a href=\"http://archive.am-consulting.co.jp/",
+    pngfile,"\"><img src=\"http://archive.am-consulting.co.jp/",pngfile,
+    "\" alt=\"",pngfile,"\" width=\"80%\"></a></div><hr>",sep=""),file=htmlFile,append=T)
+  ##### acfplot
+  ##### histogram
+  pngfile<-paste(timeStamp,".hist.png",sep="")
+  png(filename=pngfile,width=1500,height=700)
+  dataset[[ccc]]$yearMonth<-as.Date(paste(year(dataset[[ccc]]$Date),"-",month(dataset[[ccc]]$Date),"-1",sep=""))
+  functionList<-c("mean","median","max","min","sd")
+  par(mfrow=c(2,3),ps=18,mar=c(5,5,5,3),cex.main=1.0,cex.lab=1,cex.axis=1.0,family="Meiryo")
+  for(iii in 1:length(functionList)){
+    tmp<-aggregate(x=list(value=dataset[[ccc]][,valueColumn]),by=list(Date=dataset[[ccc]]$yearMonth),FUN=get(functionList[iii]))
+    mainTitle<-paste(premainTitle,"\n",format(first(tmp[,1]),"%Y/%m"),"-",format(last(tmp[,1]),"%Y/%m"),sep="")
+    hist(tmp[,2],col="grey",breaks="scott",main=paste(mainTitle,"\n",functionList[iii],sep=""),xlab=unlist(buf[1,][4]),freq = FALSE) 
+    #“sturges”, “fd”, “freedman-diaconis”, “scott” 
+  }
+  dev.off()
+  cat(paste("<div align=\"center\"><a href=\"http://archive.am-consulting.co.jp/",
+    pngfile,"\"><img src=\"http://archive.am-consulting.co.jp/",pngfile,
+    "\" alt=\"",pngfile,"\" width=\"80%\"></a></div><hr>",sep=""),file=htmlFile,append=T)
+  ##### histogram
+}
+cat("\n\n\n\n</body></html>",file=htmlFile,append=T) 
+```
