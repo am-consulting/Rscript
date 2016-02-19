@@ -84,6 +84,48 @@ fun.readData()
 ```
 
 ```{r}
+#エルニーニョ監視指数
+library(rvest)
+sourceURL<-"http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html"
+pattern<-1
+sourceData<-6
+url<-c(
+  "http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/nino3abs.html",
+  "http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/ninowabs.html",
+  "http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/iobwabs.html"
+)
+title[[1]]<-"NINO.3 海面水温"
+title[[2]]<-"NINO.WEST 海面水温"
+title[[3]]<-"IOBW 海面水温"
+for(rrr in 1:length(url)){
+  source<-read_html(url[rrr])
+  tmp01<-source %>% html_nodes(xpath='//pre')%>% html_text %>%iconv(from="UTF-8")
+  #tmp01<-source %>% html_nodes(xpath='//*[@id="main"]')%>% html_text %>% iconv(from="UTF-8")
+  tmp01
+  buf<-strsplit(tmp01,"\n")
+  buf
+  for(fff in 3:length(buf[[1]])){
+    tmp02<-buf[[1]][fff]
+    tmp02<-gsub("  "," ",tmp02)
+    tmp02<-strsplit(tmp02," ")
+    #print(tmp02)
+    tmp03<-t(tmp02[[1]][-1])
+    #if(fff==3){dataset<-as.data.frame(t(temp[[1]][-1]))}else{dataset<-rbind(dataset,as.data.frame(t(temp[[1]][-1])))}
+    if(fff==3){dataset<-as.data.frame(tmp03)}else{dataset<-rbind(dataset,as.data.frame(tmp03))}
+  }
+  dataset
+  dataset<-data.frame(apply(dataset,2,as.numeric),stringsAsFactors=FALSE)
+  datasetDF<-data.frame(Date=seq(as.Date(paste(dataset[1,1],"-1-1",sep="")),by="month",length=nrow(dataset)*12),value=as.vector(t(dataset)[-1,]))
+  datasetDF[datasetDF==99.9]<-NA
+  colnames(datasetDF)[2]<-title[[rrr]]
+  origData[[rrr]]<-datasetDF
+  print(head(origData[[rrr]]))
+  print(tail(origData[[rrr]]))
+}  
+#エルニーニョ監視指数
+```
+
+```{r}
 setwd(pathOutput)
 for(rrr in 1:length(origData)){
   if(pattern==2){  
@@ -129,7 +171,8 @@ htmlFile<-paste("amcc_monthlyTemperatureWorld.html",sep=""),
 htmlFile<-paste("amcc_monthlyTemperatureJapan.html",sep=""),
 htmlFile<-paste("amcc_elninoMonthlyDiff.html",sep=""),
 htmlFile<-paste("amcc_elninoMonthlyTempDiff.html",sep=""),
-htmlFile<-paste("amcc_monthlyCarbonDioxide.html",sep="")
+htmlFile<-paste("amcc_monthlyCarbonDioxide.html",sep=""),
+htmlFile<-paste("amcc_elninoMonthlyTemp.html",sep="")
 ) 
 cat("
 <!DOCTYPE HTML>
@@ -151,7 +194,13 @@ td,th{border:1px #808080 solid;}
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
 cat("<script src=\"http://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
-if(sourceData!=5){
+if(sourceData==6){
+cat("<div align=\"center\">データ出所：気象庁<br>表中、-9999は欠損値を表す</div>",file=htmlFile,append=T)
+cat(paste("<div align=\"center\">
+  <a href=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\">
+  <img src=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\" alt=\"\" width=\"50%\"></a></div>",sep=""),file=htmlFile,append=T)
+cat("<div align=\"center\">図出典：気象庁 http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html</div><hr>",file=htmlFile,append=T)
+}else if(sourceData!=5){
 cat("<div align=\"center\"><b>",title[[1]],"</b><br>データ出所：気象庁<br>表中、-9999は欠損値を表す</div>",file=htmlFile,append=T)
 }else{
 cat("<div align=\"center\">データ出所：気象庁<br>表中、-9999は欠損値を表す</div>",file=htmlFile,append=T)
@@ -298,7 +347,7 @@ for(rrr in 1:length(origData)){
 }
 ########## arima
 #table output
-if(sourceData!=5){
+if(sourceData!=5 & sourceData!=6){
 print(xtable(origData[[1]]),file=htmlFile,append=T,type="html",include.rownames=F)
 }else{
 for(uuu in 1:length(origData)){ 
