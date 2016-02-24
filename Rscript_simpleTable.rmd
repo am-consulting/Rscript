@@ -3,7 +3,7 @@ library(lubridate)
 library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
-needRightRow<-1
+needRightRow<-0
 addRightRow<-2
 needCalStat<-0 #日銀オペレーション用
 typeData<-0 #0 非時系列 1 時系列
@@ -77,8 +77,9 @@ mainTitle<-"各国成人喫煙率(WHO:Tobacco Atlas(2002))"
 mainTitle<-"各国肺がん死亡率(Age-standardised rates per 100 000 population / 10万人あたりの年齢調整死亡率)"
 mainTitle<-"月例経済報告と政権・マネタリーベース・日経平均株価・完全失業率"
 mainTitle<-"平成26年(2014)人口動態統計(確定数)の概況"
-mainTitle<-"毎月勤労統計 毎勤原表 2015年11月"
 mainTitle<-"平成26年における自殺者総数(25,218人)に対する属性ごとの比率(%)"
+mainTitle<-"企業向けサービス価格指数(2016年1月分)"
+mainTitle<-"毎月勤労統計 毎勤原表 2015年12月"
 dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
 dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
 dataSource<-"\nデータ出所:The U.S. Census Bureau"
@@ -90,7 +91,6 @@ dataSource<-"\nデータ出所:警察庁"
 dataSource<-"\nデータ出所:国土交通省"
 dataSource<-"\nデータ出所:国税庁"
 dataSource<-"\nデータ出所:農林水産省"
-dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:外務省,IMF"
 dataSource<-"\nデータ出所:文部科学省"
 dataSource<-"\nデータ出所:経済産業省"
@@ -103,6 +103,7 @@ dataSource<-"\nデータ出所:財務省"
 dataSource<-"\nデータ出所:公益財団法人 健康・体力づくり事業財団"
 dataSource<-"\nデータ出所:OECD iLibrary"
 dataSource<-"\nデータ出所:内閣府、日本銀行、株式会社日本経済新聞社、総務省"
+dataSource<-"\nデータ出所:日本銀行"
 dataSource<-"\nデータ出所:厚生労働省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
