@@ -1,0 +1,109 @@
+```{r}
+suppressPackageStartupMessages(library(googleVis))
+library(lubridate)
+SD<-Sys.Date()
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+dataSource<-"<a href=\"https://www.ngdc.noaa.gov/hazard/tsu_db.shtml\" target=\"_blank\">NGDC/WDS Global Historical Tsunami Database</a>"
+htmlFile<-"amcc_HistoricalTsunamiDatabase.html.html"
+cat("",file=htmlFile,append=F)
+dataUrl<-"https://www.ngdc.noaa.gov/nndc/struts/results?type_0=Exact&query_0=$ID&t=101650&s=69&d=59&dfn=tsevent.txt"
+#dataUrl<-"https://www.ngdc.noaa.gov/nndc/struts/results?type_0=Exact&query_0=$ID&t=101650&s=71&d=86&dfn=tsrunup.txt"
+tmp<-read.csv(dataUrl,header=T,skip=0,stringsAsFactor=F,na.strings=c("NA"),sep="\t",check.names=FALSE)
+head(tmp);tail(tmp);colnames(tmp)
+dataset<-subset(tmp,is.na(tmp[,15])==F & is.na(tmp[,16])==F)
+dataset$DATE<-paste(dataset[,2],"-",dataset[,3],"-",dataset[,4],sep="")
+head(dataset);tail(dataset)
+attach(dataset)
+dataset$LATLONG<-paste(LATITUDE,LONGITUDE,sep=":")
+dataset$INFO<-paste("Date:",DATE,". PrimaryMag:",PRIMARY_MAGNITUDE,". Location:",LOCATION_NAME,". MaximumWaterHeight:",MAXIMUM_WATER_HEIGHT,". TotalDeath:",TOTAL_DEATHS,sep="")
+dataset.j<-dataset[grep("JAPAN",dataset[,12]),]
+gMap<-gvisMap(
+  dataset.j,"LATLONG","INFO",
+  options=list(
+    height=400,
+    width="100%",
+    showTip=TRUE, 
+    showLine=TRUE, 
+    enableScrollWheel=TRUE,
+    mapType='terrain', #'hybrid','normal','terrain','satellite'
+    useMapTypeControl=TRUE
+  )
+)
+cat("
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta http-equiv=\"Pragma\" content=\"no-cache\">
+<meta http-equiv=\"Cache-Control\" content=\"no-cache\">
+<meta http-equiv=\"Expires\" content=\"0\">
+</head>
+<body>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;font-size:80%;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;font-size:90%;}
+tr, td, th{white-space: nowrap;}
+td.highlight {font-weight: plain;color: red;}
+</style>",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>津波発生状況</b><br>Source:",dataSource,"</div><hr>",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>日本周辺の発生津波</b></div>",file=htmlFile,append=T)
+print(gMap,tag="chart",file=htmlFile,append=T)
+cat("<hr>",file=htmlFile,append=T)
+htmldataset<-dataset.j[,1:46]
+htmldataset[is.na(htmldataset)==T]<--9999
+tablefontsize<-90 #%
+menulength<-"[[20,-1], [20,\"All\"]]"
+orderColumn<-0
+orderDirection<-"asc" #asc(小から大) desc
+columnWidth<-"{\"width\":\"10%\",\"targets\":0}"
+col<-list()
+grandData<-NULL
+header<-NULL
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>\n",file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/1.10.8/css/jquery.dataTables.min.css\" rel=\"stylesheet\">\n",file=htmlFile,append=T)  
+cat("<script src=\"http://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js\"></script>\n\n",file=htmlFile,append=T) 
+cat("<script type=\"text/javascript\" charset=\"utf-8\">\n",file=htmlFile,append=T)
+cat("$(document).ready( function(){\n",file=htmlFile,append=T)
+cat(paste("$('#",tableID,"').dataTable( {\n",sep=""),file=htmlFile,append=T)
+cat("\"lengthMenu\":",menulength,"\n",file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]]\n",sep=""),file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+cat("\"searching\": true\n",file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+cat("\"columnDefs\":[",columnWidth,"]\n",file=htmlFile,append=T)
+cat(",\n",file=htmlFile,append=T)
+cat("\"language\": {\"decimal\": \".\",\"thousands\": \",\"}\n",file=htmlFile,append=T)
+cat("});\n",file=htmlFile,append=T)
+cat("});</script>\n\n\n\n\n",file=htmlFile,append=T)
+cat("- -9999は「データなし」または「データ欠損」または「NA」を意味します<br>",file=htmlFile,append=T)
+for(ccc in 1:ncol(htmldataset)){
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",htmldataset[,ccc],"</td>",sep="")
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
+}
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
+tableHtml<-paste(tableHtml,header,"</thead><tfoot>",sep="")
+tableHtml<-paste(tableHtml,header,"</tfoot>",sep="")
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("</div>\n",file=htmlFile,append=T)
+cat("Powered by<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )",file=htmlFile,append=T)  
+cat("<hr>",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>Maximum Water Height and Maximum Total Death</b></div>",file=htmlFile,append=T)
+cat("<div align=\"center\"><table><tr><td>n</td><td>",nrow(dataset),"</td></tr>",file=htmlFile,append=T)
+buf<-subset(dataset,is.na(dataset[,18])==F)
+tmp<-which(max(buf[,18])==buf[,18])
+cat("<tr><td>",colnames(dataset)[18],"</td><td>",buf[tmp,49],"</td></tr>",file=htmlFile,append=T)
+buf<-subset(dataset,is.na(dataset[,35])==F)
+tmp<-which(max(buf[,35])==buf[,35])
+cat("<tr><td>",colnames(dataset)[35],"</td><td>",buf[tmp,49],"</td></tr></table></div></body></html>",file=htmlFile,append=T)
+```
