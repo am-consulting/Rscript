@@ -10,7 +10,7 @@ typeData<-0 #0 非時系列 1 時系列
 nonNumeric<-c(1,2)
 needsparkline<-0
 needRegular<-0
-youtubechannel<-0
+youtubechannel<-1
 ```
 
 ```{r}
@@ -40,82 +40,14 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"電力調査統計 発電設備利用率(一般電気事業者,%)"
-mainTitle<-"日本の人口推計 平成27年8月概算値(万人,%)"
-mainTitle<-"出入国管理統計(人)"
-mainTitle<-"住民基本台帳人口移動報告 2015年7月(外国人を含む移動者、人)"
-mainTitle<-"『日本経済の変貌と量的･質的金融緩和』の抽出語出現回数表"
-mainTitle<-"被保護者調査-生活保護の被保護世帯数及び実人員(2015年6月分概数)"
-mainTitle<-"被保護者調査-生活保護の種類別にみた扶助人員(2015年6月分概数)"
-mainTitle<-"日本銀行オペレーション<br>(国債買入,国庫短期証券買入･売却,社債等買入,CP等買入,指数連動型上場投資信託受益権買入,不動産投資法人投資口買入オペレーション)"
-mainTitle<-"日本の学校基本調査 卒業後の状況調査(平成27年3月卒業) 大学院の専攻別"
-mainTitle<-"日経平均株価"
-mainTitle<-"都道府県別建設工事受注高前年同月比"
-mainTitle<-"都道府県別法人税(法人所得金額)"
-mainTitle<-"都道府県別合計特殊出生率"
-mainTitle<-"2015年 訪日外客数(人)"
-mainTitle<-"都道府県別交通事故発生状況 2015年8月中(件数、%)"
-mainTitle<-"平成27年都道府県地価調査"
-mainTitle<-"新規学卒者の産業別職業紹介状況の推移 高卒者"
-mainTitle<-"戸籍統計"
-mainTitle<-"民間給与実態統計調査結果-1年勤続者の業種別平均給与(千円)"
-mainTitle<-"継続等区分別集落営農数"
-mainTitle<-"都道府県別預金・現金・貸出金（8月、%、兆円）"
-mainTitle<-"被保護者調査 都道府県統計表 2015年7月分"
-mainTitle<-"日本の対中国ODA実績と両国のGDPの推移 1979年から2013年(単位:ODA 億ドル,実質GDP 10億ドル)"
-mainTitle<-"体力･運動能力調査 平成26年度 年齢別体格測定の結果"
-mainTitle<-"日本の鉱工業生産指数 業種別 前月比 2015年8月分(%)"
-mainTitle<-"Crude Oil - Closing stocks(kbbl)"
-mainTitle<-"日本の建設総合統計 出来高(億円)"
-mainTitle<-"ミシガン大学消費者信頼感指数"
-mainTitle<-"国・地域別犯罪率 2013年(10万人当たり) "
-mainTitle<-"平成26年度被保護者調査 - 被保護人員数"
-mainTitle<-"日本の都道府県別有効求人倍率"
-mainTitle<-"平成27年度　9月末租税及び印紙収入、収入額調(百万円、%)"
-mainTitle<-"各国成人喫煙率(WHO:Tobacco Atlas(2002))"
-mainTitle<-"各国肺がん死亡率(Age-standardised rates per 100 000 population / 10万人あたりの年齢調整死亡率)"
-mainTitle<-"月例経済報告と政権・マネタリーベース・日経平均株価・完全失業率"
-mainTitle<-"平成26年(2014)人口動態統計(確定数)の概況"
-mainTitle<-"平成26年における自殺者総数(25,218人)に対する属性ごとの比率(%)"
-mainTitle<-"企業向けサービス価格指数(2016年1月分)"
-mainTitle<-"毎月勤労統計 毎勤原表 2015年12月"
-mainTitle<-"出入国管理統計-外国人入国者数-2015年12月"
-mainTitle<-"平成27年国勢調査 速報集計 人口速報集計"
-mainTitle<-"平成27年国勢調査 速報集計 人口速報集計（男女別人口）"
-mainTitle<-"企業行動に関するアンケート調査 平成27年度 採算円レート(構成比%)"
-mainTitle<-"日本企業の内部留保(利益剰余金)-業種別-2015年第四四半期(財務省法人企業統計調査より)"
-mainTitle<-"自殺統計-平成27年確定値-自殺日ベース(出所:内閣府)"
-dataSource<-"\nデータ出所:Federal Reserve Bank of St. Louis"
-dataSource<-"\nデータ出所:株式会社東京商工リサーチ"
-dataSource<-"\nデータ出所:The U.S. Census Bureau"
-dataSource<-"\nデータ出所:内閣府"
-dataSource<-"\nデータ出所:資源エネルギー庁"
-dataSource<-"\nデータ出所:株式会社東京証券取引所"
-dataSource<-"\nデータ出所:日本政府観光局"
-dataSource<-"\nデータ出所:警察庁"
-dataSource<-"\nデータ出所:国土交通省"
-dataSource<-"\nデータ出所:国税庁"
+mainTitle<-"平成27年度食品ロス統計調査報告(外食調査)-主な調理品別の食べ残し量の割合(%、品)"
 dataSource<-"\nデータ出所:農林水産省"
-dataSource<-"\nデータ出所:外務省,IMF"
-dataSource<-"\nデータ出所:文部科学省"
-dataSource<-"\nデータ出所:経済産業省"
-dataSource<-"\nデータ出所:Joint Organisations Data Initiative"
-dataSource<-"\nデータ出所:国土交通省"
-dataSource<-"\nデータ出所:The Regents of the University of Michigan"
-dataSource<-"\nデータ出所:United Nations Office on Drugs and Crime(国連薬物・犯罪事務所)"
-dataSource<-"\nデータ出所:公益財団法人 健康・体力づくり事業財団"
-dataSource<-"\nデータ出所:OECD iLibrary"
-dataSource<-"\nデータ出所:内閣府、日本銀行、株式会社日本経済新聞社、総務省"
-dataSource<-"\nデータ出所:日本銀行"
-dataSource<-"\nデータ出所:厚生労働省"
-dataSource<-"\nデータ出所:法務省"
-dataSource<-"\nデータ出所:総務省"
-dataSource<-"\nデータ出所:財務省"
-dataSource<-"\nデータ出所:内閣府"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
+bufcolnames<-colnames(dataset)
 tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
 dataset<-cbind(dataset[,nonNumeric,drop=F],tmp)
+colnames(dataset)<-bufcolnames
 #comma削除
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,addRightRow])
