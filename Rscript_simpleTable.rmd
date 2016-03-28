@@ -10,7 +10,7 @@ typeData<-0 #0 非時系列 1 時系列
 nonNumeric<-c(1,2)
 needsparkline<-0
 needRegular<-0
-youtubechannel<-1
+youtubechannel<-0
 ```
 
 ```{r}
@@ -40,8 +40,8 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"平成27年度食品ロス統計調査報告(外食調査)-主な調理品別の食べ残し量の割合(%、品)"
-dataSource<-"\nデータ出所:農林水産省"
+mainTitle<-"住民基本台帳人口移動報告-2016年2月-年齢,男女別転入超過数-外国人含む：女"
+dataSource<-"\nデータ出所:総務省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 bufcolnames<-colnames(dataset)
