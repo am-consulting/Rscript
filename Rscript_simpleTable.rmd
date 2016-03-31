@@ -3,12 +3,13 @@ library(lubridate)
 library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
-needRightRow<-0
+needRightRow<-1
+needMidRow<-1
 addRightRow<-2
 needCalStat<-0 #日銀オペレーション用
 typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1)
-needsparkline<-1
+nonNumeric<-c(1,2)
+needsparkline<-0
 needRegular<-0
 youtubechannel<-1
 ```
@@ -40,8 +41,8 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"労働力調査 2016年2月 男女計"
-dataSource<-"\nデータ出所:総務省"
+mainTitle<-"食中毒事件・患者・死者数，病因物質・原因施設別(2015年)"
+dataSource<-"\nデータ出所:厚生労働省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 bufcolnames<-colnames(dataset)
@@ -52,7 +53,13 @@ colnames(dataset)<-bufcolnames
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,addRightRow])
   colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addRightRow]
-} 
+}
+if(needMidRow==1){
+  Mcolumn<-floor(ncol(dataset)/2)
+  dataset<-dataset[,c(1:Mcolumn,ncol(dataset),(Mcolumn+1):ncol(dataset))]
+  colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addRightRow]
+  colnames(dataset)[Mcolumn+1]<-colnames(dataset)[addRightRow]
+}
 dataset[is.na(dataset)==T]<--9999
 #dateType
 if(typeData==1){
