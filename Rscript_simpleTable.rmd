@@ -4,7 +4,7 @@ library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
 needRightRow<-1
-needMidRow<-1
+needMidRow<-0
 addRightRow<-2
 needCalStat<-0 #日銀オペレーション用
 typeData<-0 #0 非時系列 1 時系列
@@ -41,8 +41,8 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"食中毒事件・患者・死者数，病因物質・原因施設別(2015年)"
-dataSource<-"\nデータ出所:厚生労働省"
+mainTitle<-"平成27年度　28年2月末租税及び印紙収入、収入額調"
+dataSource<-"\nデータ出所:財務省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 bufcolnames<-colnames(dataset)
