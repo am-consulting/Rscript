@@ -41,8 +41,8 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"平成27年度　28年2月末租税及び印紙収入、収入額調"
-dataSource<-"\nデータ出所:財務省"
+mainTitle<-"平成27年賃金構造基本統計調査 - 一般労働者 - 企業規模計(10人以上)"
+dataSource<-"\nデータ出所:厚生労働省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 bufcolnames<-colnames(dataset)
@@ -72,7 +72,8 @@ print(tail(dataset),3)
 ```
 
 ```{r}
-if(needRightRow==1){nonNumeric<-c(nonNumeric,addRightRow)}
+#if(needRightRow==1){nonNumeric<-c(nonNumeric,addRightRow)} 修正
+if(needRightRow==1){nonNumeric<-c(nonNumeric,ncol(dataset))}
 tablefontsize<-90 #%
 cnt<-1
 sumColumn<-2
