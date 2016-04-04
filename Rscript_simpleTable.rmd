@@ -3,15 +3,16 @@ library(lubridate)
 library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
-needRightRow<-1
+needRightRow<-0
 needMidRow<-0
 addRightRow<-2
 needCalStat<-0 #日銀オペレーション用
 typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1,2)
+nonNumeric<-c(1,2,3)
 needsparkline<-0
-needRegular<-0
-youtubechannel<-1
+needRegular<-1
+youtubechannel<-0
+needCommaDelete<-0
 ```
 
 ```{r}
@@ -41,15 +42,20 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"平成27年賃金構造基本統計調査 - 一般労働者 - 企業規模計(10人以上)"
-dataSource<-"\nデータ出所:厚生労働省"
+mainTitle<-"統計データ-統計データ"
+dataSource<-"\nデータ出所:e-Stat"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
+if(needCommaDelete==1){
 bufcolnames<-colnames(dataset)
 tmp<-apply(dataset[,-nonNumeric,drop=F],2,decomma)
 dataset<-cbind(dataset[,nonNumeric,drop=F],tmp)
 colnames(dataset)<-bufcolnames
+}
 #comma削除
+dataset[,1]<-formatC(dataset[,1], width=8, flag="0")#e-Stat一覧専用
+#dataset[,1]<-formatC(dataset[,1], width=10, flag="0")#e-Stat一覧専用
+#dataset[,2]<-formatC(dataset[,2], width=2, flag="0")#e-Stat一覧専用
 if(needRightRow==1){
   dataset<-cbind(dataset,dataset[,addRightRow])
   colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addRightRow]
@@ -77,7 +83,7 @@ if(needRightRow==1){nonNumeric<-c(nonNumeric,ncol(dataset))}
 tablefontsize<-90 #%
 cnt<-1
 sumColumn<-2
-menulength<-"[[20,-1], [20,\"All\"]]"
+menulength<-"[[10,-1], [10,\"All\"]]"
 orderColumn<-0
 orderDirection<-"asc" #asc(小から大) desc
 columnWidth<-"{\"width\":\"5%\",\"targets\":0}"
