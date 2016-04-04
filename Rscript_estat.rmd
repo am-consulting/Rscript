@@ -1,0 +1,45 @@
+```{r}
+library(RCurl)
+library(XML)
+library(estatapi)
+sourceURL<-"www.e-stat.go.jp/api/api-data/"
+buf<-getURL(sourceURL)
+tmp<-readHTMLTable(doc=buf,header=T,trim=T,stringsAsFactors=F,as.data.frame=T,which=1)
+colnames(tmp)<-iconv(colnames(tmp),from="utf-8")
+codeTable<-tmp
+#get AppID
+username<-Sys.info()['user']
+pathInput<-paste("C:/Users/",username,"/Desktop/e-StatAPPID/",sep="")
+folderPath<-file.path(pathInput)
+setwd(folderPath)
+tmp<-read.csv(file=dir(folderPath),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+AppID<-tmp[1,2]
+#get AppID
+dataID<-list()
+noData<-NULL
+for(rrr in 1:nrow(codeTable)){
+dataID[[rrr]]<-try(data.frame(estat_getStatsList(appId=AppID,searchWord="",statsCode=codeTable[rrr,1])))
+if(inherits(dataID[[rrr]],"try-error")){noData<-c(noData,rrr)}
+}
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+folder.path<-file.path(pathOutput)
+setwd(folder.path)
+for(rrr in 1:nrow(codeTable)){
+if(length(which(rrr==noData))==0){
+csvFile<-paste(codeTable[rrr,2],".csv",sep="")  
+tmpDF<-dataID[[rrr]][,c("X.id","X.code","X.","STATISTICS_NAME","CYCLE")]
+if(rrr==1){allDataList<-tmpDF}else{allDataList<-rbind(allDataList,tmpDF)}
+#write.csv(tmpDF,csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+}
+}
+write.csv(allDataList,"eStatAllDataList.csv",row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+write.csv(codeTable,"eStatCodeTable.csv",row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+#example
+nrow(allDataList)
+allDataList[1,]
+estat_getMetaInfo(appId=AppID,statsDataId=allDataList[1,1])
+allDataList[10000,]
+estat_getMetaInfo(appId=AppID,statsDataId=allDataList[10000,1])
+allDataList[20000,]
+estat_getMetaInfo(appId=AppID,statsDataId=allDataList[20000,1])
+```
