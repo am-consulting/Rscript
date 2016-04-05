@@ -1,0 +1,134 @@
+```{r}
+library(xtable)
+library(lubridate)
+SD<-Sys.Date()
+#get csv list
+username<-Sys.info()['user']
+pathInput<-paste("C:/Users/",username,"/Desktop/NIKKEIcsv/",sep="")
+folderPath<-file.path(pathInput)
+setwd(folderPath)
+tmp<-read.csv(file=dir(folderPath),header=F,as.is=T,skip=0,na.strings=c("", "NA"))
+#make datasets
+dataset<-list()
+for(ddd in 1:nrow(tmp)){
+  url<-paste("http://indexes.nikkei.co.jp/nkave/historical/",tmp[ddd,1],".csv",sep="")
+  buf<-read.csv(url,header=T,skip=0,stringsAsFactor=F,na.strings=c(""),check.names=FALSE)
+  tmpName<-colnames(buf)
+  buf<-buf[-nrow(buf),]
+  dataset[[ddd]]<-data.frame(as.Date(buf[,1]),buf[,-1])
+  if(length(grep("daily",tmp[ddd,]))==0){
+    dataset[[ddd]][,1]<-format(dataset[[ddd]][,1],"%Y-%m")  
+  }else{
+    dataset[[ddd]][,1]<-format(dataset[[ddd]][,1],"%Y-%m-%d")  
+  } 
+  colnames(dataset[[ddd]])<-tmpName
+}
+#datatables
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+htmlFile<-"NIKKEIData.html"
+cat("",file=htmlFile,append=F)
+nonNumeric<-c(1)
+tablefontsize<-90 #%
+menulength<-"[[20,-1], [20,\"All\"]]"
+orderColumn<-0
+orderDirection<-"desc" #asc(小から大) desc
+columnWidth<-"{\"width\":\"5%\",\"targets\":0}"
+sparklineWidth<-180
+sparklineHeight<-50
+sparklineType<-"bar"
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>\n",
+  file=htmlFile,append=T)
+cat("<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">\n",
+  file=htmlFile,append=T)  
+cat("<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>\n",
+  file=htmlFile,append=T) 
+cat("<script src=\"http://archive.am-consulting.co.jp/jquery.sparkline.2.1.2.js\"></script>\n",
+  file=htmlFile,append=T)
+cat("<style>\n",file=htmlFile,append=T)
+cat(paste(
+"table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right: auto;font-size:",tablefontsize,"%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}\n</style>\n"),file=htmlFile,append=T)
+cat("<b>指数一覧(データ出所：株式会社日本経済新聞社)</b><br>",file=htmlFile,append=T)
+cat(" - http://indexes.nikkei.co.jp/nkave/index<br>",file=htmlFile,append=T)
+cat("- -9999は「データなし」または「データ欠損」または「NA」を意味します<br>",file=htmlFile,append=T)
+for(ddd in 1:nrow(tmp)){
+col<-list()
+grandData<-NULL
+header<-NULL
+cat("<hr>",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>",tmp[ddd,1],"</b></div>",file=htmlFile,append=T)  
+htmldataset<-tail(dataset[[ddd]])
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("am-consulting",addVer,sep="")
+cat(paste(
+"<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready( function(){
+$('#",tableID,"').dataTable({
+\"paging\":false,
+\"lengthMenu\":",menulength,",
+\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],
+\"searching\":false,
+\"columnDefs\":[",columnWidth,"],
+\"language\": {\"decimal\": \".\",\"thousands\": \",\"},
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+for(ccc in 1:ncol(htmldataset)){
+cat(paste(
+"if(data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {
+$('td',row).eq(",ccc-1,").addClass('highlight');
+}",sep=""),file=htmlFile,append=T)
+}
+cat("}\n});\n});</script>\n\n",file=htmlFile,append=T)
+for(ccc in 1:ncol(htmldataset)){
+  tmpCheck<-(nonNumeric==ccc)  
+  tmpCheck<-length(tmpCheck[tmpCheck==TRUE])  
+  if(tmpCheck==0){  
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",format(htmldataset[,ccc],big.mark=",",scientific=F),"</td>",sep="")
+  }else{
+  col[[ccc]]<-paste("<td align=\"right\" valign=\"middle\">",htmldataset[,ccc],"</td>",sep="")
+  }  
+  grandData<-cbind(grandData,col[[ccc]])
+  header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
+}
+#sparkline
+sparkLineHeader<-""
+cat("<script type=\"text/javascript\">$(function(){\n",file=htmlFile,append=T)
+for(ccc in 1:(ncol(htmldataset))){
+  tmpCheck<-(nonNumeric==ccc)  
+  tmpCheck<-length(tmpCheck[tmpCheck==TRUE])  
+  if(tmpCheck==0){
+    tmpSpark<-paste(htmldataset[,ccc][-9999!=htmldataset[,ccc]],collapse=",")
+    cat(paste("$(\"#amccsparkline",tableID,ccc,"\").sparkline([",tmpSpark,"], {\n",sep=""),file=htmlFile,append=T)
+    cat(paste("type: '",sparklineType,"',\n",sep=""),file=htmlFile,append=T)
+    cat(paste("width: '",sparklineWidth,"',\n",sep=""),file=htmlFile,append=T)
+    cat(paste("height: '",sparklineHeight,"'\n",sep=""),file=htmlFile,append=T)
+    cat("});\n",file=htmlFile,append=T)
+  }
+}  
+cat("});</script>\n\n",file=htmlFile,append=T)
+for(ccc in 1:(ncol(htmldataset))){
+tmpCheck<-(nonNumeric==ccc)  
+tmpCheck<-length(tmpCheck[tmpCheck==TRUE])  
+if(tmpCheck==0){    
+sparkLineHeader<-paste(sparkLineHeader,"<th><div id=\"amccsparkline",tableID,ccc,"\"></div></th>",sep="")
+}else{  
+sparkLineHeader<-paste(sparkLineHeader,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")
+}  
+}
+sparkLineHeader<-paste("<tr>",sparkLineHeader,"</tr>",sep="")
+#sparkline
+tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>\n",sep="")
+tableHtml<-paste(tableHtml,sparkLineHeader,"\n",header,"\n</thead><tfoot>",sep="")
+tableHtml<-paste(tableHtml,header,"</tfoot>",sep="")
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(tableHtml,file=htmlFile,append=T)
+grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
+write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
+cat("</table>",file=htmlFile,append=T)
+cat("</div>\n",file=htmlFile,append=T)
+}
+cat("Powered by<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )",file=htmlFile,append=T)  
+cat("<br>-jQuery Sparklines( http://omnipotent.net/jquery.sparkline/#s-about )",file=htmlFile,append=T)  
+```
