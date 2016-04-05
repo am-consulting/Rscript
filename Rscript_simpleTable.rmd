@@ -3,15 +3,15 @@ library(lubridate)
 library(eeptools)
 username<-Sys.info()['user']
 SD<-Sys.Date()
-needRightRow<-0
+needRightRow<-1
 needMidRow<-0
 addRightRow<-2
 needCalStat<-0 #日銀オペレーション用
 typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1,2,3)
+nonNumeric<-c(1,2)
 needsparkline<-0
-needRegular<-1
-youtubechannel<-0
+needRegular<-0
+youtubechannel<-1
 needCommaDelete<-0
 ```
 
@@ -42,8 +42,8 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"統計データ-統計データ"
-dataSource<-"\nデータ出所:e-Stat"
+mainTitle<-"物価全般の見通し/１年後/企業の物価見通しの平均/全規模"
+dataSource<-"\nデータ出所:日本銀行"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
 #comma削除
 if(needCommaDelete==1){
@@ -53,7 +53,7 @@ dataset<-cbind(dataset[,nonNumeric,drop=F],tmp)
 colnames(dataset)<-bufcolnames
 }
 #comma削除
-dataset[,1]<-formatC(dataset[,1], width=8, flag="0")#e-Stat一覧専用
+#dataset[,1]<-formatC(dataset[,1], width=8, flag="0")#e-Stat一覧専用
 #dataset[,1]<-formatC(dataset[,1], width=10, flag="0")#e-Stat一覧専用
 #dataset[,2]<-formatC(dataset[,2], width=2, flag="0")#e-Stat一覧専用
 if(needRightRow==1){
@@ -83,7 +83,7 @@ if(needRightRow==1){nonNumeric<-c(nonNumeric,ncol(dataset))}
 tablefontsize<-90 #%
 cnt<-1
 sumColumn<-2
-menulength<-"[[10,-1], [10,\"All\"]]"
+menulength<-"[[20,-1], [20,\"All\"]]"
 orderColumn<-0
 orderDirection<-"asc" #asc(小から大) desc
 columnWidth<-"{\"width\":\"5%\",\"targets\":0}"
