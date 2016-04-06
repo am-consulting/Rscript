@@ -11,7 +11,7 @@ tmp<-read.csv(file=dir(folderPath),header=F,as.is=T,skip=0,na.strings=c("", "NA"
 #make datasets
 dataset<-list()
 for(ddd in 1:nrow(tmp)){
-  url<-paste("http://indexes.nikkei.co.jp/nkave/historical/",tmp[ddd,1],".csv",sep="")
+  url<-paste("http://indexes.nikkei.co.jp/nkave/historical/",tmp[ddd,2],".csv",sep="")
   buf<-read.csv(url,header=T,skip=0,stringsAsFactor=F,na.strings=c(""),check.names=FALSE)
   tmpName<-colnames(buf)
   buf<-buf[-nrow(buf),]
@@ -58,7 +58,7 @@ col<-list()
 grandData<-NULL
 header<-NULL
 cat("<hr>",file=htmlFile,append=T)
-cat("<div align=\"center\"><b>",tmp[ddd,1],"</b></div>",file=htmlFile,append=T)  
+cat("<div align=\"center\"><b>",tmp[ddd,1],"-",tmp[ddd,2],"</b></div>",file=htmlFile,append=T)  
 htmldataset<-tail(dataset[[ddd]])
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
@@ -93,6 +93,7 @@ for(ccc in 1:ncol(htmldataset)){
   header<-paste(header,"<th>",colnames(htmldataset)[ccc],"</th>",sep="")  
 }
 #sparkline
+htmldataset<-tail(dataset[[ddd]],30)
 sparkLineHeader<-""
 cat("<script type=\"text/javascript\">$(function(){\n",file=htmlFile,append=T)
 for(ccc in 1:(ncol(htmldataset))){
