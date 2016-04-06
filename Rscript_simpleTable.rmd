@@ -5,14 +5,14 @@ username<-Sys.info()['user']
 SD<-Sys.Date()
 needRightRow<-1
 needMidRow<-0
-addRightRow<-2
+addRightRow<-1
 needCalStat<-0 #日銀オペレーション用
 typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1,2)
+nonNumeric<-c(1)
 needsparkline<-0
 needRegular<-0
-youtubechannel<-1
-needCommaDelete<-0
+youtubechannel<-0
+needCommaDelete<-1
 ```
 
 ```{r}
@@ -42,9 +42,13 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"物価全般の見通し/１年後/企業の物価見通しの平均/全規模"
-dataSource<-"\nデータ出所:日本銀行"
+mainTitle<-"景気動向指数 平成28年2月分 速報 寄与度 先行系列"
+dataSource<-"\nデータ出所:内閣府"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
+#remove \n
+dataset[,1]<-gsub("\n","",dataset[,1])
+colnames(dataset)<-gsub("\n","",colnames(dataset))
+#remove \n
 #comma削除
 if(needCommaDelete==1){
 bufcolnames<-colnames(dataset)
