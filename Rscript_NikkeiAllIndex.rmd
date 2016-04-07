@@ -23,6 +23,10 @@ for(ddd in 1:nrow(tmp)){
   } 
   colnames(dataset[[ddd]])<-tmpName
 }
+```
+
+```{r}
+#本チャンク内でdataset内の数値変更、加工はしていない
 #datatables
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
