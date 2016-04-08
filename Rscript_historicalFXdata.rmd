@@ -4,6 +4,7 @@ username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 SD<-Sys.Date()
+needSpeechPart<-0
 ```
 
 ```{r}
@@ -94,7 +95,8 @@ cat("table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin
 cat("tr, td, th{white-space: nowrap;}\n",file=htmlFile,append=T)
 cat(".dataTables_filter input {width: 50%;}\n",file=htmlFile,append=T)
 cat("</style></head><body>\n",file=htmlFile,append=T)
-#speech part  
+#speech part
+if(needSpeechPart==1){
 cat("<form name=\"speechDIV\"><b>Speech Recognition APIを利用した簡易分析結果の読み上げ</b><br>\n",file=htmlFile,append=T)
 cat(" - 聴取可能ウェブブラウザは http://caniuse.com/#feat=speech-recognition で確認ください。<br>\n",file=htmlFile,append=T)
 cat(" - chrome44での動作は確認済みです。\n",file=htmlFile,append=T)
@@ -110,6 +112,7 @@ for(qqq in seq(0.5,2,by=0.1)){
 }
 cat("</select>\n",file=htmlFile,append=T) 
 cat("</div></form><hr>\n",file=htmlFile,append=T)  
+}
 #speech part
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T) 
@@ -164,6 +167,7 @@ for(ccc in 1:ncol(dataset)){
 cat(paste(year(tail(buf[,1],1)),"年",month(tail(buf[,1],1)),"月",day(tail(buf[,1],1)),"日"," 外国為替公示相場(仲値、データ出所:株式会社みずほ銀行)<br>\n",sep=""),file=htmlFile,append=T)
 cat(paste("中央値、標本標準偏差、最大値、最小値、変動係数の対象は",nDate,"営業日分(",head(buf[,1],1),"から",tail(buf[,1],1),")<br>\n"),file=htmlFile,append=T)
 cat(paste("変動係数(%)=標本標準偏差/平均値×100<br>\n"),file=htmlFile,append=T)
+cat(paste("前営業日比単位：パーセント<br>\n"),file=htmlFile,append=T)
 tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display\"><thead>",sep="")
 tableHtml<-paste(tableHtml,header,"</thead>",sep="")
 cat(tableHtml,file=htmlFile,append=T)
@@ -177,6 +181,9 @@ cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)
 #cat("[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q resource=0 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
 #youtubegallery
 cat("<hr><div style=\"text-align:center\">アセット･マネジメント･コンサルティング株式会社 <a href=\"http://am-consulting.co.jp\" target=\"_blank\">http://am-consulting.co.jp</a></div>",file=htmlFile,append=T)
+if(needSpeechPart!=1){
+cat("</body></html>\n",file=htmlFile,append=T)
+}  
 ```
 
 ```{r}
