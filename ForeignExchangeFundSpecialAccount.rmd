@@ -1,0 +1,55 @@
+```{r}
+library(rvest)
+library(httr)
+library(stringr)
+library(xtable)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+htmlFile<-"ForeignExchangeFundSpecialAccount.html"
+cat("",file=htmlFile,append=F)
+cat("<b>外国為替資金特別会計-決算に関する情報</b><br>データ出所:財務省<br>",file=htmlFile,append=T)
+cat("http://www.mof.go.jp/about_mof/mof_budget/special_account/gaitame/index.html<hr>",file=htmlFile,append=T)
+dataset<-list()
+for(year in 2007:2014){
+  sourceURL<-paste("http://www.mof.go.jp/about_mof/mof_budget/special_account/gaitame/",year,"account.htm",sep="")
+  tmp<-read_html(sourceURL)
+  #tmp<-getURL(sourceURL,ssl.verifypeer=FALSE)
+  sourceHtml<-iconv(tmp,"shift_jis")
+  singleBlock<-str_extract_all(sourceHtml,"<div class=\"singleBlock\">([\\s\\S]*?)<!-- /singleBlock -->") 
+  buf<-str_extract_all(singleBlock,"<th[^<>]*?>[^<>]*?</th>[^<>]*?<td[^<>]*?>[^<>]*?</td>[^<>]*?") 
+  item <-gsub("<th[^<>]*?>|</th>"  ,"",t(str_extract_all(buf,"<th[^<>]*?>.*?</th>",simplify=T))) 
+  value<-gsub("<td[^<>]*?>|</td>|,","",t(str_extract_all(buf,"<td[^<>]*?>.*?</td>",simplify=T)))
+  unit<-unlist(str_extract_all(singleBlock,"（単位：.*?）"))
+  unit<-gsub("（","(",unit)
+  unit<-gsub("）",")",unit)
+  dataset[[year]]<-data.frame(item,value,year,stringsAsFactors=F,check.names=F)
+  dataset[[year]][,2]<-as.numeric(dataset[[year]][,2])
+  dataset[[year]][,1]<-gsub(" ","",paste(dataset[[year]][,1],unit,sep=""))
+  dataset[[year]]<-na.omit(dataset[[year]])
+  cat(year)
+  print(dataset[[year]])
+  if(year==2007){allData<-dataset[[year]]}else{allData<-rbind(allData,dataset[[year]])}
+}
+allData
+itemList<-unique(allData[,1])
+timeSeriesData<-list()
+for(ttt in 1:length(itemList)){
+  timeSeriesData[[ttt]]<-subset(allData,allData[,1]==itemList[ttt])
+  timeSeriesData[[ttt]]<-timeSeriesData[[ttt]][,c(3,2)]
+  colnames(timeSeriesData[[ttt]])<-c("年度",itemList[ttt])
+  if(nrow(timeSeriesData[[ttt]])!=1){
+    YoY<-c("-",round((timeSeriesData[[ttt]][-1,2]/timeSeriesData[[ttt]][-nrow(timeSeriesData[[ttt]]),2]-1)*100,2))
+    timeSeriesData[[ttt]]<-cbind(timeSeriesData[[ttt]],YoY)
+    colnames(timeSeriesData[[ttt]])[3]<-"前年比(%)"
+  }
+  timeSeriesData[[ttt]][,2]<-format(timeSeriesData[[ttt]][,2],big.mark="," )
+  print(timeSeriesData[[ttt]])
+  print(xtable(timeSeriesData[[ttt]]),file=htmlFile,append=T,type="html",include.rownames=F)
+  cat("<hr>",file=htmlFile,append=T)
+}
+cat("<style>
+th{ text-align: center; vertical-align: middle;  background-color:#8FBC8F} 
+td{ text-align: right;   vertical-align: middle; }
+</style>",file=htmlFile,append=T)
+```
