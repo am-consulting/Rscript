@@ -5,14 +5,14 @@ username<-Sys.info()['user']
 SD<-Sys.Date()
 needRightRow<-1
 needMidRow<-0
-addRightRow<-1
+addRightRow<-2
 needCalStat<-0 #日銀オペレーション用
 #typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1)
-needsparkline<-1
+nonNumeric<-c(1,2)
+needsparkline<-0
 needRegular<-0
 youtubechannel<-1
-needCommaDelete<-1
+needCommaDelete<-0
 ```
 
 ```{r}
@@ -42,9 +42,18 @@ youtubechannel<-0
 ```
 
 ```{r}
-mainTitle<-"外貨準備等の状況 2016年3月分"
-dataSource<-"\nデータ出所:財務省"
 dataset<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=FALSE)
+data.frame(colnames(dataset))
+```
+
+```{r}
+columnOrder<-c(seq(1,ncol(dataset)))
+dataset<-dataset[,columnOrder]
+```
+
+```{r}
+mainTitle<-"農林水産物輸出入統計 2016年2月 輸入"
+dataSource<-"\nデータ出所:農林水産省"
 #remove \n
 dataset[,1]<-gsub("\n","",dataset[,1])
 colnames(dataset)<-gsub("\n","",colnames(dataset))
@@ -61,7 +70,7 @@ colnames(dataset)<-bufcolnames
 #dataset[,1]<-formatC(dataset[,1], width=10, flag="0")#e-Stat一覧専用
 #dataset[,2]<-formatC(dataset[,2], width=2, flag="0")#e-Stat一覧専用
 #dateType
-typeData<-grep("date|日付",colnames(dataset)[1],ignore.case=T)
+typeData<-length(grep("date|日付",colnames(dataset)[1],ignore.case=T))
 if(typeData!=1){typeData<-0}
 if(typeData==1){
 if(length(unique(day(dataset[,1])))==1 & length(unique(month(dataset[,1])))==1){dataset[,1]<-format(as.Date(dataset[,1]),"%Y")}else
@@ -91,7 +100,9 @@ cnt<-1
 sumColumn<-2
 menulength<-"[[20,-1], [20,\"All\"]]"
 orderColumn<-0
+if(typeData==1){
 if(head(dataset[,1],1)<tail(dataset[,1],1)){orderDirection<-"desc"}else{orderDirection<-"asc"}
+}else{orderDirection<-"asc"}
 columnWidth<-"{\"width\":\"5%\",\"targets\":0}"
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
