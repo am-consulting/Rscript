@@ -14,12 +14,14 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 ```
 
 ```{r}
+borderM<-0.1
+startPeriod<-"2016年4月14日以降"#西暦1900年以降
 data.file<-"query.csv"
 pathEarthquake<-paste("C:/Users/",username,"/Desktop/Earthquake_Data/",sep="")
 buf<-read.table(file=paste(pathEarthquake,data.file,sep=""),sep=",",header=T,as.is=T,skip=0)
 SD<-Sys.Date()
 ST<-Sys.time() 
-buf<-subset(buf,6<=buf$mag)
+buf<-subset(buf,borderM<=buf$mag)
 JST<-as.POSIXct(sub("Z","",sub("T"," ",buf$time)))+3600*9 #UTC+9
 No<-seq(1,nrow(buf),by=1)
 GoogleMap<-paste("<a href=\"http://maps.google.co.jp/maps?ll=",buf$latitude,",",buf$longitude,"&z=4&q=loc:",buf$latitude,"+",buf$longitude,"\" target=\"_blank\">Google Map</a>",sep="")
@@ -51,7 +53,6 @@ dataset<-tail(tmp,tailLength)
 
 ```{r}
 #only html
-borderM<-6
 tmpDataset<-dataset
 dataset<-subset(dataset,borderM<=dataset$M)
 setwd(pathOutput)
@@ -76,7 +77,7 @@ cat("<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>",f
 grandData<-NULL
 header<-NULL
 tableID<-paste("am-consulting",addVer,sep="")
-cat("<body><b>西暦1900年以降に発生したマグニチュード",borderM,"以上の地震リスト</b><br>\n",file=htmlFile,append=T) 
+cat("<body><b>",startPeriod,"に発生したマグニチュード",borderM,"以上の地震リスト</b><br>\n",file=htmlFile,append=T) 
 cat("- 表中\"M\"はマグニチュード<br>\n",file=htmlFile,append=T) 
 cat("- マグニチュードタイプ(Mタイプ)はデータ毎に異なります<br>\n",file=htmlFile,append=T) 
 cat("- ソースデータ:http://earthquake.usgs.gov/<br>\n",file=htmlFile,append=T) 
