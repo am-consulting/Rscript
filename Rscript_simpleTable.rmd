@@ -13,7 +13,7 @@ needsparkline<-0
 needRegular<-1
 youtubechannel<-0
 needCommaDelete<-0
-Listofelements<-1
+Listofelements<-0
 ```
 
 ```{r}
@@ -63,8 +63,8 @@ dataset<-dataset[,columnOrder]
 ```
 
 ```{r}
-mainTitle<-"生活意識に関するアンケート調査 - 物価に対する実感、先行きの地価動向、日本経済の成長力、雇用環境"
-dataSource<-"\nデータ出所:日本銀行"
+mainTitle<-"最近一週間の各地の震度に関する情報<br>ヒストグラムは全データに占める割合(%)"
+dataSource<-"\nデータ出所:気象庁"
 if(Listofelements==1){
 mainTitle<-"元素の一覧表-原子番号、元素記号、元素名、周期、族、原子量"
 dataSource<-"\nデータ出所:<br>元素の一覧(WIKIPEDIA) - <a href=\"https://ja.wikipedia.org/wiki/%E5%85%83%E7%B4%A0%E3%81%AE%E4%B8%80%E8%A6%A7\" target=\"_blank\">https://ja.wikipedia.org/wiki/%E5%85%83%E7%B4%A0%E3%81%AE%E4%B8%80%E8%A6%A7</a><br>
