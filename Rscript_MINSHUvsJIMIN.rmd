@@ -40,7 +40,7 @@ maxPoint<-max(dataset[,2:3])
 g<-ggplot()
 g<-g+geom_point(data=dataset,aes(x=dataset[,2],y=dataset[,3]),color=dataset$color,size=4)
 g<-g+ggtitle(
-  paste("民主党政権発足から現在(安倍政権)までの建設総合統計 Source:国土交通省\n赤:民主党 , 青:自民党",sep=""))
+  paste("民主党政権発足から現在(安倍政権)までの鉱工業生産 Source:経済産業省\n赤:民主党 , 青:自民党",sep=""))
 g<-g+xlab(colnames(dataset)[2])+ylab(colnames(dataset)[3])
 g<-g+theme(plot.title=element_text(size=16,family="Meiryo"))
 g<-g+theme(axis.title.x=element_text(size=15,family="Meiryo")) 
