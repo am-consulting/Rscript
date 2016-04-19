@@ -2,6 +2,7 @@
 library(XML)
 library(Nippon)
 library(lubridate)
+library(xtable)
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
@@ -46,20 +47,68 @@ colnames(dataset)<-c("No.","情報発表日時","検知日時","検知から発�
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste("amcc_",addVer,".png",sep="")
-png(file=png.file,width=950,height=800)
+png(file=png.file,width=1920,height=800)
 par(mfrow=c(1,2),family="Meiryo",ps=18)
-maintext<-"地震発生時刻(24時間表記)"
+maintext<-"地震検知時刻(24時間表記)"
 xtext<-"検知時刻･1時間刻み･0時から24時"
-h<-hist(dataset[,6],breaks=seq(0,24,by=1),plot=F)
-h$density<-round(h$counts/sum(h$counts)*100,1)
-plot(h,freq=F,xlab=xtext,ylab="%",main=maintext,family="Meiryo",col="#6495ED")
-h$density
-maintext<-"地震発生間隔(60分刻み)"
-xtext<-"地震発生間隔･60分刻み"
-h<-hist(as.numeric(gap),breaks=seq(0,ceiling(max(as.numeric(gap))/60))*60,plot=F)
-h$density<-round(h$counts/sum(h$counts)*100,1)
-plot(h,freq=F,xlab=xtext,ylab="%",main=maintext,col="#6495ED")
-h$density
+h01<-hist(dataset[,6],breaks=seq(0,24,by=1),plot=F)
+h01$density<-round(h01$counts/sum(h01$counts)*100,1)
+plot(h01,freq=F,xlab=xtext,ylab="%",main=maintext,family="Meiryo",col="#6495ED")
+h01$density
+table01<-data.frame(paste(h01$breaks[-length(h01$breaks)],"時-",h01$breaks[-1],"時",sep=""),h01$density,h01$counts)
+colnames(table01)<-c("地震検知時刻(時)","検知時刻毎比率(%)","検知時刻毎件数")
+maintext<-"地震検知間隔(60分刻み)"
+xtext<-"地震検知間隔･60分刻み"
+h02<-hist(as.numeric(gap),breaks=seq(0,ceiling(max(as.numeric(gap))/60))*60,plot=F)
+h02$density<-round(h02$counts/sum(h02$counts)*100,1)
+plot(h02,freq=F,xlab=xtext,ylab="%",main=maintext,col="#6495ED")
+table02<-data.frame(paste(h02$breaks[-1],"分以内",sep=""),h02$density,h02$counts)
+colnames(table02)<-c("地震検知間隔(直前の検知からの間隔)","検知間隔毎比率(%)","検知間隔毎件数")
 dev.off()
+diffROW<-nrow(table01)-nrow(table02)
+if(diffROW>0){
+  addROW<-matrix(c(rep.int(NA,length(table02))),nrow=diffROW,ncol=length(table02)) 
+  addROW<-data.frame(addROW)
+  colnames(addROW)<-colnames(table02)
+  table02<-rbind(table02,addROW)
+  table02[,1]<-as.character(table02[,1])
+}else if(diffROW<0){
+  addROW<-matrix(c(rep.int(NA,length(table01))),nrow=abs(diffROW),ncol=length(table01)) 
+  addROW<-data.frame(addROW)
+  colnames(addROW)<-colnames(table01)
+  table01<-rbind(table01,addROW)
+  table01[,1]<-as.character(table01[,1])
+}
+histtable<-cbind(table01,table02)
+histtable[is.na(histtable)]<-"-"
 write.csv(dataset,"earthquake1week.csv",quote=F,row.names=F)
+#html markup part
+htmlFile<-"amcc-earthquake1week.html"
+cat("",file=htmlFile,append=F)
+cat(paste("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta http-equiv=\"Pragma\" content=\"no-cache\">
+<meta http-equiv=\"cache-control\" content=\"no-cache\">
+<meta http-equiv=\"expires\" content=\"0\">
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+.dataTables_filter input {width: 50%;}
+table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
+table.amcc tr:nth-child(even){background-color: #FFFFFF;}
+</style>
+<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
+<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
+</head><body><div align=\"right\"><b>データ確認日時:", ST ,"</b></div>
+<!---->
+
+
+
+<!---->
+<br>-PACE( http://github.hubspot.com/pace/docs/welcome/)
+<hr><div align=\"center\"><b>全",nrow(dataset),"件の発生地震に占める割合</b>",sep=""),file=htmlFile,append=T)
+print(xtable(histtable),file=htmlFile,append=T,type="html",include.rownames=F,html.table.attributes="class='amcc'")
+cat(paste("</div><div style=\"text-align:center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\"></div>
+<hr>
+<div align=\"center\"><a href=\"http://am-consulting.co.jp\" target=\"_blank\">アセット・マネジメント・コンサルティング株式会社</a></div>
+</body></html>",sep=""),file=htmlFile,append=T)
+#html markup part
 ```
