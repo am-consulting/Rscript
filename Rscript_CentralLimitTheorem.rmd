@@ -1,0 +1,52 @@
+```{r}
+library(lubridate)
+library(xtable)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+SD<-Sys.Date()
+samplesize<-c(10,30,100)
+repeatcount<-c(10,30,100,1000)
+dataset<-data.frame()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=950,height=950)
+par(mfrow=c(length(samplesize)*2,length(repeatcount)),family="Meiryo",ps=17,oma = c(3, 3, 3, 2))
+for(sss in 1:length(samplesize)){
+  for(rrr in 1:length(repeatcount)){
+    means<-vector('numeric')
+    for(rr in 1:repeatcount[rrr]){
+      buf<-runif(samplesize[sss])
+      means<-c(means,mean(buf))#標本平均
+    }
+    title<-paste("標本サイズ=",samplesize[sss],"\n試行回数=",repeatcount[rrr])
+    hist(means,main=title)
+    qqnorm(means,main=title);qqline(means,col="red")
+    dataset[sss,rrr]<-shapiro.test(means)$p.value
+  }
+}
+dataset<-data.frame(as.integer(samplesize),dataset)
+colnames(dataset)<-c("サンプルサイズ",paste("試行回数:",repeatcount,sep=""))
+mtext("一様分布",side=3,outer=T)
+dev.off()
+htmlFile<-"distribution.html"
+cat("",file=htmlFile,append=F)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>
+<style>
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}
+tr, td, th{white-space: nowrap;}
+table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
+table.amcc tr:nth-child(even){background-color: #FFFFFF;}
+</style>",file=htmlFile,append=T)
+cat("<div style=\"text-align:center\"><img src=\"http://archive.am-consulting.co.jp/.png\" alt=\"\" title=\"\" width=\"100%\"></div><br>",file=htmlFile,append=T)
+cat("<b>標本平均の正規性検定結果-shapiro.test {stats}-p値</b>",file=htmlFile,append=T)
+print(xtable(dataset),file=htmlFile,append=T,type="html",include.rownames=F,html.table.attributes="class='amcc'")
+cat("<script>
+$(\"tr\").not(':first').hover(
+function () {$(this).css(\"background\",\"#8FBC8F\");}, 
+function () {$(this).css(\"background\",\"\");}
+);
+</script>",file=htmlFile,append=T)
+```
