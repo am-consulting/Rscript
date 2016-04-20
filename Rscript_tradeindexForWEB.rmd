@@ -33,7 +33,7 @@ pathToCSV<-paste("C:/Users/",username,tmp[1,2],sep="")
 setwd(pathToCSV)
 SD<-Sys.Date()
 #http://www.e-stat.go.jp/SG1/estat/OtherList.do?bid=000001008860&cycode=1
-year<-c(2009:2015)
+year<-c(2009:year(SD))
 month<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
 area<-c("WORLD","USA","EU","ASIA","ASIA NIES","ASEAN","CHINA")
 cnt<-0
@@ -260,7 +260,7 @@ cat("</script>",file=htmlFile,append=T)
 #calStat part  
 cat("<b>財務省貿易統計指数</b><br>",file=htmlFile,append=T)
 cat(dataSource,"<br>",file=htmlFile,append=T)
-cat("最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
+#cat("最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
 #calStat part  
 cat("<form name=\"form1\">",file=htmlFile,append=T)
 cat("<table width=\"100%\"><tbody>",file=htmlFile,append=T)
