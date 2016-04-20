@@ -4,6 +4,7 @@ library(PerformanceAnalytics)
 library(lubridate)
 library(reshape2)
 library(scales)
+library(xtable)
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 dataset<-list()
 url<-list()
@@ -74,11 +75,21 @@ for(iii in 1:length(file.name)){
 ########## 全系列ともゼロ値またはNAの行を削除(オリジナルデータは最新年の12月分まで枠が生成されている ##########
 }
 username<-Sys.info()['user']
-path<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+#path<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
+path<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 ```
 
 ```{r}
 setwd(path)
+htmlFile<-"amcc_customExportImport.html"
+cat("",file=htmlFile,append=F)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>
+<style>
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}
+tr, td, th{white-space: nowrap;}
+table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
+table.amcc tr:nth-child(even){background-color: #FFFFFF;}
+</style>",file=htmlFile,append=T)
 imageWidth<-1600
 imageHeight<-1000
 ###################### tschart part
@@ -135,6 +146,22 @@ plotText<<-paste(
 g<-g+annotate("text",x=dataset[[1]][1,1],y=(maxValue-minValue)/5.5+maxValue,label=plotText,size=10,family="Meiryo",hjust=0,vjust=0.9,col="black")
 print(g)
 dev.off()
+#table part
+cat("<b>財務省貿易統計 直近1年間の輸出額、輸入額(共に単位は兆円)</b><br>\n",file=htmlFile,append=T)
+outputTable<-tail(dataset[[1]],13)
+outputTable[,1]<-format(outputTable[,1],"%Y-%m")
+print(xtable(outputTable,align=c("lrrr"),auto=T),file=htmlFile,append=T,type="html",include.rownames=F,html.table.attributes="class='amcc'")
+cat("<script>
+$(\"tr\").not(':first').hover(
+function () {$(this).css(\"background\",\"#8FBC8F\");}, 
+function () {$(this).css(\"background\",\"\");}
+);
+</script>",file=htmlFile,append=T)
+#table part
+#image file output
+cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+#image file output
 ###################### tschart part
 ###################### table part
 data<-list()
@@ -181,6 +208,10 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=imageWidth,height=imageHeight)
 print(g1)
 dev.off()
+#image file output
+cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+#image file output
 mainTitle<-paste("財務省貿易統計:品目別輸出額:億円:",format(extractDate[[2]],"%Y/%m"),sep="")
 g2<-ggplot()
 g2<-g2+geom_bar(data=data[[2]],aes(x=Item,y=Value),stat="identity",position="identity",fill="blue",alpha=0.2)
@@ -201,6 +232,10 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=imageWidth,height=imageHeight)
 print(g2)
 dev.off()
+#image file output
+cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+#image file output
 mainTitle<-paste("財務省貿易統計:品目別輸出額:億円:",format(extractDate[[3]],"%Y/%m"),sep="")
 g3<-ggplot()
 g3<-g3+geom_bar(data=data[[3]],aes(x=Item,y=Value),stat="identity",position="identity",fill="blue",alpha=0.2)
@@ -221,6 +256,10 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=imageWidth,height=imageHeight)
 print(g3)
 dev.off()
+#image file output
+cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+#image file output
 mainTitle<-paste("財務省貿易統計:品目別輸入額:億円:",format(extractDate[[4]],"%Y/%m"),sep="")
 g4<-ggplot()
 g4<-g4+geom_bar(data=data[[4]],aes(x=Item,y=Value),stat="identity",position="identity",fill="red",alpha=0.2)
@@ -241,6 +280,10 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=imageWidth,height=imageHeight)
 print(g4)
 dev.off()
+#image file output
+cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+#image file output
 mainTitle<-paste("財務省貿易統計:品目別輸入額:億円:",format(extractDate[[5]],"%Y/%m"),sep="")
 g5<-ggplot()
 g5<-g5+geom_bar(data=data[[5]],aes(x=Item,y=Value),stat="identity",position="identity",fill="red",alpha=0.2)
@@ -261,6 +304,10 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=imageWidth,height=imageHeight)
 print(g5)
 dev.off()
+#image file output
+cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+#image file output
 mainTitle<-paste("財務省貿易統計:品目別輸入額:億円:",format(extractDate[[6]],"%Y/%m"),sep="")
 g6<-ggplot()
 g6<-g6+geom_bar(data=data[[6]],aes(x=Item,y=Value),stat="identity",position="identity",fill="red",alpha=0.2)
@@ -281,4 +328,8 @@ png.file<-paste(addVer,".png",sep="")
 png(file=png.file,width=imageWidth,height=imageHeight)
 print(g6)
 dev.off()
+#image file output
+cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+#image file output
 ```
