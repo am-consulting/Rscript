@@ -1,0 +1,87 @@
+```{r}
+#データ整形パート
+# http://www.boj.or.jp/about/services/tame/tame_rate/syorei/index.htm/
+tmp<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("NA","-","－"),check.names=FALSE)
+for(ccc in 1:ncol(tmp)){
+  if(colnames(tmp)[ccc]=="Date"){
+    tmp[,ccc]<-as.Date(tmp[,ccc])
+#    tmp[,ccc]<-as.character(tmp[,ccc])
+  }
+}
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+#データ整形パート
+#2016年4月21日現在、62通貨
+```
+
+```{r}
+library(knitr)
+library(lubridate)
+#library(xtable)
+#print(dataset,file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="class='amcc' id='amcc'")
+dataset<-tmp
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+htmlFile<-"ordinancerate.html"
+cat("",file=htmlFile,append=F)
+cat("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">  
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script> 
+<style>
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}
+tr, td, th{white-space: nowrap;}
+table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
+table.amcc tr:nth-child(even){background-color: #FFFFFF;}
+</style>
+<script>
+$(document).ready(function() {
+$('#amcc').DataTable( {
+\"paging\":   true,
+\"ordering\": true,
+\"info\":     true,
+\"lengthMenu\":[[20,-1], [20,\"All\"]],
+\"order\":[[0,\"desc\"]]
+} );
+} ); 
+</script><div style=\"overflow-x:scroll;\">",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>報告省令レート</b><br>「外国為替の取引等の報告に関する省令」第35条第2号に基づき財務大臣が定める相場<br>データ出所:日本銀行</div>",file=htmlFile,append=T)
+buf<-capture.output(kable(dataset,format="html"))
+buf[1]<-gsub("<table>","<table id=\"amcc\" class=\"compact display\">",buf[1])
+for(ccc in 1:length(buf)){
+  cat(buf[ccc],file=htmlFile,append=T)
+}
+cat("</div>",file=htmlFile,append=T)
+SD<-Sys.Date()
+for(iii in 1:2){
+  ST<-Sys.time()  
+  addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste("amcc_",addVer,".png",sep="")
+  png(file=png.file,width=1900,height=950)
+  par(mfrow=c(4,8),family="Meiryo",ps=17,oma=c(1, 1, 1, 1))
+  if(iii==1){start<-2;end<-39}else{start<-40;end<-ncol(dataset)}  
+  for(ccc in start:end){
+    if(colnames(dataset)[ccc]!="Date"){
+      plot(
+        dataset[,1] ,
+        dataset[,ccc] ,
+        col="#4169E1" ,
+        lty=1 ,
+        lwd=1 ,
+        type="o" ,
+        family="Meiryo" ,
+        xlab="" ,
+        ylab="" ,
+        panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+        xaxt="n",
+        main=colnames(dataset)[ccc]
+      )
+      axis.Date(side=1,at=dataset[,1],format="%Y/%m",padj=1)
+    }
+  }
+  dev.off()
+  cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T)  
+}
+```
