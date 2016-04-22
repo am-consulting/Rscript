@@ -11,6 +11,7 @@ tmp02<-tmp[,c(1,3)]
 }
 head(tmp);tail(tmp);tmp<- na.omit(tmp)
 # =OFFSET($F$10,(ROW(A1)-1)/12,MOD(ROW(A1)-1,12))
+tmp000<-tmp
 #データ整形パート
 ```
 
@@ -33,14 +34,14 @@ png(file=png.file,width=950,height=850)
 par(mfrow=c(1,1),family="Meiryo",ps=17,oma=c(3,3,3,2),mar=c(5,5,5,5))
 dataset<-subset(tmp,as.Date("2009/9/1")<=tmp[,1])
 dataset$number<-seq(1,nrow(dataset))
-dataset$color<-ifelse(dataset[,1]<=as.Date("2012/12/1"),"indianred1","lightblue")
+dataset$color<-ifelse(dataset[,1]<=as.Date("2012/12/1"),"indianred1","royalblue")
 # http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
 minPoint<-min(dataset[,2:3])
 maxPoint<-max(dataset[,2:3])
 g<-ggplot()
 g<-g+geom_point(data=dataset,aes(x=dataset[,2],y=dataset[,3]),color=dataset$color,size=4)
 g<-g+ggtitle(
-  paste("民主党政権発足から現在(安倍政権)までの実質輸出入の動向 Source:日本銀行\n赤:民主党 , 青:自民党",sep=""))
+  paste("民主党政権発足から現在(安倍政権)までの日経平均株価と企業倒産件数 \nSource:株式会社日本経済新聞社,株式会社東京商工リサーチ\n赤:民主党 , 青:自民党",sep=""))
 g<-g+xlab(colnames(dataset)[2])+ylab(colnames(dataset)[3])
 g<-g+theme(plot.title=element_text(size=16,family="Meiryo"))
 g<-g+theme(axis.title.x=element_text(size=15,family="Meiryo")) 
@@ -71,10 +72,11 @@ tr, td, th{white-space: nowrap;}
 table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
 table.amcc tr:nth-child(even){background-color: #FFFFFF;}
 </style>",file=htmlFile,append=T)
-cat(paste("<div style=\"text-align:center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\"></div><br>",sep=""),file=htmlFile,append=T)
-cat("<b>",colnames(dataset)[2],"</b>",file=htmlFile,append=T)
+cat(paste("<div style=\"text-align:center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\"></a></div><br>",sep=""),file=htmlFile,append=T)
+cat("<b>",colnames(dataset)[2],"</b><div style=\"overflow-x:scroll;\">",file=htmlFile,append=T)
 print(xtable(ts(dataset[,2],frequency=12,start=c(year(dataset[1,1]),month(dataset[1,1])))),file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="class='amcc'")
-cat("<hr><b>",colnames(dataset)[3],"</b>",file=htmlFile,append=T)
+cat("</div><hr><b>",colnames(dataset)[3],"</b>",file=htmlFile,append=T)
 print(xtable(ts(dataset[,3],frequency=12,start=c(year(dataset[1,1]),month(dataset[1,1])))),file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="class='amcc'")
 cat("<script>
 $(\"tr\").not(':first').hover(
