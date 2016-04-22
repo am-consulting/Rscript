@@ -31,14 +31,17 @@ youtubechannel<-0
 
 ```{r}
 #毎月勤労統計調査
-needRightRow<-1
-addRightRow<-1
+needRightRow<-0
+needMidRow<-0
+addRightRow<-0
 needCalStat<-0 #日銀オペレーション用
-typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1,2,3,4)
+#typeData<-0 #0 非時系列 1 時系列
+nonNumeric<-c(1,2,3,4,5,20,21,22,23)
 needsparkline<-0
 needRegular<-0
 youtubechannel<-0
+needCommaDelete<-0
+Listofelements<-0
 #毎月勤労統計調査
 ```
 
@@ -63,7 +66,7 @@ dataset<-dataset[,columnOrder]
 ```
 
 ```{r}
-mainTitle<-"平成26年国民健康・栄養調査-血圧の平均値-血圧を下げる薬の使用者除外<br>人数、標準偏差等はオリジナルデータを確認してください"
+mainTitle<-"毎月勤労統計 毎勤原表 2016年02月"
 #mainTitle<-"噴火に関する火山観測報<br>データテーブル中、\"詳細\"は気象庁Webサイトに移動します"
 #mainTitle<-"最近一週間の各地の震度に関する情報 – 情報発表日時、検知日時、震央地名、マグニチュード、最大震度"
 dataSource<-"\nデータ出所:厚生労働省"
@@ -134,7 +137,7 @@ sparklineType<-"bar"
 ```{r}
 if(length(grep("毎月勤労統計 毎勤原表",mainTitle))!=0){
 htmlFile<-"am-consultingMonthlyLabourSurveyTable.html"
-orderColumn<-4
+orderColumn<-0
 }else if(length(grep("月例経済報告と政権・マネタリーベース・日経平均株価・完全失業率",mainTitle))!=0){
 htmlFile<-"am-consultingMonthlyEconomicReport7117.html"
 }else if(length(grep("平成27年国勢調査 速報集計 人口速報集計（男女別人口）",mainTitle))!=0){
