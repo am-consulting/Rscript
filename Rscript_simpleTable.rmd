@@ -5,10 +5,10 @@ username<-Sys.info()['user']
 SD<-Sys.Date()
 needRightRow<-1
 needMidRow<-0
-addRightRow<-1
+addRightRow<-0
 needCalStat<-0 #日銀オペレーション用
 #typeData<-0 #0 非時系列 1 時系列
-nonNumeric<-c(1)
+nonNumeric<-c(1,2)
 needsparkline<-0
 needRegular<-0
 youtubechannel<-1
@@ -66,10 +66,10 @@ dataset<-dataset[,columnOrder]
 ```
 
 ```{r}
-mainTitle<-"毎月勤労統計 毎勤原表 2016年02月"
+mainTitle<-"外国為替平衡操作の実施状況 2016年3月分"
 #mainTitle<-"噴火に関する火山観測報<br>データテーブル中、\"詳細\"は気象庁Webサイトに移動します"
 #mainTitle<-"最近一週間の各地の震度に関する情報 – 情報発表日時、検知日時、震央地名、マグニチュード、最大震度"
-dataSource<-"\nデータ出所:厚生労働省"
+dataSource<-"\nデータ出所:財務省"
 if(Listofelements==1){
 mainTitle<-"元素の一覧表-原子番号、元素記号、元素名、周期、族、原子量"
 dataSource<-"\nデータ出所:<br>元素の一覧(WIKIPEDIA) - <a href=\"https://ja.wikipedia.org/wiki/%E5%85%83%E7%B4%A0%E3%81%AE%E4%B8%80%E8%A6%A7\" target=\"_blank\">https://ja.wikipedia.org/wiki/%E5%85%83%E7%B4%A0%E3%81%AE%E4%B8%80%E8%A6%A7</a><br>
@@ -119,7 +119,7 @@ if(needRightRow==1){nonNumeric<-c(nonNumeric,ncol(dataset))}
 tablefontsize<-90 #%
 cnt<-1
 sumColumn<-2
-menulength<-"[[20,-1], [20,\"All\"]]"
+menulength<-"[[30,-1], [30,\"All\"]]"
 orderColumn<-0
 if(typeData==1){
 if(head(dataset[,1],1)<tail(dataset[,1],1)){orderDirection<-"desc"}else{orderDirection<-"asc"}
