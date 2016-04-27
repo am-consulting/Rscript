@@ -19,14 +19,18 @@ sparklinetail<-100000
 
 ```{r}
 #月例経済報告
-needRightRow<-0
+needRightRow<-1
+needMidRow<-0
 addRightRow<-1
 needCalStat<-0 #日銀オペレーション用
-typeData<-1 #0 非時系列 1 時系列
+#typeData<-0 #0 非時系列 1 時系列
 nonNumeric<-c(1,2,3)
 needsparkline<-1
 needRegular<-1
 youtubechannel<-0
+needCommaDelete<-0
+Listofelements<-0
+sparklinetail<-100000
 #月例経済報告
 ```
 
@@ -67,10 +71,10 @@ dataset<-dataset[,columnOrder]
 ```
 
 ```{r}
-mainTitle<-"外食産業市場規模推計の推移(単位:億円)"
+mainTitle<-"実質輸出入の動向 データ出所:日本銀行"
 #mainTitle<-"噴火に関する火山観測報<br>データテーブル中、\"詳細\"は気象庁Webサイトに移動します"
 #mainTitle<-"最近一週間の各地の震度に関する情報 – 情報発表日時、検知日時、震央地名、マグニチュード、最大震度"
-dataSource<-"\nデータ出所:日本フードサービス協会"
+dataSource<-"\nデータ出所:日本銀行"
 if(Listofelements==1){
 mainTitle<-"元素の一覧表-原子番号、元素記号、元素名、周期、族、原子量"
 dataSource<-"\nデータ出所:<br>元素の一覧(WIKIPEDIA) - <a href=\"https://ja.wikipedia.org/wiki/%E5%85%83%E7%B4%A0%E3%81%AE%E4%B8%80%E8%A6%A7\" target=\"_blank\">https://ja.wikipedia.org/wiki/%E5%85%83%E7%B4%A0%E3%81%AE%E4%B8%80%E8%A6%A7</a><br>
@@ -131,7 +135,7 @@ setwd(pathOutput)
 #sparkline
 sparklineWidth<-180
 sparklineHeight<-50
-sparklineType<-"bar"
+sparklineType<-"line"#bar
 #sparkline
 ```
 
