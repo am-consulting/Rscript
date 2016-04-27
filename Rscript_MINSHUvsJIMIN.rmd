@@ -14,8 +14,8 @@ tmp02<-tmp[,c(1,3)]
 ```
 
 ```{r}
-posttitle<-"民主党政権発足から現在(安倍政権)までの企業向けサービス価格指数とマネタリーベース"
-datasource<-"日本銀行"
+posttitle<-"民主党政権発足から現在(安倍政権)までの全産業活動指数と建設業活動指数(共に季節調整済)"
+datasource<-"経済産業省"
 library(ggplot2)
 library(xtable)
 #library(ggrepel)
