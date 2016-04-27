@@ -81,8 +81,22 @@ path<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 
 ```{r}
 setwd(path)
+dataSource<-"Data Source:財務省"
 htmlFile<-"amcc_customExportImport.html"
 cat("",file=htmlFile,append=F)
+cat("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta http-equiv=\"Pragma\" content=\"no-cache\">
+<meta http-equiv=\"cache-control\" content=\"no-cache\">
+<meta http-equiv=\"expires\" content=\"0\">
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+.dataTables_filter input {width: 50%;}
+</style>
+<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
+<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
+</head>
+<body>
+<!---->",file=htmlFile,append=T)
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>
 <style>
 table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}
@@ -90,7 +104,7 @@ tr, td, th{white-space: nowrap;}
 table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
 table.amcc tr:nth-child(even){background-color: #FFFFFF;}
 </style>",file=htmlFile,append=T)
-imageWidth<-1600
+imageWidth<-1900
 imageHeight<-1000
 ###################### tschart part
 lineColor<-c("blue","red")
@@ -148,6 +162,9 @@ print(g)
 dev.off()
 #table part
 cat("<b>財務省貿易統計 直近1年間の輸出額、輸入額(共に単位は兆円)</b><br>\n",file=htmlFile,append=T)
+cat(dataSource,"<br>",file=htmlFile,append=T)
+cat("データ確認日:",year(SD),"年",month(SD),"月",day(SD),"日<br>",file=htmlFile,append=T)
+cat("<a href=\"http://am-consulting.co.jp\" target=\"_blank\">アセット・マネジメント・コンサルティング株式会社</a><br>",file=htmlFile,append=T)
 outputTable<-tail(dataset[[1]],13)
 outputTable[,1]<-format(outputTable[,1],"%Y-%m")
 print(xtable(outputTable,align=c("lrrr"),auto=T),file=htmlFile,append=T,type="html",include.rownames=F,html.table.attributes="class='amcc'")
@@ -159,8 +176,9 @@ function () {$(this).css(\"background\",\"\");}
 </script>",file=htmlFile,append=T)
 #table part
 #image file output
-cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 #image file output
 ###################### tschart part
 ###################### table part
@@ -209,8 +227,9 @@ png(file=png.file,width=imageWidth,height=imageHeight)
 print(g1)
 dev.off()
 #image file output
-cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 #image file output
 mainTitle<-paste("財務省貿易統計:品目別輸出額:億円:",format(extractDate[[2]],"%Y/%m"),sep="")
 g2<-ggplot()
@@ -233,8 +252,9 @@ png(file=png.file,width=imageWidth,height=imageHeight)
 print(g2)
 dev.off()
 #image file output
-cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 #image file output
 mainTitle<-paste("財務省貿易統計:品目別輸出額:億円:",format(extractDate[[3]],"%Y/%m"),sep="")
 g3<-ggplot()
@@ -257,8 +277,9 @@ png(file=png.file,width=imageWidth,height=imageHeight)
 print(g3)
 dev.off()
 #image file output
-cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 #image file output
 mainTitle<-paste("財務省貿易統計:品目別輸入額:億円:",format(extractDate[[4]],"%Y/%m"),sep="")
 g4<-ggplot()
@@ -281,8 +302,9 @@ png(file=png.file,width=imageWidth,height=imageHeight)
 print(g4)
 dev.off()
 #image file output
-cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 #image file output
 mainTitle<-paste("財務省貿易統計:品目別輸入額:億円:",format(extractDate[[5]],"%Y/%m"),sep="")
 g5<-ggplot()
@@ -305,8 +327,9 @@ png(file=png.file,width=imageWidth,height=imageHeight)
 print(g5)
 dev.off()
 #image file output
-cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 #image file output
 mainTitle<-paste("財務省貿易統計:品目別輸入額:億円:",format(extractDate[[6]],"%Y/%m"),sep="")
 g6<-ggplot()
@@ -329,7 +352,12 @@ png(file=png.file,width=imageWidth,height=imageHeight)
 print(g6)
 dev.off()
 #image file output
-cat(paste("<div align=\"center\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
-    "\" alt=\"\" width=\"100%\"></div><hr>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<hr><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a>",sep=""),file=htmlFile,append=T)
 #image file output
+cat("<hr>
+<div align=\"center\"><a href=\"http://am-consulting.co.jp\" target=\"_blank\">アセット・マネジメント・コンサルティング株式会社</a></div>
+</body>
+</html>",file=htmlFile,append=T)
 ```
