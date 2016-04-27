@@ -1,0 +1,122 @@
+```{r}
+library(WHO)
+library(knitr)
+library(dplyr)
+library(xtable)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+codes<-get_codes()
+tmp<-data.frame(codes)
+dataset<-data.frame(No=seq(1,nrow(tmp),by=1),tmp)
+htmlFile<-"amcc_WHOCodesList.html"
+cat("",file=htmlFile,append=F)
+cat("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
+<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
+<style>
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+</style>
+<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#amcc_WHOCodesList').dataTable({
+\"lengthMenu\":[[30,-1],[30,\"All\"]],
+\"order\":[[0,\"asc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"}
+})",file=htmlFile,append=T)
+#正規表現
+#javascript
+cat("
+$('#amcc_WHOCodesList').dataTable();
+$('input.global_filter').on('keyup click',function(){
+filterGlobal();
+});
+$('input.column_filter').on('keyup click',function(){
+filterColumn($(this).parents('tr').attr('data-column'));
+});\n",file=htmlFile,append=T)
+#javascript
+#正規表現  
+cat("});\n</script>\n\n",file=htmlFile,append=T)
+#正規表現パート
+#html
+cat("
+<div align=\"center\"><b>世界保健機関 World Health Organization</b><br>Global Health Observatory (GHO) data</div>
+Reference and Powered by
+<br>- Global Health Observatory (GHO) data http://www.who.int/gho/en/
+<br>- WHO : R Client for the World Health Organization API https://mran.revolutionanalytics.com/package/WHO/
+<br>- DataTables https://datatables.net/
+<br>- DataTables https://datatables.net/
+<br>- PACE http://github.hubspot.com/pace/docs/welcome/
+<br>",file=htmlFile,append=T)
+cat("<hr><b>正規表現対応フィルターボックス</b>  
+<table width=\"100%\">
+<thead>
+<tr><th width=\"15%\" style=\"text-align:center\">Target</th><th width=\"75%\" style=\"text-align:center\">Search text</th><th style=\"text-align:center\">Regex</th></tr>
+</thead>
+<tbody>\n",file=htmlFile,append=T)
+for(rccc in 1:ncol(dataset)){
+cat(paste("<tr id=\"filter_col",rccc,"\" data-column=\"",rccc-1,"\">\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td>",colnames(dataset)[rccc],"</td>",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"text\" class=\"column_filter\" id=\"col",rccc-1,"_filter\"  style=\"width:100%\"></td>\n",sep=""),file=htmlFile,append=T)
+cat(paste("<td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_regex\" checked=\"checked\"></td>\n",sep=""),file=htmlFile,append=T)
+cat("</tr>\n",file=htmlFile,append=T)
+}  
+cat("\n</tbody></table>",file=htmlFile,append=T)  
+#html
+#javascript
+cat("<script>  
+function filterGlobal(){
+$('#amcc_WHOCodesList').DataTable().search( 
+$('#global_filter').val(), 
+$('#global_regex').prop('checked'), 
+$('#global_smart').prop('checked') 
+).draw(); 
+}
+function filterColumn(i) {
+$('#amcc_WHOCodesList').DataTable().column( i ).search(
+$('#col'+i+'_filter').val(),
+$('#col'+i+'_regex').prop('checked')
+).draw();
+}
+</script>",file=htmlFile,append=T)  
+#javascript
+#正規表現パート
+dataset[,4]<-paste("<a href=\"",dataset[,4],"\" target=\"_blank\">",dataset[,4],"</a>",sep="")
+table.argu<-"id=\"amcc_WHOCodesList\" width=\"100%\" class=\"display compact\""
+cat("<div style=\"overflow-x:scroll;\">",file=htmlFile,append=T)
+cat(kable(dataset,'html',row.names=F,table.attr=table.argu,align=c("l","l","l","r")),file=htmlFile,append=T)  
+cat("</div>",file=htmlFile,append=T)
+# &lt;   <
+# &quot; "
+# &gt;   >
+#example
+buf<-get_data("SA_0000001426")
+buf
+healthdata<-data.frame(buf%>%filter(buf[,3]=="Both sexes",buf[,7]>=300))
+xtable(healthdata)
+cat("
+<style>
+table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
+table.amcc tr:nth-child(even){background-color: #FFFFFF;}
+</style>",file=htmlFile,append=T)
+cat(
+"<hr><b>Sample</b><br>[code language=\"splus\"]
+  
+
+[/code]
+<div style=\"overflow-x:scroll;\">",file=htmlFile,append=T)
+print(xtable(healthdata),file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="class='amcc'")
+cat("</div>",file=htmlFile,append=T)
+cat("<script>
+$(\"tr\").not(':first').hover(
+function () {$(this).css(\"background\",\"#8FBC8F\");}, 
+function () {$(this).css(\"background\",\"\");}
+);
+</script>",file=htmlFile,append=T)
+```
