@@ -138,9 +138,24 @@ header<-NULL
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 tableID<-paste("am-consulting",addVer,sep="")
-htmlFile<-paste(addVer,".html",sep="")
+#htmlFile<-paste(addVer,".html",sep="")
+htmlFile<-"amcc_tradeindexBycountry.html"
 htmlFile<<-htmlFile  
-cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=F)
+cat("",file=htmlFile,append=F)
+cat("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta http-equiv=\"Pragma\" content=\"no-cache\">
+<meta http-equiv=\"cache-control\" content=\"no-cache\">
+<meta http-equiv=\"expires\" content=\"0\">
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+.dataTables_filter input {width: 50%;}
+</style>
+<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
+<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
+</head>
+<body>
+<!---->",file=htmlFile,append=T)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>",file=htmlFile,append=T)
 cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css\" rel=\"stylesheet\">",file=htmlFile,append=T)  
 cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>\n\n\n\n",file=htmlFile,append=T) 
 cat("<script type=\"text/javascript\" charset=\"utf-8\">$(document).ready( function(){\n",file=htmlFile,append=T)
@@ -260,6 +275,8 @@ cat("</script>",file=htmlFile,append=T)
 #calStat part  
 cat("<b>財務省貿易統計指数</b><br>",file=htmlFile,append=T)
 cat(dataSource,"<br>",file=htmlFile,append=T)
+cat("データ確認日:",year(SD),"年",month(SD),"月",day(SD),"日<br>",file=htmlFile,append=T)
+cat("<a href=\"http://am-consulting.co.jp\" target=\"_blank\">アセット・マネジメント・コンサルティング株式会社</a><br>",file=htmlFile,append=T)
 #cat("最新データは\"数表リスト\"( http://equations.am-consulting.co.jp/?page_id=2074 )から確認ください<br>",file=htmlFile,append=T)
 #calStat part  
 cat("<form name=\"form1\">",file=htmlFile,append=T)
@@ -343,16 +360,18 @@ tableHtml<-paste("<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" 
 tableHtml<-paste(tableHtml,header,"</thead><tfoot>",sep="")
 tableHtml<-paste(tableHtml,header,"</tfoot>",sep="")
 cat("<br><b>輸出数量指数および輸入数量指数の前年同月比(%)</b>",file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
 cat(tableHtml,file=htmlFile,append=T)
 grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
 write.table(grandData,htmlFile,quote=F,col.names=F, append=T,row.names=F)
 cat("</table>",file=htmlFile,append=T)
-cat("Powered by DataTables( http://datatables.net/ )",file=htmlFile,append=T)  
+cat("</div>\n",file=htmlFile,append=T)
+cat("Powered by<br>-DataTables( http://datatables.net/ )<br>-PACE( http://github.hubspot.com/pace/docs/welcome/ )",file=htmlFile,append=T)  
 #html part
 ```
 
 ```{r}
-imageWidth<-1600
+imageWidth<-1900
 imageHeight<-1000
 setwd(pathOutput)
 for(ddd in 1:length(data)){
@@ -383,7 +402,12 @@ for(ddd in 1:length(data)){
   cat(paste("- <a href=\"",gitURL[[ddd]],"\">","財務省貿易統計指数 地域:",data[[ddd]][1,2],"</a><hr>\n",sep=""),file=htmlFile,append=T)
   cat("\n\n\n",file=htmlFile,append=T)
   #link to CSV
-}  
+}
+cat("<!---->
+<hr>
+<div align=\"center\"><a href=\"http://am-consulting.co.jp\" target=\"_blank\">アセット・マネジメント・コンサルティング株式会社</a></div>
+</body>
+</html>",file=htmlFile,append=T)
 ```
 
 ```{r}
