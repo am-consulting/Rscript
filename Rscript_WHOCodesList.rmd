@@ -51,7 +51,6 @@ Reference and Powered by
 <br>- Global Health Observatory (GHO) data http://www.who.int/gho/en/
 <br>- WHO : R Client for the World Health Organization API https://mran.revolutionanalytics.com/package/WHO/
 <br>- DataTables https://datatables.net/
-<br>- DataTables https://datatables.net/
 <br>- PACE http://github.hubspot.com/pace/docs/welcome/
 <br>",file=htmlFile,append=T)
 cat("<hr><b>正規表現対応フィルターボックス</b>  
@@ -107,14 +106,15 @@ table.amcc tr:nth-child(even){background-color: #FFFFFF;}
 </style>",file=htmlFile,append=T)
 cat(
 "<hr><b>Sample</b><br>[code language=\"splus\"]
-  
-
+buf<-get_data(\"SA_0000001426\")
+healthdata<-data.frame(buf%>%filter(buf[,3]==\"Both sexes\",buf[,7]>=300))
+xtable(healthdata)  
 [/code]
 <div style=\"overflow-x:scroll;\">",file=htmlFile,append=T)
-print(xtable(healthdata),file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="class='amcc'")
+print(xtable(healthdata),file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="id='amcc' class='amcc'")
 cat("</div>",file=htmlFile,append=T)
 cat("<script>
-$(\"tr\").not(':first').hover(
+$(\"#amcc tr\").not(':first').hover(
 function () {$(this).css(\"background\",\"#8FBC8F\");}, 
 function () {$(this).css(\"background\",\"\");}
 );
