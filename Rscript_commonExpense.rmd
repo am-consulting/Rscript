@@ -6,8 +6,8 @@ SD<-Sys.Date()
 ```
 
 ```{r}
-loopS<-22
-loopE<-22
+loopS<-12
+loopE<-12
 menulength<-25
 orderColumn<-0
 orderDirection<-"asc" #asc
@@ -45,7 +45,7 @@ constructionType<-c(
   "下水道工事3",         #19
   "コンクリートダム工事",#20
   "フィルダム工事",      #21
-  "橋梁保全工事工事",    #22
+  "橋梁保全工事",    #22
   "工事区分共通",        #23 一般管理費率
   "非市街地",            #24 イメージアップ
   "市街地"               #25 イメージアップ
@@ -247,7 +247,7 @@ colName<-c("イメージアップ経費率(%)","イメージアップ経費率(�
 
 ```{r}
 #only html
-library(knitr)
+#library(knitr) kableは数値の3桁区切りが出きない。
 setwd(pathOutput)
 col<-list()
 for(constructionSegment in loopS:loopE){
@@ -256,7 +256,7 @@ header<-NULL
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 tableID<-paste("am-consulting",addVer,sep="")
-htmlFile<-paste(addVer,".html",sep="")
+htmlFile<-paste(constructionType[constructionSegment],"-",colName[3],".html",sep="")
 cat(paste(
 "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
 <link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
@@ -279,6 +279,7 @@ for(ccc in 1:ncol(rateTable[[constructionSegment]])){
 tableHtml<-paste("<div style=\"overflow-x:scroll;\">\n<table cellpadding=\"0\" cellspacing=\"0\" id=\"",tableID,"\" width=\"100%\" class=\"display compact\"><thead>",sep="")
 tableHtml<-paste(tableHtml,header,"</thead>",sep="")
 cat(paste("<b>国土交通省土木工事積算基準等"," - ",colName[3]," - ",constructionType[constructionSegment],"</b><br>",sep=""),file=htmlFile,append=T)
+cat("<div align=\"right\">作成日:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><br>",file=htmlFile,append=T)
 if(length(grep("共通",colnames(rateTable[[constructionSegment]])[2]))!=0){
 cat(
   "下限(千円):",format(lowerLimit/1000,big.mark=",",scientific=F),
@@ -286,7 +287,9 @@ cat(
   ", 下限率(%):",rateKyoutsuukasetsuList[[constructionSegment]][1],
   ", 上限率(%):",rateKyoutsuukasetsuList[[constructionSegment]][4],
   ", A:",rateKyoutsuukasetsuList[[constructionSegment]][2],
-  ", b:",rateKyoutsuukasetsuList[[constructionSegment]][3],file=htmlFile,append=T)
+  ", b:",rateKyoutsuukasetsuList[[constructionSegment]][3],
+  "<br>共通仮設費率 $latex \\textup{Kr}=\\textup{A}\\cdot\\textup{P}^{\\textup{b}}$"
+  ,file=htmlFile,append=T)
 }else if(length(grep("現場",colnames(rateTable[[constructionSegment]])[2]))!=0){
 cat(
   "下限(千円):",format(lowerLimit/1000,big.mark=",",scientific=F),
@@ -294,7 +297,9 @@ cat(
   ", 下限率(%):",rateGenbakanriList[[constructionSegment]][1],
   ", 上限率(%):",rateGenbakanriList[[constructionSegment]][4],
   ", A:",rateGenbakanriList[[constructionSegment]][2],
-  ", b:",rateGenbakanriList[[constructionSegment]][3],file=htmlFile,append=T)
+  ", b:",rateGenbakanriList[[constructionSegment]][3],
+  "<br>現場管理費率 $latex \\textup{Jo}=\\textup{A}\\cdot\\textup{Np}^{\\textup{b}}$"
+  ,file=htmlFile,append=T)
 }
 cat(tableHtml,file=htmlFile,append=T)
 grandData<-data.frame("<tr>",grandData,"</tr>",row.names=NULL)
@@ -316,6 +321,83 @@ cat("Powered by DataTables( http://datatables.net/ )
 国土交通省土木工事積算基準等の改正について 平成20年3月28日<br>
 - http://www.mlit.go.jp/kisha/kisha08/13/130328_.html<br>
 土木工事標準歩掛<br>
-- http://www.mlit.go.jp/sogoseisaku/constplan/sosei_constplan_tk_000024.html",file=htmlFile,append=T)
+- http://www.mlit.go.jp/sogoseisaku/constplan/sosei_constplan_tk_000024.html
+<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container {padding: 5px;box-sizing: border-box;font-size: 15px;}</style>
+<hr>
+[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q playlist=PLu2t-yT4OTt-iS_cv9NAOUaWQ3SKZzWJA resource=2 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]
+<hr>
+<table style=\"border:none; table-layout:fixed;\">
+<tbody>
+<tr>
+	<td style=\"border:none\" width=\"10%\">
+	　Asset Management Consulting
+	　[browser-shot url=\"http://am-consulting.co.jp\"]
+	</td>
+	<td style=\"border:none\"  width=\"10%\">
+	　Curiosity
+	　[browser-shot url=\"http://curiosity.am-consulting.co.jp\"]
+	</td>
+	<td style=\"border:none\"  width=\"10%\">
+	　Equations
+	　[browser-shot url=\"http://equations.am-consulting.co.jp\"]
+	</td>
+	<td style=\"border:none\"  width=\"10%\">
+	　SaECaNet
+	　[browser-shot url=\"http://www.saecanet.com\"]
+	</td>
+</tr>
+<tr>
+	<td style=\"border:none\" >
+	　youtube channel \"Curiosity\"
+	　[browser-shot url=\"https://www.youtube.com/user/michiomitake\"]
+	</td>
+	<td style=\"border:none\">
+	　Google Store
+	　[browser-shot url=\"https://play.google.com/store/apps/developer?id=%E3%82%A2%E3%82%BB%E3%83%83%E3%83%88%E3%83%BB%E3%83%9E%E3%83%8D%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88%E3%83%BB%E3%82%B3%E3%83%B3%E3%82%B5%E3%83%AB%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0%E6%A0%AA%E5%BC%8F%E4%BC%9A%E7%A4%BE&hl=ja\"]
+	</td>
+	<td style=\"border:none\">
+	　twitCasting
+	　[browser-shot url=\"http://twitcasting.tv/amc2_japan/show/\"]
+	</td>
+	<td style=\"border:none\">
+	　twitter:ID AMC2_Japan
+	　[browser-shot url=\"https://twitter.com/AMC2_Japan\"]
+	</td>
+</tr>
+<tr>
+	<td style=\"border:none\">
+	　GitHub
+	　[browser-shot url=\"https://github.com/am-consulting\"]
+	</td>
+	<td style=\"border:none\">
+	　facebook
+	　[browser-shot url=\"https://www.facebook.com/asset.management.consulting/\"]
+	</td>
+	<td style=\"border:none\">
+	　twilog:ID AMC2_Japan
+	　[browser-shot url=\"http://twilog.org/amc2_japan\"]
+	</td>
+	<td style=\"border:none\">
+	　Google Custom Search
+	　[browser-shot url=\"http://equations.am-consulting.co.jp/gcs.html\"]
+	</td>
+</tr>
+<tr>
+	<td style=\"border:none\">
+	　twitter:ID SaECaNet
+	　[browser-shot url=\"https://twitter.com/SaECaNet\"]
+	</td>
+	<td style=\"border:none\">
+	 The Beam	
+	　[browser-shot url=\"http://www.saecanet.com/list_of_beamcalculation.php\"]
+	</td>
+	<td style=\"border:none\">
+	</td>
+	<td style=\"border:none\">
+	</td>
+</tr>
+</tbody>
+</table>
+",file=htmlFile,append=T)
 }
 ```
