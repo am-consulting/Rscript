@@ -1,0 +1,143 @@
+```{r}
+requiredPackageList<-c(
+  "ggplot2",
+  "lubridate",
+  "scales",
+  "maps",
+  "maptools",
+  "RColorBrewer",
+  "fields",
+  "rworldmap",
+  "classInt",
+  "plotrix",
+  "HH",
+  "reshape",
+  "gridExtra",
+  "XLConnect",
+  "eeptools"
+)
+colnames(installed.packages())
+notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] 
+#apply logical vector to requiredPackageList
+if(length(notInstalledPackages)!=0){print(notInstalledPackages);install.packages(notInstalledPackages)}
+lapply(requiredPackageList,require,character.only=T)
+#Reference 
+#http://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
+#http://stackoverflow.com/questions/8175912/load-multiple-packages-at-once
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+SD<-Sys.Date()
+creationDate<-paste("作成日:",year(SD),"-",month(SD),"-",day(SD),sep="")  
+setwd(pathOutput)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+#IMF Primary Commodity Prices
+path<-paste("C:/Users/",username,"/Desktop/downloadExcelData/",sep="")
+setwd(path)
+url<-"http://www.imf.org/external/np/res/commod/"
+filename<-"External_Data.xls"
+download.file(paste(url,filename,sep=""),filename,mode="wb")
+tmp<-readWorksheetFromFile(filename,1,header=F,check.names=F)
+dataset<-tmp[-(1:4),]
+FUN.1<-function(x){as.numeric(x)}
+dataset<-data.frame(dataset[,1],apply(dataset[,-1],2,FUN.1))
+colnames(dataset)<-tmp[3,]
+dataset[,1]<-as.Date(paste(substr(dataset[,1],1,4),"-",substr(dataset[,1],6,7),"-1",sep=""))
+colnames(dataset)[1]<-"Date"
+tail(dataset,1)
+mainTitle<-"IMF Primary Commodity Prices - "
+dataSource<-"\nData Source:International Monetary Fund"
+```
+
+```{r}
+library(xtable)
+setwd(pathOutput)
+htmlFile<-"IMFPrimaryCommodityPrices.html"
+cat("<div align=\"center\"><b>IMF Primary Commodity Prices/IMF 一次産品価格</b><br>Data Source:International Monetary Fund</div>",file=htmlFile,append=F)
+cat("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<style>
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
+table.amcc tr:nth-child(even){background-color: #FFFFFF;}
+</style>
+",file=htmlFile,append=T)
+buf<-dataset
+buf[is.na(buf)==T]<--9999
+for(ccc in 2:ncol(dataset)){
+buf<-tail(dataset[,c(1,ccc)],60)
+cat(paste("
+  \n<div id=\"amccchart",ccc,"\" style=\"text-align:center\"><b>",
+  colnames(buf)[2],"</b></div><div style=\"overflow-x:scroll;\">\n",sep=""),file=htmlFile,append=T)
+print(
+  xtable(ts(buf[,2],frequency=12,start=c(year(buf[1,1]),month(buf[1,1])))),
+  file=htmlFile,
+  append=T,
+  type="html",
+  include.rownames=T,
+  html.table.attributes="id='amcc' class='amcc'"
+)  
+cat("</div>",file=htmlFile,append=T)  
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)
+tmp<-na.omit(dataset[,c(1,ccc)])
+g<-ggplot(data=tmp,aes(x=tmp[,1],y=tmp[,2]))+geom_line(size=1,color="blue")
+g<-g+geom_smooth(data=tmp,aes(x=tmp[,1],y=tmp[,2]),method=loess,lwd=1,color="red")
+g<-g+scale_y_continuous(labels=comma)
+g<-g+theme(plot.title=element_text(size=30,family="Meiryo"))
+g<-g+theme(axis.title.x=element_text(size=30)) 
+g<-g+theme(axis.title.y=element_text(size=30)) 
+g<-g+theme(axis.text.x=element_text(size=30,angle=0)) 
+g<-g+theme(axis.text.y=element_text(size=30,angle=90)) 
+g<-g+scale_x_date(labels=date_format("%Y/%m"))
+g<-g+ggtitle(paste(
+  colnames(tmp)[2],
+  "\n対象期間:",
+  format(head(tmp[,1],1),"%Y/%m"),
+  "-",
+  format(tail(tmp[,1],1),"%Y/%m")))
+g<-g+xlab("")
+g<-g+ylab("")
+print(g)
+dev.off()
+cat(paste("
+<br>
+<select id=\"chartSelect",ccc,"\">
+<option value=\"\">Selecet a chart</option>",sep=""),file=htmlFile,append=T)
+for(zzz in 2:ncol(dataset)){  
+  cat(paste("<option value=\"#amccchart",zzz,"\">",colnames(dataset)[zzz],"</option>\n",sep=""),file=htmlFile,append=T)
+}
+cat("</select>\n",file=htmlFile,append=T)
+cat(paste("
+  <div style=\"text-align:center\">
+  <a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+  <img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\">
+  </a>
+  </div>",sep=""),file=htmlFile,append=T)  
+cat("<hr>",file=htmlFile,append=T)  
+}
+cat("<script>\n",file=htmlFile,append=T)
+for(zzz in 2:ncol(dataset)){
+cat(paste("
+document.getElementById(\"chartSelect",zzz,"\").onchange=function(){
+if(this.selectedIndex!==0){
+window.location.href=this.value;
+document.getElementById(\"chartSelect",zzz,"\").value=\"\";  
+}
+};",sep=""),file=htmlFile,append=T)
+}
+cat("</script>\n",file=htmlFile,append=T)
+cat("<script>
+$(\"#amcc tr\").not(':first').hover(
+function () {$(this).css(\"background\",\"#8FBC8F\");}, 
+function () {$(this).css(\"background\",\"\");}
+);
+</script>",file=htmlFile,append=T)
+```
