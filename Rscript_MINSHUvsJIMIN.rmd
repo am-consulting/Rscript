@@ -14,7 +14,7 @@ tmp<-merge(tmp01,tmp02);tmp<-na.omit(tmp);tmp000<-tmp;head(tmp);tail(tmp)
 ```
 
 ```{r}
-posttitle<-"民主党政権発足から現在(安倍政権)までの消費者物価指数-前年同月比 2016年3月(単位:%)"
+posttitle<-"民主党政権発足から現在(安倍政権)までの建設工事費デフレーター"
 datasource<-"国土交通省"
 library(ggplot2)
 library(xtable)
