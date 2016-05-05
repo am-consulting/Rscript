@@ -1,0 +1,101 @@
+```{r}
+library(performanceAsLeader)
+library(openair)
+library(lubridate)
+library(knitr)
+jgb(99);colnames(preData)[1]<-"date"
+SD<-Sys.Date();ST<-Sys.time() 
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+```
+
+```{r}
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+htmlFile<-"amcc_japanesegovernmentbond_1-40year.html"
+cat("",file=htmlFile,append=F)
+cat("
+<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+</style></head><body>\n",file=htmlFile,append=T)
+cat(paste("<div align=\"right\">データ取得日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div>"),file=htmlFile,append=T)
+targetYear<-seq(2015,2016,by=1)
+for(rrr in 2:ncol(preData)){
+  #datatable part
+  dataset<-preData[,c(1,rrr)]
+  dataset[is.na(dataset)==T]<--9999
+  ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  tableID<-paste("amcc_",addVer,sep="")
+  table.argu<-paste("id=\"",tableID,"\" width=\"100%\" class=\"display compact\"",sep="")
+  cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+  $(document).ready(function(){
+  $('#",tableID,"').dataTable({
+  \"lengthMenu\":[[10,-1],[10,\"All\"]],
+  \"order\":[[0,\"desc\"]],
+  \"searching\":true,
+  \"columnDefs\":[{\"width\":\"30%\",\"targets\":0}],
+  \"language\":{\"decimal\":\".\",\"thousands\":\",\"}
+  })});</script>\n\n",sep=""),file=htmlFile,append=T)
+  cat("<div align=\"center\"><b>",colnames(dataset)[2],"</b></div>",file=htmlFile,append=T)
+  cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+  cat(kable(tail(dataset,30),'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(dataset))),file=htmlFile,append=T)
+  cat("</div>\n",file=htmlFile,append=T)  
+  #datatable part
+  #calender plot part
+  dataset<-na.omit(preData[,c(1,rrr)])
+  imageTable<-""
+  for(ccc in 1:length(targetYear)){
+    ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+    png.file<-paste("amcc_",addVer,".png",sep="")
+    png(file=png.file,width=900,height=800)
+    calendarPlot(
+      dataset,
+      pollutant = colnames(dataset)[2], 
+      year = targetYear[ccc], 
+      cols="heat",
+      main=paste(colnames(dataset)[2],"in",targetYear[ccc],"\nPowered by calendarPlot {openair}"),
+      family="Meiryo",cex.axis=1,cex.lab=1,cex.main=2,cex.lim=0.012
+    )
+    dev.off()
+    imageTable<-paste(imageTable,"<td><a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+      <img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"",png.file,"\" width=\"100%\">
+      </a></td>",sep="")  
+  }
+  cat(paste("<table><tr>",imageTable,"</tr></table>"),file=htmlFile,append=T)
+  #calender plot part
+  #timeseries plot part  
+  dataset<-na.omit(preData[,c(1,rrr)])
+  dataset<-subset(dataset,as.Date("2000-01-01")<=dataset[,1])
+  ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste("amcc_",addVer,".png",sep="")
+  png(file=png.file,width=1900,height=900)
+  plot(
+    dataset[,1],
+    dataset[,2],
+    type="l",
+    family="Meiryo" ,
+    xlab="" ,
+    ylab="" ,
+    panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+    xaxt="n",
+    main=paste(colnames(dataset)[2],"\n2000年1月1日以降"),
+    cex.axis=1.5,cex.lab=1.5,cex.main=1.5
+  )    
+  abline(h=0,col="blue",lwd=4)
+  smoothline<-loess(dataset[,2]~seq(1,length(dataset[,1]),by=1))
+  lines(dataset[,1],predict(smoothline),col='red',lwd=2) 
+  axis.Date(side=1,at=dataset[,1],format="%Y/%m/%d",padj=1,cex.axis=1.5)
+  dev.off()
+  cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+  "\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T)    
+  #timeseries plot part  
+}
+cat("</body></html>\n",file=htmlFile,append=T)
+```
