@@ -15,9 +15,16 @@ tr, td, th{white-space: nowrap;}
 table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
 table.amcc tr:nth-child(even){background-color: #FFFFFF;}
 </style>",file=htmlFile,append=T)
+#コーシー分布
+cat("
+  1: コーシー分布に期待値と分散は存在せず.<br>
+  2: コーシー分布に中心極限定理は適用できない.<br>
+  3: https://ja.wikipedia.org/wiki/%E3%82%B3%E3%83%BC%E3%82%B7%E3%83%BC%E5%88%86%E5%B8%83#.E6.9C.9F.E5.BE.85.E5.80.A4.E3.81.8C.E5.AE.9A.E7.BE.A9.E3.81.95.E3.82.8C.E3.81.AA.E3.81.84.E7.90.86.E7.94.B1<hr>",file=htmlFile,append=T)
+#コーシー分布
 samplesize<-c(10,30,100)
 repeatcount<-c(10,30,100,1000)
 alpha<-0.5;beta<-0.5 #for rbeta()
+x0<-0;gamma<-0.5     #for rcauchy()
 dataset<-data.frame()
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
@@ -33,7 +40,8 @@ for(sss in 1:length(samplesize)){
 #       means<-c(means,mean(buf))#標本平均
 #     }
 #   means<-data.frame(x=sapply(seq(repeatcount[rrr]),function(x){mean(runif(samplesize[sss]))}));distribution<-"一様分布"
-    means<-data.frame(x=sapply(seq(repeatcount[rrr]),function(x){mean(rbeta(samplesize[sss],alpha,beta))}));distribution<-"ベータ分布"
+#   means<-data.frame(x=sapply(seq(repeatcount[rrr]),function(x){mean(rbeta(samplesize[sss],alpha,beta))}));distribution<-"ベータ分布"
+    means<-data.frame(x=sapply(seq(repeatcount[rrr]),function(x){mean(rcauchy(samplesize[sss],x0,gamma))}));distribution<-"コーシー分布"
     title<-paste("試行回数=",repeatcount[rrr],"\n標本サイズ=",samplesize[sss])
     hist(means[,1],main=title,breaks=20)
     qqnorm(means[,1],main=title);qqline(means[,1],col="red")
@@ -43,7 +51,8 @@ for(sss in 1:length(samplesize)){
 dataset<-data.frame(as.integer(samplesize),dataset)
 colnames(dataset)<-c("サンプルサイズ",paste("試行回数:",repeatcount,sep=""))
 #mtext(distribution,side=3,outer=T)
-mtext(paste(distribution," - α:",alpha,"β:",beta),side=3,outer=T)
+#mtext(paste(distribution," - α:",alpha,"β:",beta),side=3,outer=T)
+mtext(paste(distribution," - x0:",x0,"γ:",gamma),side=3,outer=T)
 dev.off()
 cat(paste("<div style=\"text-align:center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
   "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\"></a></div><br>",sep=""),file=htmlFile,append=T)
@@ -55,19 +64,27 @@ function () {$(this).css(\"background\",\"#8FBC8F\");},
 function () {$(this).css(\"background\",\"\");}
 );
 </script>",file=htmlFile,append=T)
-#β分布
 ST<-Sys.time()  
 addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
 png.file<-paste("amcc_",addVer,".png",sep="")
 png(file=png.file,width=950,height=400)
 par(ps=20,mar=c(5,10,10,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo") 
-x<-seq(0,1,length=200)
-plot(x,dbeta(x,alpha,beta),type="l",
-  main=paste("β Distribution - α:",alpha," , β:",beta,seP=""),
+#β分布
+# x<-seq(0,1,length=200)
+# plot(x,dbeta(x,alpha,beta),type="l",
+#   main=paste("β Distribution - α:",alpha," , β:",beta,seP=""),
+#   panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
+#   family="Meiryo",cex.axis=1,cex.lab=1,cex.main=2)
+# dev.off()
+#β分布
+#コーシー分布
+x<-seq(-5,5,length=200)
+plot(x,dcauchy(x,x0,gamma),type="l",
+  main=paste("Cauchy Distribution - x0:",x0," , γ:",gamma,seP=""),
   panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
   family="Meiryo",cex.axis=1,cex.lab=1,cex.main=2)
 dev.off()
+#コーシー分布
 cat(paste("<div style=\"text-align:center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
   "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\"></a></div><hr>",sep=""),file=htmlFile,append=T)
-#β分布
 ```
