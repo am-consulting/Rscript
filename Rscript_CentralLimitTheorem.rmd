@@ -6,31 +6,6 @@ username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput)
 SD<-Sys.Date()
-samplesize<-c(10,30,100)
-repeatcount<-c(10,30,100,1000)
-dataset<-data.frame()
-ST<-Sys.time()  
-addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
-png.file<-paste("amcc_",addVer,".png",sep="")
-png(file=png.file,width=950,height=950)
-par(mfrow=c(length(samplesize)*2,length(repeatcount)),family="Meiryo",ps=17,oma = c(3, 3, 3, 2))
-for(sss in 1:length(samplesize)){
-  for(rrr in 1:length(repeatcount)){
-    means<-vector('numeric')
-    for(rr in 1:repeatcount[rrr]){
-      buf<-runif(samplesize[sss])
-      means<-c(means,mean(buf))#標本平均
-    }
-    title<-paste("標本サイズ=",samplesize[sss],"\n試行回数=",repeatcount[rrr])
-    hist(means,main=title)
-    qqnorm(means,main=title);qqline(means,col="red")
-    dataset[sss,rrr]<-shapiro.test(means)$p.value
-  }
-}
-dataset<-data.frame(as.integer(samplesize),dataset)
-colnames(dataset)<-c("サンプルサイズ",paste("試行回数:",repeatcount,sep=""))
-mtext("一様分布",side=3,outer=T)
-dev.off()
 htmlFile<-"distribution.html"
 cat("",file=htmlFile,append=F)
 cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>
@@ -40,13 +15,59 @@ tr, td, th{white-space: nowrap;}
 table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
 table.amcc tr:nth-child(even){background-color: #FFFFFF;}
 </style>",file=htmlFile,append=T)
-cat("<div style=\"text-align:center\"><img src=\"http://archive.am-consulting.co.jp/.png\" alt=\"\" title=\"\" width=\"100%\"></div><br>",file=htmlFile,append=T)
+samplesize<-c(10,30,100)
+repeatcount<-c(10,30,100,1000)
+alpha<-0.5;beta<-0.5 #for rbeta()
+dataset<-data.frame()
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=950,height=950)
+par(mfrow=c(length(samplesize)*2,length(repeatcount)),family="Meiryo",ps=17,oma = c(3, 3, 3, 2))
+for(sss in 1:length(samplesize)){
+  for(rrr in 1:length(repeatcount)){
+#     means<-vector('numeric')
+#     for(rr in 1:repeatcount[rrr]){
+# #     buf<-runif(samplesize[sss]);distribution<-"一様分布"
+#       buf<-rbeta(samplesize[sss],alpha,beta);
+#       means<-c(means,mean(buf))#標本平均
+#     }
+#   means<-data.frame(x=sapply(seq(repeatcount[rrr]),function(x){mean(runif(samplesize[sss]))}));distribution<-"一様分布"
+    means<-data.frame(x=sapply(seq(repeatcount[rrr]),function(x){mean(rbeta(samplesize[sss],alpha,beta))}));distribution<-"ベータ分布"
+    title<-paste("試行回数=",repeatcount[rrr],"\n標本サイズ=",samplesize[sss])
+    hist(means[,1],main=title,breaks=20)
+    qqnorm(means[,1],main=title);qqline(means[,1],col="red")
+    dataset[sss,rrr]<-shapiro.test(means[,1])$p.value
+  }
+}
+dataset<-data.frame(as.integer(samplesize),dataset)
+colnames(dataset)<-c("サンプルサイズ",paste("試行回数:",repeatcount,sep=""))
+#mtext(distribution,side=3,outer=T)
+mtext(paste(distribution," - α:",alpha,"β:",beta),side=3,outer=T)
+dev.off()
+cat(paste("<div style=\"text-align:center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\"></a></div><br>",sep=""),file=htmlFile,append=T)
 cat("<b>標本平均の正規性検定結果-shapiro.test {stats}-p値</b>",file=htmlFile,append=T)
-print(xtable(dataset),file=htmlFile,append=T,type="html",include.rownames=F,html.table.attributes="class='amcc'")
+print(xtable(dataset),file=htmlFile,append=T,type="html",include.rownames=F,html.table.attributes="id='amcc' class='amcc'")
 cat("<script>
-$(\"tr\").not(':first').hover(
+$(\"#amcc tr\").not(':first').hover(
 function () {$(this).css(\"background\",\"#8FBC8F\");}, 
 function () {$(this).css(\"background\",\"\");}
 );
 </script>",file=htmlFile,append=T)
+#β分布
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=950,height=400)
+par(ps=20,mar=c(5,10,10,3),cex.main=1.5,cex.lab=1.5,cex.axis=1.5,family="Meiryo") 
+x<-seq(0,1,length=200)
+plot(x,dbeta(x,alpha,beta),type="l",
+  main=paste("β Distribution - α:",alpha," , β:",beta,seP=""),
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
+  family="Meiryo",cex.axis=1,cex.lab=1,cex.main=2)
+dev.off()
+cat(paste("<div style=\"text-align:center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\"></a></div><hr>",sep=""),file=htmlFile,append=T)
+#β分布
 ```
