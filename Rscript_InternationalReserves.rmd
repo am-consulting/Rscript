@@ -1,0 +1,164 @@
+```{r}
+#library(zoo)
+library(lubridate)
+library(knitr)
+library(quantmod)
+dataset<-list()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+sourceURL<-"http://www.mof.go.jp/international_policy/reference/official_reserve_assets/historical.csv"
+tmp<-read.csv(sourceURL,header=F,skip=0,stringsAsFactor=F,check.names=F)
+SD<-Sys.Date();ST<-Sys.time()
+rrr<-1
+title<-vector()
+while(tmp[rrr,1]!=""){
+  title[rrr]<-tmp[rrr,1]  
+  rrr<-rrr+1  
+} 
+while(tmp[rrr,1]==""){
+  rrr<-rrr+1  
+}
+startDate<-as.Date(paste(tmp[rrr,3],"-",match(tmp[rrr,4],month.abb),"-1",sep=""))
+date<-seq(startDate,by="month",length.out=nrow(tmp)-rrr+1)
+#length.out=(as.yearmon(as.Date("2016-3-1"))-as.yearmon(startDate))*12+1
+EXJPUSData<-getSymbols("EXJPUS",src="FRED",auto.assign=FALSE)
+```
+
+```{r}
+#ドル建て
+dataset[[1]]<-data.frame(Date=date,tmp[rrr:nrow(tmp),5:19],check.names=F)
+dataset[[1]][,-1]<-apply(dataset[[1]][,-1],2,as.numeric)
+colnames(dataset[[1]])[-1]<-c(
+  "外貨準備", #2
+  "外貨", #3
+  "外貨-証券", #4
+  "証券うち本邦発行体分", #5
+  "外貨-預金", #6
+  "外国中央銀行及びBISへの預金", #7
+  "本邦金融機関への預金", #8
+  "本邦金融機関への預金うち海外拠点分", #9
+  "外国金融機関への預金", #10
+  "外国金融機関への預金うち本邦内拠点分", #11
+  "IMFリザーブポジション", #12
+  "SDR", #13
+  "金", #14
+  "金重量[百万トロイオンス]", #15
+  "その他外貨準備" #16
+)
+head(dataset[[1]])
+tail(dataset[[1]])
+#ドル建て
+#外貨準備に占める割合
+dataset[[2]]<-data.frame(Date=dataset[[1]][,1],round(dataset[[1]][,-c(1,15)]/dataset[[1]][,2]*100,1),check.names=F)
+head(dataset[[2]])
+tail(dataset[[2]])
+#外貨準備に占める割合
+#円建て
+exRate<-data.frame(subset(EXJPUSData,head(dataset[[1]][,1],1)<=index(EXJPUSData) & tail(dataset[[1]][,1],1)>=index(EXJPUSData)))
+buf<-dataset[[1]][,-c(1,15)]*10^-6
+bufcolnames<-colnames(buf)
+dataset[[3]]<-data.frame(Date=dataset[[1]][,1],exRate[,1,drop=F],row.names=NULL)
+dataset[[3]]<-data.frame(dataset[[3]],apply(buf,2,function(x){x*exRate[,1,drop=F]}),row.names=NULL)
+colnames(dataset[[3]])[-c(1,2)]<-bufcolnames
+colnames(dataset[[3]])[2]<-"ドル円レート"
+head(dataset[[3]])
+tail(dataset[[3]])
+#円建て
+```
+
+```{r}
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+htmlFile<-"amcc_InternationalReserves.html"
+cat("",file=htmlFile,append=F)
+cat("
+<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+<meta http-equiv=\"Pragma\" content=\"no-cache\" />
+<meta http-equiv=\"cache-control\" content=\"no-cache\" />
+<meta http-equiv=\"expires\" content=\"0\" />
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>
+</head>
+<body>",file=htmlFile,append=T)
+cat(paste("<div align=\"right\">データ取得日時:",
+  year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div>"),file=htmlFile,append=T)
+for(ddd in 1:3){
+if(ddd==1){
+  title<-"外貨準備等の状況(単位:百万ドル、オリジナルデータ出所:財務省)"
+}else if(ddd==2){
+  title<-"外貨準備等の状況(外貨準備に占める割合、単位:%、オリジナルデータ出所:財務省)"
+}
+else{  
+  title<-"外貨準備等の状況(単位:兆円、オリジナルデータ出所:Federal Reserve Bank of St. Louis、財務省)"
+}  
+#table part
+kableData<-dataset[[ddd]]
+kableData[is.na(kableData)==T]<--9999
+kableData[,1]<-format(kableData[,1],"%Y-%m")
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("amcc_",addVer,sep="")
+table.argu<-paste("id=\"",tableID,"\" width=\"100%\" class=\"display compact\"",sep="")
+cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#",tableID,"').dataTable({
+\"lengthMenu\":[[10,-1],[10,\"All\"]],
+\"order\":[[0,\"desc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"30%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+for(ccc in 1:ncol(kableData)){
+  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>",title,"</b></div>",file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
+cat("</div>\n",file=htmlFile,append=T)  
+#table part
+#chart part
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1900,height=900)
+if(ddd==1){
+  object<-2
+}
+else if(ddd==2){
+  object<-3
+}
+else{
+  object<-3
+}
+plot(
+  dataset[[ddd]][,1],
+  dataset[[ddd]][,object],
+  type="l",
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  main=colnames(dataset[[ddd]])[object],
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+smoothline<-loess(dataset[[ddd]][,object]~seq(1,length(dataset[[ddd]][,1]),by=1))
+lines(dataset[[ddd]][,1],predict(smoothline),col='red',lwd=2) 
+axis.Date(side=1,at=dataset[[ddd]][,1],format="%Y-%m",padj=1,cex.axis=2.0)
+dev.off()
+cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,
+"\" alt=\"",png.file,"\" width=\"100%\"><hr>",sep=""),file=htmlFile,append=T)    
+#chart part
+}
+cat("Powered By <br>R - https://cran.r-project.org/<br>DataTables- https://datatables.net/",file=htmlFile,append=T)
+cat("</body></html>",file=htmlFile,append=T)
+```
