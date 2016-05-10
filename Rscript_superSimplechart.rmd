@@ -1,0 +1,129 @@
+```{r}
+tmp<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("NA","-","－"),check.names=F)
+tmp[,1]<-as.Date(tmp[,1])
+```
+
+```{r}
+maintitle<-"労働力調査 2016年第1四半期"
+source<-"総務省"
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+library(lubridate);library(dplyr);library(xtable)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+htmlFile<-"superSimplechart.html"
+cat("",file=htmlFile,append=F)
+cat(paste("<div align=\"center\"><b>",maintitle,"</b><br>データ出所",source,"</div><hr>"),file=htmlFile,append=F)
+cat("<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js\"></script>
+<style>
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left: auto;margin-right: auto;}
+tr, td, th{white-space: nowrap;}
+table.amcc tr:nth-child(odd) {background-color: #F5F5F5;}
+table.amcc tr:nth-child(even){background-color: #FFFFFF;}
+</style>",file=htmlFile,append=T)
+monthN<-unique(month(tmp[,1]))
+datafreq<-length(monthN)
+if(datafreq==4){datestart<-c(year(tmp[1,1]),datafreq/4)}
+for(rrr in 2:ncol(tmp)){
+#ts table
+tsdata<-ts(tmp[,rrr],frequency=datafreq,start=datestart)
+cat(paste("<div align=\"center\"><b>",colnames(tmp)[rrr],"</b></div>"),file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+print(xtable(tsdata),file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="id='amcc' class='amcc'")
+cat("</div>",file=htmlFile,append=T)
+#ts table
+#plot
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1900,height=900)
+plot(
+  tmp[,1],
+  tmp[,rrr],
+  type="l",
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
+  xaxt="n",
+  cex.axis=2.5,cex.lab=2.5,cex.main=3.5,
+  col=rrr,
+  main=colnames(tmp)[rrr],
+  lwd=2
+)
+axis.Date(side=1,at=tmp[,1],format="%Y-%m",padj=1,cex.axis=2.5)
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+"\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+"\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T) 
+#plot
+}
+#月別平均
+for(rrr in 1:datafreq){
+  buf0<-tmp%>%filter(month(tmp[,1])==monthN[rrr])
+  buf1<-data.frame(apply(buf0[,-1],2,mean))
+  if(rrr==1){dataset<-buf1}else{dataset<-data.frame(dataset,buf1,check.names=F)}
+  colnames(dataset)[rrr]<-paste(monthN[rrr],"月平均")
+}
+dataset
+print(xtable(dataset),file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="id='amcc' class='amcc'")
+cat("<hr>",file=htmlFile,append=T)
+#月別平均
+#年別平均
+yearN<-unique(year(tmp[,1]))
+datafreq<-length(yearN)
+for(rrr in 1:datafreq){
+  buf0<-tmp%>%filter(year(tmp[,1])==yearN[rrr])
+  buf1<-data.frame(apply(buf0[,-1],2,mean))
+  if(rrr==1){dataset<-buf1}else{dataset<-data.frame(dataset,buf1,check.names=F)}
+  colnames(dataset)[rrr]<-paste(yearN[rrr],"年平均")
+}
+dataset
+print(xtable(t(dataset)),file=htmlFile,append=T,type="html",include.rownames=T,html.table.attributes="id='amcc' class='amcc'")
+#年別平均
+#plot
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1900,height=900)
+max<-(10^10)*-1
+min<-(10^10)*1
+for(rrr in 2:ncol(tmp)){
+  max<-max(max,tmp[,rrr]/tmp[1,rrr])
+  min<-min(min,tmp[,rrr]/tmp[1,rrr])
+}
+plot(
+  tmp[,1],
+  tmp[,2]/tmp[1,2],
+  type="l",
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
+  xaxt="n",
+  cex.axis=2.5,cex.lab=2.5,cex.main=3.5,
+  col=2,
+  ylim=c(min,max),
+  main=paste(format(tmp[1,1],"%Y-%m"),"を1とした時の時系列推移"),
+  lwd=2
+)
+ymax<-max(tmp[,2]/tmp[1,2])
+ymin<-min(tmp[,2]/tmp[1,2])
+for(rrr in 3:ncol(tmp)){
+  lines(tmp[,1],tmp[,rrr]/tmp[1,rrr],type="l",col=rrr,lwd=2)
+  ymax<-max(ymax,tmp[,rrr]/tmp[1,rrr])
+  ymin<-min(ymin,tmp[,rrr]/tmp[1,rrr])
+}
+axis.Date(side=1,at=tmp[,1],format="%Y-%m",padj=1,cex.axis=2.5)
+labels<-colnames(tmp)[-1]
+legend("topleft",legend=labels,col=seq(2,ncol(tmp),by=1),lty=1,lwd=4,cex=3)
+dev.off()
+cat(paste("<a href=\"http://archive.am-consulting.co.jp/",png.file,
+"\"><img src=\"http://archive.am-consulting.co.jp/",png.file,
+"\" alt=\"",png.file,"\" width=\"100%\"></a><hr>",sep=""),file=htmlFile,append=T) 
+cat("<script>
+$(\"#amcc tr\").not(':first').hover(
+function () {$(this).css(\"background\",\"#8FBC8F\");}, 
+function () {$(this).css(\"background\",\"\");}
+);
+</script>",file=htmlFile,append=T)
+```
