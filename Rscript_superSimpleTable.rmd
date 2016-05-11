@@ -3,13 +3,16 @@ library(knitr)
 library(lubridate)
 dataset<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=F)
 dataset[is.na(dataset)==T]<--9999
+if(is.Date(dataset[,1])==T){dataset[,1]<-as.Date(dataset[,1])}
+dataset<-data.frame(dataset,dataset[,1],check.names=F)
+colnames(dataset)[ncol(dataset)]<-colnames(dataset)[1]
 dataset<-data.frame(ID=seq(1,nrow(dataset),by=1),dataset,check.names=F)
 tail(dataset)
 ```
 
 ```{r}
-title<-"国債及び借入金並びに政府保証債務現在高(2016年3月末)"
-source<-"財務省"
+title<-"被保護者調査(2016年2月分概数)"
+source<-"厚生労働省"
 ST<-Sys.time()
 SD<-Sys.Date()
 username<-Sys.info()['user']
@@ -54,5 +57,78 @@ cat("Powered by<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jqu
 cat("
 <style>.youtube_channel.ytc_wall_1-6 .ytc_video_container{padding: 5px;box-sizing: border-box;font-size:15px;}</style>
 <hr>
-[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q playlist=PLu2t-yT4OTt-iS_cv9NAOUaWQ3SKZzWJA resource=2 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]",file=htmlFile,append=T)
+[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q playlist=PLu2t-yT4OTt-iS_cv9NAOUaWQ3SKZzWJA resource=2 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]
+<hr>
+<table style=\"border:none; table-layout:fixed;\">
+<tbody>
+<tr>
+<td style=\"border:none\" width=\"10%\">
+　Asset Management Consulting
+　[browser-shot url=\"http://am-consulting.co.jp\"]
+</td>
+<td style=\"border:none\"  width=\"10%\">
+　Curiosity
+　[browser-shot url=\"http://curiosity.am-consulting.co.jp\"]
+</td>
+<td style=\"border:none\"  width=\"10%\">
+　Equations
+　[browser-shot url=\"http://equations.am-consulting.co.jp\"]
+</td>
+<td style=\"border:none\"  width=\"10%\">
+　SaECaNet
+　[browser-shot url=\"http://www.saecanet.com\"]
+</td>
+</tr>
+<tr>
+<td style=\"border:none\">
+　youtube channel \"Curiosity\"
+　[browser-shot url=\"https://www.youtube.com/user/michiomitake\"]
+</td>
+<td style=\"border:none\">
+　Google Store
+　[browser-shot url=\"https://play.google.com/store/apps/developer?id=%E3%82%A2%E3%82%BB%E3%83%83%E3%83%88%E3%83%BB%E3%83%9E%E3%83%8D%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88%E3%83%BB%E3%82%B3%E3%83%B3%E3%82%B5%E3%83%AB%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0%E6%A0%AA%E5%BC%8F%E4%BC%9A%E7%A4%BE&hl=ja\"]
+</td>
+<td style=\"border:none\">
+　twitCasting
+　[browser-shot url=\"http://twitcasting.tv/amc2_japan/show/\"]
+</td>
+<td style=\"border:none\">
+　twitter:ID AMC2_Japan
+　[browser-shot url=\"https://twitter.com/AMC2_Japan\"]
+</td>
+</tr>
+<tr>
+<td style=\"border:none\">
+　GitHub
+　[browser-shot url=\"https://github.com/am-consulting\"]
+</td>
+<td style=\"border:none\">
+　facebook
+　[browser-shot url=\"https://www.facebook.com/asset.management.consulting/\"]
+</td>
+<td style=\"border:none\">
+　twilog:ID AMC2_Japan
+　[browser-shot url=\"http://twilog.org/amc2_japan\"]
+</td>
+<td style=\"border:none\">
+　Google Custom Search
+　[browser-shot url=\"http://equations.am-consulting.co.jp/gcs.html\"]
+</td>
+</tr>
+<tr>
+<td style=\"border:none\">
+　twitter:ID SaECaNet
+　[browser-shot url=\"https://twitter.com/SaECaNet\"]
+</td>
+<td style=\"border:none\">
+The Beam	
+　[browser-shot url=\"http://www.saecanet.com/list_of_beamcalculation.php\"]
+</td>
+<td style=\"border:none\">
+</td>
+<td style=\"border:none\">
+</td>
+</tr>
+</tbody>
+</table>",file=htmlFile,append=T)
 ```
