@@ -115,6 +115,9 @@ cat("<link href=\"http://cdn.datatables.net/1.10.7/css/jquery.dataTables.min.css
 cat("<script src=\"http://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js\"></script>",file=htmlFile,append=T) 
 cat("</head>",file=htmlFile,append=T)
 cat("<body>",file=htmlFile,append=T)
+ST<-Sys.time()
+cat(paste("<div align=\"right\">作成日:",
+  year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div>"),file=htmlFile,append=T)
 htmlFile<<-htmlFile
 nData<-fredData
 for(cnt in 1:nData){
@@ -122,8 +125,8 @@ for(cnt in 1:nData){
   funHtml()
   funChangeRate()
 }
-funNormal()
-funAmcharts()
+#funNormal()
+#funAmcharts()
 #select box part
 cat("<script>\n",file=htmlFile,append=T)
 for(ggg in 1:nData){
@@ -223,7 +226,7 @@ plot(
   ylab="",
   ylim=c(min(arimaTable01[,2:3]),max(arimaTable01[,2:3])),
   panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
-  xaxt="n",
+  xaxt="n"
 )
 lines(arimaTable01[,1],arimaTable01[,3],col=cols[2],lty=ltys[2],lwd=lwds[2],type="l")
 axis.Date(side=1,at=arimaTable01[,1],format="%Y/%m",padj=1)
@@ -588,7 +591,7 @@ plot(
   xlab="",
   ylab="",
   panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T),
-  xaxt="n",
+  xaxt="n"
 )
 axis.Date(side=1,at=tmp[,1],format="%Y/%m",padj=1)
 labels<-c(colnames(tmp)[2])
