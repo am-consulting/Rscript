@@ -59,7 +59,7 @@ dataset<-tmpDataset
 ```
 
 ```{r}
-menulength<-10
+menulength<-15
 orderColumn<-1
 orderDirection<-"desc" #asc desc
 dateFormat<-1 #1:as is , 2:scientific , 3:monthly , 4:dayly , 5:yearly
@@ -122,7 +122,7 @@ cat("<link href=\"http://archive.am-consulting.co.jp/dataTables.fixedColumns.css
 cat("<script type=\"text/javascript\" charset=\"utf-8\">\n",file=htmlFile,append=T)
 cat("$(document).ready( function(){\n",file=htmlFile,append=T)
 cat(paste("var table =$('#",tableID,"').dataTable( {\n",sep=""),file=htmlFile,append=T)
-cat("\"lengthMenu\": [[",menulength,",-1,100,200], [",menulength,",\"All\",100,200]],",file=htmlFile,append=T)
+cat("\"lengthMenu\": [[",menulength,",-1], [",menulength,",\"All\"]],",file=htmlFile,append=T)
 cat(paste("\"order\": [[ ",orderColumn,", \"",orderDirection,"\" ]],",sep=""),file=htmlFile,append=T)
 cat("\"searching\": true,",file=htmlFile,append=T)
 cat("\"columnDefs\":[",columnWidth,"],",file=htmlFile,append=T)
