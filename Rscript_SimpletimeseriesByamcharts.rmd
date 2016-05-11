@@ -1,0 +1,174 @@
+```{r}
+library(lubridate)
+library(tseries)
+library(knitr)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+SD<-Sys.Date()
+```
+
+```{r}
+dataset<-list()
+tmp<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=F)
+tmp[,1]<-as.Date(tmp[,1])
+colnames(tmp)<-gsub("\n","",colnames(tmp))
+tmp<-data.frame(Date=tmp[,1],apply(tmp[,-1],2,function(x){as.numeric(gsub(",","",x))}),check.names=F)
+dataset[[1]]<-dataset[[2]]<-tmp
+dataset[[1]][is.na(dataset[[1]])==T]<--9999
+dataset[[1]][,1]<-format(dataset[[1]][,1],"%Y-%m")
+dataset[[1]]<-data.frame(dataset[[1]],dataset[[1]][,1],check.names=F)
+colnames(dataset[[1]])[ncol(dataset[[1]])]<-colnames(dataset[[1]])[1]
+dataset[[1]]<-tail(dataset[[1]],nrow(dataset[[1]]))
+tail(dataset[[1]])
+tail(dataset[[2]])
+```
+
+```{r}
+title<-"景気動向指数 遅行指数"
+source<-"内閣府"
+htmlFile<-"amcc_simpletimeseries.html"
+cat("",file=htmlFile,append=F)
+cat("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>
+",file=htmlFile,append=T)
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("amcc_",addVer,sep="")
+table.argu<-paste("id=\"",tableID,"\" width=\"100%\" class=\"display compact\"",sep="")
+cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#",tableID,"').dataTable({
+\"lengthMenu\":[[10,-1],[10,\"All\"]],
+\"order\":[[0,\"desc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"30%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset[[1]])){
+  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>",title,"</b><br>データ出所",source,"</div>",file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(kable(dataset[[1]],'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(dataset[[1]]))),file=htmlFile,append=T)
+cat("</div>\n<hr>",file=htmlFile,append=T)  
+#kable part
+```
+
+```{r}
+tailN<-48
+dateFormat<-"YYYY-MM" #YYYY-MM-DD
+cat(paste("
+<script src=\"http://archive.am-consulting.co.jp/amcharts3204/amcharts.js\"></script>
+<script src=\"http://archive.am-consulting.co.jp/amcharts3204/serial.js\"></script>
+<script src=\"http://archive.am-consulting.co.jp/amcharts3204/themes/light.js\"></script>
+"),file=htmlFile,append=T)
+for(ddd in 2:ncol(dataset[[2]])){
+buf<-tail(na.omit(dataset[[2]][,c(1,ddd)]),tailN)  
+cat(paste("<div style=\"text-align:center\"><b>",colnames(buf)[2],"</b></div>"),file=htmlFile,append=T)
+smoothline<-loess(buf[,2]~seq(1,length(buf[,1]),by=1))
+cat(paste("
+<style>#chartdiv",ddd,"{width:100%;height:300px;font-size:11px;}</style>
+<div id=\"chartdiv",ddd,"\"></div>
+<script>
+var chart = AmCharts.makeChart(\"chartdiv",ddd,"\",{
+\"type\":\"serial\",
+\"theme\":\"light\",
+\"marginTop\":0,
+\"marginRight\":80,
+\"autoMarginOffset\":20,
+\"dataDateFormat\":\"YYYY-MM-DD\",
+\"valueAxes\":[{\"id\":\"v",ddd,"\",\"axisAlpha\":0,\"position\":\"left\",\"ignoreAxisWidth\":false}],
+\"balloon\":{\"maxWidth\":1000,\"borderThickness\":1,\"shadowAlpha\":0},
+\"graphs\":[
+{ 
+\"id\":\"g",ddd,"\", 
+\"bullet\":\"round\", 
+\"bulletBorderAlpha\":1, 
+/*\"bulletColor\":\"#FFFFFF\",*/ 
+\"bulletSize\":10, 
+\"hideBulletsCount\":0, 
+/*\"fillColors\":\"#637bb6\",
+\"fillAlphas\":1,
+\"columnWidth\":15,*/
+\"lineThickness\":2, 
+\"useLineColorForBulletBorder\":true,
+\"valueField\":\"value",ddd,"\", 
+\"lineColor\":\"#637bb6\",
+\"negativeLineColor\":\"#d1655d\",
+\"type\":\"line\", /*line, column, step, smoothedLine*/ 
+\"balloonText\":\"<div style='margin:5px; font-size:19px;'><span style='font-size:13px;'>",colnames(dataset[[2]])[ddd],"</span> [[category]] - [[value]]</div>\"
+},
+{ 
+\"id\":\"g",ddd*1000,"\", 
+/*\"bullet\":\"round\", 
+\"bulletBorderAlpha\":0, 
+\"bulletColor\":\"#FFFFFF\", 
+\"bulletSize\":10,*/ 
+\"hideBulletsCount\":0, 
+\"lineThickness\":1, 
+\"useLineColorForBulletBorder\":true,
+\"valueField\":\"value",ddd*1000,"\", 
+\"lineColor\":\"#FF0000\",
+/*\"negativeLineColor\":\"#d1655d\",*/
+\"type\":\"smoothedLine\", /*line, column, step, smoothedLine*/ 
+\"balloonText\":\"\"
+},
+],
+\"mouseWheelZoomEnabled\":true,
+\"chartScrollbar\":{
+\"scrollbarHeight\":2,
+\"offset\":-1,
+\"backgroundAlpha\":0.1,
+\"backgroundColor\":\"#888888\",
+\"selectedBackgroundColor\":\"#67b7dc\",
+\"selectedBackgroundAlpha\":1
+},
+\"chartCursor\":{
+\"categoryBalloonDateFormat\":\"",dateFormat,"\"
+/*  
+\"pan\":true,
+\"valueLineEnabled\":true,
+\"valueLineBalloonEnabled\":true,
+\"cursorAlpha\":0,
+\"valueLineAlpha\":0.2
+*/  
+},
+\"categoryField\":\"date\",
+\"categoryAxis\":{
+\"parseDates\":true,
+\"dashLength\":1,
+\"minorGridEnabled\":true
+},
+\"export\":{
+\"enabled\":true
+},
+\"dataProvider\":[",sep=""),file=htmlFile,append=T)
+for(rrr in 1:nrow(buf)){
+  cat(paste("
+  {\"date\":\"",buf[rrr,1],"\",\"value",ddd,"\":",buf[rrr,2],",\"value",ddd*1000,"\":",predict(smoothline)[rrr],"}",sep=""),file=htmlFile,append=T)
+  if(rrr!=nrow(buf)){cat(",",file=htmlFile,append=T)}
+}
+cat(paste("
+]});
+chart.addListener(\"rendered\", zoomChart);
+zoomChart();
+function zoomChart() {
+chart.zoomToIndexes(chart.dataProvider.length - ",nrow(buf),", chart.dataProvider.length - 0);
+}
+</script>\n<hr>",sep=""),file=htmlFile,append=T)
+}
+cat("Powered By <br>amCharts - https://www.amcharts.com/<br>DataTables - https://datatables.net/<br>R - https://cran.r-project.org/",file=htmlFile,append=T)
+```
