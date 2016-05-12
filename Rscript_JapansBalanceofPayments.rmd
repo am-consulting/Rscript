@@ -1,0 +1,220 @@
+```{r}
+library(lubridate)
+library(knitr)
+library(quantmod)
+library(beepr)
+dataset<-list()
+tmp<-list()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+sourceURL<-c(
+  "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-1/6s-1-4.csv",
+  "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-2/6s-2-4.csv",
+  "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-3/6s-3-4.csv",
+  "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-4/6s-4-4.csv")
+SD<-Sys.Date();ST<-Sys.time()
+for(ddd in 1:length(sourceURL)){
+tmp[[ddd]]<-read.csv(sourceURL[ddd],header=F,skip=0,stringsAsFactor=F,check.names=F)
+nonNumeric<-c(1,2,3,4)
+tmp[[ddd]]<-data.frame(Date=tmp[[ddd]][,nonNumeric],apply(tmp[[ddd]][,-nonNumeric],2,function(x){as.numeric(gsub(",","",x))}),check.names=F)
+rrr<-nrow(tmp[[ddd]])
+while(tmp[[ddd]][rrr,2]!=""){
+  rrr<-rrr-1  
+} 
+startDate<-as.Date(paste(tmp[[ddd]][rrr+1,3],"-",match(tmp[[ddd]][rrr+1,4],month.abb),"-1",sep=""))
+date<-seq(startDate,by="month",length.out=nrow(tmp[[ddd]])-rrr)
+tmp[[ddd]]<-data.frame(Date=date,tmp[[ddd]][(rrr+1):nrow(tmp[[ddd]]),5:ncol(tmp[[ddd]])],check.names=F)
+print(tail(tmp[[ddd]]))
+}
+EXJPUSData<-getSymbols("EXJPUS",src="FRED",auto.assign=FALSE)
+```
+
+```{r}
+datacolnames<-list()
+datacolnames[[1]]<-c(
+  "経常収支", #2
+  "貿易･サービス収支", #3
+  "貿易収支", #4
+  "貿易収支-輸出", #5
+  "貿易収支-輸入", #6
+  "サービス収支", #7
+  "第一次所得収支", #8
+  "第二次所得収支", #9
+  "資本移転等収支", #10
+  "金融収支", #11
+  "金融収支-直接投資", #12
+  "金融収支-証券投資", #13
+  "金融収支-金融派生商品", #14
+  "金融収支-その他投資", #15
+  "金融収支-外貨準備", #16
+  "誤差脱漏"  #17
+)
+datacolnames[[2]]<-c(
+"サービス収支",
+"サービス収支-輸送",
+"サービス収支-旅行",
+"サービス収支-その他サービス",
+"サービス収支-その他サービス-委託加工サービス",
+"サービス収支-その他サービス-維持修理サービス",
+"サービス収支-その他サービス-建設",
+"サービス収支-その他サービス-保険・年金サービス",
+"サービス収支-その他サービス-金融サービス",
+"サービス収支-その他サービス-知的財産権等使用料",
+"サービス収支-その他サービス-通信・コンピュータ・情報サービス",
+"サービス収支-その他サービス-その他業務サービス",
+"サービス収支-その他サービス-個人・文化・娯楽サービス",
+"サービス収支-その他サービス-公的サービス等"
+)
+datacolnames[[3]]<-c(
+"第一次所得収支",
+"第一次所得収支-雇用者報酬",
+"第一次所得収支-投資収益",
+"第一次所得収支-投資収益-直接投資収益",
+"第一次所得収支-投資収益-直接投資収益-配当金・配分済支店収益",
+"第一次所得収支-投資収益-直接投資収益-再投資収益",
+"第一次所得収支-投資収益-直接投資収益-利子所得等",
+"第一次所得収支-投資収益-証券投資収益",
+"第一次所得収支-投資収益-証券投資収益-配当金",
+"第一次所得収支-投資収益-証券投資収益-債券利子",
+"第一次所得収支-投資収益-その他投資収益",
+"第一次所得収支-その他第一次所得"
+)
+datacolnames[[4]]<-c(
+"金融収支",
+"金融収支-直接投資",
+"金融収支-直接投資-株式資本",
+"金融収支-直接投資-収益の再投資",
+"金融収支-直接投資-負債性資本",
+"金融収支-証券投資",
+"金融収支-証券投資-株式",
+"金融収支-証券投資-投資ファンド持分",
+"金融収支-証券投資-中長期債",
+"金融収支-証券投資-短期債",
+"金融収支-金融派生商品",
+"金融収支-その他投資",
+"金融収支-外貨準備"
+)
+```
+
+```{r}
+for(ddd in 1:length(sourceURL)){
+dataset[[ddd]]<-tmp[[ddd]]
+dataset[[ddd]][,-1]<-apply(dataset[[ddd]][,-1],2,as.numeric)
+colnames(dataset[[ddd]])[-1]<-datacolnames[[ddd]]
+exRate<-data.frame(subset(EXJPUSData,head(dataset[[ddd]][,1],1)<=index(EXJPUSData) & tail(dataset[[ddd]][,1],1)>=index(EXJPUSData)))
+dataset[[ddd]]<-data.frame(dataset[[ddd]],exRate[,1,drop=F],row.names=NULL,check.names=F)
+colnames(dataset[[ddd]])[ncol(dataset[[ddd]])]<-"ドル円レート"
+print(head(dataset[[ddd]]))
+print(tail(dataset[[ddd]]))
+}
+```
+
+```{r}
+title<-"国際収支(単位:億円)とドル円レートの時系列推移"
+source<-"財務省,Federal Reserve Bank of St. Louis"
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+for(ddd in 1:length(dataset)){
+htmlFile<-paste("amcc_balanceofpayments",ddd,".html",sep="")
+cat("",file=htmlFile,append=F)
+#<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
+#<meta http-equiv=\"Pragma\" content=\"no-cache\" />
+#<meta http-equiv=\"cache-control\" content=\"no-cache\" />
+#<meta http-equiv=\"expires\" content=\"0\" />
+cat("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>",file=htmlFile,append=T)
+#</head>
+#<body>",file=htmlFile,append=T)
+cat(paste("<div align=\"right\">データ取得日時:",
+  year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div>"),file=htmlFile,append=T)
+#table part
+kableData<-dataset[[ddd]]
+kableData[is.na(kableData)==T]<--9999
+kableData[,1]<-format(kableData[,1],"%Y-%m")
+kableData<-data.frame(kableData,Date=kableData[,1],check.names=F)
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+tableID<-paste("amcc_",addVer,sep="")
+table.argu<-paste("id=\"",tableID,"\" width=\"100%\" class=\"display compact\"",sep="")
+cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#",tableID,"').dataTable({
+\"lengthMenu\":[[10,-1],[10,\"All\"]],
+\"order\":[[0,\"desc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"30%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+for(ccc in 1:ncol(kableData)){
+  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)
+cat("<div align=\"center\"><b>",colnames(dataset[[ddd]])[2],"-",title,"</b><br>",source,"</div>",file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
+cat("</div>\n",file=htmlFile,append=T)  
+#table part
+#chart part
+for(ccc in 2:(ncol(dataset[[ddd]])-1)){
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1200,height=600)
+buf<-na.omit(dataset[[ddd]][,c(1,ccc,ncol(dataset[[ddd]]))])
+buf$color<-"black"
+buf[buf[,2]<0,4]<-"red"
+par(mar=c(5,4,4,5))
+plot(
+  buf[,1],
+  buf[,2],
+  col=buf[,4],
+  type="h",
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  main=colnames(buf)[2],
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+smoothline<-loess(buf[,2]~seq(1,length(buf[,1]),by=1))
+lines(buf[,1],predict(smoothline),col='blue',lwd=2)
+par(new=T)
+plot(
+  buf[,1],
+  buf[,3],
+  col="red",
+  type="l",
+  lwd=2,
+  lty=2,
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  yaxt="n",
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+axis(4,cex.axis=3,cex.lab=2.5)
+legend("topleft",col=c("red"),lty=2,lwd=2,legend=colnames(buf)[3],cex=1.2)
+mtext(colnames(buf)[3],side=4,line=3.2,cex=2)
+axis.Date(side=1,at=buf[,1],format="%Y-%m",padj=1,cex.axis=2.0)
+dev.off()
+cat(paste("<div style=\"text-align:center\"><a href=\"http://archive.am-consulting.co.jp/",png.file,
+  "\"><img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\"></a></div><hr>",sep=""),file=htmlFile,append=T)
+#chart part
+}
+}
+cat("Powered By <br>R - https://cran.r-project.org/<br>DataTables- https://datatables.net/",file=htmlFile,append=T)
+#cat("</body></html>",file=htmlFile,append=T)
+beep(3)
+```
