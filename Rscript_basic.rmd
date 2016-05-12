@@ -17,6 +17,7 @@ library(fGarch)
 library(vars)
 library(MSwM)
 library(tsDyn)
+library(beepr) #2016-05-12
 #list
 dataset<-list()
 dataset.yy<-list()
@@ -204,9 +205,11 @@ fun.gettitle<-function(){
   gettitle<-gsub("YoYchange.percent.","YoYchange.percent\n",gettitle, perl=T)
   gettitle<-sub("\\.", "\n", gettitle)#最初のドットのみとする
   if(monthly[[iii]]==1){
-    gettitle<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",gettitle)
+#    gettitle<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m"),"\n",gettitle) #2016-05-12
+    gettitle<-paste(format(tmp.1[1,1],"%Y-%m"),"-",format(tmp.1[nrow(tmp.1),1],"%Y-%m")," ",gettitle) #2016-05-12
   }else{
-    gettitle<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",gettitle)
+#    gettitle<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1],"\n",gettitle) #2016-05-12
+    gettitle<-paste(tmp.1[1,1],"-",tmp.1[nrow(tmp.1),1]," ",gettitle) #2016-05-12
   }
   gettitle<<-gettitle
 }
@@ -304,7 +307,8 @@ path<-paste("C:/Users/",username,"/Desktop",sep="")
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 pathInput<-paste("C:/Users/",username,"/Desktop/inputR/",sep="")
 cnt<<-0
-data.id<-c("tschart","boxplot","unitroot","acf","forecast","return","rank","garch","msm","setar","seasonplot")
+#data.id<-c("tschart","boxplot","unitroot","acf","forecast","return","rank","garch","msm","setar","seasonplot") #2016-05-12
+data.id<-c("tschart","boxplot","unitroot","acf","forecast") #2016-05-12
 border.date<-as.Date(max(dataset.tm[[1]][1,1],dataset.tm[[2]][1,1]))
 ####################################################### argument  #######################################################
 ```
@@ -395,7 +399,7 @@ level.multi<-0
 ts.source<-list()
 ts.source[[1]]<-c("FRED",1,"DGS10","GOLDAMGBD228NLBM","DCOILWTICO","NIKKEI225","SP500","DJIA","NASDAQ100")
 ts.source[[2]]<-c("FRED",1,"DTWEXM","DEXJPUS","DEXUSEU","DEXUSUK","DEXUSAL","DEXNOUS","DEXSZUS","DEXSFUS","DEXKOUS","DEXUSNZ","DEXCHUS","TEDRATE")
-ts.source[[3]]<-c("FRED",1,"PAYEMS","MANEMP","UNRATE","CPIAUCNS","HOUSTNSA","A191RL1Q225SBEA","AMBNS","M2V","CP0000EZ17M086NEST","EXJPUS")
+#ts.source[[3]]<-c("FRED",1,"PAYEMS","MANEMP","UNRATE","CPIAUCNS","HOUSTNSA","A191RL1Q225SBEA","AMBNS","M2V","CP0000EZ17M086NEST","EXJPUS") #2016-05-12
 for(lll in 1:length(ts.source)){
   if(2<length(ts.source[[lll]])){
     for(iii in 3:length(ts.source[[lll]])){
@@ -627,7 +631,7 @@ for(uuuu in 1:length(unique(js.title))){
             shade<-subset(shade,as.Date(first.date[ttt])<=shade[,1])
             value.y<-median(tmp.1[,2]) #value.y<-mean(tmp.1[,2]) 
             png.file<-paste(js.title[[iii]],data.id[bbbb],ppp,count,ttt,".png",sep="")
-            png(file=png.file,width=1400,height=1200)  
+            png(file=png.file,width=1900,height=1200) #2016-05-12  
             g<-ggplot()
             g<-g+geom_segment(data=tmp.segment,aes(x=inaugural.date,xend=resignation.date,y=value.y,yend=value.y,colour=Name),size=10)
             g<-g+geom_rect(data=shade,aes(xmin=x0,xmax=x1,ymin=y0,ymax=y1),fill='gray80',alpha=0.4)
@@ -644,11 +648,17 @@ for(uuuu in 1:length(unique(js.title))){
             g<-g+geom_smooth(data=tmp.1,aes(x=Date,y=value),method=loess,color="red")
             g<-g+ggtitle(gettitle)+xlab("")+ylab("") 
             g<-g+ylim(y0,y1)
-            g<-g+theme(axis.text=element_text(size=30),
-            axis.title=element_text(size=50,face="bold"),title=element_text(size=60,face="bold"),
-            legend.position="top",legend.text=element_text(colour="black",size=25,face="bold"),
-            legend.title=element_text(colour="white",size=1,face="bold"))          
-            g<-g+scale_x_date(labels=date_format("%y/%m"))
+            #2016-05-12
+            g<-g+theme(#"plain", "italic", "bold", "bold.italic"
+              axis.text =element_text(size=70),
+              axis.title=element_text(size=70,face="plain"),
+              title=element_text(size=70,face="plain"),
+              legend.position="right",
+              legend.text =element_text(colour="black",size=70,face="plain"),
+              legend.title=element_text(colour="white",size=12,face="plain")
+            ) 
+            g<-g+scale_x_date(labels=date_format("%y-%m"))
+            #2016-05-12        
             print(g)
             dev.off() 
             cat(paste("<img src=\"http://archive.am-consulting.co.jp/",png.file,add.ver,"\"", " alt=\"\" width=\"100%\">\n",sep=""),file=buf.html,append=T)
@@ -658,6 +668,7 @@ for(uuuu in 1:length(unique(js.title))){
     } 
   }
 }
+beep(8) #2016-05-12
 ######################################時系列チャート###################################### 
 ```
 
@@ -1175,6 +1186,7 @@ if(goahead==1){
   }
  }
 }
+beep(8) #2016-05-12
 ```
 
 
