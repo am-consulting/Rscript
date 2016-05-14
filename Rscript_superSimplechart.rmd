@@ -4,8 +4,8 @@ tmp[,1]<-as.Date(tmp[,1])
 ```
 
 ```{r}
-maintitle<-"労働力調査 2016年第1四半期"
-source<-"総務省"
+maintitle<-"特定サービス産業動態統計調査 2016年3月分"
+source<-"経済産業省"
 SD<-Sys.Date()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 library(lubridate);library(dplyr);library(xtable)
@@ -24,7 +24,7 @@ table.amcc tr:nth-child(even){background-color: #FFFFFF;}
 </style>",file=htmlFile,append=T)
 monthN<-unique(month(tmp[,1]))
 datafreq<-length(monthN)
-if(datafreq==4){datestart<-c(year(tmp[1,1]),datafreq/4)}
+if(datafreq==4){datestart<-c(year(tmp[1,1]),datafreq/4)}else{datestart<-c(year(tmp[1,1]),month(tmp[1,1]))}
 for(rrr in 2:ncol(tmp)){
 #ts table
 tsdata<-ts(tmp[,rrr],frequency=datafreq,start=datestart)
