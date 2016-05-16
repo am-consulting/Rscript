@@ -1,0 +1,224 @@
+```{r}
+library(knitr)
+library(lubridate)
+library(quantmod)
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+ST<-Sys.time();SD<-Sys.Date()
+EXJPUSData<-getSymbols("EXJPUS",src="FRED",auto.assign=FALSE)
+dataset<-list()
+tmp<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=F)
+dateCol<-which(colnames(tmp)=="Date")
+dataset[[1]]<-tmp # for table
+dataset[[1]][is.na(dataset[[1]])==T]<--9999
+for(ddd in 1:length(dateCol)){
+  dataset[[1]][,dateCol[ddd]]<-format(as.Date(dataset[[1]][,dateCol[ddd]]),"%Y-%m")
+}
+dataset[[1]]<-tail(dataset[[1]],12)
+title<-"第3次産業活動指数 季節調整済指数 2016年3月分"
+source<-"経済産業省"
+needSelectlist<-0 # 0 or 1
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+htmlFile<-"bulkTimeSeriesChart.html"
+cat("",file=htmlFile,append=F)
+cat(paste("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>
+<div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>
+<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#amcc_bulkTimeSeriesChart').dataTable({
+\"lengthMenu\":[[-1],[\"All\"]],
+\"order\":[[0,\"desc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n"),file=htmlFile,append=T)
+for(ccc in 1:ncol(dataset[[1]])){
+  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)
+table.argu<-"id=\"amcc_bulkTimeSeriesChart\" width=\"100%\" class=\"display compact\""
+cat(paste("<div align=\"center\"><b>",title,"</b><br>データ出所:",source,"</div>  
+-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>"),file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(kable(dataset[[1]],'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(dataset[[1]]))),file=htmlFile,append=T)  
+cat("</div>\n",file=htmlFile,append=T)
+cat("Powered by<br>-R( https://cran.r-project.org/ )<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<hr>",file=htmlFile,append=T)  
+dataset[[2]]<-tmp
+for(ddd in 1:length(dateCol)){
+  dataset[[2]][,dateCol[ddd]]<-as.Date(dataset[[2]][,dateCol[ddd]])
+}
+for(ccc in 2:ncol(dataset[[2]])){
+if(colnames(dataset[[2]])[ccc]!="Date"){
+ST<-Sys.time()  
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1920,height=1080)  
+buf<-na.omit(dataset[[2]][,c(1,ccc)])  
+exRate<-data.frame(subset(EXJPUSData,head(buf[,1],1)<=index(EXJPUSData) & tail(buf[,1],1)>=index(EXJPUSData)))
+buf<-data.frame(buf,exRate[,1,drop=F],row.names=NULL,check.names=F)
+colnames(buf)[3]<-"ドル円レート"
+par(mar=c(5,4,4,5))
+plot(
+  buf[,1],
+  buf[,2],
+  type="l",
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  main=colnames(buf)[2],
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+smoothline<-loess(buf[,2]~seq(1,length(buf[,1]),by=1))
+lines(buf[,1],predict(smoothline),col='blue',lwd=2)
+par(new=T)
+plot(
+  buf[,1],
+  buf[,3],
+  col="red",
+  type="l",
+  lwd=2,
+  lty=2,
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  yaxt="n",
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+axis(4,cex.axis=3,cex.lab=2.5)
+legend("topleft",col=c("red"),lty=2,lwd=2,legend=colnames(buf)[3],cex=2.5)
+mtext(colnames(buf)[3],side=4,line=3.2,cex=2)
+axis.Date(side=1,at=buf[,1],format="%Y-%m",padj=1,cex.axis=2.0)
+dev.off()
+if(needSelectlist==1){ 
+cat(paste("
+<div id=\"amccchart",ccc,"\" style=\"text-align:center\">
+<select id=\"chartSelect",ccc,"\">
+<option value=\"\">Selecet a chart</option>",sep=""),file=htmlFile,append=T)
+for(zzz in 2:ncol(dataset[[2]])){ 
+  if(colnames(dataset[[2]])[zzz]!="Date"){
+  cat(paste("<option value=\"#amccchart",zzz,"\">",colnames(dataset[[2]])[zzz],"</option>\n",sep=""),file=htmlFile,append=T)
+  }
+}
+cat("
+</select>
+</div>",file=htmlFile,append=T)
+}
+cat(paste("
+<div style=\"text-align:center\">
+<b>",colnames(buf)[2],"</b>
+<a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\" width=\"100%\">
+</a>
+</div><hr>",sep=""),file=htmlFile,append=T)  
+}
+}
+if(needSelectlist==1){
+cat("<script>\n",file=htmlFile,append=T)
+for(zzz in 2:ncol(dataset[[2]])){
+  if(colnames(dataset[[2]])[ccc]!="Date"){
+  cat(paste("
+  document.getElementById(\"chartSelect",zzz,"\").onchange=function(){
+  if(this.selectedIndex!==0){
+  window.location.href=this.value;
+  document.getElementById(\"chartSelect",zzz,"\").value=\"\";  
+  }
+  };",sep=""),file=htmlFile,append=T)
+  }
+}
+cat("</script>\n",file=htmlFile,append=T)
+}
+cat("
+<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container{padding: 5px;box-sizing: border-box;font-size:15px;}</style>
+<hr>
+[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q playlist=PLu2t-yT4OTt-iS_cv9NAOUaWQ3SKZzWJA resource=2 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]
+<hr>
+<table style=\"border:none; table-layout:fixed;\">
+<tbody>
+<tr>
+<td style=\"border:none\" width=\"10%\">
+　Asset Management Consulting
+　[browser-shot url=\"http://am-consulting.co.jp\"]
+</td>
+<td style=\"border:none\"  width=\"10%\">
+　Curiosity
+　[browser-shot url=\"http://curiosity.am-consulting.co.jp\"]
+</td>
+<td style=\"border:none\"  width=\"10%\">
+　Equations
+　[browser-shot url=\"http://equations.am-consulting.co.jp\"]
+</td>
+<td style=\"border:none\"  width=\"10%\">
+　SaECaNet
+　[browser-shot url=\"http://www.saecanet.com\"]
+</td>
+</tr>
+<tr>
+<td style=\"border:none\">
+　youtube channel \"Curiosity\"
+　[browser-shot url=\"https://www.youtube.com/user/michiomitake\"]
+</td>
+<td style=\"border:none\">
+　Google Store
+　[browser-shot url=\"https://play.google.com/store/apps/developer?id=%E3%82%A2%E3%82%BB%E3%83%83%E3%83%88%E3%83%BB%E3%83%9E%E3%83%8D%E3%82%B8%E3%83%A1%E3%83%B3%E3%83%88%E3%83%BB%E3%82%B3%E3%83%B3%E3%82%B5%E3%83%AB%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0%E6%A0%AA%E5%BC%8F%E4%BC%9A%E7%A4%BE&hl=ja\"]
+</td>
+<td style=\"border:none\">
+　twitCasting
+　[browser-shot url=\"http://twitcasting.tv/amc2_japan/show/\"]
+</td>
+<td style=\"border:none\">
+　twitter:ID AMC2_Japan
+　[browser-shot url=\"https://twitter.com/AMC2_Japan\"]
+</td>
+</tr>
+<tr>
+<td style=\"border:none\">
+　GitHub
+　[browser-shot url=\"https://github.com/am-consulting\"]
+</td>
+<td style=\"border:none\">
+　facebook
+　[browser-shot url=\"https://www.facebook.com/asset.management.consulting/\"]
+</td>
+<td style=\"border:none\">
+　twilog:ID AMC2_Japan
+　[browser-shot url=\"http://twilog.org/amc2_japan\"]
+</td>
+<td style=\"border:none\">
+　Google Custom Search
+　[browser-shot url=\"http://equations.am-consulting.co.jp/gcs.html\"]
+</td>
+</tr>
+<tr>
+<td style=\"border:none\">
+　twitter:ID SaECaNet
+　[browser-shot url=\"https://twitter.com/SaECaNet\"]
+</td>
+<td style=\"border:none\">
+The Beam	
+　[browser-shot url=\"http://www.saecanet.com/list_of_beamcalculation.php\"]
+</td>
+<td style=\"border:none\">
+</td>
+<td style=\"border:none\">
+</td>
+</tr>
+</tbody>
+</table>",file=htmlFile,append=T)
+```
