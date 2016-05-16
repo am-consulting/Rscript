@@ -15,7 +15,7 @@ tmp<-merge(tmp01,tmp02);tmp<-na.omit(tmp);tmp000<-tmp;head(tmp);tail(tmp)
 
 ```{r}
 datafreq<-12 # 4 , 12
-posttitle<-"民主党政権発足から現在(安倍政権)までのマネーストック(広義流動性、単位:兆円)とその信用乗数"
+posttitle<-"民主党政権発足から現在(安倍政権)までのマネタリーベースと企業物価指数"
 datasource<-"日本銀行"
 library(ggplot2)
 library(xtable)
