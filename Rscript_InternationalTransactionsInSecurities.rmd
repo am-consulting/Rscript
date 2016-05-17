@@ -1,0 +1,146 @@
+```{r}
+library(knitr)
+library(lubridate)
+SD<-Sys.Date()
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+htmlFile<-paste("amcc_InternationalTransactionsInSecurities.html",sep="")
+cat("",file=htmlFile,append=F)
+url<-"http://www.mof.go.jp/international_policy/reference/itn_transactions_in_securities/week.csv"
+buf<-read.csv(url,header=F,skip=0,stringsAsFactor=F,na.strings=c(""),check.names=F)
+for(rrr in 1:nrow(buf)){
+  tmp<-buf[rrr,]  
+  tmp<-grep("対外証券投資",tmp)
+  if(length(tmp)!=0){break}
+}
+tmp<-buf[rrr,]
+assets<-grep("対外",tmp)
+liabilities<-grep("対内",tmp)
+for(rrr in 1:nrow(buf)){
+  tmp<-buf[rrr,]  
+  tmp<-grep("Acquisition",tmp)
+  if(length(tmp)!=0){break}
+}
+startRow<-rrr+1
+startCol<-tmp[1]
+tmp<-na.omit(buf[-(1:(startRow-1)),])
+dataset<-data.frame(tmp[,1],apply(tmp[,-1],2,function(x){as.numeric(gsub(",","",x))}))
+names<-c(
+  "期間",
+  "対外 - 株式･投資ファンド持分 - 取得",
+  "対外 - 株式･投資ファンド持分 - 処分",
+  "対外 - 株式･投資ファンド持分 - ネット",
+  "対外 - 中長期債 - 取得",
+  "対外 - 中長期債 - 処分",
+  "対外 - 中長期債 - ネット",
+  "対外 - 小計 - ネット",
+  "対外 - 短期債 - 取得",
+  "対外 - 短期債 - 処分",
+  "対外 - 短期債 - ネット",
+  "対外 - 合計 - ネット",
+  "対内 - 株式･投資ファンド持分 - 取得",
+  "対内 - 株式･投資ファンド持分 - 処分",
+  "対内 - 株式･投資ファンド持分 - ネット",
+  "対内 - 中長期債 - 取得",
+  "対内 - 中長期債 - 処分",
+  "対内 - 中長期債 - ネット",
+  "対内 - 小計 - ネット",
+  "対内 - 短期債 - 取得",
+  "対内 - 短期債 - 処分",
+  "対内 - 短期債 - ネット",
+  "対内 - 合計 - ネット"
+)
+colnames(dataset)<-names
+head(dataset);tail(dataset)
+#table part
+ST<-Sys.time()
+title<-paste("対外及び対内証券売買契約等の状況 期間:",head(dataset[,1],1),"-",tail(dataset[,1],1))
+source<-"財務省"
+kableData<-dataset
+kableData[is.na(kableData)==T]<--9999
+kableData<-data.frame(kableData,kableData[,1],check.names=F)
+colnames(kableData)[ncol(kableData)]<-colnames(kableData)[1]
+kableData<-data.frame(ID=seq(1,nrow(kableData),by=1),kableData,check.names=F)
+cat(paste("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>
+<div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>
+<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#amcc_InternationalTransactionsInSecurities').dataTable({
+\"lengthMenu\":[[20,-1],[20,\"All\"]],
+\"order\":[[0,\"desc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n"),file=htmlFile,append=T)
+for(ccc in 1:ncol(kableData)){
+  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)
+table.argu<-"id=\"amcc_InternationalTransactionsInSecurities\" width=\"100%\" class=\"display compact\""
+cat(paste("<div align=\"center\"><b>",title,"</b><br>データ出所:",source,"</div>  
+-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>"),file=htmlFile,append=T)
+cat("
+※対外、対内ともネットプラス値は取得超を、ネットマイナス値は処分超を意味します。
+<br>
+※対外の場合、取得超は資産増加つまり資金流出、処分超は資産減少つまり資金流入を意味します。
+<br>
+※対内の場合取得超は負債増加つまり資金流入、処分超は負債減少つまり資金流出を意味します。
+<br>
+",file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+bufkable<-kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData)))
+bufkable<-gsub(" - ","<br>",bufkable)
+cat(bufkable,file=htmlFile,append=T)  
+cat("</div>\n",file=htmlFile,append=T)
+cat("Powered by<br>-R( https://cran.r-project.org/ )<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )",file=htmlFile,append=T)  
+#table part
+#chart part
+nTail<-48
+for(ddd in 2:ncol(dataset)){
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1600,height=1000)  
+par(mar=c(25,5,5,2))
+buf<-tail(dataset[,c(1,ddd)],nTail)
+buf$color<-"blue"
+buf[buf[,2]<0,ncol(buf)]<-"red"
+plotbuf<-barplot(
+  buf[,2],
+  names.arg=buf[,1],
+  las=3,
+  main=colnames(buf)[2],
+  family="Meiryo",
+  col=buf$color,
+  density=20,
+  ylab="億円",
+  cex.main=3,
+  cex.sub=1,
+  cex.lab=2,
+  cex.names=2,
+  cex.axis=2
+)
+text(plotbuf,y=buf[,2],labels=buf[,2],srt=90,cex=1.5,adj=c(-0.1,0.5),col="black",family="Meiryo")
+dev.off()
+cat(paste("
+<div style=\"text-align:center\"><b>",paste(colnames(buf)[2]," 過去",nTail,"週分"),"</b>
+<a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\"width=\"100%\">
+</a>
+</div><hr>",sep=""),file=htmlFile,append=T)
+}
+#chart part
+```
