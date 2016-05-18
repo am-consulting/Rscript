@@ -1,0 +1,167 @@
+```{r}
+#GDP*MB*USD/JPY
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+library(lubridate)
+library(knitr)
+library(quantmod)
+gdp<-list()
+title<-list()
+url<-c(
+"http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-mk1611.csv",
+"http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-jk1611.csv",
+"http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-mk1611.csv",
+"http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-jk1611.csv"
+)
+source<-"内閣府"
+colnameData<-c(
+"国内総生産(支出側)",
+"民間最終消費支出",
+"家計最終消費支出",
+"家計最終消費支出-除く持ち家の帰属家賃",
+"民間住宅",
+"民間企業設備",
+"民間在庫品増加",
+"政府最終消費支出",
+"公的固定資本形成",
+"公的在庫品増加",
+"財貨･サービス-純輸出",
+"純輸出-輸出",
+"財貨･サービス-輸入"
+)
+SD<-Sys.Date();ST<-Sys.time()
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+htmlFile<-paste("amcc_GDP.html",sep="")
+cat("",file=htmlFile,append=F)
+cat(paste("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>
+<div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>"),file=htmlFile,append=T)
+cat("<div align=\"center\"><b>国民経済計算(GDP統計)</b></div><hr>",file=htmlFile,append=T)
+ratebuf<-getSymbols("EXJPUS",src="FRED",auto.assign=FALSE)
+ratebuf<-data.frame(Date=index(ratebuf),ratebuf,row.names=NULL)
+for(uuu in 1:length(url)){
+  tmp<-read.csv(url[uuu],header=F,skip=0,stringsAsFactor=F,na.strings=c("","***"),check.names=F)
+  for(rrr in 1:nrow(tmp)){
+    if(is.na(tmp[rrr,1])==F){
+      if(is.na(as.numeric(substring(tmp[rrr,1],1,4)))==F){break}
+    }
+  }
+  for(ccc in 1:ncol(tmp)){
+    if(is.na(tmp[4,ccc])==F){
+      if((tmp[4,ccc]=="輸入")==T){break}
+    }
+  }
+  if(length(grep("ritu",url[uuu]))!=0){
+    bufNumeric<-tmp[rrr:(nrow(tmp)-0),2:ccc]
+  }else{
+    bufNumeric<-tmp[rrr:(nrow(tmp)-1),2:ccc]
+  }
+  bufDate<-seq(as.Date(paste(substring(tmp[rrr,1],1,4),"-03-01",sep="")),by="3 month",length.out=nrow(bufNumeric))
+  buf<-data.frame(bufDate,bufNumeric)
+  colnames(buf)[1]<-"Date"
+  EXJPUSData<-subset(ratebuf,(bufDate[1] %m-% months(2))<=ratebuf[,1])
+  bufgdp<-merge(buf,EXJPUSData,all=T)
+  bufgdp[,-1]<-apply(bufgdp[,-1],2,function(x)gsub(",","",x))
+  bufgdp[,-1]<-apply(bufgdp[,-1],2,function(x) as.numeric(x))
+  if(length(grep("ritu",url[uuu]))==0){
+    bufgdp[,-c(1,ncol(bufgdp))]<-apply(bufgdp[,-c(1,ncol(bufgdp))],2,function(x) x*(10^-3))
+  }
+  colnames(bufgdp)[-1]<-c(colnameData,"ドル円レート")
+  gdp[[uuu]]<-bufgdp
+#kable part  
+  kableData<-gdp[[uuu]]
+  kableData<-kableData[,-ncol(kableData)]
+  kableData<-kableData[,colSums((is.na(kableData)))!=nrow(kableData)]
+  kableData<-na.omit(kableData)
+  kableData[,1]<-format(kableData[,1],"%Y-%m")
+  kableData<-data.frame(kableData,Date=kableData[,1],check.names=F)
+  kableData[is.na(kableData)==T]<--9999  
+  title[[uuu]]<-paste(tmp[1,1],"-",kableData[1,1],"から",kableData[nrow(kableData),1])
+  cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+  $(document).ready(function(){
+  $('#amcc_GDP",uuu,"').dataTable({
+  \"lengthMenu\":[[5,-1],[5,\"All\"]],
+  \"order\":[[0,\"desc\"]],
+  \"searching\":true,
+  \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+  \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+  createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+  for(ccc in 1:ncol(kableData)){
+    cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+    cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+    cat("}\n",file=htmlFile,append=T)
+  }
+  cat("}  
+  })});</script>\n\n",file=htmlFile,append=T)  
+  table.argu<-paste("id=\"amcc_GDP",uuu,"\" width=\"100%\" class=\"display compact\"",sep="")
+  cat(paste("<div align=\"center\"><b>",title[[uuu]],
+  "</b><br>データ出所:",source,"</div>-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>"),file=htmlFile,append=T)
+  cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+  cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
+  cat("</div><hr>\n",file=htmlFile,append=T)  
+#kable part  
+}
+cat("Powered by<br>-R( https://cran.r-project.org/ )<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<hr>",file=htmlFile,append=T)  
+#######################################################
+for(uuu in 1:length(gdp)){
+dataset<-gdp[[uuu]]  
+for(ccc in 2:(ncol(dataset)-1)){
+if(all(is.na(dataset[,ccc]))==F){  
+buf<-dataset[,c(1,ccc,ncol(dataset))]
+buf$color<-ifelse(0<buf[,2],"blue","red")
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1600,height=1000)  
+par(mar=c(7,7,7,7))
+plot(
+  buf[,1],
+  buf[,2],
+  type="h",
+  family="Meiryo",
+  col=buf$color,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  main=paste(title[[uuu]],"以降\n",colnames(buf)[2],"×",colnames(buf)[3]),
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+par(new=T)
+plot(
+  buf[,1],
+  buf[,3],
+  col="red",
+  type="l",
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  yaxt="n",
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+axis(4,cex.axis=3,cex.lab=2.5)
+legend("topleft",col="red",lty=1,legend=colnames(buf)[3],cex=2)
+mtext(colnames(buf)[2],side=2,line=3.2,cex=2)
+mtext(colnames(buf)[3],side=4,line=3.2,cex=2)
+axis.Date(side=1,at=buf[,1],format="%Y-%m",padj=1,cex.axis=2.0)  
+dev.off()
+cat(paste("
+<div style=\"text-align:center\"><b>",paste(title[[uuu]],"以降\n",colnames(buf)[2],"×",colnames(buf)[3]),"</b>
+<a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\"width=\"100%\">
+</a>
+</div><hr>",sep=""),file=htmlFile,append=T)
+}
+}
+}
+```
