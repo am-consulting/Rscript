@@ -67,6 +67,8 @@ cat(paste("
 <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
 <link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
 <script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
+<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
 <style>
 body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
 table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
@@ -77,7 +79,7 @@ td.highlight{font-weight:plain;color:red;}
 <script type=\"text/javascript\" charset=\"utf-8\">
 $(document).ready(function(){
 $('#amcc_InternationalTransactionsInSecurities').dataTable({
-\"lengthMenu\":[[20,-1],[20,\"All\"]],
+\"lengthMenu\":[[5,10,-1],[5,10,\"All\"]],
 \"order\":[[0,\"desc\"]],
 \"searching\":true,
 \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
@@ -106,7 +108,7 @@ bufkable<-kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r"
 bufkable<-gsub(" - ","<br>",bufkable)
 cat(bufkable,file=htmlFile,append=T)  
 cat("</div>\n",file=htmlFile,append=T)
-cat("Powered by<br>-R( https://cran.r-project.org/ )<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )",file=htmlFile,append=T)  
+cat("Powered by<br>-R( https://cran.r-project.org/ )<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<br>-PACE( http://github.hubspot.com/pace/docs/welcome/ )",file=htmlFile,append=T)  
 #table part
 #chart part
 nTail<-48
