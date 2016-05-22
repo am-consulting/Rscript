@@ -11,8 +11,10 @@ tail(dataset)
 ```
 
 ```{r}
-title<-"預金者別預金 - 国内銀行分 - 2016年3月分 - 対象:個人"
-source<-"日本銀行"
+title<-"職業別労働市場関係指標 - 職業別有効求人/求職数とその差(パートタイムを除く常用) 2016年3月"
+source<-"厚生労働省"
+alignarg<-rep("r",ncol(dataset))
+alignarg<-c("r","l",rep("r",ncol(dataset)-3),"l")
 ST<-Sys.time()
 SD<-Sys.Date()
 username<-Sys.info()['user']
@@ -51,7 +53,7 @@ table.argu<-"id=\"amcc_superSimpleTable\" width=\"100%\" class=\"display compact
 cat(paste("<div align=\"center\"><b>",title,"</b><br>データ出所:",source,"</div>  
 -9999は「データなし」または「データ欠損」または「NA」を意味します<hr>"),file=htmlFile,append=T)
 cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
-cat(kable(dataset,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(dataset))),file=htmlFile,append=T)  
+cat(kable(dataset,'html',row.names=F,table.attr=table.argu,align=alignarg),file=htmlFile,append=T)  
 cat("</div>\n",file=htmlFile,append=T)
 cat("Powered by<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )",file=htmlFile,append=T)  
 cat("
