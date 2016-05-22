@@ -1,0 +1,156 @@
+```{r}
+library(lubridate);library(dplyr);library(knitr)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+source<-"http://earthquake.usgs.gov/"
+```
+
+```{r}
+searchCriteria<-"Magnitude 5.0以上,Date & Time 1900-01-01 00:00:00 2016-05-20 23:59:59,北緯25-48度,東経125-150度"
+data.file<-"query.csv"
+pathEarthquake<-paste("C:/Users/",username,"/Desktop/Earthquake_Data/",sep="")
+buf<-read.table(file=paste(pathEarthquake,data.file,sep=""),sep=",",header=T,as.is=T,skip=0,check.names=F)
+JST<-as.POSIXct(sub("Z","",sub("T"," ",buf$time)))+3600*9 #UTC+9
+No<-seq(1,nrow(buf),by=1)
+buf<-data.frame(No,JST,buf,check.names=F)
+colnames(buf)
+print(head(buf))
+print(tail(buf))
+```
+
+```{r}
+SD<-Sys.Date();ST<-Sys.time()
+setwd(pathOutput);getwd()
+htmlFile<-paste("amcc_GRLaw.html",sep="")
+cat("",file=htmlFile,append=F)
+cat(paste("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
+<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>
+<div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>"),file=htmlFile,append=T)
+cat(paste("検索ワード:",searchCriteria),file=htmlFile,append=T)
+#マグニチュード-発生件数データテーブル作成パート
+magtypeobj<-unique(buf$magType)
+magobj<-sort(unique(buf$mag))
+histData<-list()
+iii<-1
+for(rrr in 0:length(magtypeobj)){
+  count<-vector()
+  magnitude<-vector()
+  for(ddd in 1:length(magobj)){
+    if(rrr==0){
+      tmp<-buf%>%filter(buf$mag==magobj[ddd])
+    }else{
+      tmp<-buf%>%filter(buf$mag==magobj[ddd],buf$magType==magtypeobj[rrr])
+    }
+    #print(head(tmp,1))
+    if(nrow(tmp)!=0){
+      magnitude<-c(magnitude,magobj[ddd])
+      count<-c(count,nrow(tmp))
+    }
+  }
+  histData[[iii]]<-data.frame(magnitude,count)
+  if(rrr==0){
+    colnames(histData[[iii]])<-c("Magnitude:all Mag type","Count")
+  }else{
+    colnames(histData[[iii]])<-c(paste("Magnitude:",magtypeobj[rrr]),"Count")
+  }
+  print(histData[[iii]])
+  iii<-iii+1
+}
+#マグニチュード-発生件数データテーブル作成パート
+for(rrr in 1:length(histData)){
+#plot part
+  tmp<-histData[[rrr]]
+  if(2<=nrow(tmp)){
+  ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+  png.file<-paste("amcc_",addVer,".png",sep="")
+  png(file=png.file,width=1200,height=1000)    
+  par(mar=c(7,7,7,7))  
+  plot(
+    x=tmp[,1],
+    y=log(tmp[,2],base=10),
+    type="p",
+    lwd=5,
+    col="blue",
+    family="Meiryo",
+    xlab="Magnitude",
+    ylab="log10(n)" ,
+    panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+    main=paste("グーテンベルグ･リヒター則\nマグニチュードタイプ:",colnames(tmp)[1]),
+    cex.axis=3,cex.lab=2.5,cex.main=2.5  
+  )
+  ols<-lm(log(tmp[,2],base=10)~tmp[,1])
+  equation<-paste("$latex \\textup{log}_{10}N=",ols$coefficients[1],ols$coefficients[2],"\\times M$",sep="")
+  abline(ols,col="red",lwd=2)
+  dev.off()
+  cat(paste("
+  <div style=\"text-align:center\"><b>",colnames(tmp)[1],"<br>",equation,"</b>
+  <a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+  <img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\"width=\"100%\">
+  </a>
+  </div><hr>",sep=""),file=htmlFile,append=T)  
+#plot part
+  }
+#kable part  
+  kableData<-tmp  
+  cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+  $(document).ready(function(){
+  $('#amcc_GRLaw",rrr,"').dataTable({
+  \"lengthMenu\":[[5,-1],[5,\"All\"]],
+  \"order\":[[0,\"desc\"]],
+  \"searching\":true,
+  \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+  \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+  createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+  for(ccc in 1:ncol(kableData)){
+  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+  cat("}\n",file=htmlFile,append=T)
+  }
+  cat("}  
+  })});</script>\n\n",file=htmlFile,append=T)  
+  table.argu<-paste("id=\"amcc_GRLaw",rrr,"\" width=\"100%\" class=\"display compact\"",sep="")
+  cat(paste("<div align=\"center\"><b>",colnames(kableData)[1],
+  "</b><br>データ出所:",source,"</div><hr>"),file=htmlFile,append=T)
+  cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+  cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
+  cat("</div><hr>\n",file=htmlFile,append=T)  
+#kable part   
+}
+#all data part
+kableData<-buf[,c(1,2,4,5,6,7,8,16)]
+kableData<-subset(kableData,as.Date("2010-01-01")<=as.Date(kableData[,2]))
+cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#amcc_GRLaw').dataTable({
+\"lengthMenu\":[[5,-1],[5,\"All\"]],
+\"order\":[[0,\"asc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+for(ccc in 1:ncol(kableData)){
+cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)  
+table.argu<-paste("id=\"amcc_GRLaw\" width=\"100%\" class=\"display compact\"",sep="")
+cat(paste("<div align=\"center\"><b>対象地域内で2010年以降に発生したM5以上の地震</b><br>データ出所:",source,"</div><hr>"),file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
+cat("</div><hr>\n",file=htmlFile,append=T) 
+#all data part
+cat("Powered by<br>-R( https://cran.r-project.org/ )<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<br>-PACE( http://github.hubspot.com/pace/docs/welcome/ )",file=htmlFile,append=T)  
+```
