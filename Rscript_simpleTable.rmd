@@ -15,6 +15,10 @@ youtubechannel<-1
 needCommaDelete<-1
 Listofelements<-0
 sparklinetail<-100000
+mainTitle<-"特定サービス産業動態統計調査<br>単位:百万円、物品賃貸(リース)業は契約高合計、クレジットカード業は取扱高計、５.エンジニアリング業は受注高計、その他は売上高(合計)"
+#mainTitle<-"噴火に関する火山観測報<br>データテーブル中、\"詳細\"は気象庁Webサイトに移動します"
+#mainTitle<-"最近一週間の各地の震度に関する情報 – 情報発表日時、検知日時、震央地名、マグニチュード、最大震度"
+dataSource<-"\nデータ出所:経済産業省"
 ```
 
 ```{r}
@@ -47,6 +51,8 @@ needRegular<-0
 youtubechannel<-0
 needCommaDelete<-0
 Listofelements<-0
+mainTitle<-"毎月勤労統計 毎勤原表 2016年03月分"
+dataSource<-"\nデータ出所:厚生労働省"
 #毎月勤労統計調査
 ```
 
@@ -71,10 +77,6 @@ dataset<-dataset[,columnOrder]
 ```
 
 ```{r}
-mainTitle<-"特定サービス産業動態統計調査<br>単位:百万円、物品賃貸(リース)業は契約高合計、クレジットカード業は取扱高計、５.エンジニアリング業は受注高計、その他は売上高(合計)"
-#mainTitle<-"噴火に関する火山観測報<br>データテーブル中、\"詳細\"は気象庁Webサイトに移動します"
-#mainTitle<-"最近一週間の各地の震度に関する情報 – 情報発表日時、検知日時、震央地名、マグニチュード、最大震度"
-dataSource<-"\nデータ出所:経済産業省"
 if(Listofelements==1){
 mainTitle<-"元素の一覧表-原子番号、元素記号、元素名、周期、族、原子量"
 dataSource<-"\nデータ出所:<br>元素の一覧(WIKIPEDIA) - <a href=\"https://ja.wikipedia.org/wiki/%E5%85%83%E7%B4%A0%E3%81%AE%E4%B8%80%E8%A6%A7\" target=\"_blank\">https://ja.wikipedia.org/wiki/%E5%85%83%E7%B4%A0%E3%81%AE%E4%B8%80%E8%A6%A7</a><br>
