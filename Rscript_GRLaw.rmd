@@ -7,7 +7,7 @@ source<-"http://earthquake.usgs.gov/"
 ```
 
 ```{r}
-searchCriteria<-"Magnitude 5.0以上,Date & Time 1900-01-01 00:00:00 2016-05-20 23:59:59,北緯25-48度,東経125-150度"
+searchCriteria<-"Magnitude 4.5以上,Date & Time 1900-01-01 00:00:00 2016-05-20 23:59:59,北緯25-48度,東経140.5-150度"
 data.file<-"query.csv"
 pathEarthquake<-paste("C:/Users/",username,"/Desktop/Earthquake_Data/",sep="")
 buf<-read.table(file=paste(pathEarthquake,data.file,sep=""),sep=",",header=T,as.is=T,skip=0,check.names=F)
@@ -37,7 +37,7 @@ tr, td, th{white-space: nowrap;}
 td.highlight{font-weight:plain;color:red;}
 </style>
 <div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>"),file=htmlFile,append=T)
-cat(paste("検索ワード:",searchCriteria),file=htmlFile,append=T)
+cat(paste("対象地震:",searchCriteria,"<hr>"),file=htmlFile,append=T)
 #マグニチュード-発生件数データテーブル作成パート
 magtypeobj<-unique(buf$magType)
 magobj<-sort(unique(buf$mag))
@@ -74,7 +74,7 @@ for(rrr in 1:length(histData)){
   if(2<=nrow(tmp)){
   ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
   png.file<-paste("amcc_",addVer,".png",sep="")
-  png(file=png.file,width=1200,height=1000)    
+  png(file=png.file,width=1200,height=600)    
   par(mar=c(7,7,7,7))  
   plot(
     x=tmp[,1],
@@ -89,7 +89,9 @@ for(rrr in 1:length(histData)){
     main=paste("グーテンベルグ･リヒター則\nマグニチュードタイプ:",colnames(tmp)[1]),
     cex.axis=3,cex.lab=2.5,cex.main=2.5  
   )
-  ols<-lm(log(tmp[,2],base=10)~tmp[,1])
+  M<-tmp[,1]
+  Log10n<-log(tmp[,2],base=10)
+  ols<-lm(Log10n~M)
   equation<-paste("$latex \\textup{log}_{10}N=",ols$coefficients[1],ols$coefficients[2],"\\times M$",sep="")
   abline(ols,col="red",lwd=2)
   dev.off()
@@ -98,7 +100,11 @@ for(rrr in 1:length(histData)){
   <a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
   <img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\"width=\"100%\">
   </a>
-  </div><hr>",sep=""),file=htmlFile,append=T)  
+  </div>",sep=""),file=htmlFile,append=T)  
+  tmpolsresult<-capture.output(summary(ols))
+  tmpolsresult<-paste(tmpolsresult,"<br>")
+#  tmpolsresult<-gsub("\\s","<br>",tmpolsresult,perl=T)
+  write(tmpolsresult,file=htmlFile,append=T)  
 #plot part
   }
 #kable part  
@@ -121,7 +127,7 @@ for(rrr in 1:length(histData)){
   })});</script>\n\n",file=htmlFile,append=T)  
   table.argu<-paste("id=\"amcc_GRLaw",rrr,"\" width=\"100%\" class=\"display compact\"",sep="")
   cat(paste("<div align=\"center\"><b>",colnames(kableData)[1],
-  "</b><br>データ出所:",source,"</div><hr>"),file=htmlFile,append=T)
+  "</b><br>データ出所:",source,"</div>"),file=htmlFile,append=T)
   cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
   cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
   cat("</div><hr>\n",file=htmlFile,append=T)  
@@ -129,7 +135,7 @@ for(rrr in 1:length(histData)){
 }
 #all data part
 kableData<-buf[,c(1,2,4,5,6,7,8,16)]
-kableData<-subset(kableData,as.Date("2010-01-01")<=as.Date(kableData[,2]))
+kableData<-subset(kableData,as.Date("2015-01-01")<=as.Date(kableData[,2]))
 cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
 $(document).ready(function(){
 $('#amcc_GRLaw').dataTable({
@@ -147,7 +153,7 @@ cat("}\n",file=htmlFile,append=T)
 cat("}  
 })});</script>\n\n",file=htmlFile,append=T)  
 table.argu<-paste("id=\"amcc_GRLaw\" width=\"100%\" class=\"display compact\"",sep="")
-cat(paste("<div align=\"center\"><b>対象地域内で2010年以降に発生したM5以上の地震</b><br>データ出所:",source,"</div><hr>"),file=htmlFile,append=T)
+cat(paste("<div align=\"center\"><b>対象地域内で2015年以降に発生したM4.5以上の地震</b><br>データ出所:",source,"</div>"),file=htmlFile,append=T)
 cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
 cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
 cat("</div><hr>\n",file=htmlFile,append=T) 
