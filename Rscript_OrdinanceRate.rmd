@@ -14,6 +14,7 @@ windowsFonts(Meiryo=windowsFont("Meiryo"))
 ```
 
 ```{r}
+options(scipen=999)
 library(knitr)
 library(lubridate)
 #library(xtable)
@@ -46,7 +47,13 @@ $('#amcc').DataTable( {
 } ); 
 </script><div style=\"overflow-x:scroll;\">",file=htmlFile,append=T)
 cat("<div align=\"center\"><b>報告省令レート</b><br>「外国為替の取引等の報告に関する省令」第35条第2号に基づき財務大臣が定める相場<br>データ出所:日本銀行</div>",file=htmlFile,append=T)
-buf<-capture.output(kable(dataset,format="html"))
+kableData<-dataset
+for(ccc in 1:ncol(kableData)){
+if(colnames(kableData)[ccc]=="Date"){  
+kableData[,ccc]<-format(kableData[,ccc],"%Y-%m")
+}
+}  
+buf<-capture.output(kable(kableData,format="html"))
 buf[1]<-gsub("<table>","<table id=\"amcc\" class=\"compact display\">",buf[1])
 for(ccc in 1:length(buf)){
   cat(buf[ccc],file=htmlFile,append=T)
