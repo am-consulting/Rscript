@@ -1,0 +1,87 @@
+```{r}
+library(lubridate);library(dplyr);library(knitr)
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+source<-"財務省"
+title<-"2016年4月分貿易統計(速報)"
+SD<-Sys.Date()
+```
+
+```{r}
+tmp<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("","-"),check.names=F)
+buf<-tmp[,-(grep("dammy",colnames(tmp)))]
+colnames(buf)<-colnames(tmp)[-(grep("dammy",colnames(tmp)))]
+buf<-data.frame(No=seq(1,nrow(buf)),buf,check.names=F)
+ratio<-buf[,grep("輸[入|出]*価額",colnames(buf))]
+ratioData<-apply(ratio,2,function(x){round(x/head(x,1)*100,2)})
+colnames(ratioData)<-paste("総額に対する割合(%):",colnames(ratioData))
+dataset<-data.frame(buf,ratioData,check.names=F)
+```
+
+```{r}
+ST<-Sys.time()
+setwd(pathOutput);getwd()
+htmlFile<-paste("amcc_TradeStatisticsfromWeb.html",sep="")
+cat("",file=htmlFile,append=F)
+cat(paste("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
+<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>
+<div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>"),file=htmlFile,append=T)
+#kable part  
+kableData<-dataset
+kableData[is.na(kableData)]<--9999
+cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#amcc_TradeStatisticsfromWeb').dataTable({
+\"lengthMenu\":[[5,-1],[5,\"All\"]],
+\"order\":[[0,\"asc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+for(ccc in 1:ncol(kableData)){
+cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)  
+table.argu<-paste("id=\"amcc_TradeStatisticsfromWeb\" width=\"100%\" class=\"display compact\"",sep="")
+cat(paste("<div align=\"center\"><b>地域(国)別輸出入</b><br>データ出所:",source,"</div>"),file=htmlFile,append=T)
+cat("- -9999は「データなし」または「データ欠損」または「NA」を意味します<br>",file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
+cat("</div><hr>\n",file=htmlFile,append=T)  
+#kable part 
+addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1500,height=1000)    
+par(mar=c(20,4,4,4),family="Meiryo")
+barplot(
+  t(tail(ratioData,-1)),
+  beside=T,
+  names.arg=dataset[-1,2],
+  las=3,
+  col=c("blue","red"),
+  main="地域(国)別輸出入-総額に対する輸出入額の割合(%)",
+  cex.axis=3,cex.lab=3.5,cex.main=2.5,cex.names=2.0)
+legend("topright",lty=1,legend=colnames(ratioData),cex=2,col=c("blue","red"),lwd=5)
+dev.off()
+cat(paste("
+<div style=\"text-align:center\">
+<a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\"width=\"100%\">
+</a>
+</div>",sep=""),file=htmlFile,append=T) 
+cat("Powered by<br>-R( https://cran.r-project.org/ )<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<br>-PACE( http://github.hubspot.com/pace/docs/welcome/ )",file=htmlFile,append=T)  
+```
