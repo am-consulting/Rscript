@@ -1,0 +1,166 @@
+```{r}
+# http://www.meti.go.jp/statistics/toppage/report/bunseki/pdf/h13/h4a2106j054.pdf
+library(lubridate);library(dplyr);library(knitr)
+#データ整形パート
+tmp<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("NA","-","－"),check.names=FALSE)
+tmp[,1]<-as.Date(tmp[,1])
+# =OFFSET($F$10,(ROW(A1)-1)/12,MOD(ROW(A1)-1,12))
+#データ整形パート
+windowsFonts(Meiryo=windowsFont("Meiryo"))
+SD<-Sys.Date()
+source<-"総務省、厚生労働省"
+username<-Sys.info()['user']
+pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+setwd(pathOutput);getwd()
+```
+
+```{r}
+ST<-Sys.time()
+htmlFile<-paste("amcc_UVcurve.html",sep="")
+cat("",file=htmlFile,append=F)
+cat(paste("
+<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
+<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
+<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
+<style>
+body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
+table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+tr, td, th{white-space: nowrap;}
+td.highlight{font-weight:plain;color:red;}
+</style>
+<div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>"),file=htmlFile,append=T)
+cat("参考資料: http://www.meti.go.jp/statistics/toppage/report/bunseki/pdf/h13/h4a2106j054.pdf ",file=htmlFile,append=T)
+linecolor<-c("blue","red")
+buf<-tmp
+buf$color<-ifelse(buf[,4]<=0,"indianred1","royalblue")
+ylimU<-ceiling(max(buf[,2],buf[,3]))
+ylimL<-floor(min(buf[,2],buf[,3]))
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1600,height=800)    
+par(mar=c(7,7,7,7))
+plot(
+  buf[,1],
+  buf[,2],
+  type="l",
+  family="Meiryo",
+  col="blue",
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  main=paste(colnames(buf)[2],"×",colnames(buf)[3],"\nデータ出所:",source),
+  cex.axis=3,cex.lab=2.5,cex.main=2.5,
+  ylim=c(ylimL ,ylimU)
+)   
+lines(
+  buf[,1],
+  buf[,3],
+  col="red",
+  type="l",
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  yaxt="n",
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+legend("topleft",col=linecolor,lty=1,legend=c(colnames(buf)[2],colnames(buf)[3]),cex=2)
+mtext("%",side=2,line=3.2,cex=2)
+axis.Date(side=1,at=buf[,1],format="%Y-%m",padj=1,cex.axis=2.0)  
+dev.off()
+cat(paste("
+<div style=\"text-align:center\"><b>",colnames(buf)[2],"×",colnames(buf)[3],"</b>
+<a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\"width=\"100%\">
+</a>
+</div>",sep=""),file=htmlFile,append=T) 
+```
+
+```{r}
+ST<-Sys.time();addVer<-gsub("\\.","",paste(year(SD),month(SD),day(SD),hour(ST),minute(ST),second(ST),sep=""))
+png.file<-paste("amcc_",addVer,".png",sep="")
+png(file=png.file,width=1600,height=800)    
+par(mar=c(7,7,7,7))
+plot(
+  buf[,1],
+  buf[,4],
+  col=buf$color,
+  type="h",
+  family="Meiryo" ,
+  xlab="" ,
+  ylab="" ,
+  panel.first=grid(nx=NULL,ny=NULL,lty=2,equilogs=T) ,
+  xaxt="n",
+  main=paste(colnames(buf)[4],"\nデータ出所:",source),
+  cex.axis=3,cex.lab=2.5,cex.main=2.5
+)    
+mtext("%",side=2,line=3.2,cex=2)
+axis.Date(side=1,at=buf[,1],format="%Y-%m",padj=1,cex.axis=2.0)  
+dev.off()
+cat(paste("
+<div style=\"text-align:center\"><b>",colnames(buf)[2],"-",colnames(buf)[3],"</b>
+<a href=\"http://archive.am-consulting.co.jp/",png.file,"\">
+<img src=\"http://archive.am-consulting.co.jp/",png.file,"\" alt=\"\" title=\"\"width=\"100%\">
+</a>
+</div>",sep=""),file=htmlFile,append=T) 
+```
+
+```{r}
+#kable part  
+structurallyUnemploymentRate<-buf%>%filter(abs(buf[,4])<=0.05)
+structurallyUnemploymentRate<-structurallyUnemploymentRate[,-5]
+structurallyUnemploymentRate[,1]<-format(structurallyUnemploymentRate[,1],"%Y-%m")
+kableData<-structurallyUnemploymentRate  
+cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#amcc_UVcurve01').dataTable({
+\"lengthMenu\":[[5,-1],[5,\"All\"]],
+\"order\":[[0,\"desc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+for(ccc in 1:ncol(kableData)){
+cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)  
+table.argu<-paste("id=\"amcc_UVcurve01\" width=\"100%\" class=\"display compact\"",sep="")
+cat(paste("<div align=\"center\"><b>雇用失業率(U)と欠員率(V)の差の絶対値が0.05%以下の場合</b><br>データ出所:",source,"</div>"),file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
+cat("</div><hr>\n",file=htmlFile,append=T)  
+#kable part 
+#kable part  
+kableData<-buf[,-5]
+kableData[,1]<-format(kableData[,1],"%Y-%m")
+cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+$(document).ready(function(){
+$('#amcc_UVcurve02').dataTable({
+\"lengthMenu\":[[5,-1],[5,\"All\"]],
+\"order\":[[0,\"desc\"]],
+\"searching\":true,
+\"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
+\"language\":{\"decimal\":\".\",\"thousands\":\",\"},
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+for(ccc in 1:ncol(kableData)){
+cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
+cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
+cat("}\n",file=htmlFile,append=T)
+}
+cat("}  
+})});</script>\n\n",file=htmlFile,append=T)  
+table.argu<-paste("id=\"amcc_UVcurve02\" width=\"100%\" class=\"display compact\"",sep="")
+cat(paste("<div align=\"center\"><b>",kableData[1,1],"~",kableData[nrow(kableData),1],"の欠員率、雇用失業率とそれらの差</b><br>データ出所:",source,"</div>"),file=htmlFile,append=T)
+cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
+cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
+cat("</div><hr>\n",file=htmlFile,append=T)  
+#kable part 
+cat("Powered by<br>-R( https://cran.r-project.org/ )<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<br>-PACE( http://github.hubspot.com/pace/docs/welcome/ )",file=htmlFile,append=T) 
+```
