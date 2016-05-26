@@ -56,7 +56,7 @@ colnames(dataset)<-names
 head(dataset);tail(dataset)
 #table part
 ST<-Sys.time()
-title<-paste("対外及び対内証券売買契約等の状況 期間:",head(dataset[,1],1),"-",tail(dataset[,1],1))
+title<-paste("対外及び対内証券売買契約等の状況(単位:億円) 期間:",head(dataset[,1],1),"-",tail(dataset[,1],1))
 source<-"財務省"
 kableData<-dataset
 kableData[is.na(kableData)==T]<--9999
