@@ -1,8 +1,8 @@
 # License:GPL(version 2 or later)
 # Data source : http://www.sidc.be/silso/home
-origData <- list()
-datacolnames <- list()
 sunSpot <- function() {
+  origData <- list()
+  datacolnames <- list()
   url <-
     c(
       "http://www.sidc.be/silso/INFO/snmtotcsv.php",
