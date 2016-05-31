@@ -47,6 +47,5 @@ sunSpot <- function() {
       data.frame(as.Date(paste(buf[, 1], "-", buf[, 2], "-1", sep = "")), buf[, 3:ncol(buf)])
     colnames(buf) <- datacolnames[[iii]]
     origData[[iii]] <<- buf
-    #list2env(origData[[iii]], globalenv())
   }
 }
