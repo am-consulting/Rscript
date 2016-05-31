@@ -1,7 +1,7 @@
 # License:GPL(version 2 or later)
 # Data source : http://www.sidc.be/silso/home
 sunSpot <- function() {
-  origData <- list()
+  origData <<- list()
   datacolnames <- list()
   url <-
     c(
@@ -46,7 +46,7 @@ sunSpot <- function() {
     buf <-
       data.frame(as.Date(paste(buf[, 1], "-", buf[, 2], "-1", sep = "")), buf[, 3:ncol(buf)])
     colnames(buf) <- datacolnames[[iii]]
-    origData[[iii]] <- buf
-    list2env(origData[[iii]], globalenv())
+    origData[[iii]] <<- buf
+    #list2env(origData[[iii]], globalenv())
   }
 }
