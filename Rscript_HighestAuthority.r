@@ -1,4 +1,5 @@
-loadBaseData <- function() {
+# License:GPL(version 2 or later)
+highestAuthority <- function() {
   options("getSymbols.warning4.0" = FALSE)
   indextitle <<-
     c(
