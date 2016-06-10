@@ -46,7 +46,9 @@ requiredPackageList<-c(
   "roxygen2",
   "testthat",
   "beepr",
-  "estatapi"
+  "estatapi",
+  "DT",
+  "urca","vars","MSBVAR","tsDyn","nortest","rvest"
 )
 colnames(installed.packages())
 notInstalledPackages<-requiredPackageList[!(requiredPackageList %in% installed.packages()[,"Package"])] #apply logical vector to requiredPackageList
