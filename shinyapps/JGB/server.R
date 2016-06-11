@@ -149,7 +149,7 @@ shinyServer(function(input, output, session)
       str <- "<hr>
       <b>History</b><br>
       <ol>
-      <li>2016-06-08:ver.1.0.0</li>
+      <li>2016-06-11:ver.1.0.1</li>
       </ol>"
       HTML(str)
     })
@@ -238,7 +238,7 @@ shinyServer(function(input, output, session)
   })
   
   output$latestDataDownloadTime <- renderText({
-    paste("Data downloaded time(your timezone):" ,
+    paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
   })
   

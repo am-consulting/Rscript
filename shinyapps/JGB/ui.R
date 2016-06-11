@@ -7,7 +7,7 @@ script <-
   )
 eval(parse(text = script))
 jgb()
-latestDataDownloadTime <<- as.POSIXlt(Sys.time())
+latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(
   fluidPage(
     tags$head(
