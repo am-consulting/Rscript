@@ -18,5 +18,7 @@ buf <- buf[-(1:2), ]
 buf[, 1] <- as.Date(buf[, 1])
 buf <-
   data.frame(buf[, 1], apply(buf[, -1], 2, as.numeric), check.names = F)
-colnames(buf) <- bufcolnames
+tmp<-which(colSums(is.na(tail(buf,100)))==100)
+buf<-buf[,-tmp]
+colnames(buf) <- bufcolnames[-tmp]
 origData <<- buf
