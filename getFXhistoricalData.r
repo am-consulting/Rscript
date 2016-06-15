@@ -8,7 +8,8 @@ buf <-
     skip = 1,
     stringsAsFactor = F,
     na.strings = c("*****", "NA"),
-    check.names = F
+    check.names = F,
+    fileEncoding = "cp932"
   )
 #bufcolnames <- paste(buf[1, ], ":", buf[2, ], sep = "")
 #https://datatables.net/manual/tech-notes/1
