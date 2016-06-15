@@ -10,7 +10,9 @@ buf <-
     na.strings = c("*****", "NA"),
     check.names = F
   )
-bufcolnames <- paste(buf[1, ], ":", buf[2, ], sep = "")
+#bufcolnames <- paste(buf[1, ], ":", buf[2, ], sep = "")
+#https://datatables.net/manual/tech-notes/1
+bufcolnames <- paste(buf[1, ], "-", buf[2, ], sep = "")
 bufcolnames[1] <- "Date"
 buf <- buf[-(1:2), ]
 buf[, 1] <- as.Date(buf[, 1])
