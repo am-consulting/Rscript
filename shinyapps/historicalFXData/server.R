@@ -170,7 +170,7 @@ shinyServer(function(input, output, session)
     )
     
     output$plot1 <- renderPlot({
-      par(mar = c(5, 4, 3, 3))
+      par(mar = c(5, 4, 3, 3),family="Noto Sans Japanese")
       subtitle <-
         paste(plotData[1, 1], " - ", plotData[nrow(plotData), 1])
       if (input$charttype == "hist")
