@@ -79,8 +79,8 @@ shinyUI(fluidPage(
             column(4, plotOutput("scatter"))
           ),
           tags$hr(),
-          fluidRow(column(6, plotOutput("varresult")),
-                   column(6, plotOutput("vecmresult"))),
+          fluidRow(column(6, tags$b("without unit root:VAR{vars}→irf{vars}"), plotOutput("varresult")),
+                   column(6, tags$b("with unit root:ca.jo{urca}→vec2var{vars}→irf{vars}"), plotOutput("vecmresult"))),
           tags$hr(),
           fluidRow(
             column(4, plotOutput("acfx")),

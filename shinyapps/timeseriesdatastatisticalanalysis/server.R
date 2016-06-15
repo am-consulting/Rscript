@@ -87,7 +87,7 @@ shinyServer(function(input, output , session) {
                    (tmp / head(dataset, nrow(tmp)))[, -1] * 100,
                    check.names = F)
     }
-    dataset <<- dataset
+    dataset <- dataset
     summaryDF <- data.frame()
     for (iii in 1:2) {
       #unbiased variance
@@ -283,8 +283,8 @@ shinyServer(function(input, output , session) {
       plot(vecmResultOP)
     })
     
-    for (iii in 2:3) {
-      acfPlot <- renderPlot({
+    funPlot <- function(iii) {
+      assign(paste("acfPlot", iii, sep = ""), renderPlot({
         par(mar = c(3, 4, 3, 1))
         acf(
           dataset[, iii],
@@ -298,52 +298,60 @@ shinyServer(function(input, output , session) {
           main = paste("ACF:", colnames(dataset)[iii])
         )
       })
+      , .GlobalEnv)
       
-      arimaPlot <- renderPlot({
-        par(mar = c(3, 4, 3, 1))
-        ci <- c(50, 90)
-        forecastN <- 30
-        result.arima <-
-          auto.arima(dataset[, iii],
-                     ic = "aic",
-                     trace = F,
-                     stepwise = T)
-        result.forecast <-
-          forecast::forecast(result.arima, level = ci, h = forecastN)
-        plot(
-          result.forecast,
-          main = paste("ARIMA:", colnames(dataset)[iii], "\nCI=", ci[1], "-", ci[2]),
-          ylab = "",
-          panel.first = grid(
-            nx = NULL,
-            ny = NULL,
-            lty = 2,
-            equilogs = T
-          )
-        )
-      })
+      assign(paste("arimaPlot", iii, sep = ""),
+             renderPlot({
+               par(mar = c(3, 4, 3, 1))
+               ci <- c(50, 90)
+               forecastN <- 30
+               result.arima <-
+                 auto.arima(dataset[, iii],
+                            ic = "aic",
+                            trace = F,
+                            stepwise = T)
+               result.forecast <-
+                 forecast::forecast(result.arima, level = ci, h = forecastN)
+               plot(
+                 result.forecast,
+                 main = paste("ARIMA:", colnames(dataset)[iii], "\nCI=", ci[1], "-", ci[2]),
+                 ylab = "",
+                 panel.first = grid(
+                   nx = NULL,
+                   ny = NULL,
+                   lty = 2,
+                   equilogs = T
+                 )
+               )
+             })
+             ,
+             .GlobalEnv)
       
-      histPlot <- renderPlot({
-        par(mar = c(3, 4, 3, 1))
-        hist(
-          dataset[, iii],
-          main = paste("Histgram:", colnames(dataset)[iii]),
-          xlab = "",
-          col = "#E0FFFF",
-          breaks = "Scott"
-        )
-      })
-      
-      if (iii == 2) {
-        output$acfx <- acfPlot
-        output$arimax <- arimaPlot
-        output$histx <- histPlot
-      } else{
-        output$acfy <- acfPlot
-        output$arimay <- arimaPlot
-        output$histy <- histPlot
-      }
+      assign(paste("histPlot", iii, sep = "") ,
+             renderPlot({
+               par(mar = c(3, 4, 3, 1))
+               hist(
+                 dataset[, iii],
+                 main = paste("Histgram:", colnames(dataset)[iii]),
+                 xlab = "",
+                 col = "#E0FFFF",
+                 breaks = "Scott"
+               )
+             })
+             ,
+             .GlobalEnv)
     }
+    
+    iii <- 2
+    funPlot(iii)
+    output$acfx <- get(paste("acfPlot", iii, sep = ""))
+    output$arimax <- get(paste("arimaPlot", iii, sep = ""))
+    output$histx <- get(paste("histPlot", iii, sep = ""))
+    iii <- 3
+    funPlot(iii)
+    output$acfy <- get(paste("acfPlot", iii, sep = ""))
+    output$arimay <- get(paste("arimaPlot", iii, sep = ""))
+    output$histy <- get(paste("histPlot", iii, sep = ""))
     
     output$summaryDF <- DT::renderDataTable(
       summaryDF,
@@ -641,6 +649,7 @@ shinyServer(function(input, output , session) {
     <b>History</b><br>
     <ol>
     <li>2016-06-14:ver.1.0.0</li>
+    <li>2016-06-15:ver.1.0.1</li>
     </ol>"
     HTML(str)
   })
