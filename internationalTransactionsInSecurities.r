@@ -74,6 +74,6 @@ namesE <<- c(
   "Liabilities-Total-Net"
 )
 colnames(origData) <- namesE
-origData <<- data.frame(ID=seq(1,nrow(origData)),origData)
+origData <<- data.frame(ID=seq(1,nrow(origData)),origData,check.names = F)
 titleJ<<-"対外及び対内証券売買契約等の状況(週次・指定報告機関ベース)"
 titleE<<-"International Transactions in Securities(Weekly; based on reports from designated major investors)"
