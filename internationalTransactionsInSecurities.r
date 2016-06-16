@@ -9,7 +9,8 @@ buf <-
     skip = 0,
     stringsAsFactor = F,
     na.strings = c(""),
-    check.names = F
+    check.names = F,
+    fileEncoding = "cp932"
   )
 for (rrr in 1:nrow(buf)) {
   tmp <- buf[rrr, ]
