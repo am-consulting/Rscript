@@ -3,7 +3,7 @@
 # Reference http://stackoverflow.com/questions/24165623/read-excel-file-into-r-with-xlconnect-package-from-url
 # Reference http://stackoverflow.com/questions/1844829/how-can-i-read-and-parse-the-contents-of-a-webpage-in-r
 library(RCurl)
-library(XLConnect)
+#library(XLConnect) need this package when import a excel file without perl. require Java.
 library(gdata)
 library(XML)
 obj <- 1
