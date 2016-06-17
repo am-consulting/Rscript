@@ -104,8 +104,9 @@ origData <- origData1[-(1:4), ]
 origData <-
   data.frame(origData[, 1], apply(origData[, -1], 2, as.numeric), check.names = F)
 origData <- origData[, which(colSums(is.na(origData)) != nrow(origData))]
-bufnames <- origData1[3, which(!is.na(origData1[3, ]))]
-colnames(origData) <- unlist(bufnames)
+bufnames01 <- origData1[1, which(!is.na(origData1[1, ]))]
+bufnames02 <- origData1[3, which(!is.na(origData1[3, ]))]
+colnames(origData) <- paste(unlist(bufnames02),". Type:",unlist(bufnames01))
 origData[, 1] <-
   as.Date(paste(substr(origData[, 1], 1, 4), "-", substr(origData[, 1], 6, 7), "-1", sep =
                   ""))
