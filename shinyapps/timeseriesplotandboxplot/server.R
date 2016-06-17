@@ -64,12 +64,8 @@ shinyServer(function(input, output) {
       return(NULL)
     iii <<- grep(paste("\\b", input$HA , "\\b", sep = "") ,
                  indextitle)
-    colx <-
-      grep(paste("\\b", input$datecolumn , "\\b", sep = "") ,
-           colnames(origData))
-    coly <-
-      grep(paste("\\b", input$datacolumn , "\\b", sep = ""),
-           colnames(origData))
+    colx <- which(colnames(origData) == input$datecolumn)
+    coly <- which(colnames(origData) == input$datacolumn)    
     dataset <- origData[, c(colx, coly)]
     dataset <- na.omit(dataset)
     dataset[, 1] <- as.Date(dataset[, 1])
@@ -313,6 +309,7 @@ shinyServer(function(input, output) {
     <ol>
     <li>2016-06-12:ver.1.0.0</li>
     <li>2016-06-13:ver.1.0.1</li>
+    <li>2016-06-17:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
