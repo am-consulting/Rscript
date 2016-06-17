@@ -99,6 +99,7 @@ shinyUI(
     tags$hr(),
     fluidRow(column(12, DT::dataTableOutput("table2"))),
     fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history")))
+    fluidRow(column(12, htmlOutput("history"))),
+    fluidRow(column(12, htmlOutput("gitcode")))
   )
 )
