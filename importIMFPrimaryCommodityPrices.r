@@ -4,7 +4,6 @@
 # Reference http://stackoverflow.com/questions/1844829/how-can-i-read-and-parse-the-contents-of-a-webpage-in-r
 library(RCurl)
 library(XLConnect)
-library(random)
 library(gdata)
 library(XML)
 obj <- 1
@@ -17,9 +16,11 @@ if (1 < obj) {
   IMFhtmlpage <-
     readLines(tmp <- textConnection(IMFhtmlpage))
   close(tmp)
-  matchLines <- which(regexpr("data[[:digit:]]*?.xls", IMFhtmlpage) != -1)
+  matchLines <-
+    which(regexpr("data[[:digit:]]*?.xls", IMFhtmlpage) != -1)
   for (iii in 1:length(matchLines)) {
-    tmp <- regexpr("data[[:digit:]]*?.xls", IMFhtmlpage[matchLines[iii]])
+    tmp <-
+      regexpr("data[[:digit:]]*?.xls", IMFhtmlpage[matchLines[iii]])
     assign(paste("xlsFile", iii, sep = ""),
            regmatches(IMFhtmlpage[matchLines[iii]], tmp),
            .GlobalEnv)
@@ -53,19 +54,7 @@ IMFURL <-
 # without perl
 funWithoutPERL <- function(dataURL) {
   xlsFile <-
-    paste(
-      randomStrings(
-        n = 1,
-        len = 8,
-        digits = TRUE,
-        upperalpha = TRUE,
-        loweralpha = TRUE,
-        unique = TRUE,
-        check = TRUE
-      ),
-      ".xls",
-      sep = ""
-    )
+    paste("temporary", as.numeric(Sys.time()), ".xls", sep = "")
   #importIMFdata <- function(dataURL) {
   f = CFILE(xlsFile, mode = "wb")
   curlPerform(url = dataURL,
@@ -100,13 +89,15 @@ for (iii in 1:obj) {
   funWithPERL(dataURL)
   assign(paste("origData", iii, sep = ""), buf, .GlobalEnv)
 }
-origData <- origData1[-(1:4), ]
+origData <- origData1[-(1:4),]
 origData <-
   data.frame(origData[, 1], apply(origData[, -1], 2, as.numeric), check.names = F)
-origData <- origData[, which(colSums(is.na(origData)) != nrow(origData))]
-bufnames01 <- origData1[1, which(!is.na(origData1[1, ]))]
-bufnames02 <- origData1[3, which(!is.na(origData1[3, ]))]
-colnames(origData) <- paste(unlist(bufnames02),". Type:",unlist(bufnames01))
+origData <-
+  origData[, which(colSums(is.na(origData)) != nrow(origData))]
+bufnames01 <- origData1[1, which(!is.na(origData1[1,]))]
+bufnames02 <- origData1[3, which(!is.na(origData1[3,]))]
+colnames(origData) <-
+  paste(unlist(bufnames02), ". Type:", unlist(bufnames01))
 origData[, 1] <-
   as.Date(paste(substr(origData[, 1], 1, 4), "-", substr(origData[, 1], 6, 7), "-1", sep =
                   ""))
