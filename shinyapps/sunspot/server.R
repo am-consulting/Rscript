@@ -190,10 +190,20 @@ shinyServer(function(input, output, session)
     <b>History</b><br>
     <ol>
     <li>2016-06-09:ver.1.0.0</li>
+    <li>2016-06-17:ver.1.0.1</li>
     </ol>"
     HTML(str)
   })
-  
+
+  output$gitcode <- renderUI({
+    str <- "<hr>
+    <b>Code</b><br>
+    <ol>
+    <li><a href=\"https://github.com/am-consulting/Rscript/tree/master/shinyapps/sunspot\" target=\"_blank\">Move to GitHub</a></li>
+    </ol>"
+    HTML(str)
+  })
+
   output$datachecktime <- renderText({
     reactiveData()
     paste("Data downloaded time(UTC):" ,

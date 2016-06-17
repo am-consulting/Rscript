@@ -303,6 +303,15 @@ shinyServer(function(input, output) {
     HTML(str)
   })
   
+  output$gitcode <- renderUI({
+      str <- "<hr>
+      <b>Code</b><br>
+      <ol>
+      <li><a href=\"https://github.com/am-consulting/Rscript/tree/master/shinyapps/timeseriesplotandboxplot\" target=\"_blank\">Move to GitHub</a></li>
+      </ol>"
+      HTML(str)
+  })
+  
   output$history <- renderUI({
     str <- "<hr>
     <b>History</b><br>
@@ -310,6 +319,7 @@ shinyServer(function(input, output) {
     <li>2016-06-12:ver.1.0.0</li>
     <li>2016-06-13:ver.1.0.1</li>
     <li>2016-06-17:ver.1.0.2</li>
+    <li>2016-06-17:ver.1.0.3</li>
     </ol>"
     HTML(str)
   })

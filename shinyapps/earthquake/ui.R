@@ -129,6 +129,7 @@ shinyUI(
       column(3, wellPanel(plotOutput("plot4")))
     ),
     fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history")))
+    fluidRow(column(12, htmlOutput("history"))),
+    fluidRow(column(12, htmlOutput("gitcode")))
   )
 )

@@ -95,7 +95,8 @@ shinyUI(fluidPage(
       DT::dataTableOutput("dt")
       ,
       htmlOutput("remarktext"),
-      htmlOutput("history")
+      htmlOutput("history"), 
+      htmlOutput("gitcode")
     ),
     column(
       2,

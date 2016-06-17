@@ -115,7 +115,8 @@ shinyUI(fluidPage(
       conditionalPanel(condition = "output.table1!=''",
                        DT::dataTableOutput("table2")),
       htmlOutput("remarktext"),
-      htmlOutput("history")
+      htmlOutput("history"), 
+      htmlOutput("gitcode")
     ),
     column(
       2,
