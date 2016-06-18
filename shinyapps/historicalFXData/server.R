@@ -77,14 +77,14 @@ shinyServer(function(input, output, session)
     remark <-
       c(
         "-",
-        "-",
-        "-",
-        format(minData[, 1], "%Y-%m-%d"),
-        format(maxData[, 1], "%Y-%m-%d"),
-        "-",
-        "-",
-        "-",
-        "-",
+        "JPY",
+        "JPY",
+        paste(format(minData[, 1], "%Y-%m-%d"),"JPY"),
+        paste(format(maxData[, 1], "%Y-%m-%d"),"JPY"),
+        "JPY",
+        "JPY",
+        "JPY",
+        "JPY",
         "p-value",
         "p-value"
       )
@@ -155,7 +155,7 @@ shinyServer(function(input, output, session)
     output$table2 <- DT::renderDataTable(
       dataset,
       rownames = F,
-      caption = paste("Table 2: Statistical Summary for last 100 days"),
+      caption = paste("Table 2: Statistical Summary for last 100 days.Unit:VariationCoefficient,FromTheDayBefore - %,others - JPY"),
       options = list(
         autoWidth = T,
         info = T,
@@ -181,7 +181,7 @@ shinyServer(function(input, output, session)
           cex.axis = 1,
           cex.lab = 1,
           cex.main = 1,
-          main = colnames(plotData)[2],
+          main = paste(colnames(plotData)[2],"Unit:JPY\n",subtitle),
           xlab = ""
         )
       }
@@ -200,7 +200,7 @@ shinyServer(function(input, output, session)
           result.forecast,
           main = paste(
             colnames(plotData)[2],
-            "\n",
+            "Unit:JPY\n",
             subtitle,
             " CI=",
             ci[1],
@@ -242,7 +242,7 @@ shinyServer(function(input, output, session)
             equilogs = T
           ),
           xaxt = "n",
-          main = paste(colnames(plotData)[2], "\n", subtitle),
+          main = paste(colnames(plotData)[2], "Unit:JPY\n", subtitle),
           cex.axis = 1,
           cex.lab = 1,
           cex.main = 1
@@ -268,6 +268,7 @@ shinyServer(function(input, output, session)
     <li>adf.test( x ) { tseries } , ad.test( x ) { nortest }(Normality test)</li>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation</a></li>
     </ol>"
     HTML(str)
   })
@@ -278,6 +279,7 @@ shinyServer(function(input, output, session)
     <ol>
     <li>2016-06-15:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
+    <li>2016-06-19:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
