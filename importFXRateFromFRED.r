@@ -13,7 +13,9 @@ currencyList <-
     "DEXUSNZ",
     "DTWEXB"
   )
-curreycyName <<-
+curreycyName <<-data.frame(
+  Symbols=c("JP","SF","AL","EU","UK","CA","SZ","NZ","DTWEXB"),
+  CURRENCY=
   c(
     "Japanese Yen",
     "South African Rand",
@@ -25,6 +27,7 @@ curreycyName <<-
     "New Zealand Dollar",
     "Trade Weighted U.S. Dollar Index: Broad"
   )
+)  
 #ttt<-proc.time()
 for (iii in 1:length(currencyList)) {
   buf <-
