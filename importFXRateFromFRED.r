@@ -13,7 +13,7 @@ currencyList <-
     "DEXUSNZ",
     "DTWEXB"
   )
-curreycyName <<-data.frame(
+currencyName <<-data.frame(
   Symbols=c("JP","SF","AL","EU","UK","CA","SZ","NZ","DTWEXB"),
   CURRENCY=
   c(
