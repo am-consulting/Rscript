@@ -14,9 +14,10 @@ currencyList <-
     "DTWEXB"
   )
 currencyName <<-data.frame(
-  Symbols=c("JP","SF","AL","EU","UK","CA","SZ","NZ","DTWEXB"),
-  CURRENCY=
+  Symbols=c("US","JP","SF","AL","EU","UK","CA","SZ","NZ","DTWEXB"),
+  Currency=
   c(
+    "U.S. Dollar",
     "Japanese Yen",
     "South African Rand",
     "Australian Dollar",
