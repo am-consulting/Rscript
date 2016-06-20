@@ -45,7 +45,7 @@ for (iii in 1:length(dataURL)) {
   switch (iii,
           objcolumn <- 3,
           objcolumn <- 6)
-  buf <<-
+  buf <-
     read.xls(
       dataURL[iii],
       perl = perl,
