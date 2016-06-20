@@ -74,4 +74,6 @@ EIAData[, 1] <-
     sep = ""
   ))
 EIAData <- EIAData[order(EIAData[, 1]), ]
-origData <<- merge(origData, EIAData, by = "Date", all = T)
+origData <- merge(origData, EIAData, by = "Date", all = T)
+origData[,-1]<-apply(origData[,-1],2,as.numeric)
+origData<<-origData
