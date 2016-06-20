@@ -7,7 +7,7 @@ currencyList <-
     "GOLDAMGBD228NLBM",
     "DCOILBRENTEU",
     "DTWEXB")
-commodityName <- data.frame(
+commodityName <<- data.frame(
   Symbols = c("DCOILWTICO", "GOLDAMGBD228NLBM", "DCOILBRENTEU", "DTWEXB"),
   Currency =
     c(
