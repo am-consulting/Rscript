@@ -38,7 +38,8 @@ perl <- gdata:::findPerl("perl")
 dataURL <-
   c("http://ir.eia.gov/wpsr/psw01.xls",
     "http://ir.eia.gov/wpsr/psw09.xls")
-for (iii in 1:length(dataURL)) {
+#for (iii in 1:length(dataURL)) {
+for (iii in 1:1) {
   switch (iii,
           objsheet <- 2,
           objsheet <- 7)
