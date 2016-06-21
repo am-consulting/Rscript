@@ -43,6 +43,7 @@ for (iii in 1:length(currencyList)) {
   } else{
     origData <- merge(origData, buf, all = T)
   }
+  gc();gc()
 }
 colnames(origData) <-
   gsub("US", "/US", gsub("DEX", "", colnames(origData)))

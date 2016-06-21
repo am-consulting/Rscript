@@ -25,6 +25,7 @@ for (iii in 1:length(commodityList)) {
   } else{
     origData <- merge(origData, buf, all = T)
   }
+  gc();gc()
 }
 origData <-
   data.frame(
@@ -64,6 +65,7 @@ for (iii in 1:1) {
   } else{
     EIAData <- merge(EIAData, buf, by = "Date", all = T)
   }
+  gc();gc()
 }
 EIAData[, 1] <-
   as.Date(paste(
