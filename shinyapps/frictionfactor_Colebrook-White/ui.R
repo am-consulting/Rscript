@@ -93,10 +93,10 @@ shinyUI(fluidPage(
         width = "100%",
         height = "700"
       )
-    )
+    ))
     ,
     fluidRow(column(12, htmlOutput("remarktext"))),
     fluidRow(column(12, htmlOutput("history"))),
     fluidRow(column(12, htmlOutput("gitcode")))
-  )
+  
 ))
