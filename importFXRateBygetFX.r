@@ -38,10 +38,7 @@ currencyName <<-data.frame(
 )  
 for (iii in 1:length(currencyList)) {
   buf <-
-    getFX(currencyList[iii], from = Sys.Date()-365*5, to = Sys.Date(),
-      verbose = T,
-      warning = F,
-      auto.assign = F)
+    getSymbols(currencyList[iii], src = "oanda", auto.assign = F, from = Sys.Date()-365*5, to = Sys.Date())
   if (iii == 1) {
     origData <- buf
   } else{
