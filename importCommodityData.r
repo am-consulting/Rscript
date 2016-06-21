@@ -1,29 +1,20 @@
 # License:GPL(version 2 or later)
-# Data Source:Federal Reserve Bank of St. Louis , U.S. Energy Information Administration , OANDA Corporation - https://www.oanda.com/
+# Data Source:U.S. Energy Information Administration , OANDA Corporation - https://www.oanda.com/
 library(quantmod)
 library(gdata)
 options(download.file.method="libcurl")
 commodityList <-
-  c("DCOILWTICO",
-#    "GOLDAMGBD228NLBM",
-    "XAU/USD",
-    "DCOILBRENTEU",
-    "DTWEXB")
+  c(
+    "XAU/USD"
+    )
 commodityName <<- data.frame(
   Symbols = 
     c(
-      "DCOILWTICO", 
-#      "GOLDAMGBD228NLBM", 
-      "XAU",
-      "DCOILBRENTEU", 
-      "DTWEXB"
+      "XAU"
       ),
-  Currency =
+  Commodity =
     c(
-      "Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma",
-      "Gold(oz.)",
-      "Crude Oil Prices: Brent - Europe",
-      "Trade Weighted U.S. Dollar Index: Broad"
+      "Gold(oz.)"
     ),stringsAsFactors = F
 )
 for (iii in 1:length(commodityList)) {
@@ -48,15 +39,15 @@ colnames(origData)[-1]<-commodityName[,2]
 perl <- gdata:::findPerl("perl")
 dataURL <-
   c("http://ir.eia.gov/wpsr/psw01.xls",
-    "http://ir.eia.gov/wpsr/psw09.xls")
-#for (iii in 1:length(dataURL)) { 
-for (iii in 1:1) {
+    "http://ir.eia.gov/wpsr/psw11.xls"
+    )
+for (iii in 1:length(dataURL)) { 
   switch (iii,
           objsheet <- 2,
-          objsheet <- 7)
+          objsheet <- 2)
   switch (iii,
           objcolumn <- 3,
-          objcolumn <- 6)
+          objcolumn <- c(2:3))
   buf <-
     read.xls(
       dataURL[iii],
