@@ -1,25 +1,35 @@
 # License:GPL(version 2 or later)
-# Data Source:Federal Reserve Bank of St. Louis , U.S. Energy Information Administration
+# Data Source:Federal Reserve Bank of St. Louis , U.S. Energy Information Administration , OANDA Corporation - https://www.oanda.com/
 library(quantmod)
 library(gdata)
+options(download.file.method="libcurl")
 commodityList <-
   c("DCOILWTICO",
-    "GOLDAMGBD228NLBM",
+#    "GOLDAMGBD228NLBM",
+    "XAU/USD",
     "DCOILBRENTEU",
     "DTWEXB")
 commodityName <<- data.frame(
-  Symbols = c("DCOILWTICO", "GOLDAMGBD228NLBM", "DCOILBRENTEU", "DTWEXB"),
+  Symbols = 
+    c(
+      "DCOILWTICO", 
+#      "GOLDAMGBD228NLBM", 
+      "XAU",
+      "DCOILBRENTEU", 
+      "DTWEXB"
+      ),
   Currency =
     c(
       "Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma",
-      "Gold Fixing Price 10:30 A.M. (London time) in London Bullion Market, based in U.S. Dollars",
+      "Gold(oz.)",
       "Crude Oil Prices: Brent - Europe",
       "Trade Weighted U.S. Dollar Index: Broad"
     ),stringsAsFactors = F
 )
 for (iii in 1:length(commodityList)) {
+  if(commodityList[iii]=="XAU/USD"){srcFrom<-"oanda"}else{srcFrom<-"FRED"}
   buf <-
-    getSymbols(commodityList[iii], src = "FRED", auto.assign = FALSE)
+    getSymbols(commodityList[iii], src = srcFrom, auto.assign = F, from = Sys.Date()-365*5, to = Sys.Date())
   if (iii == 1) {
     origData <- buf
   } else{
