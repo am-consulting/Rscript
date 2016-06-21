@@ -2,7 +2,8 @@ library(shiny)
 library(RCurl)
 script <-
   getURL(
-    "https://raw.githubusercontent.com/am-consulting/Rscript/master/importFXRateFromFRED.r",
+#    "https://raw.githubusercontent.com/am-consulting/Rscript/master/importFXRateFromFRED.r",
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/importFXRateBygetFX.r",
     ssl.verifypeer = FALSE
   )
 eval(parse(text = script))
@@ -34,7 +35,8 @@ shinyUI(fluidPage(
       '!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");'
     )
   ),
-  headerPanel("Currency Analysis. Raw Data source:Federal Reserve Bank of St. Louis"),
+#  headerPanel("Currency Analysis. Raw Data source:Federal Reserve Bank of St. Louis"),
+  headerPanel("Currency Analysis. Raw Data source:OANDA Corporation - https://www.oanda.com/"),
   fluidRow(column(12,
                   textOutput("DataDownloadTime"))),
   fluidRow(column(
@@ -52,7 +54,8 @@ shinyUI(fluidPage(
           dateRangeInput(
             "dateRange",
             label = "Date Range Input",
-            start = tail(origData, 1)[1, 1] - 1000,
+#            start = tail(origData, 1)[1, 1] - 1000,
+            start = head(origData, 1)[1, 1],
             end = tail(origData, 1)[1, 1]
           ),
           radioButtons(
