@@ -1,6 +1,7 @@
 # License:GPL(version 2 or later)
 # Reference https://cran.r-project.org/web/packages/quantmod/quantmod.pdf
 library(quantmod)
+options(download.file.method="libcurl")
 currencyList <-
   c(
     "USD/JPY",
