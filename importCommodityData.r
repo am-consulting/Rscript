@@ -1,8 +1,8 @@
 # License:GPL(version 2 or later)
-# Data Source:Federal Reserve Bank of St. Louis
+# Data Source:Federal Reserve Bank of St. Louis , U.S. Energy Information Administration
 library(quantmod)
 library(gdata)
-currencyList <-
+commodityList <-
   c("DCOILWTICO",
     "GOLDAMGBD228NLBM",
     "DCOILBRENTEU",
@@ -17,9 +17,9 @@ commodityName <<- data.frame(
       "Trade Weighted U.S. Dollar Index: Broad"
     ),stringsAsFactors = F
 )
-for (iii in 1:length(currencyList)) {
+for (iii in 1:length(commodityList)) {
   buf <-
-    getSymbols(currencyList[iii], src = "FRED", auto.assign = FALSE)
+    getSymbols(commodityList[iii], src = "FRED", auto.assign = FALSE)
   if (iii == 1) {
     origData <- buf
   } else{
@@ -38,7 +38,7 @@ perl <- gdata:::findPerl("perl")
 dataURL <-
   c("http://ir.eia.gov/wpsr/psw01.xls",
     "http://ir.eia.gov/wpsr/psw09.xls")
-#for (iii in 1:length(dataURL)) {
+#for (iii in 1:length(dataURL)) { 
 for (iii in 1:1) {
   switch (iii,
           objsheet <- 2,
@@ -55,7 +55,7 @@ for (iii in 1:1) {
       stringsAsFactors = F,
       sheet = objsheet
     )
-  
+
   buf <- buf[, c(1, objcolumn)]
   colnames(buf) <-  unlist(buf[3, ])
   buf <- buf[-c(1:3), ]
