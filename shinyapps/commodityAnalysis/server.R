@@ -275,12 +275,9 @@ shinyServer(function(input, output, session)
         par(mar = c(3, 4, 3, 4))
         switch (
           iii,
-          patternX <- na.omit(origData[, c(1, 2, 3)]),
           patternX <- na.omit(origData[, c(1, 2, 4)]),
-          patternX <- na.omit(origData[, c(1, 2, 6)]),
-#          patternX <- na.omit(origData[, c(1, 2, 7)]),
           patternX <- na.omit(origData[, c(1, 2, 5)]),
-          patternX <- na.omit(origData[, c(1, 3, 5)])
+          patternX <- na.omit(origData[, c(1, 3, 4)])
         )
         plot(
           patternX[, 1],
@@ -362,16 +359,7 @@ shinyServer(function(input, output, session)
     iii <- 3
     funPlot(iii)
     output$plot03 <- get(paste("tsPlot", iii, sep = ""))
-    iii <- 4
-    funPlot(iii)
-    output$plot04 <- get(paste("tsPlot", iii, sep = ""))
-    iii <- 5
-    funPlot(iii)
-    output$plot05 <- get(paste("tsPlot", iii, sep = ""))
-#    iii <- 6
-#    funPlot(iii)
-#    output$plot06 <- get(paste("tsPlot", iii, sep = ""))
-    
+
     output$plot1 <- renderPlot({
       par(mar = c(5, 4, 3, 3), family = "Noto Sans Japanese")
       
@@ -486,6 +474,7 @@ shinyServer(function(input, output, session)
     <b>History</b><br>
     <ol>
     <li>2016-06-20:ver.1.0.0</li>
+    <li>2016-06-22:ver.1.0.1</li>
     </ol>"
     HTML(str)
   })

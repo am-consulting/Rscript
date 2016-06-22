@@ -38,7 +38,7 @@ shinyUI(fluidPage(
     )
   ),
   headerPanel(
-    "Commodity Analysis. Raw Data source:Federal Reserve Bank of St. Louis , U.S. Energy Information Administration"
+    "Commodity Analysis. Raw Data source:U.S. Energy Information Administration , OANDA Corporation - https://www.oanda.com/"
   ),
   fluidRow(column(12,
                   textOutput("DataDownloadTime"))),
@@ -51,7 +51,7 @@ shinyUI(fluidPage(
           selectInput(
             "commodity",
             label = "Commodity",
-            colnames(origData)[-c(1, 5)],
+            colnames(origData)[-1],
             selectize = FALSE
           ),
           dateRangeInput(
@@ -115,15 +115,8 @@ shinyUI(fluidPage(
         column(
           6,
           plotOutput("plot03", width = "100%", height = "500px")
-        )),
-        fluidRow(column(
-          6,
-          plotOutput("plot04", width = "100%", height = "500px")
-        ),
-        column(
-          6,
-          plotOutput("plot05", width = "100%", height = "500px")
-        )),
+        ))
+        ,
         htmlOutput("remarktext"),
         htmlOutput("history"),
         htmlOutput("gitcode")
