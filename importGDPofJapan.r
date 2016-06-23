@@ -1,5 +1,6 @@
 # License:GPL(version 2 or later)
 # Data Source:Cabinet Office, Government Of Japan
+options(download.file.method="libcurl")
 url <- c(
   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-mk1611.csv",
   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-jk1611.csv",
@@ -56,7 +57,8 @@ for (uuu in 1:length(url)) {
       skip = 0,
       stringsAsFactor = F,
       na.strings = c("", "***"),
-      check.names = F
+      check.names = F,
+      fileEncoding = "cp932"
     )
   for (rrr in 1:nrow(tmp)) {
     if (is.na(tmp[rrr, 1]) == F) {
