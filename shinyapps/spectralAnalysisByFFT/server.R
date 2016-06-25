@@ -1,5 +1,6 @@
 library(shiny)
 library(DT)
+options(shiny.maxRequestSize = 0.5 * 1024 ^ 2)
 shinyServer(function(input, output, session) {
   importData <- reactive({
     inFile <- input$file
