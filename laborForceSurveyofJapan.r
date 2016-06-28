@@ -1,6 +1,5 @@
 # License:GPL(version 2 or later)
 # Data Source:Statistics Bureau, Ministry of Internal Affairs and Communications
-library(quantmod)
 library(gdata)
 options(download.file.method = "libcurl")
 perl <- gdata:::findPerl("perl")
