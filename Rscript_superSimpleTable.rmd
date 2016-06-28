@@ -1,38 +1,39 @@
 ```{r}
 library(knitr)
 library(lubridate)
-#buf<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=F)
+buf<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=F)
 username<-Sys.info()['user']
-pathInput<-paste("C:/Users/",username,"/Desktop/R_Data_Read/",sep="")
-data.file<-"shikin_data_sjis.csv" #ラポール・ジャパン
-buf<- read.csv(paste( pathInput,data.file,sep = ""),header = T, skip = 0, stringsAsFactor = F, check.names = F, na.strings = c("-"))
+#pathInput<-paste("C:/Users/",username,"/Desktop/R_Data_Read/",sep="")
+#data.file<-"shikin_data_sjis.csv" #ラポール・ジャパン
+#buf<- read.csv(paste( pathInput,data.file,sep = ""),header = T, skip = 0, stringsAsFactor = F, check.names = F, na.strings = c("-"))
 buf[is.na(buf)==T]<--9999
 #以降bufに変更は加えないこと
-exception<-c(1,2,3)
+addColumn<-2
+exception<-c(1,2)
 dataset<-buf
 dataset[,-exception]<-format(dataset[,-exception],big.mark=",",scientific=F)
 #if(is.Date(dataset[,1])==T){dataset[,1]<-as.Date(dataset[,1])}
-dataset<-data.frame(dataset,dataset[,1],check.names=F)
-colnames(dataset)[ncol(dataset)]<-colnames(dataset)[1]
-dataset<-data.frame(ID=seq(1,nrow(dataset),by=1),dataset,check.names=F)
+dataset<-data.frame(dataset,dataset[,addColumn],check.names=F)
+colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addColumn]
+#dataset<-data.frame(ID=seq(1,nrow(dataset),by=1),dataset,check.names=F)
 tail(dataset)
 ```
 
 ```{r}
-needRegular<-1 # 1 or other number
-needLinktable<-0  # 1 or other number
-individualPage<-1 # 1 or other number
+needRegular<-0 # 1 or other number
+needLinktable<-1  # 1 or other number
+individualPage<-0 # 1 or other number
 RegularObj<-c(2)
-title<-"ラポール・ジャパンが公表されている『2014年国会議員関係政治団体における政治資金情報サマリー情報一覧.csv』のデータテーブル"
-source<-"ラポール・ジャパン http://rapportjapan.info/"
+title<-"東京都の人口(推計)-区市町村別主要10か国外国人人口-2016年1月1日現在"
+source<-"東京都"
 alignarg<-rep("r",ncol(dataset))
 alignarg<-c("r","l",rep("r",ncol(dataset)-3),"l")
 ST<-Sys.time()
 SD<-Sys.Date()
 pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
 setwd(pathOutput);getwd()
-htmlFile<-"superSimpleTable.html"
-htmlFile<-"amcc_politicalfund.html"
+htmlFile<-paste("superSimpleTable_",floor(as.numeric(ST)),".html",sep="")
+#htmlFile<-"amcc_politicalfund.html"
 cat("",file=htmlFile,append=F)
 if(individualPage==1){
 cat("
@@ -63,13 +64,13 @@ td.highlight{font-weight:plain;color:red;}
 <div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>
 <script type=\"text/javascript\" charset=\"utf-8\">
 $(document).ready(function(){
-$('#amcc_superSimpleTable').dataTable({
+$('#amcc_superSimpleTable",floor(as.numeric(ST)),"').dataTable({
 \"lengthMenu\":[[20,10,-1],[20,10,\"All\"]],
 \"order\":[[0,\"asc\"]],
 \"searching\":true,
 \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
 \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
-createdRow:function(row,data,index){\n"),file=htmlFile,append=T)
+createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
 for(ccc in 1:ncol(dataset)){
   cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
   cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
@@ -79,20 +80,20 @@ cat("}
 })",file=htmlFile,append=T)
 #正規表現
 if(needRegular==1){
-cat("
-$('#amcc_superSimpleTable').dataTable();
+cat(paste("
+$('#amcc_superSimpleTable",floor(as.numeric(ST)),"').dataTable();
 $('input.global_filter').on( 'keyup click', function () {
 filterGlobal();
 });
 $('input.column_filter').on( 'keyup click', function () {
 filterColumn( $(this).parents('tr').attr('data-column') );
-});",file=htmlFile,append=T)
+});",sep=""),file=htmlFile,append=T)
 }
 #正規表現
 cat("});</script>\n\n",file=htmlFile,append=T)
-table.argu<-"id=\"amcc_superSimpleTable\" width=\"100%\" class=\"display compact\""
+table.argu<-paste("id=\"amcc_superSimpleTable",floor(as.numeric(ST)),"\" width=\"100%\" class=\"display compact\"",sep="")
 cat(paste("<div align=\"center\"><b>",title,"</b><br>データ出所:",source,"</div>"),file=htmlFile,append=T)  
-#cat("-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>",file=htmlFile,append=T)
+cat("-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>",file=htmlFile,append=T)
 #正規表現
 if(needRegular==1){
 #html
