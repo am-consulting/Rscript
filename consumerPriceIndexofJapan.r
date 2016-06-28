@@ -21,7 +21,7 @@ for (rrr in 1:nrow(buf)) {
 startDate <-
   as.Date(paste(substr(tmp, 1, 4), "-", substr(tmp, 5, 6), "-1", sep = ""))
 origData <- buf[-(1:(rrr - 1)), 2:ncol(buf)]
-apply(origData, 2, function(x) {
+origData <- apply(origData, 2, function(x) {
   as.numeric(x)
 })
 origData0 <<-
