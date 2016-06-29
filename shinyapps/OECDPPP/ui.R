@@ -3,7 +3,7 @@ library(RCurl)
 library(lubridate)
 script <-
   getURL(
-    "https://raw.githubusercontent.com/am-consulting/Rscript/master/importFXRateFromFRED_major.r",
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/importFXRateBygetFX_major.r",
     ssl.verifypeer = FALSE
   )
 eval(parse(text = script))
@@ -47,7 +47,7 @@ shinyUI(fluidPage(
     )
   ),
   headerPanel(
-    "Purchasing power parities (PPP)Total, National currency units/US dollar. Raw Data source:Organisation for Economic Co-operation and Development"
+    "Purchasing power parities (PPP)Total, National currency units/US dollar. Raw Data source:Organisation for Economic Co-operation and Development , OANDA Corporation - https://www.oanda.com/"
   ),
   fluidRow(column(12,
                   textOutput("DataDownloadTime"))),
