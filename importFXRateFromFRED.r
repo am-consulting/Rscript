@@ -31,6 +31,7 @@ currencyName <<-data.frame(
 )  
 #ttt<-proc.time()
 for (iii in 1:length(currencyList)) {
+  Sys.sleep(2) #avoid to overload
   buf <-
     getSymbols(currencyList[iii], src = "FRED", auto.assign = FALSE)
   if (length(grep("DEXUS", currencyList[iii])) != 0) {

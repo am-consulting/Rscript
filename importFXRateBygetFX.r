@@ -38,6 +38,7 @@ currencyName <<-data.frame(
   )
 )  
 for (iii in 1:length(currencyList)) {
+  Sys.sleep(2) #avoid to overload  
   buf <-
     getSymbols(currencyList[iii], src = "oanda", auto.assign = F, from = Sys.Date()-365*5, to = Sys.Date())
   if (iii == 1) {
