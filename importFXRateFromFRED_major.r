@@ -1,6 +1,7 @@
 # License:GPL(version 2 or later)
 # Data Source:Federal Reserve Bank of St. Louis
 library(quantmod)
+options(download.file.method="libcurl")
 currencyList <-
   c(
     "DEXJPUS",
