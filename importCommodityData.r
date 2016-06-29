@@ -42,6 +42,7 @@ dataURL <-
     "http://ir.eia.gov/wpsr/psw11.xls"
     )
 for (iii in 1:length(dataURL)) { 
+  Sys.sleep(2) #avoid to overload    
   switch (iii,
           objsheet <- 2,
           objsheet <- 2)
