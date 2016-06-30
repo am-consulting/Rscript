@@ -1,3 +1,5 @@
+# License:GPL(version 2 or later)
+# Data Source:Ministry of Finance Japan
 options(download.file.method="libcurl")
 datacolnames1 <- c(
   "Current account/経常収支",
