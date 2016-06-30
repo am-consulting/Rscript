@@ -69,6 +69,7 @@ sourceURL <- c(
   "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-4/6s-4-4.csv"
 )
 for (ddd in 1:length(sourceURL)) {
+  Sys.sleep(1)
   tmp <-
     read.csv(
       sourceURL[ddd],
