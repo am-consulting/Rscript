@@ -74,7 +74,8 @@ origData3 <-
 colnames(origData3)[-1] <- bufcolnames
 #円建て
 origData4<<-origData1[,c(1,15)]
-origData1<<-origData1[,-15]
+origData1<-origData1[,-15]
+origData1<<-origData1
 origData2<<-origData2
 origData3<<-origData3
 origData5<<-origData5
