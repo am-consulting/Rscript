@@ -62,18 +62,20 @@ exRate <-
     head(origData1[, 1], 1) <= index(EXJPUSData) &
       tail(origData1[, 1], 1) >= index(EXJPUSData)
   ))
+origData5 <-
+  data.frame(Date = origData1[, 1], exRate[, 1, drop = F], row.names = NULL)
+colnames(origData5)[2] <- "USD/JPY"
 buf <- origData1[, -c(1, 15)] * 10 ^ -6
 bufcolnames <- colnames(buf)
 origData3 <-
-  data.frame(Date = origData1[, 1], exRate[, 1, drop = F], row.names = NULL)
-origData3 <-
-  data.frame(origData3, apply(buf, 2, function(x) {
+  data.frame(Date = origData1[, 1], apply(buf, 2, function(x) {
     x * exRate[, 1, drop = F]
   }), row.names = NULL)
-colnames(origData3)[-c(1, 2)] <- bufcolnames
-colnames(origData3)[2] <- "USD/JPY"
+colnames(origData3)[-1] <- bufcolnames
 #円建て
-origData1<<-origData1
+origData4<<-origData1[,c(1,15)]
+origData1<<-origData1[,-15]
 origData2<<-origData2
 origData3<<-origData3
+origData5<<-origData5
 dataTitle<<-dataTitle
