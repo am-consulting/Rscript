@@ -14,9 +14,9 @@ tmp <-
     fileEncoding = "cp932"
   )
 rrr <- 1
-title <- vector()
+dataTitle <- vector()
 while (tmp[rrr, 1] != "") {
-  title[rrr] <- tmp[rrr, 1]
+  dataTitle[rrr] <- tmp[rrr, 1]
   rrr <- rrr + 1
 }
 while (tmp[rrr, 1] == "") {
@@ -76,4 +76,4 @@ colnames(origData3)[2] <- "USD/JPY"
 origData1<<-origData1
 origData2<<-origData2
 origData3<<-origData3
-title<<-title
+dataTitle<<-dataTitle
