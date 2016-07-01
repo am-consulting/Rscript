@@ -52,7 +52,7 @@ colnames(origData1)[-1] <- c(
 #外貨準備に占める割合
 origData2 <-
   data.frame(Date = origData1[, 1],
-             round(origData1[, -c(1, 15)] / origData1[, 2] * 100, 1),
+             origData1[, -c(1, 15)] / origData1[, 2] * 100,
              check.names = F)
 #外貨準備に占める割合
 #円建て
