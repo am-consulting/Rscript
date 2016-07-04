@@ -73,3 +73,4 @@ for (iii in 1:length(file.name)) {
   # 全系列ともゼロ値またはNAの行を削除(オリジナルデータは最新年の12月分まで枠が生成されている
   assign(paste("origData", iii, sep = ""), origData)
 }
+assign(paste("origData",iii+1,sep=""),data.frame(Date=origData1[,1],Net=origData1[,2]-origData1[,3]))
