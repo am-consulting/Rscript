@@ -1,5 +1,6 @@
 # License:GPL(version 2 or later)
 # Data Source:Ministry of Finance Japan
+# Reference http://www.customs.go.jp/toukei/suii/html/time.htm
 options(download.file.method = "libcurl")
 FUN.0 <- function(x) {
   as.numeric(x) / (10 ^ 9)
@@ -64,6 +65,11 @@ for (iii in 1:length(file.name)) {
     colnames(buf) <- c("Date", tmp.name)
     origData <- buf
     origData <- cbind(origData[1], apply(origData[-1], 2, FUN.1))
+    if (grepl("d51ma.csv", url) == T) {
+      colnames(origData)[-1] <- paste(colnames(origData)[-1], "-Export")
+    } else{
+      colnames(origData)[-1] <- paste(colnames(origData)[-1], "-Import")
+    }
   }
   origData[, 1] <- as.Date(origData[, 1])
   # 全系列ともゼロ値またはNAの行を削除(オリジナルデータは最新年の12月分まで枠が生成されている
