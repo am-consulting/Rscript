@@ -26,3 +26,16 @@ origData <- na.omit(origData)
 colnames(origData) <-
   c("Date", "Total Holdings(Millions of dollars)", "Country･Region")
 origData<<-origData
+bufDate<-unique(origData[,1])
+for(ccc in 1:length(bufDate)) {
+  bufData0 <- subset(origData, bufDate[ccc] == origData[, 1])
+  bufData1 <- t(bufData0[, 2])
+  colnames(bufData1) <- bufData0[, 3]
+  bufData1 <- data.frame(Date = bufDate[ccc], bufData1, check.names = F)
+  if (ccc == 1) {
+    allData <- bufData1
+  } else{
+    allData <- merge(allData, bufData1, all =  T)
+  }
+}
+allData<<-allData
