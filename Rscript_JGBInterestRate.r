@@ -4,10 +4,8 @@ jgb <- function() {
   jgbDataSource <<- "Ministry of Finance Japan"
   jgbBaseURL <- "http://www.mof.go.jp/english/jgbs/reference/interest_rate/"
   jgbFiles <- c("historical/jgbcme_all.csv", "jgbcme.csv")
-  Sys.sleep(1)
   historicalData <- read.csv(paste(jgbBaseURL, jgbFiles[1], sep = ""), 
     header = T, skip = 1, stringsAsFactor = F, check.names = F, na.strings = c("-"))
-  Sys.sleep(1)
   currentData <- read.csv(paste(jgbBaseURL, jgbFiles[2], sep = ""), header = T, 
     skip = 1, stringsAsFactor = F, check.names = F, na.strings = c("-"))
   buf <- colnames(historicalData) == colnames(currentData)
