@@ -6,7 +6,7 @@ script <-
     ssl.verifypeer = FALSE
   )
 eval(parse(text = script))
-jgb()
+
 latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(
   fluidPage(

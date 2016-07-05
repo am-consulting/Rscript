@@ -161,6 +161,7 @@ shinyServer(function(input, output, session)
       <li>2016-06-08:ver.1.0.0</li>
       <li>2016-06-11:ver.1.0.1</li>
       <li>2016-06-17:ver.1.0.2</li>
+      <li>2016-07-05:ver.1.0.3</li>
       </ol>"
       HTML(str)
     })
