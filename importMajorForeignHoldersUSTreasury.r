@@ -5,7 +5,7 @@ options(download.file.method = "libcurl")
 nSkipRow <- 14
 targetWord <- "Notes:"
 url <- c(
-  "http://www.treasury.gov/resource-center/data-chart-center/tic/Documents/slt3d_globl.csv"
+  "https://www.treasury.gov/resource-center/data-chart-center/tic/Documents/slt3d_globl.csv"
 )
 Sys.sleep(1)
 buf <-
