@@ -10,7 +10,7 @@ url <- c(
 Sys.sleep(1)
 buf <-
   read.csv(
-    url,
+    url[1],
     header = F,
     skip = nSkipRow,
     stringsAsFactor = F,
