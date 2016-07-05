@@ -140,7 +140,12 @@ shinyServer(function(input, output, session)
       <li>Sample Variance = var(x)*(length(x)-1)/length(x)</li>
       <li>Sample Standard Deviation = √Sample Variance</li>
       <li>adf.test( x ) { tseries } , ad.test( x ) { nortest }(Normality test)</li>
-      <li>Other apps <a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
+      <li>Variation Coefficient(VC,%)=(Sample Standard Deviation/Mean)*100</li>
+      <li><a href=\"http://github.hubspot.com/pace/docs/welcome/\" target=\"_blank\">PACE - http://github.hubspot.com/pace/docs/welcome/</a></li>
+      <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
+      <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+      <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+      <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
       </ol>"
       HTML(str)
     })
@@ -162,6 +167,7 @@ shinyServer(function(input, output, session)
       <li>2016-06-11:ver.1.0.1</li>
       <li>2016-06-17:ver.1.0.2</li>
       <li>2016-07-05:ver.1.0.3</li>
+      <li>2016-07-05:ver.1.0.4</li>
       </ol>"
       HTML(str)
     })
