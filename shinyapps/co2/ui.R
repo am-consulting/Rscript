@@ -1,4 +1,14 @@
 library(shiny)
+library(RCurl)
+options(download.file.method = "libcurl")
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
+Sys.sleep(1)
 sourceURL <- "\nhttp://ds.data.jma.go.jp/ghg/kanshi/info_co2.html"
 datatitle <<- list()
 origData <<- list()
@@ -85,10 +95,24 @@ shinyUI(
         selectize = FALSE
       )
     )),
-    fluidRow(
+    fluidRow(column(10,fluidRow(
       column(4, wellPanel(htmlOutput("gvis"))),
-      column(3, DT::dataTableOutput("table1")),
-      column(3, DT::dataTableOutput("table2")),
+      column(4, DT::dataTableOutput("table1")),
+      column(4, DT::dataTableOutput("table2"))),
+    fluidRow(
+      div(
+        "Caution: Removed rows containing missing values or non-finite values.",
+        style = "color:black",
+        align = "center"
+      ),
+      column(6, wellPanel(plotOutput("plot1"))),
+      column(6, wellPanel(plotOutput("plot2")))
+    ),
+    fluidRow(column(12, htmlOutput("remarktext"))),
+    fluidRow(column(12, htmlOutput("history"))),
+    fluidRow(column(12, htmlOutput("gitcode"))),
+    fluidRow(column(12, htmlOutput("linkList")))
+      ),
       column(
         2,
         a(
@@ -99,21 +123,9 @@ shinyUI(
           ,
           "data-widget-id" = "449799943780200448",
           width = "100%",
-          height = "700"
+          height = "1500"
         )
       )
-    ),
-    fluidRow(
-      div(
-        "Caution: Removed rows containing missing values or  non-finite values.",
-        style = "color:black",
-        align = "center"
-      ),
-      column(6, wellPanel(plotOutput("plot1"))),
-      column(6, wellPanel(plotOutput("plot2")))
-    ),
-    fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history"))),
-    fluidRow(column(12, htmlOutput("gitcode")))
+    )
   )
 )
