@@ -131,7 +131,10 @@ shinyServer(function(input, output, session)
     <li><a href=\"http://equations.am-consulting.co.jp/2014/04/08/1093/\" target=\"_blank\">配管摩擦損失係数:滑面配管/Smooth pipes</a></li>
     <li><a href=\"http://equations.am-consulting.co.jp/2014/04/08/1089/\" target=\"_blank\">配管摩擦損失係数:粗面配管/Rough pipes</a></li>
     <li><a href=\"http://equations.am-consulting.co.jp/2014/04/08/1082/\" target=\"_blank\">配管摩擦損失係数:コールブルック・ホワイトの式/Colebrook-White Equation</a></li>
-    <li>Other apps <a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
+    <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
+    <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -143,6 +146,7 @@ shinyServer(function(input, output, session)
     <li>2016-06-09:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
     <li>2016-06-21:ver.1.0.2</li>
+    <li>2016-07-06:ver.1.0.3</li>
     </ol>"
     HTML(str)
   })
@@ -156,9 +160,14 @@ shinyServer(function(input, output, session)
     HTML(str)
   })
 
+  output$link <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+  
   output$datachecktime <- renderText({
     reactiveData()
-    completionTime <- Sys.time()
-    paste("Completion :" , as.character(completionTime))
+    completionTime <- as.POSIXlt(Sys.time(), "GMT")
+    paste("Completion(UTC) :" , as.character(completionTime))
   })
 })
