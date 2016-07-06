@@ -8,14 +8,14 @@ username<-Sys.info()['user']
 #buf<- read.csv(paste( pathInput,data.file,sep = ""),header = T, skip = 0, stringsAsFactor = F, check.names = F, na.strings = c("-"))
 buf[is.na(buf)==T]<--9999
 #以降bufに変更は加えないこと
-addColumn<-1
-exception<-c(1)
+addColumn<-2
+exception<-c(1,2,4)
 dataset<-buf
 dataset[,-exception]<-format(dataset[,-exception],big.mark=",",scientific=F)
 #if(is.Date(dataset[,1])==T){dataset[,1]<-as.Date(dataset[,1])}
 dataset<-data.frame(dataset,dataset[,addColumn],check.names=F)
 colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addColumn]
-dataset<-data.frame(ID=seq(1,nrow(dataset),by=1),dataset,check.names=F)
+#dataset<-data.frame(ID=seq(1,nrow(dataset),by=1),dataset,check.names=F)
 tail(dataset)
 ```
 
@@ -24,8 +24,8 @@ needRegular<-0 # 1 or other number
 needLinktable<-1  # 1 or other number
 individualPage<-0 # 1 or other number
 RegularObj<-c(2)
-title<-"恩給受給者数の推移-旧軍人"
-source<-"総務省"
+title<-"外国為替平衡操作の実施状況"
+source<-"財務省"
 alignarg<-rep("r",ncol(dataset))
 alignarg<-c("r","l",rep("r",ncol(dataset)-3),"l")
 ST<-Sys.time()
