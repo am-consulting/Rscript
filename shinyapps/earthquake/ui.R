@@ -1,4 +1,14 @@
 library(shiny)
+library(RCurl)
+options(download.file.method = "libcurl")
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
+Sys.sleep(1)
 data.file <- "all_month.csv"
 dataset <-
   read.csv(
@@ -97,11 +107,29 @@ shinyUI(
       textOutput("datachecktime"),
       selectInput("maptype", label = "Select map", selectList, selectize = FALSE)
     )) ,
-    fluidRow(
-      column(5, wellPanel(
+    fluidRow(column(10,fluidRow(
+      column(6, wellPanel(
         textOutput("titlegvis"), htmlOutput("gvis")
       )),
-      column(5, DT::dataTableOutput("dtTable")),
+      column(6, DT::dataTableOutput("dtTable"))
+    ),
+    tags$hr(),
+    fluidRow(
+      div(
+        "Caution: Differences in magnitude type are unconsidered in magnitude histgram.",
+        style = "color:black",
+        align = "center"
+      )
+    ),
+    fluidRow(column(6, wellPanel(plotOutput("plot1"))),
+             column(6, wellPanel(plotOutput("plot2")))),
+    fluidRow(column(6, wellPanel(plotOutput("plot3"))),
+             column(6, wellPanel(plotOutput("plot4")))),
+    fluidRow(column(12, htmlOutput("remarktext"))),
+    fluidRow(column(12, htmlOutput("history"))),
+    fluidRow(column(12, htmlOutput("gitcode"))),
+    fluidRow(column(12, htmlOutput("linkList")))
+    ), 
       column(
         2,
         a(
@@ -112,24 +140,9 @@ shinyUI(
           ,
           "data-widget-id" = "449799943780200448",
           width = "100%",
-          height = "700"
+          height = "2000"
         )
       )
-    ),
-    tags$hr(),
-    fluidRow(
-      div(
-        "Caution: Differences in magnitude type are unconsidered in magnitude histgram.",
-        style = "color:black",
-        align = "center"
-      ),
-      column(3, wellPanel(plotOutput("plot1"))),
-      column(3, wellPanel(plotOutput("plot2"))),
-      column(3, wellPanel(plotOutput("plot3"))),
-      column(3, wellPanel(plotOutput("plot4")))
-    ),
-    fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history"))),
-    fluidRow(column(12, htmlOutput("gitcode")))
+    )
   )
 )
