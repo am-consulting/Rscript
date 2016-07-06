@@ -1,5 +1,13 @@
 library(shiny)
 library(DT)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 powerSelect.Re <<- c("10^1", "10^2")
 shinyUI(fluidPage(
   tags$head(
@@ -37,7 +45,7 @@ shinyUI(fluidPage(
       textOutput("datachecktime")
     )
   )),
-  fluidRow(column(
+  fluidRow(column(10,fluidRow(column(
     4,
     wellPanel(
       sliderInput(
@@ -59,9 +67,13 @@ shinyUI(fluidPage(
       verbatimTextOutput("Result")
     )
   ),
-  column(6, wellPanel(
+  column(8, wellPanel(
     DT::dataTableOutput("dtTable")
-  )),
+  ))),
+  fluidRow(column(12, htmlOutput("remarktext"))),
+  fluidRow(column(12, htmlOutput("history"))),
+  fluidRow(column(12, htmlOutput("gitcode"))),
+  fluidRow(column(12, htmlOutput("linkList")))),
   column(
     2,
     a(
@@ -72,10 +84,7 @@ shinyUI(fluidPage(
       ,
       "data-widget-id" = "449799943780200448",
       width = "100%",
-      height = "650"
+      height = "1500"
     )
-  )),
-  fluidRow(column(12, htmlOutput("remarktext"))),
-  fluidRow(column(12, htmlOutput("history"))),
-  fluidRow(column(12, htmlOutput("gitcode")))
+  ))
 ))
