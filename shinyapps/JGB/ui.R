@@ -6,6 +6,12 @@ script <-
     ssl.verifypeer = FALSE
   )
 eval(parse(text = script))
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
 
 latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(
@@ -41,21 +47,17 @@ shinyUI(
     textOutput("latestDataDownloadTime"),
     
     fluidRow(
-      column(
+      column(10,fluidRow(column(
         2,
         wellPanel(
           selectInput(
             "year",
             label = "Year",
             colnames(jgbData)[-1],
+            selected = colnames(jgbData)[11],
             selectize = FALSE
           ),
-          dateRangeInput(
-            "dateRange",
-            label = "Date Range Input",
-            start = Sys.Date() - 365,
-            end = jgbData[nrow(jgbData), 1]
-          ),
+          uiOutput("dataRange"), 
           radioButtons(
             "charttype",
             label = "Chart Type",
@@ -80,8 +82,16 @@ shinyUI(
           )
         )
       ),
-      column(4, wellPanel(plotOutput("plot1"))),
-      column(4, DT::dataTableOutput("table1")),
+      column(5, wellPanel(plotOutput("plot1"))),
+      column(5, DT::dataTableOutput("table1"))
+      ),
+      tags$hr(),
+      fluidRow(column(12, DT::dataTableOutput("table2"))),
+      fluidRow(column(12, htmlOutput("remarktext"))),
+      fluidRow(column(12, htmlOutput("history"))),
+      fluidRow(column(12, htmlOutput("gitcode"))),
+      fluidRow(column(12, htmlOutput("linkList")))
+      ),
       column(
         2,
         a(
@@ -92,14 +102,9 @@ shinyUI(
           ,
           "data-widget-id" = "449799943780200448",
           width = "100%",
-          height = "500"
+          height = "2000"
         )
       )
-    ),
-    tags$hr(),
-    fluidRow(column(12, DT::dataTableOutput("table2"))),
-    fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history"))),
-    fluidRow(column(12, htmlOutput("gitcode")))
+    )
   )
 )

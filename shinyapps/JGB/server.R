@@ -5,18 +5,32 @@ library(DT)
 library(nortest)
 shinyServer(function(input, output, session)
 {
-  reactiveData <- reactive({
-    tmp <-
-      jgbData[, c(1, grep(paste("\\b", input$year , "\\b", sep = ""), colnames(jgbData)))]
-    tmp <- na.omit(tmp)
-    startDate <- input$dateRange[1]
-    endDate <-
-      max(min(input$dateRange[2], tmp[nrow(tmp), 1]), tmp[1, 1] + 365)
-    if (startDate >= endDate) {
-      startDate <- endDate - 365
-    }
-    tmp <- subset(tmp, startDate <= tmp[, 1] & tmp[, 1] <=
-                    endDate)
+    getOrigData <- reactive({
+      tmp0 <-
+        jgbData[, c(1, grep(paste("\\b", input$year , "\\b", sep = ""), colnames(jgbData)))]
+      tmp1 <<- na.omit(tmp0)
+    })
+    
+    output$dataRange <- renderUI({
+      getOrigData()
+      if (length(nrow(tmp1)) == 0) {
+        return(NULL)
+      } else{
+        sliderInput(
+          "dataRange",
+          label = "Data Range",
+          min = 1,
+          max = nrow(tmp1),
+          value = c(nrow(tmp1)-399, nrow(tmp1)),
+          step = 1
+        )
+      }
+    })
+  
+    reactiveData <- reactive({
+    if(is.null(input$dataRange[1])){return(NULL)}else{  
+    tmp <- subset(tmp1, input$dataRange[1] <= index(tmp1) & index(tmp1) <=
+                    input$dataRange[2])
     buf <- colnames(tmp)
     if (input$datatype == 2)
       #1st diff
@@ -82,7 +96,7 @@ shinyServer(function(input, output, session)
         "-",
         "-",
         "p-value",
-        "p-value"
+        paste(ad.test(x)$method, ": p-value")
       )
     statisticTable <<-
       data.frame(
@@ -96,13 +110,15 @@ shinyServer(function(input, output, session)
       data.frame(Date = format(jgbData[, 1], "%Y-%m-%d"),
                  jgbData[, -1],
                  check.names = F)
-    plotData <<- tmp
+    plotData <- tmp
+    subtitle <-
+      paste(plotData[1, 1], " - ", plotData[nrow(plotData), 1])
     
     output$table1 <-
       DT::renderDataTable(
         statisticTable,
         rownames = FALSE,
-        caption = "Table 1: Statistics.",
+        caption = paste("Table 1: Statistics.",subtitle),
         options = list(
           autoWidth = T,
           info = F,
@@ -141,11 +157,11 @@ shinyServer(function(input, output, session)
       <li>Sample Standard Deviation = √Sample Variance</li>
       <li>adf.test( x ) { tseries } , ad.test( x ) { nortest }(Normality test)</li>
       <li>Variation Coefficient(VC,%)=(Sample Standard Deviation/Mean)*100</li>
-      <li><a href=\"http://github.hubspot.com/pace/docs/welcome/\" target=\"_blank\">PACE - http://github.hubspot.com/pace/docs/welcome/</a></li>
       <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
       <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
       <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
       <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
+      <li><a href=\"http://www.mof.go.jp/jgbs/reference/interest_rate/index.htm\" target=\"_blank\">Raw Data Source</a></li>
       </ol>"
       HTML(str)
     })
@@ -159,6 +175,11 @@ shinyServer(function(input, output, session)
       HTML(str)
     })
     
+    output$linkList <- renderUI({
+      str <- linkList
+      HTML(str)
+    })
+    
     output$history <- renderUI({
       str <- "<hr>
       <b>History</b><br>
@@ -168,16 +189,13 @@ shinyServer(function(input, output, session)
       <li>2016-06-17:ver.1.0.2</li>
       <li>2016-07-05:ver.1.0.3</li>
       <li>2016-07-05:ver.1.0.4</li>
+      <li>2016-07-06:ver.1.0.5</li>
       </ol>"
       HTML(str)
     })
-  })
-  
+
   output$plot1 <- renderPlot({
     par(mar = c(5, 4, 3, 3))
-    reactiveData()
-    subtitle <-
-      paste(plotData[1, 1], " - ", plotData[nrow(plotData), 1])
     if (input$charttype == "hist")
     {
       hist(
@@ -254,8 +272,11 @@ shinyServer(function(input, output, session)
       )
     }
   })
+    }
+  })  
   
   output$latestDataDownloadTime <- renderText({
+    reactiveData()
     paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
   })
