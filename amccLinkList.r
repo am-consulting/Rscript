@@ -1,4 +1,4 @@
-linkLisk <<-
+linkList <<-
   "<hr><b>Link</b><br><a href=\"http://am-consulting.co.jp\" target=\"_blank\" title=\"Asset Management Consulting Corporation\">
 <img src=\"https://s0.wordpress.com/mshots/v1/http%3A%2F%2Fam-consulting.co.jp?w=600&#038;h=450\" width=\"200\"/>
 </a>
