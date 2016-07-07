@@ -8,6 +8,14 @@ library(scales)
 library(dplyr)
 library(reshape2)
 library(xtable)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 dataset <<- list()
 datatitle <<- c(
   "Sea Ice Index Data:North",
@@ -15,14 +23,15 @@ datatitle <<- c(
   "Sea Ice Index Data:Total(North+South)"
 )
 dataUrl <- c(
-  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/NH_seaice_extent_final.csv",
-  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/NH_seaice_extent_nrt.csv",
-  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/daily/data/SH_seaice_extent_final.csv",
-  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/daily/data/SH_seaice_extent_nrt.csv"
+  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/NH_seaice_extent_final_v2.csv",
+  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/north/daily/data/NH_seaice_extent_nrt_v2.csv",
+  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/daily/data/SH_seaice_extent_final_v2.csv",
+  "ftp://sidads.colorado.edu/DATASETS/NOAA/G02135/south/daily/data/SH_seaice_extent_nrt_v2.csv"
 )
 chkNH <- 0
 chkSH <- 0
 for (ddd in 1:length(dataUrl)) {
+  Sys.sleep(1)
   buf <<-
     read.csv(
       dataUrl[ddd],
@@ -109,21 +118,33 @@ shinyUI(
       selectInput("region", label = "Select",   datatitle  ,     selectize = FALSE)
     )),
     fluidRow(column(12,
-                    h1(
+                    h2(
                       textOutput("datatitle")
                     )))
     ,
     fluidRow(column(12,
                     fluidRow(
-                      column(10,
-                             fluidRow(
-                               column(4, wellPanel(plotOutput("plot1"))),
-                               column(4, wellPanel(plotOutput("plot2"))),
-                               column(4, wellPanel(plotOutput("plot3")))
-                             ),
-                             fluidRow(column(12, wellPanel(
-                               div(style = "height:700px;",  plotOutput("plot4"))
-                             )))),
+                      column(
+                        10,
+                        fluidRow(
+                          div(
+                            "Caution: Removed rows containing missing values or  non-finite values.",
+                            style = "color:black",
+                            align = "center"
+                          ),
+                          column(4, wellPanel(plotOutput("plot1"))),
+                          column(4, wellPanel(plotOutput("plot2"))),
+                          column(4, wellPanel(plotOutput("plot3")))
+                        ),
+                        fluidRow(column(12, wellPanel(
+                          div(style = "height:700px;",  plotOutput("plot4"))
+                        ))),tags$hr(),
+                        fluidRow(column(12, DT::dataTableOutput("table1"))),
+                        fluidRow(column(12, htmlOutput("remarktext"))),
+                        fluidRow(column(12, htmlOutput("history"))),
+                        fluidRow(column(12, htmlOutput("gitcode"))),
+                        fluidRow(column(12, htmlOutput("linkList")))
+                      ),
                       column(
                         2,
                         a(
@@ -134,22 +155,9 @@ shinyUI(
                           ,
                           "data-widget-id" = "449799943780200448",
                           width = "100%",
-                          height = "1100"
+                          height = "1500"
                         )
                       )
                     )))
-    ,
-    tags$hr(),
-    fluidRow(column(12, DT::dataTableOutput("table1"))),
-    fluidRow(
-      div(
-        "Caution: Removed rows containing missing values or  non-finite values.",
-        style = "color:black",
-        align = "center"
-      )
-    ),
-    fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history"))),
-    fluidRow(column(12, htmlOutput("gitcode")))
   )
 )
