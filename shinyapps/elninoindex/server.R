@@ -152,7 +152,11 @@ shinyServer(function(input, output, session)
     str <- "<hr>
     <b>Remarks</b><br>
     <ol>
-    <li>Other apps <a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
+    <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
+    <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
+    <li><a href=\"http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html\" target=\"_blank\">Raw Data Source</a></li>
     </ol>"
     HTML(str)
   })
@@ -163,6 +167,7 @@ shinyServer(function(input, output, session)
     <ol>
     <li>2016-06-08:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
+    <li>2016-07-07:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
@@ -176,4 +181,9 @@ shinyServer(function(input, output, session)
     HTML(str)
   })
   
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+     
 })

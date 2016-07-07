@@ -1,5 +1,13 @@
 library(shiny)
 library(rvest)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 origData <<- list()
 sourceURL <-
   "http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html"
@@ -14,6 +22,7 @@ datatitle <<- c(
   "IOBW Sea Surface Temperature"
 )
 for (rrr in 1:length(url)) {
+  Sys.sleep(1)
   source <- read_html(url[rrr])
   tmp01 <-
     source %>% html_nodes(xpath = '//pre') %>% html_text %>% iconv(from = "UTF-8")
@@ -83,14 +92,22 @@ shinyUI(
       12,
       column(
         10,
-        fluidRow(h1(textOutput("datatitle")), htmlOutput("figure01")),
+        fluidRow(h2(textOutput("datatitle")), htmlOutput("figure01")),
         fluidRow(column(6, wellPanel(
           plotOutput("plot1")
         )),
         column(6, wellPanel(
           plotOutput("plot2")
-        ))),
-        fluidRow(DT::dataTableOutput("table1"))
+        ))),tags$div(
+        "Caution: Removed rows containing missing values or  non-finite values.",
+        style = "color:black",
+        align = "center"
+      ),tags$hr(),
+        fluidRow(DT::dataTableOutput("table1")),
+        fluidRow(column(12, htmlOutput("remarktext"))),
+        fluidRow(column(12, htmlOutput("history"))),
+        fluidRow(column(12, htmlOutput("gitcode"))),
+        fluidRow(column(12, htmlOutput("linkList")))
       ),
       column(
         2,
@@ -102,19 +119,9 @@ shinyUI(
           ,
           "data-widget-id" = "449799943780200448",
           width = "100%",
-          height = "1000"
+          height = "2000"
         )
       )
-    )),
-    fluidRow(
-      div(
-        "Caution: Removed rows containing missing values or  non-finite values.",
-        style = "color:black",
-        align = "center"
-      )
-    ),
-    fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history"))),
-    fluidRow(column(12, htmlOutput("gitcode")))
+    ))
   )
 )
