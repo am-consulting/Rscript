@@ -1,5 +1,13 @@
 library(shiny)
 library(XML)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 origData <<- list()
 sourceURL <<- c(
   "http://www.data.jma.go.jp/cpdinfo/temp/list/mon_wld.html",
@@ -10,6 +18,7 @@ datatitle <<- c(
   "Monthlyt Mean Temperature Anomaly:Japan(Celsius,Base Line:30 years mean from Y1981 to Y2010)"
 )
 for (iii in 1:length(sourceURL)) {
+  Sys.sleep(1)
   buf <-
     readHTMLTable(
       doc = sourceURL[iii],
@@ -66,36 +75,39 @@ shinyUI(
       selectInput("region", label = "Select Region",   datatitle  ,     selectize = FALSE)
     )),
     fluidRow(column(12,
-                    h1(
+                    h2(
                       textOutput("datatitle")
                     ))),
     fluidRow(column(12,
                     fluidRow(
-                      column(5, wellPanel(plotOutput("plot1")), DT::dataTableOutput("table1")),
-                      column(5, wellPanel(plotOutput("plot2")), DT::dataTableOutput("table1NA")),
+                      column(
+                        10,
+                        fluidRow(
+                          tags$div(
+                            "Caution: Removed rows containing missing values or  non-finite values.",
+                            style = "color:black",
+                            align = "center"
+                          ),
+                          column(6, wellPanel(plotOutput("plot1")), DT::dataTableOutput("table1")),
+                          column(6, wellPanel(plotOutput("plot2")), DT::dataTableOutput("table1NA"))
+                        ),
+                        fluidRow(column(12, htmlOutput("remarktext"))),
+                        fluidRow(column(12, htmlOutput("history"))),
+                        fluidRow(column(12, htmlOutput("gitcode"))),
+                        fluidRow(column(12, htmlOutput("linkList")))
+                      ),
                       column(
                         2,
                         a(
                           "@AMC2_Japan",
                           class = "twitter-timeline"
                           ,
-                          href = "https://twitter.com/AMC2_Japan"
-                          ,
+                          href = "https://twitter.com/AMC2_Japan",
                           "data-widget-id" = "449799943780200448",
                           width = "100%",
-                          height = "750"
+                          height = "1500"
                         )
                       )
-                    ))),
-    fluidRow(
-      div(
-        "Caution: Removed rows containing missing values or  non-finite values.",
-        style = "color:black",
-        align = "center"
-      )
-    ),
-    fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history"))),
-    fluidRow(column(12, htmlOutput("gitcode")))
+                    )))
   )
 )
