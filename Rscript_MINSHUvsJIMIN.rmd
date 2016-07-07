@@ -1,6 +1,6 @@
 ```{r}
 #データ整形パート
-tmp<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("NA","-","－"),check.names=FALSE)
+tmp<-read.table("clipboard",header=TRUE,sep="\t",stringsAsFactor=F,na.strings=c("NA","-","－","… "),check.names=FALSE)
 tmp[,1]<-as.Date(tmp[,1])
 if(2<ncol(tmp)){
 tmp01<-tmp[,c(1,2)]
@@ -15,8 +15,8 @@ tmp<-merge(tmp01,tmp02);tmp<-na.omit(tmp);tmp000<-tmp;head(tmp);tail(tmp)
 
 ```{r}
 datafreq<-12 # 4 , 12
-posttitle<-"民主党政権発足から現在(安倍政権)までの雇用失業率と欠員率"
-datasource<-"総務省"
+posttitle<-"民主党政権発足から現在(安倍政権)までの完全失業率と正社員有効求人倍率"
+datasource<-"総務省、厚生労働省"
 library(ggplot2)
 library(xtable)
 #library(ggrepel)
@@ -55,12 +55,12 @@ g<-g+geom_text(data=dataset,aes(x=dataset[,2],y=dataset[,3],label=dataset$Number
   size=4,vjust=0,hjust=2,family="Meiryo")
 g<-g+geom_text(data=dataset,aes(x=dataset[1,2],y=dataset[1,3],
   label=format(dataset[1,1],"%Y-%m")),
-  size=6,vjust=1,hjust=1,family="Meiryo")
+  size=7,vjust=1,hjust=0,family="Meiryo")
 g<-g+geom_text(data=dataset,aes(x=dataset[nrow(dataset),2],y=dataset[nrow(dataset),3],
-  label=format(dataset[nrow(dataset),1],"%Y-%m")),size=6,vjust=0,hjust=0,family="Meiryo")
+  label=format(dataset[nrow(dataset),1],"%Y-%m")),size=7,vjust=0,hjust=0,family="Meiryo")
 buf<-subset(dataset,dataset[,1]==as.Date("2012/12/1"))
 g<-g+geom_text(data=buf,aes(x=buf[1,2],y=buf[1,3],
-  label=format(as.Date("2012/12/1"),"%Y-%m")),size=6,vjust=1,hjust=0,family="Meiryo")
+  label=format(as.Date("2012/12/1"),"%Y-%m")),size=7,vjust=1,hjust=0,family="Meiryo")
 g<-g+geom_path(data=dataset,aes(x=dataset[,2],y=dataset[,3]),color=dataset$color,size=0.5)
 print(g)
 dev.off()
