@@ -155,7 +155,7 @@ shinyUI(
                           ,
                           "data-widget-id" = "449799943780200448",
                           width = "100%",
-                          height = "1500"
+                          height = "2500"
                         )
                       )
                     )))
