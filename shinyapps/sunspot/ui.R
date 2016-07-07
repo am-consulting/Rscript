@@ -8,6 +8,14 @@ script <-
   )
 eval(parse(text = script))
 sunSpot()
+
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 downloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 datatitle <<-
   c(
@@ -48,7 +56,7 @@ shinyUI(
       selectInput("region", label = "Select",   datatitle  ,     selectize = FALSE)
     )),
     fluidRow(column(12,
-                    h1(
+                    h2(
                       textOutput("datatitle")
                     ))),
     
@@ -62,10 +70,19 @@ shinyUI(
           column(3, wellPanel(plotOutput("plot3"))),
           column(3, wellPanel(plotOutput("plot4")))
         ),
+      div(
+        "Caution: Removed rows containing missing values or  non-finite values.",
+        style = "color:black",
+        align = "center"
+    ),tags$hr(),
         fluidRow(
           column(6, DT::dataTableOutput("table1")),
           column(6, DT::dataTableOutput("table2"))
-        )
+        ),
+    fluidRow(column(12, htmlOutput("remarktext"))),
+    fluidRow(column(12, htmlOutput("history"))),
+    fluidRow(column(12, htmlOutput("gitcode"))),
+    fluidRow(column(12, htmlOutput("linkList")))
       )
       ,
       column(
@@ -78,19 +95,9 @@ shinyUI(
           ,
           "data-widget-id" = "449799943780200448",
           width = "100%",
-          height = "750"
+          height = "2000"
         )
       )
-    )),
-    fluidRow(
-      div(
-        "Caution: Removed rows containing missing values or  non-finite values.",
-        style = "color:black",
-        align = "center"
-      )
-    ),
-    fluidRow(column(12, htmlOutput("remarktext"))),
-    fluidRow(column(12, htmlOutput("history"))),
-    fluidRow(column(12, htmlOutput("gitcode")))
+    ))
   )
 )
