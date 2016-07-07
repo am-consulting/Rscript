@@ -1,5 +1,6 @@
 # License:GPL(version 2 or later)
 # Data source : http://www.sidc.be/silso/home
+options(download.file.method = "libcurl")
 sunSpot <- function() {
   origData <<- list()
   datacolnames <- list()
@@ -33,6 +34,7 @@ sunSpot <- function() {
       "Definitive/provisional marker. '1' indicates that the value is definitive. '0' indicates that the value is still provisional."
     )
   for (iii in 1:length(url)) {
+    Sys.sleep(1)
     buf <-
       read.csv(
         url[iii],
