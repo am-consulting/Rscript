@@ -8,6 +8,14 @@ script <-
   )
 eval(parse(text = script))
 highestAuthority()
+
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 shinyUI(fluidPage(
   tags$head(
     tags$link(rel = "stylesheet",
@@ -116,7 +124,8 @@ shinyUI(fluidPage(
                        DT::dataTableOutput("table2")),
       htmlOutput("remarktext"),
       htmlOutput("history"), 
-      htmlOutput("gitcode")
+      htmlOutput("gitcode"),
+      htmlOutput("listLink")
     ),
     column(
       2,

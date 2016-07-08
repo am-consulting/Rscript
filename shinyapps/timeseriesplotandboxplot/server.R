@@ -6,6 +6,7 @@ library(reshape)
 library(DT)
 library(dplyr)
 library(zoo)
+options(download.file.method="libcurl")
 options(shiny.maxRequestSize = 0.5 * 1024 ^ 2)
 shinyServer(function(input, output) {
   uploadFile <- reactive({
@@ -20,7 +21,8 @@ shinyServer(function(input, output) {
         quote = input$quote,
         check.names = input$chkname,
         stringsAsFactors = F,
-        na.strings = c(".","")
+        na.strings = c(".",""),
+        fileEncoding = "cp932"
       )
     }
   })
@@ -62,7 +64,7 @@ shinyServer(function(input, output) {
   resultOutput <- reactive({
     if (is.null(input$datecolumn) | is.null(input$datacolumn))
       return(NULL)
-    iii <<- grep(paste("\\b", input$HA , "\\b", sep = "") ,
+    iii <- grep(paste("\\b", input$HA , "\\b", sep = "") ,
                  indextitle)
     colx <- which(colnames(origData) == input$datecolumn)
     coly <- which(colnames(origData) == input$datacolumn)    
@@ -289,8 +291,8 @@ shinyServer(function(input, output) {
     if (is.null(input$datecolumn) | is.null(input$datacolumn))
       return(NULL)
     resultOutput()
-    paste("Completion:" ,
-          as.character(as.POSIXlt(Sys.time(), "GMT")), "(UTC)")
+    paste("Completion(UTC):" ,
+          as.character(as.POSIXlt(Sys.time(), "GMT")))
   })
   
   output$remarktext <- renderUI({
@@ -299,6 +301,8 @@ shinyServer(function(input, output) {
     <ol>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -320,7 +324,14 @@ shinyServer(function(input, output) {
     <li>2016-06-13:ver.1.0.1</li>
     <li>2016-06-17:ver.1.0.2</li>
     <li>2016-06-17:ver.1.0.3</li>
+    <li>2016-07-08:ver.1.0.4</li>
     </ol>"
     HTML(str)
   })
+
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+
 })
