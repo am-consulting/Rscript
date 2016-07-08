@@ -360,6 +360,7 @@ shinyServer(function(input, output) {
     <li>2016-06-17:ver.1.0.2</li>
     <li>2016-06-17:ver.1.0.3</li>
     <li>2016-07-08:ver.1.0.4</li>
+    <li>2016-07-08:ver.1.0.5</li>
     </ol>"
     HTML(str)
   })
