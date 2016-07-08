@@ -75,7 +75,14 @@ shinyServer(function(input, output) {
     dataset <-
       dataset %>% filter(input$selectedRow[1] <= index(dataset[, 1]),
                          index(dataset[, 1]) <= input$selectedRow[2])
-    highestData <<- switch (iii,
+    dateFormat = "%Y-%m-%d"
+    if (length(unique(day(dataset[, 1]))) == 1) {
+      dateFormat = "%Y-%m"
+    }
+    if (length(unique(month(dataset[, 1]))) == 1) {
+      dateFormat = "%Y"
+    }
+    highestData <- switch (iii,
                             get(titleAbb[1]),
                             get(titleAbb[2]),
                             get(titleAbb[3]),
@@ -87,8 +94,7 @@ shinyServer(function(input, output) {
     dataset <-
       data.frame(dataset, apply(dataset[1], 1, FUN), check.names = F)
     colnames(dataset)[3] <- indextitle[iii]
-    dataset <<- dataset
-    
+
     output$startDate <- renderPrint({
       dataset[1, 1]
     })
@@ -97,15 +103,14 @@ shinyServer(function(input, output) {
       dataset[nrow(dataset), 1]
     })
     
-    dateFormat <<- input$dateType
-    chartTitle <<-
+    chartTitle <-
       paste(
         colnames(dataset)[2],
         format(dataset[1, 1], dateFormat),
         "-",
         format(dataset[nrow(dataset), 1], dateFormat)
       )
-    borderdate <<- max(highestData[1, 1], dataset[1, 1])
+    borderdate <- max(highestData[1, 1], dataset[1, 1])
     
     output$table1 <- DT::renderDataTable(
       dataset,
@@ -142,7 +147,7 @@ shinyServer(function(input, output) {
         order = list(list(0, "desc"))
       )
     )
-    
+
     output$plottimeseries  <- renderPlot({
       dataset <- na.omit(subset(dataset, borderdate <= dataset[, 1]))
       colnames(dataset)[2] <- "value"
@@ -161,7 +166,6 @@ shinyServer(function(input, output) {
       segmentData <- highestData[c(rrrUL:rrrLL), ]
       segmentData[1, 1] <- borderdate
       segmentData[nrow(segmentData), 2] <- dataset[nrow(dataset), 1]
-      segmentData <<- segmentData
       x0 <-
         segmentData[, 1][seq(1, length(segmentData[, 1]), by = 2)]
       x1 <-
@@ -169,18 +173,19 @@ shinyServer(function(input, output) {
       y0 <- min(dataset[, 2])
       if (length((dataset$value)[dataset$value < 0]) != 0 &
           length((dataset$value)[0 < dataset$value]) != 0) {
-        level.type <<- 2
+        level.type <- 2
       } else{
-        level.type <<- 1
+        level.type <- 1
       }
       if (0 < y0 & level.type == 2) {
-        y0 <<- 0
+        y0 <- 0
       }
       y1 <- max(dataset[, 2])
       shade <- data.frame(x0, x1, y0, y1)
       value.y <- (max(dataset[, 2]) + min(dataset[, 2])) / 2
-      value.y <<- value.y
-      level.type <<- level.type
+      value.y <- value.y
+      level.type <- level.type
+
       g1 <- ggplot()
       g1 <-
         g1 + geom_rect(
@@ -252,8 +257,9 @@ shinyServer(function(input, output) {
       g1 <- g1 + scale_x_date(labels = date_format(dateFormat))
       g1 <- g1 + scale_y_continuous(labels = comma)
       print(g1)
+      g1<<-g1
     })
-    
+
     output$plotboxplot  <- renderPlot({
       par(mar = c(5, 4, 3, 3))
       subset(dataset, borderdate <= dataset[, 1])
@@ -284,6 +290,7 @@ shinyServer(function(input, output) {
       g2 <- g2 + ylab("")
       g2 <- g2 + scale_y_continuous(labels = comma)
       print(g2)
+      g2<<-g2
     })
   })
   
@@ -294,6 +301,34 @@ shinyServer(function(input, output) {
     paste("Completion(UTC):" ,
           as.character(as.POSIXlt(Sys.time(), "GMT")))
   })
+
+  output$Download1 <- downloadHandler(
+    filename = function() {
+      paste("SaECaNet-",
+            format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+            ".png",
+            sep = "")
+    },
+  content = function(file) {
+      png(file, width = 1200, height = 800)
+      print(g1)
+      dev.off()
+    }
+  )
+  
+  output$Download2 <- downloadHandler(
+    filename = function() {
+      paste("SaECaNet-",
+            format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+            ".png",
+            sep = "")
+    },
+  content = function(file) {
+      png(file, width = 1200, height = 800)
+      print(g2)
+      dev.off()
+    }
+  )
   
   output$remarktext <- renderUI({
     str <- "<hr>

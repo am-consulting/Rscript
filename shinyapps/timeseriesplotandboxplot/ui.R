@@ -91,16 +91,6 @@ shinyUI(fluidPage(
         label = "Highest Authority",
         choices = indextitle,
         selected = indextitle[1]
-      ),
-      radioButtons(
-        "dateType",
-        label = "Date Axis",
-        choices = list(
-          "YYYY-MM-DD" = "%Y-%m-%d",
-          "YYYY-MM" = "%Y-%m",
-          "YYYY" = "%Y"
-        ),
-        selected = "%Y-%m"
       )
       )
     ),
@@ -108,24 +98,26 @@ shinyUI(fluidPage(
       8,
       fluidRow(
         conditionalPanel(
-          condition = "output.timenow!=''",
+          condition = "output.completiontime!=''",
           plotOutput("plottimeseries", width = "100%", height = "500px")
+          ,downloadButton(outputId ="Download1",label = "Download TimeSeries Plot"),tags$hr()
         )
       ),
       fluidRow(
         conditionalPanel(
-          condition = "output.timenow!=''",
+          condition = "output.completiontime!=''",
           plotOutput("plotboxplot", width = "100%", height = "500px")
+          ,downloadButton(outputId ="Download2",label = "Download BoxPlot"),tags$hr()
         )
       ),
       conditionalPanel(condition = "output.table1!=''",
-                       DT::dataTableOutput("table1")),
+                       DT::dataTableOutput("table1"),tags$hr()),
       conditionalPanel(condition = "output.table1!=''",
                        DT::dataTableOutput("table2")),
       htmlOutput("remarktext"),
       htmlOutput("history"), 
       htmlOutput("gitcode"),
-      htmlOutput("listLink")
+      htmlOutput("linkList")
     ),
     column(
       2,
@@ -137,7 +129,7 @@ shinyUI(fluidPage(
         ,
         "data-widget-id" = "449799943780200448",
         width = "100%",
-        height = "2000"
+        height = "2500"
       )
     )
   )
