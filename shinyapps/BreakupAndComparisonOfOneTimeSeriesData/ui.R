@@ -1,4 +1,12 @@
 library(shiny)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 shinyUI(fluidPage(
   tags$head(
     tags$link(rel = "stylesheet",
@@ -40,8 +48,11 @@ shinyUI(fluidPage(
         tags$script('$( "#file" ).on( "click", function() {
                     this.value = null;
                     });'),
-      uiOutput("datadate"),
-      uiOutput("datay"),
+        tags$h5("CSV file sampe(at least one date column)"),
+        tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/unemploymentRateInJapan-source-StatisticsBureau.csv","･Unemployment Rate In Japan",target="_blank"),
+        tags$hr(),        
+      uiOutput("datecolumn"),
+      uiOutput("datacolumn"),
       uiOutput("selectrow"),
       uiOutput("startDate"),
       uiOutput("endDate"),
@@ -82,17 +93,20 @@ shinyUI(fluidPage(
     ),
     column(
       8,
-      plotOutput("tsplot"),
-      tags$br(),
-      tags$br(),
-      DT::dataTableOutput("dtResult"),
-      tags$br(),
-      tags$br(),
-      DT::dataTableOutput("dt"),
+      conditionalPanel(
+        condition = "output.completiontime!=''",
+        plotOutput("tsplot", width = "100%", height = "700px"),
+        downloadButton(outputId = "Download1", label = "Download TimeSeries Plot"),
+        tags$hr(),
+        DT::dataTableOutput("dtResult"),
+        tags$hr(),
+        DT::dataTableOutput("dt")
+      ),
       htmlOutput("remarktext"),
-      htmlOutput("history"), 
-      htmlOutput("gitcode")
-    ),
+      htmlOutput("history"),
+      htmlOutput("gitcode"),
+      htmlOutput("linkList")
+    ), 
     column(
       2,
       a(
@@ -101,7 +115,7 @@ shinyUI(fluidPage(
         href = "https://twitter.com/AMC2_Japan",
         "data-widget-id" = "449799943780200448",
         width = "100%",
-        height = "3000"
+        height = "3500"
       )
     )
   )

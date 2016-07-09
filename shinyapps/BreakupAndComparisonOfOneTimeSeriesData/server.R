@@ -3,6 +3,7 @@ library(zoo)
 library(dplyr)
 library(lubridate)
 options(shiny.maxRequestSize = 0.5 * 1024 ^ 2)
+options(download.file.method="libcurl")
 options(scipen = 999)
 tsData <- list()
 shinyServer(function(input, output , session) {
@@ -18,27 +19,28 @@ shinyServer(function(input, output , session) {
         quote = input$quote,
         check.names = input$chkname,
         stringsAsFactors = F,
-        na.strings = c(".", "")
+        na.strings = c(".", ""),
+        fileEncoding = "cp932"
       )
     }
   })
   
-  output$datadate <- renderUI({
+  output$datecolumn <- renderUI({
     uploadFile()
     if (is.null(input$file))
       return(NULL)
-    selectInput("datadate",
+    selectInput("datecolumn",
                 "Select as Date",
                 colnames(origData),
                 selected = colnames(origData)[1])
   })
   
-  output$datay <- renderUI({
+  output$datacolumn <- renderUI({
     uploadFile()
     if (is.null(input$file))
       return(NULL)
-    selectInput("dataY",
-                "Select as Data y",
+    selectInput("datacolumn",
+                "Select as Data",
                 colnames(origData),
                 selected = colnames(origData)[2])
   })
@@ -58,14 +60,10 @@ shinyServer(function(input, output , session) {
   })
   
   resultOutput <- reactive({
-    if (is.null(input$datadate) | is.null(input$dataY))
+    if (is.null(input$datecolumn) | is.null(input$datacolumn))
       return(NULL)
-    colx <-
-      grep(paste("\\b", input$datadate , "\\b", sep = "") ,
-           colnames(origData))
-    coly <-
-      grep(paste("\\b", input$dataY , "\\b", sep = ""),
-           colnames(origData))
+    colx <- which(colnames(origData) == input$datecolumn)
+    coly <- which(colnames(origData) == input$datacolumn)  
     dataset <-
       data.frame(origData[, c(colx, coly)], check.names = F)
     dataset <- na.omit(dataset)
@@ -73,7 +71,14 @@ shinyServer(function(input, output , session) {
     dataset <-
       dataset %>% filter(input$selectedRow[1] <= index(dataset[, 1]),
                          index(dataset[, 1]) <= input$selectedRow[2])
-    #    dataset <<- dataset
+    colnames(dataset)[1]<-"DATE"
+    dateFormat = "%Y-%m-%d"
+    if (length(unique(day(dataset[, 1]))) == 1) {
+      dateFormat = "%Y-%m"
+    }
+    if (length(unique(month(dataset[, 1]))) == 1) {
+      dateFormat = "%Y"
+    }
     
     output$startDate <- renderPrint({
       dataset[1, 1]
@@ -83,15 +88,15 @@ shinyServer(function(input, output , session) {
       dataset[nrow(dataset), 1]
     })
     
-    dateRange01 <<-
-      data.frame(ID = seq(-24, 24),
-                 DATE =  input$date01 %m+% months(-24:24))
-    dateRange02 <<-
-      data.frame(ID = seq(-24, 24),
-                 DATE =  input$date02 %m+% months(-24:24))
-    dateRange03 <<-
-      data.frame(ID = seq(-24, 24),
-                 DATE =  input$date03 %m+% months(-24:24))
+    dateRange01 <-
+      data.frame(ID = seq(-24, 23),
+                 DATE =  input$date01 %m+% months(-24:23))
+    dateRange02 <-
+      data.frame(ID = seq(-24, 23),
+                 DATE =  input$date02 %m+% months(-24:23))
+    dateRange03 <-
+      data.frame(ID = seq(-24, 23),
+                 DATE =  input$date03 %m+% months(-24:23))
     maxValue <- -10 ^ 100
     minValue <- 10 ^ 100
     for (yyy in 1:3) {
@@ -140,28 +145,35 @@ shinyServer(function(input, output , session) {
       obj <- c(obj, 7)
     }
     statisticData <- allData[, c(1, obj)]
-    
-    output$tsplot <- renderPlot({
+
+    output$tsplot <- renderPlot({tsPlot()})
+
+    tsPlot<<-function(){
       if (length(obj) != 0) {
         collist <- c("", "black", "red", "blue")
         labellist <- colnames(statisticData)[-1]
-        par(mar = c(3, 4, 2, 4))
+        par(mar = c(5, 4, 2, 4))
         cnt <- 1
         for (ccc in 2:ncol(statisticData)) {
           if (sum(is.na(statisticData[, ccc])) != nrow(statisticData)) {
             if (cnt == 1) {
               yRange <- c(minValue, maxValue)
+              yaxtType<-"s"
+              mainTitle<-colnames(dataset)[2]
+              xTitle<-"months ago or later"
             } else{
-              yRange <- ""
-              cnt <- cnt + 1
+              yaxtType<-"n"
+              mainTitle<-""
+              xTitle<-""
             }
+            cnt <- cnt + 1
             par(new = T)
             plot(
               statisticData[, 1],
               statisticData[, ccc],
               type = "l",
               col = collist[ccc],
-              xlab = "" ,
+              xlab = xTitle ,
               ylab = "" ,
               panel.first = grid(
                 nx = NULL,
@@ -169,12 +181,13 @@ shinyServer(function(input, output , session) {
                 lty = 2,
                 equilogs = T
               ) ,
-              main = "",
-              cex.axis = 1,
-              cex.lab = 1,
-              cex.main = 1,
+              main = mainTitle,
+              cex.axis = 1.2,
+              cex.lab = 1.2,
+              cex.main = 1.2,
               ylim = yRange,
-              xaxt = "n"
+              xaxt = "n",
+              yaxt = yaxtType
             )
           }
         }
@@ -183,7 +196,8 @@ shinyServer(function(input, output , session) {
           at = statisticData[, 1],
           labels = statisticData[, 1],
           col.axis = "black",
-          las = 2
+          las = 2,
+          cex = 1.2
         )
         abline(v = 0)
         legend(
@@ -197,7 +211,7 @@ shinyServer(function(input, output , session) {
       } else{
         plot.new()
       }
-    })
+    }
     
     resultDF <- data.frame()
     periodDF <- vector()
@@ -207,13 +221,13 @@ shinyServer(function(input, output , session) {
         for (yyy in 1:3) {
           if (yyy == 1) {
             buData <- buf
-            dftitle <- paste(colnames(buData)[2], "±24")
+            dftitle <- paste(colnames(buData)[2], "-24 ~ +23")
           } else if (yyy == 2) {
             buData <- subset(buf, buf[, 1] < 0)
-            dftitle <- paste(colnames(buData)[2], "-12")
+            dftitle <- paste(colnames(buData)[2], "-24")
           } else{
             buData <- subset(buf, buf[, 1] >= 0)
-            dftitle <- paste(colnames(buData)[2], "+12")
+            dftitle <- paste(colnames(buData)[2], "+23")
           }
           if (nrow(buData) != 0) {
             meanDF <- mean(buData[, 2])
@@ -282,19 +296,35 @@ shinyServer(function(input, output , session) {
   })
   
   output$completiontime <- renderText({
-    if (is.null(input$datadate) & is.null(input$dataY))
+    if (is.null(input$datecolumn) & is.null(input$datacolumn))
       return(NULL)
     resultOutput()
-    paste("Completion:" ,
-          as.character(as.POSIXlt(Sys.time(), "GMT")), "(UTC)")
+    paste("Completion(UTC):" ,
+          as.character(as.POSIXlt(Sys.time(), "GMT")))
   })
-  
+
+  output$Download1 <- downloadHandler(
+    filename = function() {
+      paste("SaECaNet-",
+            format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+            ".png",
+            sep = "")
+    },
+  content = function(file) {
+      png(file, width = 1200, height = 800)
+      tsPlot()
+      dev.off()
+    }
+  )
+
   output$remarktext <- renderUI({
     str <- "<hr>
     <b>Remarks</b><br>
     <ol>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -305,6 +335,7 @@ shinyServer(function(input, output , session) {
     <ol>
     <li>2016-06-13:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
+    <li>2016-07-09:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
@@ -317,4 +348,10 @@ shinyServer(function(input, output , session) {
     </ol>"
     HTML(str)
   })
+  
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+  
 })
