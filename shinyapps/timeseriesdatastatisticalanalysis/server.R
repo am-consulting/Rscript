@@ -147,7 +147,23 @@ shinyServer(function(input, output , session) {
     vecmResult <-
       vec2var(coTest, r = vecmr)#2系列としているためr=1となるが今後3系列以上に拡張する場合は要注意
     
-    output$tsplot <- renderPlot({
+    output$tsplot <- renderPlot({tsplot()})
+
+    output$Download1 <- downloadHandler(
+      filename = function() {
+        paste("SaECaNet-",
+              format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+              ".png",
+              sep = "")
+      },
+    content = function(file) {
+        png(file, width = 1200, height = 800)
+        tsplot()
+        dev.off()
+      }
+    )
+
+    tsplot<-function(){
       par(mar = c(3, 4, 2, 4))
       plot(
         dataset[, 1],
@@ -207,9 +223,25 @@ shinyServer(function(input, output , session) {
         line = 3.2,
         cex = 1
       )
-    })
+    }
+
+    output$ccf <- renderPlot({ccfplot()})
+
+    output$Download2 <- downloadHandler(
+      filename = function() {
+        paste("SaECaNet-",
+              format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+              ".png",
+              sep = "")
+      },
+    content = function(file) {
+        png(file, width = 1200, height = 800)
+        ccfplot()
+        dev.off()
+      }
+    )
     
-    output$ccf <- renderPlot({
+    ccfplot<-function(){    
       #Cross Correlation
       par(mar = c(3, 4, 4, 1))
       ccf(
@@ -229,12 +261,28 @@ shinyServer(function(input, output , session) {
           bufDatasetColnames[3]
         )
       )
-    })
-    
+    }
+
+    output$scatter <- renderPlot({scatter()})
+
+    output$Download3 <- downloadHandler(
+      filename = function() {
+        paste("SaECaNet-",
+              format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+              ".png",
+              sep = "")
+      },
+    content = function(file) {
+        png(file, width = 1200, height = 800)
+        scatter()
+        dev.off()
+      }
+    )
+
     x <- dataset[, 2]
     y <- dataset[, 3]
     fit  <- lm(y ~ x)
-    output$scatter <- renderPlot({
+    scatter<-function(){
       par(mar = c(4, 4, 2, 1))
       collist <- c("red")
       plot(
@@ -263,7 +311,7 @@ shinyServer(function(input, output , session) {
         legend = c("y=a*x+Intercept"),
         cex = 1
       )
-    })
+    }
     
     varResultOP <-
       vars::irf(

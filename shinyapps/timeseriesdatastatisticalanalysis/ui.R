@@ -88,9 +88,12 @@ shinyUI(fluidPage(
       conditionalPanel(
         condition = "output.completiontime!=''",
           fluidRow(
-            column(4, plotOutput("tsplot")),
-            column(4, plotOutput("ccf")),
-            column(4, plotOutput("scatter"))
+            column(4, plotOutput("tsplot"),
+        downloadButton(outputId = "Download1", label = "Download TimeSeries Plot")),
+            column(4, plotOutput("ccf"),
+        downloadButton(outputId = "Download2", label = "Download Cross Correlation Plot")),
+            column(4, plotOutput("scatter"),
+        downloadButton(outputId = "Download3", label = "Download Scatter Plot"))
           ),
           tags$hr(),
           fluidRow(column(6, tags$b("without unit root:VAR{vars}→irf{vars}"), plotOutput("varresult")),
