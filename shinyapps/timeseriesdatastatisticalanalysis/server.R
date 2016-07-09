@@ -5,6 +5,7 @@ library(vars)
 library(dplyr)
 library(forecast)
 options(shiny.maxRequestSize = 0.5 * 1024 ^ 2)
+options(download.file.method="libcurl")
 shinyServer(function(input, output , session) {
   uploadFile <- reactive({
     inFile <- input$file
@@ -17,7 +18,8 @@ shinyServer(function(input, output , session) {
         sep = input$sep,
         quote = input$quote,
         check.names = input$chkname,
-        stringsAsFactors = F
+        stringsAsFactors = F,
+        fileEncoding = "cp932"
       )
     }
   })
@@ -87,7 +89,9 @@ shinyServer(function(input, output , session) {
                    (tmp / head(dataset, nrow(tmp)))[, -1] * 100,
                    check.names = F)
     }
-    dataset <- dataset
+    
+    bufDatasetColnames<-colnames(dataset)
+    colnames(dataset)[2:3]<-c("x","y")
     summaryDF <- data.frame()
     for (iii in 1:2) {
       #unbiased variance
@@ -96,8 +100,7 @@ shinyServer(function(input, output , session) {
       summaryDF[2, iii] <- sd(dataset[, iii + 1])
       #sample variance
       summaryDF[3, iii] <-
-        var(dataset[, iii + 1]) * (length(dataset[, iii + 1]) - 1) / length(dataset[, iii +
-                                                                                      1])
+        var(dataset[, iii + 1]) * (length(dataset[, iii + 1]) - 1) / length(dataset[, iii + 1])
       #sample standard deviation
       summaryDF[4, iii] <- sqrt(summaryDF[3, iii])
       summaryDF[5, iii] <- mean(dataset[, iii + 1])
@@ -107,6 +110,7 @@ shinyServer(function(input, output , session) {
       adfResult <-    adf.test(dataset[, iii + 1])
       summaryDF[9, iii] <- adfResult$p.value
       summaryDF[10, iii] <- adfResult$parameter
+      summaryDF[11, iii] <- paste(dataset[1,1],"-",dataset[nrow(dataset),1])
     }
     summaryItem <-
       c(
@@ -119,12 +123,12 @@ shinyServer(function(input, output , session) {
         "Max",
         "Min",
         "ADF Test p-value",
-        "ADF Test Lag order"
+        "ADF Test Lag order",
+        "Data ID"
       )
-    colnames(summaryDF) <- colnames(dataset)[-1]
+    colnames(summaryDF) <- bufDatasetColnames[-1]
     summaryDF <-
       data.frame(ID = seq(1, nrow(summaryDF)), Item = summaryItem, summaryDF)
-    summaryDF <<- summaryDF
     #without unit root
     aicResult <<- VARselect(dataset[, -1])$selection[1]
     varResult <- VAR(dataset[, -1], p = aicResult)
@@ -140,7 +144,7 @@ shinyServer(function(input, output , session) {
     coTest@cval
     coTest@teststat
     vecmr <- length(coTest@teststat) - 1#3系列以上に拡張する場合は要注意
-    vecmResult <<-
+    vecmResult <-
       vec2var(coTest, r = vecmr)#2系列としているためr=1となるが今後3系列以上に拡張する場合は要注意
     
     output$tsplot <- renderPlot({
@@ -158,7 +162,7 @@ shinyServer(function(input, output , session) {
           lty = 2,
           equilogs = T
         ) ,
-        main = paste(colnames(dataset)[2], "×", colnames(dataset)[3]),
+        main = paste(bufDatasetColnames[2], "×", bufDatasetColnames[3]),
         cex.axis = 1,
         cex.lab = 1,
         cex.main = 1
@@ -188,17 +192,17 @@ shinyServer(function(input, output , session) {
         "topleft",
         col = c("blue", "red"),
         lty = 1,
-        legend = colnames(dataset)[2:3],
+        legend = bufDatasetColnames[2:3],
         cex = 1
       )
       mtext(
-        colnames(dataset)[2],
+        bufDatasetColnames[2],
         side = 2,
         line = 3.2,
         cex = 1
       )
       mtext(
-        colnames(dataset)[3],
+        bufDatasetColnames[3],
         side = 4,
         line = 3.2,
         cex = 1
@@ -220,9 +224,9 @@ shinyServer(function(input, output , session) {
         ),
         main = paste(
           "Cross-Correlation Function\n",
-          colnames(dataset)[2],
+          bufDatasetColnames[2],
           "×",
-          colnames(dataset)[3]
+          bufDatasetColnames[3]
         )
       )
     })
@@ -238,8 +242,8 @@ shinyServer(function(input, output , session) {
         y,
         type = "p",
         col = "black",
-        xlab = colnames(dataset)[2] ,
-        ylab = colnames(dataset)[3] ,
+        xlab = bufDatasetColnames[2] ,
+        ylab = bufDatasetColnames[3] ,
         panel.first = grid(
           nx = NULL,
           ny = NULL,
@@ -264,8 +268,8 @@ shinyServer(function(input, output , session) {
     varResultOP <-
       vars::irf(
         varResult,
-        impulse = colnames(dataset)[2],
-        response = colnames(dataset)[3],
+        impulse = "x",
+        response = "y",
         n.ahead = 10
       )
     output$varresult <- renderPlot({
@@ -275,8 +279,8 @@ shinyServer(function(input, output , session) {
     vecmResultOP <-
       vars::irf(
         vecmResult,
-        impulse = colnames(dataset)[2],
-        response = colnames(dataset)[3],
+        impulse = "x",
+        response = "y",
         n.ahead = 10
       )
     output$vecmresult <- renderPlot({
@@ -295,7 +299,7 @@ shinyServer(function(input, output , session) {
             lty = 2,
             equilogs = F
           ),
-          main = paste("ACF:", colnames(dataset)[iii])
+          main = paste("ACF:", bufDatasetColnames[iii])
         )
       })
       , .GlobalEnv)
@@ -314,7 +318,7 @@ shinyServer(function(input, output , session) {
                  forecast::forecast(result.arima, level = ci, h = forecastN)
                plot(
                  result.forecast,
-                 main = paste("ARIMA:", colnames(dataset)[iii], "\nCI=", ci[1], "-", ci[2]),
+                 main = paste("ARIMA:", bufDatasetColnames[iii], "\nCI=", ci[1], "-", ci[2]),
                  ylab = "",
                  panel.first = grid(
                    nx = NULL,
@@ -332,7 +336,7 @@ shinyServer(function(input, output , session) {
                par(mar = c(3, 4, 3, 1))
                hist(
                  dataset[, iii],
-                 main = paste("Histgram:", colnames(dataset)[iii]),
+                 main = paste("Histgram:", bufDatasetColnames[iii]),
                  xlab = "",
                  col = "#E0FFFF",
                  breaks = "Scott"
@@ -356,22 +360,20 @@ shinyServer(function(input, output , session) {
     output$summaryDF <- DT::renderDataTable(
       summaryDF,
       rownames = F,
-      caption = "Table 1: Summary of 2wo Time Series Data.",
+      caption = "Table 1: Summary of two Time Series Data.",
       options = list(
         autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
+        info = F,
+        lengthChange = F,
+        ordering = F,
+        searching = F,
         scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
-        pageLength = 20,
+        paging = F,
         orderClasses = TRUE,
         order = list(list(0, "asc"))
       )
     )
     
-    #attributes(summary(fit))
     coefx <- fit$coefficients[2]
     coefIntercept <- fit$coefficients[1]
     Prx <- summary(fit)$coef[, "Pr(>|t|)"][2]
@@ -381,14 +383,15 @@ shinyServer(function(input, output , session) {
     pvalue <- pf(f[1], f[2], f[3], lower.tail = F)
     fitDF <-
       data.frame(
-        ID = seq(1, 6),
+        ID = seq(1, 7),
         Item = c(
           "x",
           "Intercept",
           "x.pr",
           "Intercept.pr",
           "Adjusted r^2",
-          "p value"
+          "p value",
+          "Data ID"
         ),
         Value = c(
           coefx,
@@ -396,7 +399,8 @@ shinyServer(function(input, output , session) {
           Prx,
           PrIntercept,
           adj.r.squared,
-          pvalue
+          pvalue,
+          paste(dataset[1,1],"-",dataset[nrow(dataset),1])
         )
       )
     output$fitDF <- DT::renderDataTable(
@@ -404,38 +408,36 @@ shinyServer(function(input, output , session) {
       rownames = F,
       caption = paste(
         "Table 2: Linear Regression Model. x:",
-        colnames(dataset)[2],
+        bufDatasetColnames[2],
         ",y:",
-        colnames(dataset)[3]
+        bufDatasetColnames[3]
       ),
       options = list(
         autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
+        info = F,
+        lengthChange = F,
+        ordering = F,
+        searching = F,
         scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
-        pageLength = 20,
+        paging = F,
         orderClasses = TRUE,
         order = list(list(0, "asc"))
       )
     )
     
-    adfDF <- data.frame(ID = c(1:2), tail(summaryDF[, -1], 2))
+    adfDF <- data.frame(ID = c(1:3), tail(summaryDF[, -1], 3))
     output$adfDF <- DT::renderDataTable(
       adfDF,
       rownames = F,
-      caption = "Table 3: Augmented Dickey-Fuller Test of 2wo Time Series Data.",
+      caption = "Table 3: Augmented Dickey-Fuller Test of two Time Series Data.",
       options = list(
         autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
+        info = F,
+        lengthChange = F,
+        ordering = F,
+        searching = F,
         scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
-        pageLength = 20,
+        paging = F,
         orderClasses = TRUE,
         order = list(list(0, "asc"))
       )
@@ -447,12 +449,13 @@ shinyServer(function(input, output , session) {
     t2 <- fitResiduals$alternative
     fitResidualsDF <-
       data.frame(
-        ID = c(1:3),
-        Item = c("p-value", "Lag order", "Dickey-Fuller"),
+        ID = c(1:4),
+        Item = c("p-value", "Lag order", "Dickey-Fuller","Data ID"),
         Value = c(
           fitResiduals$p.value,
           fitResiduals$parameter,
-          fitResiduals$statistic
+          fitResiduals$statistic,
+          paste(dataset[1,1],"-",dataset[nrow(dataset),1])
         )
       )
     output$fitResidualsDF <- DT::renderDataTable(
@@ -461,28 +464,27 @@ shinyServer(function(input, output , session) {
       caption = paste("Table 4: ADF test for Residuals of OLS. Method:", t1, " , H1:", t2),
       options = list(
         autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
+        info = F,
+        lengthChange = F,
+        ordering = F,
+        searching = F,
         scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
-        pageLength = 20,
+        paging = F,
         orderClasses = TRUE,
         order = list(list(0, "asc"))
       )
     )
     
     dwtestResult <- dwtest(dataset[, 3] ~ dataset[, 2])
-    #attributes(dwtestResult)
     DW <- dwtestResult$statistic
     dwpvalue <- dwtestResult$p.value
     dwH1 <- dwtestResult$alternative
     dwDF <-
       data.frame(
-        ID = seq(1, 2),
-        Item = c("DW", "p-value"),
-        Value = c(DW, dwpvalue)
+        ID = c(1:3),
+        Item = c("DW", "p-value","Data ID"),
+        Value = c(DW, dwpvalue,
+          paste(dataset[1,1],"-",dataset[nrow(dataset),1]))
       )
     output$dwDF <- DT::renderDataTable(
       dwDF,
@@ -490,32 +492,33 @@ shinyServer(function(input, output , session) {
       caption = paste("Table 5: Durbin-Watson Test. H1:", dwH1),
       options = list(
         autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
+        info = F,
+        lengthChange = F,
+        ordering = F,
+        searching = F,
         scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
+        paging = F,
         orderClasses = TRUE,
         order = list(list(0, "asc"))
       )
     )
     
     potest <- po.test(dataset[, -1])
-    #attributes(potest)
     poresult <- potest$statistic[1]
     polag <- potest$parameter
     popvalue <- potest$p.value
     potestname <- potest$method
     potestDF <-
       data.frame(
-        ID = seq(1, 3),
+        ID = c(1:4),
         Item = c(
           "Phillips-Ouliaris demeaned",
           "Truncation lag parameter",
-          "p-value"
+          "p-value",
+          "Data ID"
         ),
-        Value = c(poresult, polag, popvalue)
+        Value = c(poresult, polag, popvalue,
+          paste(dataset[1,1],"-",dataset[nrow(dataset),1]))
       )
     output$potestDF <- DT::renderDataTable(
       potestDF,
@@ -523,12 +526,12 @@ shinyServer(function(input, output , session) {
       caption = paste("Table 6:", potestname),
       options = list(
         autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
+        info = F,
+        lengthChange = F,
+        ordering = F,
+        searching = F,
         scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
+        paging = F,
         orderClasses = TRUE,
         order = list(list(0, "asc"))
       )
@@ -550,12 +553,12 @@ shinyServer(function(input, output , session) {
         caption = paste("Table 7: Lag Selection by VARselect {vars}"),
         options = list(
           autoWidth = T,
-          info = T,
-          lengthChange = T,
-          ordering = T,
-          searching = T,
+          info = F,
+          lengthChange = F,
+          ordering = F,
+          searching = F,
           scrollX = T,
-          lengthMenu = list(c(-1, 1), c("All", "1")),
+          paging = F,
           orderClasses = TRUE,
           order = list(list(0, "asc"))
         )
@@ -572,15 +575,15 @@ shinyServer(function(input, output , session) {
       rownames = F,
       caption = paste("Table 8: Impulse response by VAR {vars}."),
       options = list(
-        autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
-        scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
-        orderClasses = TRUE,
-        order = list(list(0, "asc"))
+          autoWidth = T,
+          info = F,
+          lengthChange = F,
+          ordering = F,
+          searching = F,
+          scrollX = T,
+          paging = F,
+          orderClasses = TRUE,
+          order = list(list(0, "asc"))
       )
     )
     
@@ -595,20 +598,22 @@ shinyServer(function(input, output , session) {
       rownames = F,
       caption = paste("Table 9: Impulse response by ca.jo {urca} and vec2var {vars}."),
       options = list(
-        autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
-        scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
-        orderClasses = TRUE,
-        order = list(list(0, "asc"))
+          autoWidth = T,
+          info = F,
+          lengthChange = F,
+          ordering = F,
+          searching = F,
+          scrollX = T,
+          paging = F,
+          orderClasses = TRUE,
+          order = list(list(0, "asc"))
       )
     )
     
+    datasetForDT<-dataset
+    colnames(datasetForDT)<-bufDatasetColnames
     output$dt <- DT::renderDataTable(
-      dataset,
+      datasetForDT,
       rownames = FALSE,
       caption = "Table 10: Time Series Data.",
       options = list(
@@ -630,8 +635,8 @@ shinyServer(function(input, output , session) {
     if (is.null(input$dataX) & is.null(input$dataY))
       return(NULL)
     resultOutput()
-    paste("Completion:" ,
-          as.character(as.POSIXlt(Sys.time(), "GMT")), "(UTC)")
+    paste("Completion(UTC):" ,
+          as.character(as.POSIXlt(Sys.time(), "GMT")))
   })
   
   output$remarktext <- renderUI({
@@ -640,6 +645,8 @@ shinyServer(function(input, output , session) {
     <ol>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -651,6 +658,7 @@ shinyServer(function(input, output , session) {
     <li>2016-06-14:ver.1.0.0</li>
     <li>2016-06-15:ver.1.0.1</li>
     <li>2016-06-17:ver.1.0.2</li>
+    <li>2016-07-09:ver.1.0.3</li>
     </ol>"
     HTML(str)
   })
@@ -663,4 +671,10 @@ shinyServer(function(input, output , session) {
     </ol>"
     HTML(str)
   })
+
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+    
 })

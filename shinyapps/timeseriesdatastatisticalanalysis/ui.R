@@ -1,4 +1,12 @@
 library(shiny)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 shinyUI(fluidPage(
   tags$head(
     tags$link(rel = "stylesheet",
@@ -40,7 +48,11 @@ shinyUI(fluidPage(
         tags$script('$( "#file" ).on( "click", function() {
                     this.value = null;
                     });'),
-         uiOutput("datax"),
+        tags$h5("CSV file sampe(at least two numeric data columns)"),
+        tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/example-USDJPY-NIKKEI.csv",
+               "･USD/JPY & NIKKEI",target="_blank"),
+        tags$hr(), 
+        uiOutput("datax"),
         uiOutput("datay"),
         uiOutput("selectrow"),
         uiOutput("selectlag"),
@@ -73,6 +85,8 @@ shinyUI(fluidPage(
       tabsetPanel(
         tabPanel(
           "Plot",
+      conditionalPanel(
+        condition = "output.completiontime!=''",
           fluidRow(
             column(4, plotOutput("tsplot")),
             column(4, plotOutput("ccf")),
@@ -93,50 +107,64 @@ shinyUI(fluidPage(
             column(4, plotOutput("arimay")),
             column(4, plotOutput("histy"))
           )
+      )          
         ),
         tabPanel("Statistic Analysis",
-                 fluidRow(
                    conditionalPanel(
                      condition = "output.completiontime!=''",
+                 fluidRow(
                      column(
-                       12,
+                       12,fluidRow(
+                       column(6,
                        tags$h4("Summary"),
-                       DT::dataTableOutput("summaryDF"),
-                       tags$hr(),
-                       
+                       DT::dataTableOutput("summaryDF")
+                       ),
+                       column(6,
                        tags$h4("Linear Regression Model"),
-                       DT::dataTableOutput("fitDF"),
-                       tags$hr(),
-                       
+                       DT::dataTableOutput("fitDF")
+                       )
+                       ),tags$hr(),
                        tags$h4("1st Step:Unit Root Test"),
                        DT::dataTableOutput("adfDF"),
                        tags$hr(),
-                       
-                       tags$h4("2nd Step:Cointegration Test"),
+                       fluidRow(column(12,
+                       tags$h4("2nd Step:Cointegration Test")
+                       )
+                       ),
+                       fluidRow(
+                       column(4,   
                        tags$h5("ADF test for Residuals of OLS"),
-                       DT::dataTableOutput("fitResidualsDF"),
-                       tags$hr(),
+                       DT::dataTableOutput("fitResidualsDF")
+                       ),
+                       column(4,
                        tags$h5("dwtest{lmtest}"),
-                       DT::dataTableOutput("dwDF"),
-                       tags$hr(),
+                       DT::dataTableOutput("dwDF")
+                       ),
+                       column(4,
                        tags$h5("po.test{tseries}"),
-                       DT::dataTableOutput("potestDF"),
-                       tags$hr(),
-                       
+                       DT::dataTableOutput("potestDF")
+                       )
+                       ),tags$hr(),
                        tags$h4("3rd Step:Impulse Responce"),
                        DT::dataTableOutput("varselectResult"),
                        tags$hr(),
-                       DT::dataTableOutput("varDF"),
-                       tags$hr(),
+                       fluidRow(column(6,
+                       DT::dataTableOutput("varDF")
+                       ),
+                       column(6,
                        DT::dataTableOutput("vecmDF")
+                       )
+                       )
                      )
                    )
                  )),
-        tabPanel("Table", DT::dataTableOutput("dt"))
+        tabPanel("Table",conditionalPanel(
+                     condition = "output.completiontime!=''", DT::dataTableOutput("dt")))
       ),
       htmlOutput("remarktext"),
       htmlOutput("history"), 
-      htmlOutput("gitcode")
+      htmlOutput("gitcode"),
+      htmlOutput("linkList")
     ),
     column(
       2,
@@ -148,7 +176,7 @@ shinyUI(fluidPage(
         ,
         "data-widget-id" = "449799943780200448",
         width = "100%",
-        height = "1000"
+        height = "3000"
       )
     )
   )
