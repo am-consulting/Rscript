@@ -96,8 +96,11 @@ shinyUI(fluidPage(
         downloadButton(outputId = "Download3", label = "Download Scatter Plot"))
           ),
           tags$hr(),
-          fluidRow(column(6, tags$b("without unit root:VAR{vars}→irf{vars}"), plotOutput("varresult")),
-                   column(6, tags$b("with unit root:ca.jo{urca}→vec2var{vars}→irf{vars}"), plotOutput("vecmresult"))),
+          fluidRow(column(6, tags$b("without unit root:VAR{vars}→irf{vars}"), plotOutput("varresult"),
+        downloadButton(outputId = "Download4", label = "Download VAR without unit root")),
+                   column(6, tags$b("with unit root:ca.jo{urca}→vec2var{vars}→irf{vars}"), plotOutput("vecmresult"),
+        downloadButton(outputId = "Download5", label = "Download VAR with unit root"))
+          ),
           tags$hr(),
           fluidRow(
             column(4, plotOutput("acfx")),

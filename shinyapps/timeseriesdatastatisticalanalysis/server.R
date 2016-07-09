@@ -157,7 +157,7 @@ shinyServer(function(input, output , session) {
               sep = "")
       },
     content = function(file) {
-        png(file, width = 1200, height = 800)
+        png(file, width = 1000, height = 600)
         tsplot()
         dev.off()
       }
@@ -235,7 +235,7 @@ shinyServer(function(input, output , session) {
               sep = "")
       },
     content = function(file) {
-        png(file, width = 1200, height = 800)
+        png(file, width = 1000, height = 600)
         ccfplot()
         dev.off()
       }
@@ -273,7 +273,7 @@ shinyServer(function(input, output , session) {
               sep = "")
       },
     content = function(file) {
-        png(file, width = 1200, height = 800)
+        png(file, width = 1000, height = 600)
         scatter()
         dev.off()
       }
@@ -320,10 +320,7 @@ shinyServer(function(input, output , session) {
         response = "y",
         n.ahead = 10
       )
-    output$varresult <- renderPlot({
-      plot(varResultOP)
-    })
-    
+
     vecmResultOP <-
       vars::irf(
         vecmResult,
@@ -331,10 +328,49 @@ shinyServer(function(input, output , session) {
         response = "y",
         n.ahead = 10
       )
-    output$vecmresult <- renderPlot({
-      plot(vecmResultOP)
-    })
+
+    varplot<-function(){
+      plot(varResultOP,
+           main=paste("Orthogonal Impulse Response from ",bufDatasetColnames[2]," to ",bufDatasetColnames[3],"\nwithout unit root:VAR{vars}→irf{vars}",sep=""))
+    }
     
+    vecmplot<-function(){
+      plot(vecmResultOP,
+           main=paste("Orthogonal Impulse Response from ",bufDatasetColnames[2]," to ",bufDatasetColnames[3],"\nwith unit root:ca.jo{urca}→vec2var{vars}→irf{vars}",sep=""))
+    }
+    
+    output$varresult <- renderPlot({varplot()})
+
+    output$vecmresult <- renderPlot({vecmplot()})
+
+    output$Download4 <- downloadHandler(
+      filename = function() {
+        paste("SaECaNet-",
+              format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+              ".png",
+              sep = "")
+      },
+    content = function(file) {
+        png(file, width = 1000, height = 600)
+        varplot()
+        dev.off()
+      }
+    )
+    
+    output$Download5 <- downloadHandler(
+      filename = function() {
+        paste("SaECaNet-",
+              format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+              ".png",
+              sep = "")
+      },
+    content = function(file) {
+        png(file, width = 1000, height = 600)
+        vecmplot()
+        dev.off()
+      }
+    )
+
     funPlot <- function(iii) {
       assign(paste("acfPlot", iii, sep = ""), renderPlot({
         par(mar = c(3, 4, 3, 1))
