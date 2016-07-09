@@ -58,9 +58,9 @@ shinyUI(fluidPage(
                     this.value = null;
                     });'),
       tags$h5("CSV file sampe(at least one date column)"),
-      tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/exsample-daily-source-FRED.csv","･daily data",target="_blank"),
+      tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/example-daily-source-FRED.csv","･daily data",target="_blank"),
       tags$br(),
-      tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/exsample-monthly-source-FRED.csv","･monthly data",target="_blank"),
+      tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/example-monthly-source-FRED.csv","･monthly data",target="_blank"),
       tags$hr(),
       uiOutput("xAxis"),
       uiOutput("yAxis"),
