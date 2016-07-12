@@ -1,5 +1,6 @@
 # License:GPL(version 2 or later)
 # Data Source:Mizuho Bank, Ltd.
+options(download.file.method = "libcurl")
 url <- "http://www.mizuhobank.co.jp/rate/market/csv/quote.csv"
 buf <-
   read.csv(
