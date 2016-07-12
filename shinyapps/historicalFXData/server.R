@@ -5,22 +5,31 @@ library(DT)
 library(nortest)
 shinyServer(function(input, output, session)
 {
-  reactiveData <- reactive({
-    # tmp <-
-    #   origData[, c(1, grep(
-    #     paste("\\b", input$currency , "\\b", sep = ""),
-    #     colnames(origData)
-    #   ))]
-    tmp <-origData[, c(1, which(input$currency==colnames(origData)))]
-    tmp <- na.omit(tmp)
-    startDate <- input$dateRange[1]
-    endDate <-
-      max(min(input$dateRange[2], tmp[nrow(tmp), 1]), tmp[1, 1] + 365)
-    if (startDate >= endDate) {
-      startDate <- endDate - 365
-    }
-    tmp <- subset(tmp, startDate <= tmp[, 1] & tmp[, 1] <=
-                    endDate)
+  getOrigData <- reactive({
+    tmp0 <- origData[, c(1, which(input$currency==colnames(origData)))]
+    tmp1 <<- na.omit(tmp0)
+  })
+
+    output$dataRange <- renderUI({
+      getOrigData()
+      if (length(nrow(tmp1)) == 0) {
+        return(NULL)
+      } else{
+        sliderInput(
+          "dataRange",
+          label = "Data Range",
+          min = 1,
+          max = nrow(tmp1),
+          value = c(1, nrow(tmp1)),
+          step = 1
+        )
+      }
+    })
+
+    reactiveData <- reactive({
+    if(is.null(input$dataRange[1])){return(NULL)}else{  
+    tmp <- subset(tmp1, input$dataRange[1] <= index(tmp1) & index(tmp1) <=
+                    input$dataRange[2])
     buf <- colnames(tmp)
     if (input$datatype == 2)
       #1st diff
@@ -56,7 +65,8 @@ shinyServer(function(input, output, session)
         "var( x )",
         "Sample Variance",
         "adf.test( x )",
-        "ad.test( x )"
+        "ad.test( x )",
+        "Date Range"
       )
     result <-
       c(length(x), round(
@@ -73,7 +83,9 @@ shinyServer(function(input, output, session)
           ad.test(x)$p.value
         ),
         3
-      ))
+      ),
+      paste(tmp[1,1],"-",tmp[nrow(tmp),1])
+      )
     remark <-
       c(
         "-",
@@ -86,7 +98,8 @@ shinyServer(function(input, output, session)
         "JPY",
         "JPY",
         "p-value",
-        "p-value"
+        paste(ad.test(x)$method, ": p-value"),
+        "-"
       )
     statisticTable <-
       data.frame(
@@ -161,7 +174,7 @@ shinyServer(function(input, output, session)
         info = T,
         lengthChange = T,
         ordering = T,
-        searching = T,
+        searching = F,
         scrollX = T,
         lengthMenu = list(c(-1, 1), c("All", "1")),
         orderClasses = TRUE,
@@ -257,6 +270,7 @@ shinyServer(function(input, output, session)
         )
       }
     })
+    }
   })
   
   output$remarktext <- renderUI({
@@ -268,7 +282,8 @@ shinyServer(function(input, output, session)
     <li>adf.test( x ) { tseries } , ad.test( x ) { nortest }(Normality test)</li>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
-    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -280,6 +295,7 @@ shinyServer(function(input, output, session)
     <li>2016-06-15:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
     <li>2016-06-19:ver.1.0.2</li>
+    <li>2016-07-12:ver.1.0.3</li>
     </ol>"
     HTML(str)
   })
@@ -298,5 +314,10 @@ shinyServer(function(input, output, session)
     paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
   })
-  
+
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+    
 })
