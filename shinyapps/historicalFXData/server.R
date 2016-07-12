@@ -8,10 +8,8 @@ shinyServer(function(input, output, session)
   getOrigData <- reactive({
     tmp0 <- origData[, c(1, which(input$currency==colnames(origData)))]
     tmp1 <<- na.omit(tmp0)
-  })
 
     output$dataRange <- renderUI({
-      getOrigData()
       if (length(nrow(tmp1)) == 0) {
         return(NULL)
       } else{
@@ -25,9 +23,11 @@ shinyServer(function(input, output, session)
         )
       }
     })
+  })
 
     reactiveData <- reactive({
-    if(is.null(input$dataRange[1])){return(NULL)}else{  
+    getOrigData()
+    if(!is.null(input$dataRange[1]) | !is.null(input$dataRange[2])){
     tmp <- subset(tmp1, input$dataRange[1] <= index(tmp1) & index(tmp1) <=
                     input$dataRange[2])
     buf <- colnames(tmp)
@@ -46,7 +46,7 @@ shinyServer(function(input, output, session)
                    check.names = F)
     }
     colnames(tmp) <- buf
-    plotData <<- tmp
+    plotData <- tmp
     x <- tmp[, 2]
     SV <- var(x) * (length(x) - 1) / length(x) #sample variance
     UV <- var(x)#unbiased variance
@@ -66,7 +66,9 @@ shinyServer(function(input, output, session)
         "Sample Variance",
         "adf.test( x )",
         "ad.test( x )",
-        "Date Range"
+        "Last",
+        "Date Range",
+        "Currency"
       )
     result <-
       c(length(x), round(
@@ -80,11 +82,13 @@ shinyServer(function(input, output, session)
           UV ,
           SV ,
           adf.test(x)$p.value,
-          ad.test(x)$p.value
+          ad.test(x)$p.value,
+          tail(x,1)
         ),
         3
       ),
-      paste(tmp[1,1],"-",tmp[nrow(tmp),1])
+      paste(tmp[1,1],"-",tmp[nrow(tmp),1]),
+      gsub("-", "-", colnames(tmp)[2]) # 挟まないとdatatablesでエラーが出る
       )
     remark <-
       c(
@@ -99,6 +103,8 @@ shinyServer(function(input, output, session)
         "JPY",
         "p-value",
         paste(ad.test(x)$method, ": p-value"),
+        paste("JPY ,",as.Date(tmp[nrow(tmp),1])),
+        "-",
         "-"
       )
     statisticTable <-
@@ -144,8 +150,7 @@ shinyServer(function(input, output, session)
     #一旦挟まないとdatatablesのエラーが出る
     #https://datatables.net/manual/tech-notes/1
     tmpDataset[, 1] <- gsub("-", "-", tmpDataset[, 1])
-    tmpDataset <<- tmpDataset
-    dataset <<-
+    dataset <-
       data.frame(ID = seq(1, nrow(tmpDataset)),
                  tmpDataset,
                  check.names = F)
@@ -272,7 +277,7 @@ shinyServer(function(input, output, session)
     })
     }
   })
-  
+
   output$remarktext <- renderUI({
     str <- "<hr>
     <b>Remarks</b><br>
@@ -308,16 +313,16 @@ shinyServer(function(input, output, session)
     </ol>"
     HTML(str)
   })
+
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
   
   output$DataDownloadTime <- renderText({
     reactiveData()
     paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
   })
-
-  output$linkList <- renderUI({
-    str <- linkList
-    HTML(str)
-  })
-    
+  
 })
