@@ -1,7 +1,9 @@
 library(shiny)
 library(dplyr)
 library(nortest)
+library(zoo)
 options(shiny.maxRequestSize = 0.5 * 1024 ^ 2)
+options(download.file.method="libcurl")
 shinyServer(function(input, output , session) {
   uploadFile <- reactive({
     inFile <- input$file
@@ -14,7 +16,8 @@ shinyServer(function(input, output , session) {
         sep = input$sep,
         quote = input$quote,
         check.names = input$chkname,
-        stringsAsFactors = F
+        stringsAsFactors = F,
+        fileEncoding = "cp932"
       )
     }
   })
@@ -48,14 +51,14 @@ shinyServer(function(input, output , session) {
       return(NULL)
     targetcol <-
       which(colnames(origData) == input$targetData)
+    dataset <- origData[,targetcol,drop=F]
     dataset <-
-      data.frame(ID = seq(1, nrow(origData)),
-                 origData[, targetcol],
+      data.frame(ID = seq(1, nrow(dataset)),
+                 dataset,
                  check.names = F)
     dataset <-
-      dataset %>% filter(input$selectedRow[1] <= dataset[, 1],
-                         dataset[, 1] <= input$selectedRow[2])
-    colnames(dataset)[2] <- colnames(origData)[targetcol]
+      dataset %>% filter(input$selectedRow[1] <= dataset$ID,
+                         dataset$ID <= input$selectedRow[2])
     dataset <<- dataset
     output$mu <- renderUI({
       textInput("truemean",
@@ -74,10 +77,10 @@ shinyServer(function(input, output , session) {
   })
   
   resultOutput <- reactive({
-    if (is.null(input$targetData))
+    if (is.null(input$alternative))
       return(NULL)
     summaryDF <- data.frame()
-    x <<- dataset[, 2]
+    x <- dataset[, 2]
     iii <- 1
     #unbiased variance
     summaryDF[1, iii] <- var(x)
@@ -109,8 +112,7 @@ shinyServer(function(input, output , session) {
     summaryDF <-
       data.frame(ID = seq(1, nrow(summaryDF)), Item = summaryItem, summaryDF)
     colnames(summaryDF) <- c("ID", "Item", "Value", "Remark")
-    summaryDF <<- summaryDF
-    
+
     output$scatter <- renderPlot({
       par(mar = c(4, 4, 2, 1))
       collist <- c("red")
@@ -202,12 +204,12 @@ shinyServer(function(input, output , session) {
       ),
       options = list(
         autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
+        info = F,
+        lengthChange = F,
+        ordering = F,
+        searching = F,
         scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
+        paging = F,
         orderClasses = TRUE,
         order = list(list(0, "asc"))
       )
@@ -219,30 +221,27 @@ shinyServer(function(input, output , session) {
       caption = paste("Table 1: Statistical Summary"),
       options = list(
         autoWidth = T,
-        info = T,
-        lengthChange = T,
-        ordering = T,
-        searching = T,
+        info = F,
+        lengthChange = F,
+        ordering = F,
+        searching = F,
         scrollX = T,
-        lengthMenu = list(c(-1, 1), c("All", "1")),
+        paging = F,
         orderClasses = TRUE,
         order = list(list(0, "asc"))
       )
     )
-  
-  origDataset <-
-    data.frame(ID = seq(1, nrow(origData)), origData, check.names = F)
-  
+
   output$DF <- DT::renderDataTable(
-    origDataset,
+    dataset,
     rownames = F,
-    caption = paste("Table 3: Original Dataset"),
+    caption = paste("Table 3: Tested Dataset"),
     options = list(
       autoWidth = T,
       info = T,
       lengthChange = T,
       ordering = T,
-      searching = T,
+      searching = F,
       scrollX = T,
       lengthMenu = list(c(10, -1, 1), c("10", "All", "1")),
       orderClasses = TRUE,
@@ -256,8 +255,8 @@ shinyServer(function(input, output , session) {
       return(NULL)
     trueMean()
     resultOutput()
-    paste("Completion:" ,
-          as.character(as.POSIXlt(Sys.time(), "GMT")), "(UTC)")
+    paste("Completion(UTC):" ,
+          as.character(as.POSIXlt(Sys.time(), "GMT")))
   })
   
   output$remarktext <- renderUI({
@@ -266,6 +265,8 @@ shinyServer(function(input, output , session) {
     <ol>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -276,6 +277,7 @@ shinyServer(function(input, output , session) {
     <ol>
     <li>2016-06-15:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
+    <li>2016-07-12:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
@@ -288,4 +290,10 @@ shinyServer(function(input, output , session) {
     </ol>"
     HTML(str)
   })
+
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+  
 })

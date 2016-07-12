@@ -1,4 +1,12 @@
 library(shiny)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 shinyUI(fluidPage(
   tags$head(
     tags$link(rel = "stylesheet",
@@ -40,7 +48,10 @@ shinyUI(fluidPage(
         tags$script('$( "#file" ).on( "click", function() {
                     this.value = null;
                     });'),
-         uiOutput("targetData"),
+        tags$h5("CSV file sampe(at least one date column)"),
+        tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/example-t-test.csv","･sample data",target="_blank"),
+        tags$hr(),
+        uiOutput("targetData"),
         uiOutput("selectrow"),
         uiOutput("mu"),
         uiOutput("alternative"),
@@ -68,35 +79,41 @@ shinyUI(fluidPage(
                        'False' = 'F'),
                      'F')
       )
-    )  ,
+    ),
     column(
       8,
       fluidRow(
+        conditionalPanel(
+          condition = "output.completiontime!=''",
         column(4, plotOutput("hist")),
         column(4, plotOutput("scatter")),
         column(4, plotOutput("qq"))
+      )
       ),
-      tags$hr()
-      ,
+      tags$hr(),
       fluidRow(
         conditionalPanel(
           condition = "output.completiontime!=''",
           column(
-            12,
-            DT::dataTableOutput("summaryDF"),
-            tags$hr(),
-            DT::dataTableOutput("ttestDF"),
-            tags$hr(),
+            12,fluidRow(
+            column(6,
+            DT::dataTableOutput("summaryDF")
+            ),
+            column(3,
+            DT::dataTableOutput("ttestDF")
+            ),
+            column(3,
             DT::dataTableOutput("DF")
-            
+            )
+            )
           )
         )
       ),
-      DT::dataTableOutput("dt")
-      ,
+      DT::dataTableOutput("dt"),
       htmlOutput("remarktext"),
       htmlOutput("history"), 
-      htmlOutput("gitcode")
+      htmlOutput("gitcode"),
+      htmlOutput("linkList")
     ),
     column(
       2,
