@@ -7,6 +7,13 @@ script <-
   )
 eval(parse(text = script))
 
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(fluidPage(
   tags$head(
@@ -94,13 +101,15 @@ shinyUI(fluidPage(
       ,
       tags$hr(),
       fluidRow(column(
-        12, div(style = "height:500px;background-color:white;", plotOutput("plot1"))
+        12, div(style = "height:500px;background-color:white;", plotOutput("plot1")),
+        downloadButton(outputId = "Download1", label = "Download TimeSeries Plot")
       )),
       fluidRow(column(
         12,
         htmlOutput("remarktext"),
         htmlOutput("history"), 
-        htmlOutput("gitcode")
+        htmlOutput("gitcode"),
+        htmlOutput("linkList")
       ))
     ),
     column(
@@ -113,7 +122,7 @@ shinyUI(fluidPage(
         ,
         "data-widget-id" = "449799943780200448",
         width = "100%",
-        height = "1500"
+        height = "2500"
       )
     )
   ))

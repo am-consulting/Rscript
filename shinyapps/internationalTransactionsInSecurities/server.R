@@ -36,7 +36,7 @@ shinyServer(function(input, output, session)
       as.character(plotData[nrow(plotData), 2])
     })
 
-    output$plot1 <- renderPlot({
+    plotTS<-function(){   
       par(mar = c(5, 4, 3, 3))
       subtitle <-
         paste(plotData[1, 1], " - ", plotData[nrow(plotData), 1])
@@ -47,7 +47,7 @@ shinyServer(function(input, output, session)
           breaks = 50,
           cex.axis = 1,
           cex.lab = 1,
-          cex.main = 1,
+          cex.main = 2,
           main = colnames(plotData)[3],
           xlab = ""
         )
@@ -108,7 +108,7 @@ shinyServer(function(input, output, session)
           col = plotData$color,
           density = 20,
           ylab = "100million JPY",
-          cex.main = 1,
+          cex.main = 2,
           cex.sub = 1,
           cex.lab = 1,
           cex.names = 1,
@@ -124,8 +124,24 @@ shinyServer(function(input, output, session)
           col = "black"
         )
       }
-    }, height = 500)
-    
+  }    
+
+    output$plot1 <- renderPlot({plotTS()}, height = 500)
+
+    output$Download1 <- downloadHandler(
+      filename = function() {
+        paste("SaECaNet-",
+              format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+              ".png",
+              sep = "")
+      },
+    content = function(file) {
+        png(file, width = 1500, height = 800)
+        plotTS()
+        dev.off()
+      }
+    )    
+
     x <- tmp[, 3]
     SV <- var(x) * (length(x) - 1) / length(x) #sample variance
     UV <- var(x)#unbiased variance
@@ -144,7 +160,8 @@ shinyServer(function(input, output, session)
         "var( x )",
         "Sample Variance",
         "adf.test( x )",
-        "ad.test( x )"
+        "ad.test( x )",
+        "Period"
       )
     result <-
       c(length(x), round(
@@ -161,7 +178,9 @@ shinyServer(function(input, output, session)
           ad.test(x)$p.value
         ),
         3
-      ))
+      ),
+      paste(head(tmp[,2],1),"-",tail(tmp[,2],1))
+      )
     remark <-
       c(
         "-",
@@ -174,7 +193,8 @@ shinyServer(function(input, output, session)
         "-",
         "-",
         "p-value",
-        paste(ad.test(x)$method, ". p-value")
+        paste(ad.test(x)$method, ". p-value"),
+        "-"
       )
     statisticTable <-
       data.frame(
@@ -233,6 +253,8 @@ shinyServer(function(input, output, session)
     <li>adf.test( x ) { tseries } , ad.test( x ) { nortest }(Normality test)</li>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -243,6 +265,7 @@ shinyServer(function(input, output, session)
     <ol>
     <li>2016-06-16:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
+    <li>2016-07-15:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
@@ -261,5 +284,10 @@ shinyServer(function(input, output, session)
     paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
   })
-  
+
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+      
 })
