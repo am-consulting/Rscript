@@ -28,7 +28,7 @@ shinyServer(function(input, output, session)
                    check.names = F)
     }
     colnames(tmp) <- buf
-    plotData <<- tmp
+    plotData <- tmp
     
     sDate <- format(plotData[1, 1], "%Y-%m")
     eDate <- format(plotData[nrow(plotData), 1], "%Y-%m")    
@@ -257,7 +257,7 @@ shinyServer(function(input, output, session)
     <ol>
     <li>2016-06-17:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
-    <li>2016-07-18:ver.1.0.1</li>
+    <li>2016-07-18:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
