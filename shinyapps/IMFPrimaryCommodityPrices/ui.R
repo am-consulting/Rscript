@@ -7,6 +7,13 @@ script <-
   )
 eval(parse(text = script))
 
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(fluidPage(
   tags$head(
@@ -53,14 +60,17 @@ shinyUI(fluidPage(
               colnames(origData)[-1],
               selectize = F
             ),
-          dateRangeInput(
-            "dateRange",
-            label = "Date Range Input",
-            start = origData[1, 1],
-            end = origData[nrow(origData), 1]
-          ),
-            uiOutput("startDate"),
-            uiOutput("endDate"),tags$hr(),
+            sliderInput(
+              "selectedRow",
+              label = "Select Rows",
+              min = 1,
+              max = nrow(origData),
+              value =  c(1, nrow(origData)),
+              step = 1
+            ),
+            uiOutput("startPeriod"),
+            uiOutput("endPeriod"),
+            tags$hr(),
             radioButtons(
               "charttype",
               label = "Chart Type",
@@ -99,7 +109,8 @@ shinyUI(fluidPage(
         12,
         htmlOutput("remarktext"),
         htmlOutput("history"), 
-        htmlOutput("gitcode")
+        htmlOutput("gitcode"),
+        htmlOutput("linkList")
       ))
     ),
     column(
@@ -112,7 +123,7 @@ shinyUI(fluidPage(
         ,
         "data-widget-id" = "449799943780200448",
         width = "100%",
-        height = "1500"
+        height = "2500"
       )
     )
   ))

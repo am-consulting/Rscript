@@ -9,14 +9,9 @@ shinyServer(function(input, output, session)
   reactiveData <- reactive({
     tmp <- origData[, c(1, which(input$item == colnames(origData)))]
     tmp <- na.omit(tmp)
-    startDate <- input$dateRange[1]
-    endDate <-
-      max(min(input$dateRange[2], tmp[nrow(tmp), 1]), tmp[1, 1] + 365)
-    if (startDate >= endDate) {
-      startDate <- endDate - 365
-    }
-    tmp <- subset(tmp, startDate <= tmp[, 1] & tmp[, 1] <=
-                    endDate)
+    tmp <-
+      tmp %>% filter(input$selectedRow[1] <= index(tmp),
+                     index(tmp) <= input$selectedRow[2])
     buf <- colnames(tmp)
     if (input$datatype == 2)
       #1st diff
@@ -36,13 +31,12 @@ shinyServer(function(input, output, session)
     plotData <<- tmp
     
     sDate <- format(plotData[1, 1], "%Y-%m")
-    eDate <- format(plotData[nrow(plotData), 1], "%Y-%m")
-    
-    output$startDate <- renderPrint({
+    eDate <- format(plotData[nrow(plotData), 1], "%Y-%m")    
+
+    output$startPeriod <- renderPrint({
       as.character(sDate)
     })
-    
-    output$endDate <- renderPrint({
+    output$endPeriod <- renderPrint({
       as.character(eDate)
     })
     
@@ -162,7 +156,8 @@ shinyServer(function(input, output, session)
         "var( x )",
         "Sample Variance",
         "adf.test( x )",
-        "ad.test( x )"
+        "ad.test( x )",
+        "Period"
       )
     result <-
       c(length(x), round(
@@ -179,7 +174,9 @@ shinyServer(function(input, output, session)
           ad.test(x)$p.value
         ),
         3
-      ))
+      ),
+      paste(sDate,"-",eDate)
+      )
     remark <-
       c(
         "-",
@@ -192,7 +189,8 @@ shinyServer(function(input, output, session)
         "-",
         "-",
         "p-value",
-        paste(ad.test(x)$method, ". p-value")
+        paste(ad.test(x)$method, ". p-value"),
+        "-"
       )
     statisticTable <-
       data.frame(
@@ -247,6 +245,8 @@ shinyServer(function(input, output, session)
     <li>adf.test( x ) { tseries } , ad.test( x ) { nortest }(Normality test)</li>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -257,6 +257,7 @@ shinyServer(function(input, output, session)
     <ol>
     <li>2016-06-17:ver.1.0.0</li>
     <li>2016-06-17:ver.1.0.1</li>
+    <li>2016-07-18:ver.1.0.1</li>
     </ol>"
     HTML(str)
   })
@@ -275,5 +276,10 @@ shinyServer(function(input, output, session)
     paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
   })
-  
+
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+      
 })
