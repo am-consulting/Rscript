@@ -84,6 +84,7 @@ devtools::install_github("ellisp/ggseas/pkg")
 devtools::install_github("rstudio/addinexamples", type = "source")
 devtools::install_github("rich-iannone/DiagrammeR")
 devtools::install_github('rstudio/DT')
+devtools::install_github("gitronald/dtables")
 ```
 
 ```{r}
