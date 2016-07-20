@@ -37,7 +37,7 @@ origData <-
   )
 colnames(origData)[-1]<-commodityName[,2]
 
-buf <- getSymbols("DTWEXB", src = "FRED", auto.assign = F)
+buf <- getSymbols("DCOILWTICO", src = "FRED", auto.assign = F)
 currencyData <-
   data.frame(
     Date = as.Date(index(buf)),
