@@ -45,6 +45,7 @@ currencyData <-
     check.names = F,
     row.names = NULL
   )
+colnames(currencyData)[2]<- "Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma"
 origData <- merge(origData, currencyData, by = "Date", all = T)
 
 perl <- gdata:::findPerl("perl")
