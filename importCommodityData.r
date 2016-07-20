@@ -42,7 +42,7 @@ dataURL <-
     "http://ir.eia.gov/wpsr/psw11.xls"
     )
 for (iii in 1:length(dataURL)) { 
-  Sys.sleep(2) #avoid to overload    
+  Sys.sleep(1) #avoid to overload    
   switch (iii,
           objsheet <- 2,
           objsheet <- 2)
@@ -67,7 +67,7 @@ for (iii in 1:length(dataURL)) {
   } else{
     EIAData <- merge(EIAData, buf, by = "Date", all = T)
   }
-  gc();gc()
+#  gc();gc()
 }
 EIAData[, 1] <-
   as.Date(paste(
