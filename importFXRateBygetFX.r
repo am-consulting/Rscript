@@ -7,10 +7,10 @@ currencyList <-
     "USD/JPY",
     "USD/EUR",
     "USD/GBP",
-    "USD/CAD",
+#    "USD/CAD",
     "USD/AUD",
-    "USD/CHF",
-    "USD/NZD",
+#    "USD/CHF",
+#    "USD/NZD",
     "USD/ZAR"
   )
 currencyName <<-data.frame(
@@ -19,10 +19,10 @@ currencyName <<-data.frame(
     "JPY",
     "EUR",
     "GBP",
-    "CAD",
+#    "CAD",
     "AUD",
-    "CHF",
-    "NZD",
+#    "CHF",
+#    "NZD",
     "ZAR"
     ),
   Currency=c(
@@ -30,15 +30,15 @@ currencyName <<-data.frame(
     "Japanese Yen",
     "Euro",
     "British Pound",
-    "Canadian Dollars",
+#    "Canadian Dollars",
     "Australian Dollar",
-    "Swiss Francs",
-    "New Zealand Dollar",
+#    "Swiss Francs",
+#    "New Zealand Dollar",
     "South African Rand"
   )
 )  
 for (iii in 1:length(currencyList)) {
-  Sys.sleep(2) #avoid to overload  
+  Sys.sleep(1) #avoid to overload  
   buf <-
     getSymbols(currencyList[iii], src = "oanda", auto.assign = F, from = Sys.Date()-365*5, to = Sys.Date())
   if (iii == 1) {
