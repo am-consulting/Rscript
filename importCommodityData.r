@@ -36,11 +36,20 @@ origData <-
     check.names = F
   )
 colnames(origData)[-1]<-commodityName[,2]
+
+buf <- getSymbols("DTWEXB", src = "FRED", auto.assign = F)
+currencyData <-
+  data.frame(
+    Date = as.Date(index(buf)),
+    buf,
+    check.names = F,
+    row.names = NULL
+  )
+origData <- merge(origData, currencyData, by = "Date", all = T)
+
 perl <- gdata:::findPerl("perl")
 dataURL <-
-  c("http://ir.eia.gov/wpsr/psw01.xls",
-    "http://ir.eia.gov/wpsr/psw11.xls"
-    )
+  c("http://ir.eia.gov/wpsr/psw01.xls") # "http://ir.eia.gov/wpsr/psw11.xls"
 for (iii in 1:length(dataURL)) { 
   Sys.sleep(1) #avoid to overload    
   switch (iii,
@@ -67,7 +76,7 @@ for (iii in 1:length(dataURL)) {
   } else{
     EIAData <- merge(EIAData, buf, by = "Date", all = T)
   }
-#  gc();gc()
+  gc();gc()
 }
 EIAData[, 1] <-
   as.Date(paste(
