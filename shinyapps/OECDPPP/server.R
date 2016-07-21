@@ -340,7 +340,8 @@ shinyServer(function(input, output, session)
     <li><a href=\"http://github.hubspot.com/pace/docs/welcome/\" target=\"_blank\">PACE - http://github.hubspot.com/pace/docs/welcome/</a></li>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
-    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -351,6 +352,7 @@ shinyServer(function(input, output, session)
     <ol>
     <li>2016-06-22:ver.1.0.0</li>
     <li>2016-06-29:ver.1.0.1</li>
+    <li>2016-07-21:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
@@ -369,5 +371,10 @@ shinyServer(function(input, output, session)
     paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
   })
-  
+
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+        
 })

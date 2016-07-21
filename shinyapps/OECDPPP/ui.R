@@ -3,7 +3,8 @@ library(RCurl)
 library(lubridate)
 script <-
   getURL(
-    "https://raw.githubusercontent.com/am-consulting/Rscript/master/importFXRateBygetFX_major.r",
+    # "https://raw.githubusercontent.com/am-consulting/Rscript/master/importFXRateBygetFX_major.r",
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/importFXRateFromFRED_major.r",
     ssl.verifypeer = FALSE
   )
 eval(parse(text = script))
@@ -12,6 +13,13 @@ dailyFXrate <<- data.frame(origData, TIME = year(origData[, 1]),check.names = F)
 script <-
   getURL(
     "https://raw.githubusercontent.com/am-consulting/Rscript/master/importOECDPPP.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
     ssl.verifypeer = FALSE
   )
 eval(parse(text = script))
@@ -47,7 +55,7 @@ shinyUI(fluidPage(
     )
   ),
   headerPanel(
-    "Purchasing power parities (PPP)Total, National currency units/US dollar. Raw Data source:Organisation for Economic Co-operation and Development , OANDA Corporation - https://www.oanda.com/"
+    "Purchasing power parities (PPP)Total, National currency units/US dollar. Raw Data source:Organisation for Economic Co-operation and Development , Federal Reserve Bank of St. Louis"
   ),
   fluidRow(column(12,
                   textOutput("DataDownloadTime"))),
@@ -118,7 +126,8 @@ shinyUI(fluidPage(
       fluidRow(column(12,
         htmlOutput("remarktext"),
         htmlOutput("history"),
-        htmlOutput("gitcode")
+        htmlOutput("gitcode"),
+        htmlOutput("linkList")
       ))
     ) ,
     column(
@@ -131,7 +140,7 @@ shinyUI(fluidPage(
         ,
         "data-widget-id" = "449799943780200448",
         width = "100%",
-        height = "3000"
+        height = "3500"
       )
     )
   )
