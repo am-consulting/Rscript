@@ -5,22 +5,18 @@ library(DT)
 library(nortest)
 library(lubridate)
 library(ggplot2)
+library(dplyr)
 shinyServer(function(input, output, session)
 {
   funGDP <- function(sss) {
-    gdpData <<- get(paste("gdp", sss, sep = ""))
+    gdpData <- get(paste("gdp", sss, sep = ""))
     tmp <-
       gdpData[, c(1, which(input$objective == colnames(gdpData)))]
+    tmp <-
+     tmp %>% filter(input$selectedRow[1] <= index(tmp),
+                    index(tmp) <= input$selectedRow[2])
     tmp <- na.omit(tmp)
     if (nrow(tmp) != 0) {
-      startDate <- input$dateRange[1]
-      endDate <-
-        max(min(input$dateRange[2], tmp[nrow(tmp), 1]), tmp[1, 1] + 365)
-      if (startDate >= endDate) {
-        startDate <- endDate - 365
-      }
-      tmp <- subset(tmp, startDate <= tmp[, 1] & tmp[, 1] <=
-                      endDate)
       buf <- colnames(tmp)
       if (input$datatype == 2)
         #1st diff
@@ -344,7 +340,8 @@ shinyServer(function(input, output, session)
     <li><a href=\"http://github.hubspot.com/pace/docs/welcome/\" target=\"_blank\">PACE - http://github.hubspot.com/pace/docs/welcome/</a></li>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
-    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
+    <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
   })
@@ -354,6 +351,7 @@ shinyServer(function(input, output, session)
     <b>History</b><br>
     <ol>
     <li>2016-06-23:ver.1.0.0</li>
+    <li>2016-07-21:ver.1.0.1</li>
     </ol>"
     HTML(str)
   })
@@ -372,5 +370,10 @@ shinyServer(function(input, output, session)
     paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
   })
-  
+ 
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+     
 })
