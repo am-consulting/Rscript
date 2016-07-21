@@ -1,4 +1,12 @@
 library(shiny)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 completionTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(fluidPage(
   tags$head(
@@ -42,7 +50,10 @@ shinyUI(fluidPage(
                                      '.csv')
                         ),
                         tags$hr(),
-                        uiOutput("objList"),
+                        tags$h5("CSV file sampe"),
+                        tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/sample-MYG0041103111446.NS.csv","･sample data",target="_blank"),           
+                        tags$hr(),
+                        textInput("dataTitle", label = "Data Title"),
                         uiOutput("timeslider"),
                         uiOutput("freqslider"),
                         textInput("sf", label = "Sampling Frequency(Hz)", value = 100),
@@ -60,25 +71,46 @@ shinyUI(fluidPage(
                     ),
                     column(
                       10,
-                      fluidRow(column(
-                        6, plotOutput("Plot01", width = "100%", height = "500px")
-                      ),
+                      fluidRow(
+                      conditionalPanel(
+                      condition = "output.completionTime!=''",
+                      column(
+                        6, plotOutput("Plot01", width = "100%", height = "500px"),
+                          downloadButton(outputId = "Download1", label = "Download")
+                      )),
                       column(6, DT::dataTableOutput("dataSet01"))),
+                      fluidRow(
+                      conditionalPanel(
+                      condition = "output.completionTime!=''",
                       tags$hr(),
-                      fluidRow(column(
-                        6, plotOutput("Plot02", width = "100%", height = "500px")
-                      ),
+                      column(
+                        6, plotOutput("Plot02", width = "100%", height = "500px"),
+                          downloadButton(outputId = "Download2", label = "Download")
+                      )),
                       column(6, DT::dataTableOutput("dataSet02"))),
+                      fluidRow(
+                      conditionalPanel(
+                      condition = "output.completionTime!=''",
                       tags$hr(),
-                      fluidRow(column(
-                        6, plotOutput("Plot03", width = "100%", height = "500px")
-                      ),
+                      column(
+                        6, plotOutput("Plot03", width = "100%", height = "500px"),
+                          downloadButton(outputId = "Download3", label = "Download")
+                      )),
                       column(6, DT::dataTableOutput("dataSet03"))),
+                      fluidRow(
+                      conditionalPanel(
+                      condition = "output.completionTime!=''",
                       tags$hr(),
-                      fluidRow(column(
-                        6, plotOutput("Plot04", width = "100%", height = "500px")
-                      ),
-                      column(6, DT::dataTableOutput("dataSet04")))
+                        column(
+                        6, plotOutput("Plot04", width = "100%", height = "500px"),
+                          downloadButton(outputId = "Download4", label = "Download")
+                      )),
+                      column(6, DT::dataTableOutput("dataSet04"))),
+#                      tags$hr(),
+                      htmlOutput("remarktext"),
+                      htmlOutput("history"),
+                      htmlOutput("gitcode"),
+                      htmlOutput("linkList")
                     )
                   )),
            column(
@@ -91,13 +123,7 @@ shinyUI(fluidPage(
                ,
                "data-widget-id" = "449799943780200448",
                width = "100%",
-               height = "2000"
+               height = "3500"
              )
-           )),
-  fluidRow(column(
-    12,
-    htmlOutput("remarktext"),
-    htmlOutput("history"),
-    htmlOutput("gitcode")
-  ))
+           ))
 ))

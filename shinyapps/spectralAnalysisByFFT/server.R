@@ -1,6 +1,6 @@
 library(shiny)
 library(DT)
-options(shiny.maxRequestSize = 0.5 * 1024 ^ 2)
+options(shiny.maxRequestSize = 0.3 * 1024 ^ 2)
 shinyServer(function(input, output, session) {
   importData <- reactive({
     inFile <- input$file
@@ -9,7 +9,7 @@ shinyServer(function(input, output, session) {
     } else{
       tmp <<- read.csv(
         inFile$datapath,
-        header = T,
+        header = F,
         sep =  ',',
         quote = '',
         check.names = F,
@@ -18,33 +18,17 @@ shinyServer(function(input, output, session) {
       )
     }
   })
-  
-  selectData <- reactive({
-    inFile <- input$file
-    if (is.null(inFile)) {
-      return(NULL)
-    } else{
-      output$objList <- renderUI({
-        if (nrow(tmp) == 0) {
-          return(NULL)
-        } else{
-          selectInput("obj",
-                      "Select Data",
-                      colnames(tmp),
-                      selected = colnames(tmp)[1])
-        }
-      })
-    }
-  })
-  
+
   reactiveData <- reactive({
-    if (!is.null(input$obj)) {
+    inFile <- input$file
+    if (!is.null(inFile)) {
       if (input$inverse == 1) {
         selectInverse <- "F"
       } else{
         selectInverse <- "T"
       }
-      dataSet <- tmp[, which(input$obj == colnames(tmp)), drop = F]
+      tmp0 <- sapply(tmp,as.numeric)
+      dataSet <- c(t(tmp0))
       if (is.null(input$dataScale) |
           input$dataScale == 0 |
           input$dataScale == "") {
@@ -53,7 +37,8 @@ shinyServer(function(input, output, session) {
       } else{
         dataScale <- as.numeric(input$dataScale)
       }# ex. 3920(gal)/6182761
-      z <- as.vector(dataSet[, 1])
+      dataTitle<-input$dataTitle
+      z <- dataSet
       z <- z * dataScale
       zOffset <- mean(z)
       z <- z - zOffset
@@ -94,8 +79,8 @@ shinyServer(function(input, output, session) {
           step = 1
         )
       })
-      
-      output$Plot01 <- renderPlot({
+
+      funPlot1 <- function(){
         par(mar = c(5, 4, 3, 3), family = "Noto Sans Japanese")
         plot(
           si * i,
@@ -109,16 +94,32 @@ shinyServer(function(input, output, session) {
             equilogs = T
           ) ,
           main = paste(
-            colnames(dataSet)[2],
+            dataTitle,
             "\nz=Sampling Data*Scale-mean(Sampling Data*Scale)"
           ),
           cex.axis = 1,
           cex.lab = 1,
-          cex.main = 1,
+          cex.main = 1.5,
           xlim = c(input$timeslider[1], input$timeslider[2])
         )
-      })
+      }
       
+      output$Plot01 <- renderPlot({funPlot1()}, height = 500)
+  
+      output$Download1 <- downloadHandler(
+        filename = function() {
+          paste("SaECaNet-",
+                format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+                ".png",
+                sep = "")
+        },
+      content = function(file) {
+          png(file, width = 1500, height = 800)
+          funPlot1()
+          dev.off()
+        }
+      )         
+
       output$dataSet01 <- DT::renderDataTable(
         dataSet,
         rownames = F,
@@ -130,7 +131,7 @@ shinyServer(function(input, output, session) {
           ordering = T,
           searching = T,
           scrollX = T,
-          lengthMenu = list(c(5, 1), c("5", "1")),
+          lengthMenu = list(c(10, 1), c("10", "1")),
           orderClasses = TRUE,
           order = list(list(0, "asc")),
           paging = T
@@ -138,7 +139,7 @@ shinyServer(function(input, output, session) {
       )
       
       modspec <- (Mod(spec)) ^ 2 / n
-      output$Plot02 <- renderPlot({
+      funPlot2 <- function(){
         par(mar = c(5, 4, 3, 3), family = "Noto Sans Japanese")
         plot(
           f,
@@ -151,14 +152,30 @@ shinyServer(function(input, output, session) {
             ny = NULL,
             equilogs = T
           ) ,
-          main = paste(colnames(dataSet)[2], "\nMod(fft(z))^2/n"),
+          main = paste(dataTitle, "\nMod(fft(z))^2/n"),
           cex.axis = 1,
           cex.lab = 1,
-          cex.main = 1,
+          cex.main = 1.5,
           xlim = c(input$freqslider[1], input$freqslider[2])
         )
-      })
-      
+      }
+
+      output$Plot02 <- renderPlot({funPlot2()}, height = 500)
+  
+      output$Download2 <- downloadHandler(
+        filename = function() {
+          paste("SaECaNet-",
+                format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+                ".png",
+                sep = "")
+        },
+      content = function(file) {
+          png(file, width = 1500, height = 800)
+          funPlot2()
+          dev.off()
+        }
+      )         
+
       moddataSet <- data.frame(f, modspec)
       moddataSet <- subset(moddataSet, moddataSet[, 1] <= nf)
       colnames(moddataSet) <- c("Frequency(Hz)", "Mod(fft(z))^2/n")
@@ -173,7 +190,7 @@ shinyServer(function(input, output, session) {
           ordering = T,
           searching = T,
           scrollX = T,
-          lengthMenu = list(c(5, 1), c("5", "1")),
+          lengthMenu = list(c(10, 1), c("10", "1")),
           orderClasses = TRUE,
           order = list(list(0, "asc")),
           paging = T
@@ -181,7 +198,7 @@ shinyServer(function(input, output, session) {
       )
       
       respec <- (Re(spec)) ^ 2 / n
-      output$Plot03 <- renderPlot({
+      funPlot3 <- function(){
         par(mar = c(5, 4, 3, 3), family = "Noto Sans Japanese")
         plot(
           f,
@@ -195,14 +212,30 @@ shinyServer(function(input, output, session) {
             ny = NULL,
             equilogs = T
           ) ,
-          main = paste(colnames(dataSet)[2], "\nRe(fft(z))^2/n"),
+          main = paste(dataTitle, "\nRe(fft(z))^2/n"),
           cex.axis = 1,
           cex.lab = 1,
-          cex.main = 1,
+          cex.main = 1.5,
           xlim = c(input$freqslider[1], input$freqslider[2])
         )
-      })
-      
+      }
+
+      output$Plot03 <- renderPlot({funPlot3()}, height = 500)
+  
+      output$Download3 <- downloadHandler(
+        filename = function() {
+          paste("SaECaNet-",
+                format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+                ".png",
+                sep = "")
+        },
+      content = function(file) {
+          png(file, width = 1500, height = 800)
+          funPlot3()
+          dev.off()
+        }
+      )         
+
       redataSet <- data.frame(f, respec)
       redataSet <- subset(redataSet, redataSet[, 1] <= nf)
       colnames(redataSet) <- c("Frequency(Hz)", "Re(fft(z))^2/n")
@@ -217,7 +250,7 @@ shinyServer(function(input, output, session) {
           ordering = T,
           searching = T,
           scrollX = T,
-          lengthMenu = list(c(5, 1), c("5", "1")),
+          lengthMenu = list(c(10, 1), c("10", "1")),
           orderClasses = TRUE,
           order = list(list(0, "asc")),
           paging = T
@@ -225,7 +258,7 @@ shinyServer(function(input, output, session) {
       )
       
       imspec <- (Im(spec)) ^ 2 / n
-      output$Plot04 <- renderPlot({
+      funPlot4 <- function(){
         par(mar = c(5, 4, 3, 3), family = "Noto Sans Japanese")
         plot(
           f,
@@ -239,14 +272,30 @@ shinyServer(function(input, output, session) {
             ny = NULL,
             equilogs = T
           ) ,
-          main = paste(colnames(dataSet)[2], "\nIm(fft(z))^2/n"),
+          main = paste(dataTitle, "\nIm(fft(z))^2/n"),
           cex.axis = 1,
           cex.lab = 1,
-          cex.main = 1,
+          cex.main = 1.5,
           xlim = c(input$freqslider[1], input$freqslider[2])
         )
-      })
-      
+      }
+
+      output$Plot04 <- renderPlot({funPlot4()}, height = 500)
+  
+      output$Download4 <- downloadHandler(
+        filename = function() {
+          paste("SaECaNet-",
+                format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+                ".png",
+                sep = "")
+        },
+      content = function(file) {
+          png(file, width = 1500, height = 800)
+          funPlot4()
+          dev.off()
+        }
+      )         
+
       imdataSet <- data.frame(f, imspec)
       imdataSet <- subset(imdataSet, imdataSet[, 1] <= nf)
       colnames(imdataSet) <- c("Frequency(Hz)", "Im(fft(z))^2/n")
@@ -261,7 +310,7 @@ shinyServer(function(input, output, session) {
           ordering = T,
           searching = T,
           scrollX = T,
-          lengthMenu = list(c(5, 1), c("5", "1")),
+          lengthMenu = list(c(10, 1), c("10", "1")),
           orderClasses = TRUE,
           order = list(list(0, "asc")),
           paging = T
@@ -272,7 +321,7 @@ shinyServer(function(input, output, session) {
         zOffset
       })
     } else{
-      print("something wrong")
+      return(NULL)
     }
   })
   
@@ -280,9 +329,10 @@ shinyServer(function(input, output, session) {
     str <- "<hr>
     <b>Remarks</b><br>
     <ol>
+    <li>Sample Data Original Source:<a href=\"http://strongmotioncenter.org/\" target=\"_blank\">Center for Engineering Strong Motion Data</a></li>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
-    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
     <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
@@ -294,6 +344,7 @@ shinyServer(function(input, output, session) {
     <ol>
     <li>2016-06-24:ver.1.0.0</li>
     <li>2016-06-26:ver.1.0.1</li>
+    <li>2016-07-21:ver.1.0.2</li>
     </ol>"
     HTML(str)
   })
@@ -308,11 +359,20 @@ shinyServer(function(input, output, session) {
   })
   
   output$completionTime <- renderText({
+    inFile <- input$file
+    if (is.null(inFile)) {
+      return(NULL)
+    } else{
     importData()
-    selectData()
     reactiveData()
     paste("Completion(UTC):" ,
           as.character(completionTime))
+    }
   })
-  
+ 
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+      
 })
