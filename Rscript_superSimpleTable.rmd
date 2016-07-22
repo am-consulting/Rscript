@@ -1,42 +1,62 @@
 ```{r}
+username<-Sys.info()['user']
+fileName <- "defaultPath.csv"
+pathToFile <-
+  paste("C:/Users/", username, "/Desktop/pathToCSV/", sep = "")
+setwd(pathToFile)
+buf0 <-
+  read.csv(
+    fileName,
+    header = F,
+    skip = 0,
+    stringsAsFactor = F,
+    check.names = F,
+    na.strings = c(""),
+    fileEncoding = "utf-8"
+  )
+```
+
+```{r}
 library(knitr)
 library(lubridate)
+library(stringr)
 buf<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=F)
-username<-Sys.info()['user']
 #pathInput<-paste("C:/Users/",username,"/Desktop/R_Data_Read/",sep="")
 #data.file<-"shikin_data_sjis.csv" #ラポール・ジャパン
 #buf<- read.csv(paste( pathInput,data.file,sep = ""),header = T, skip = 0, stringsAsFactor = F, check.names = F, na.strings = c("-"))
 buf[is.na(buf)==T]<--9999
 #以降bufに変更は加えないこと
-addColumn<-2
-exception<-c(1,2,4)
+addColumn<-0
+exception<-c(1)
 dataset<-buf
 dataset[,-exception]<-format(dataset[,-exception],big.mark=",",scientific=F)
 #if(is.Date(dataset[,1])==T){dataset[,1]<-as.Date(dataset[,1])}
+if(addColumn!=0){
 dataset<-data.frame(dataset,dataset[,addColumn],check.names=F)
 colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addColumn]
+}
 #dataset<-data.frame(ID=seq(1,nrow(dataset),by=1),dataset,check.names=F)
 tail(dataset)
 ```
 
 ```{r}
 needRegular<-0 # 1 or other number
-needLinktable<-1  # 1 or other number
-individualPage<-0 # 1 or other number
+needLinktable<-0  # 1 or other number
+individualPage<-1 # 1 or other number
 RegularObj<-c(2)
-title<-"外国為替平衡操作の実施状況"
-source<-"財務省"
+title<-"毎月勤労統計調査 全国調査 原表 実数原表 2016年5月分"
+source<-"厚生労働省"
 alignarg<-rep("r",ncol(dataset))
 alignarg<-c("r","l",rep("r",ncol(dataset)-3),"l")
-ST<-Sys.time()
-SD<-Sys.Date()
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+ST<-Sys.time();SD<-Sys.Date()
+pathOutput<-paste("C:/Users/",username,buf0[2,1],sep="")
 setwd(pathOutput);getwd()
-htmlFile<-paste("superSimpleTable_",floor(as.numeric(ST)),".html",sep="")
-#htmlFile<-"amcc_politicalfund.html"
-cat("",file=htmlFile,append=F)
+htmlFile<-paste("am-consulting.co.jp-",year(ST),"-",month(ST),"-",day(ST),"-",hour(ST),"-",minute(ST),"-",floor(second(ST)),".html",sep="")
+table.argu<-paste("id=\"amcc_superSimpleTable",floor(as.numeric(ST)),"\" width=\"100%\" class=\"display compact\"",sep="")
+
+block01<-block02<-block03<-block04<-block05<-block06<-block07<-block08<-block09<-block10<-block11<-""
 if(individualPage==1){
-cat("
+block01<-"
 <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">
 <meta http-equiv=\"Pragma\" content=\"no-cache\">
 <meta http-equiv=\"cache-control\" content=\"no-cache\">
@@ -47,21 +67,22 @@ body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
 </style>
 </head>
 <body>
-<!---->",file=htmlFile,append=T) 
+<!---->" 
 }
-cat(paste("
+
+block02<-paste("
 <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
-<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
-<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
-<link href=\"http://archive.am-consulting.co.jp/paceCSS.css\" rel=\"stylesheet\">
-<script src=\"http://archive.am-consulting.co.jp/pace.min.js\"></script>
+<link  href=\"http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js\"></script>
+<link  href=\"http://knowledgevault.saecanet.com/components/pace.css\" rel=\"stylesheet\">
+<script src=\"http://knowledgevault.saecanet.com/components/pace.min.js\"></script>
 <style>
 body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
 table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
 tr, td, th{white-space: nowrap;}
 td.highlight{font-weight:plain;color:red;}
 </style>
-<div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>
+<div align=\"right\">作成日時:",as.character(Sys.time()),"</div><hr>
 <script type=\"text/javascript\" charset=\"utf-8\">
 $(document).ready(function(){
 $('#amcc_superSimpleTable",floor(as.numeric(ST)),"').dataTable({
@@ -70,34 +91,55 @@ $('#amcc_superSimpleTable",floor(as.numeric(ST)),"').dataTable({
 \"searching\":true,
 \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
 \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
-createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
-for(ccc in 1:ncol(dataset)){
-  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
-  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
-  cat("}\n",file=htmlFile,append=T)
+initComplete: function () {
+this.api().columns().every( function () {
+var column = this;
+var select = $('<select><option value=\"\"></option></select>')
+.appendTo( $(column.footer()).empty() )
+.on( 'change', function () {
+var val = $.fn.dataTable.util.escapeRegex(
+$(this).val()
+);
+column
+.search( val ? '^'+val+'$' : '', true, false )
+.draw();
+} );
+column.data().unique().sort().each( function ( d, j ) {
+select.append( '<option value=\"'+d+'\">'+d+'</option>' )
+} );
+} );
 }
-cat("}  
-})",file=htmlFile,append=T)
+,
+createdRow:function(row,data,index){\n",sep="")
+
+block03<-""
+for(ccc in 1:ncol(dataset)){
+  block03<-paste(block03 , paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""))
+  block03<-paste(block03 , paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""))
+  block03<-paste(block03 , "}\n")
+}
+block03<-paste(block03,"}})")
+
 #正規表現
 if(needRegular==1){
-cat(paste("
+block04<-paste("
 $('#amcc_superSimpleTable",floor(as.numeric(ST)),"').dataTable();
 $('input.global_filter').on( 'keyup click', function () {
 filterGlobal();
 });
 $('input.column_filter').on( 'keyup click', function () {
 filterColumn( $(this).parents('tr').attr('data-column') );
-});",sep=""),file=htmlFile,append=T)
+});",sep="")
 }
 #正規表現
-cat("});</script>\n\n",file=htmlFile,append=T)
-table.argu<-paste("id=\"amcc_superSimpleTable",floor(as.numeric(ST)),"\" width=\"100%\" class=\"display compact\"",sep="")
-cat(paste("<div align=\"center\"><b>",title,"</b><br>データ出所:",source,"</div>"),file=htmlFile,append=T)  
-cat("-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>",file=htmlFile,append=T)
+
+block05<-paste("});</script>\n\n",
+paste("<div align=\"center\"><b>",title,"</b><br>データ出所:",source,"</div>"),
+"-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>")
+
 #正規表現
 if(needRegular==1){
-#html
-cat("
+block06<-"
 <b>正規表現対応フィルターボックス</b>  
 <table width=\"100%\">
 <thead>
@@ -107,21 +149,22 @@ cat("
 <th style=\"text-align:center\">Regex</th>
 </tr>
 </thead>
-<tbody>",file=htmlFile,append=T)
+<tbody>"
+
+block07<-""  
 for(rccc in 1:ncol(dataset)){
 if(length(grep(rccc,RegularObj))!=0){  
-cat(paste("
+block07<-paste(block07 , paste("
 <tr id=\"filter_col",rccc,"\" data-column=\"",rccc-1,"\">
 <td>",colnames(dataset)[rccc],"</td>
 <td align=\"center\"><input type=\"text\" class=\"column_filter\" id=\"col",rccc-1,"_filter\" style=\"width:100%\"></td>
 <td align=\"center\"><input type=\"checkbox\" class=\"column_filter\" id=\"col",rccc-1,"_regex\" checked=\"checked\"></td>
-</tr>",sep=""),file=htmlFile,append=T)
+</tr>",sep=""))
 }
 }  
-cat("</tbody></table><hr>",file=htmlFile,append=T)  
-#html
-#javascript
-cat("
+block07<-paste(block07,"</tbody></table><hr>")  
+
+block08<-"
 <script>
 function filterGlobal () {
 $('#amcc_superSimpleTable').DataTable().search(
@@ -137,19 +180,18 @@ $('#col'+i+'_regex').prop('checked'),
 $('#col'+i+'_smart').prop('checked')
 ).draw();
 }
-</script>",file=htmlFile,append=T)  
-#javascript
+</script>"
 }  
-#正規表現
-cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
-cat(kable(dataset,'html',row.names=F,table.attr=table.argu,align=alignarg),file=htmlFile,append=T)  
-cat("</div>\n",file=htmlFile,append=T)
-cat("Powered by<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<br>-PACE( http://github.hubspot.com/pace/docs/welcome/ )",file=htmlFile,append=T)
+
+outputTable<-kable(dataset,'html',row.names=F,table.attr=table.argu,align=alignarg)
+tfoot<- str_extract(outputTable, "<thead>[\\w\\W]*?</thead>")
+tfoot<- paste(str_replace_all(tfoot, "thead","tfoot"),"</table>")
+outputTable<-gsub("</table>","",outputTable)
+block09<-paste("<div style=\"overflow-x:scroll;\">\n",outputTable,tfoot,"</div>\n",
+"Powered by<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<br>-PACE( http://github.hubspot.com/pace/docs/welcome/ )")
+
 if(needLinktable==1){
-cat("
-<style>.youtube_channel.ytc_wall_1-6 .ytc_video_container{padding: 5px;box-sizing: border-box;font-size:15px;}</style>
-<hr>
-[youtube_channel class=ytc_wall_1-6 channel=UC56EoMsVlhV-OpB7Ua4KJ1Q playlist=PLu2t-yT4OTt-iS_cv9NAOUaWQ3SKZzWJA resource=2 cache=300 num=6 random=0 ratio=3 responsive=0 width=140 display=thumbnail]
+block10<-"
 <hr>
 <table style=\"border:none; table-layout:fixed;\">
 <tbody>
@@ -222,14 +264,19 @@ The Beam
 </td>
 </tr>
 </tbody>
-</table>",file=htmlFile,append=T)
+</table>"
 }
+
 if(individualPage==1){
-cat("
+block11<-"
 <!---->
 <hr>
 <div align=\"center\"><a href=\"http://am-consulting.co.jp\" target=\"_blank\">アセット・マネジメント・コンサルティング株式会社</a></div>
 </body>
-</html>",file= htmlFile,append=T) 
+</html>" 
 }  
+
+code0 <- paste(block01, block02, block03, block04, block05, block06, block07, block08, block09, block10, block11)
+cat(code0, file = (con <- file(htmlFile, "w", encoding = "UTF-8")), append = T)
+close(con)
 ```
