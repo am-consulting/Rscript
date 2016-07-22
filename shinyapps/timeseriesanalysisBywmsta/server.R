@@ -2,7 +2,8 @@ library(shiny)
 library(DT)
 library(wmtsa)
 # Reference: https://cran.r-project.org/web/packages/wmtsa/wmtsa.pdf
-options(shiny.maxRequestSize = 0.5 * 1024 ^ 2)
+options(shiny.maxRequestSize = 0.25 * 1024 ^ 2)
+options(download.file.method="libcurl")
 shinyServer(function(input, output, session) {
   importData <- reactive({
     inFile <- input$file
@@ -11,7 +12,7 @@ shinyServer(function(input, output, session) {
     } else{
       tmp <<- read.csv(
         inFile$datapath,
-        header = T,
+        header = F,
         sep =  ',',
         quote = '',
         check.names = F,
@@ -26,21 +27,10 @@ shinyServer(function(input, output, session) {
     if (is.null(inFile)) {
       return(NULL)
     } else{
-      output$objList <- renderUI({
-        if (nrow(tmp) == 0) {
-          return(NULL)
-        } else{
-          selectInput("obj",
-                      "Select Data",
-                      colnames(tmp),
-                      selected = colnames(tmp)[1])
-        }
-      })
-      
-      buf <-
-        na.omit(tmp[, which(input$obj == colnames(tmp)), drop = F])
-      buf <<- data.frame(ID = seq(1, nrow(buf)), buf, check.names = F)
-      
+      tmp0 <- sapply(tmp,as.numeric)
+      buf <- c(t(tmp0))
+      buf <- data.frame(ID = seq(1, length(buf)), Data=buf, check.names = F)
+
       output$dataRange <- renderUI({
         sliderInput(
           "dataRange",
@@ -85,11 +75,18 @@ shinyServer(function(input, output, session) {
           selected = "gaussian2"
         )
       })
+      buf<<-buf
     }
   })
   
   reactiveData <- reactive({
-    if (!is.null(input$obj)) {
+      if (is.null(input$dataRange[1])) {
+        return(NULL)
+      } else{
+        
+      dataTitle<-input$dataTitle
+      if(dataTitle==""){dataTitle<-"Data"}
+      
       dataSet <-
         buf[c(input$dataRange[1]:input$dataRange[2]), ]
       if (0 < input$lag & 0 < input$differences) {
@@ -101,7 +98,7 @@ shinyServer(function(input, output, session) {
                        differences = input$differences
                      ))
       }
-      colnames(dataSet)[2] <- colnames(buf)[2]
+      colnames(dataSet)[2] <- dataTitle
       dataSet$Time <- c(1:nrow(dataSet))
       x <- as.double(as.vector(dataSet[, 2]))
       waveletData <-
@@ -114,9 +111,26 @@ shinyServer(function(input, output, session) {
         )
       
       output$Plot02 <- renderPlot({
+        par(mar = c(5, 4, 10, 3), family = "Noto Sans Japanese")
         plot(waveletData, series = T)
+        mtext(paste(colnames(dataSet)[2],"- Continuous Wavelet Transform"), side = 3, line = 0, cex=1.5)
       })
-      
+
+      output$Download1 <- downloadHandler(
+        filename = function() {
+          paste("SaECaNet-",
+                format(as.POSIXlt(Sys.time(), "GMT"), "%Y-%m-%d-%H-%M-%S"),
+                ".png",
+                sep = "")
+        },
+      content = function(file) {
+          png(file, width = 1500, height = 800)
+          plot(waveletData, series = T)
+          mtext(paste(colnames(dataSet)[2],"- Continuous Wavelet Transform"), side = 3, line = 0, cex=1.5)
+          dev.off()
+        }
+      )
+
       output$Plot01 <- renderPlot({
         par(mar = c(5, 4, 3, 3), family = "Noto Sans Japanese")
         plot(
@@ -134,7 +148,7 @@ shinyServer(function(input, output, session) {
                        "\nTime Series Data"),
           cex.axis = 1,
           cex.lab = 1,
-          cex.main = 1
+          cex.main = 1.5
         )
       })
       
@@ -155,8 +169,6 @@ shinyServer(function(input, output, session) {
           paging = T
         )
       )
-    } else{
-      print("something wrong")
     }
   })
   
@@ -164,9 +176,10 @@ shinyServer(function(input, output, session) {
     str <- "<hr>
     <b>Remarks</b><br>
     <ol>
+    <li>Sample Data Original Source:<a href=\"http://strongmotioncenter.org/\" target=\"_blank\">Center for Engineering Strong Motion Data</a></li>
     <li><a href=\"http://www.saecanet.com\" target=\"_blank\">SaECaNet</a></li>
     <li>Other apps <a href=\"http://webapps.saecanet.com\" target=\"_blank\">SaECaNet - Web Applications</a></li>
-    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation</a></li>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation / アセット･マネジメント･コンサルティング株式会社</a></li>
     <li><a href=\"http://www.saecanet.com/subfolder/disclaimer.html\" target=\"_blank\">Disclaimer</a></li>
     </ol>"
     HTML(str)
@@ -177,6 +190,7 @@ shinyServer(function(input, output, session) {
     <b>History</b><br>
     <ol>
     <li>2016-06-27:ver.1.0.0</li>
+    <li>2016-07-22:ver.1.0.1</li>
     </ol>"
     HTML(str)
   })
@@ -191,11 +205,21 @@ shinyServer(function(input, output, session) {
   })
   
   output$completionTime <- renderText({
+        inFile <- input$file
+    if (is.null(inFile)) {
+      return(NULL)
+    } else{
     importData()
     selectData()
     reactiveData()
     paste("Completion(UTC):" ,
           as.character(completionTime))
+    }
   })
   
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+      
 })

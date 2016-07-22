@@ -1,4 +1,12 @@
 library(shiny)
+library(RCurl)
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 completionTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(fluidPage(
   tags$head(
@@ -42,7 +50,10 @@ shinyUI(fluidPage(
                                      '.csv')
                         ),
                         tags$hr(),
-                        uiOutput("objList"),
+                        tags$h5("CSV file sampe"),
+                        tags$a(href="https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/sample-MYG0041103111446.NS.csv","･sample data",target="_blank"),           
+                        tags$hr(),
+                        textInput("dataTitle", label = "Data Title"),
                         uiOutput("dataRange"),
                         uiOutput("lag"),
                         uiOutput("differences"),
@@ -52,17 +63,30 @@ shinyUI(fluidPage(
                         uiOutput("wavelet")
                       )
                     ),
-                    column(10,
-                           fluidRow(
-                             column(6, plotOutput(
-                               "Plot01", width = "100%", height = "550px"
-                             )),
-                             column(6, DT::dataTableOutput("dataSet01"))
-                           ),
-                           tags$hr(),
-                           fluidRow(column(
-                             12, plotOutput("Plot02", width = "100%", height = "500px")
-                           )))
+                      column(10,
+                      conditionalPanel(
+                        condition = "output.completionTime!=''",
+                        column(12,
+                          fluidRow(
+                            column(6, plotOutput(
+                            "Plot01", width = "100%", height = "550px"
+                            )),
+                            column(6, DT::dataTableOutput("dataSet01"))
+                          ),
+                          tags$hr(),
+                          fluidRow(column(
+                            12, plotOutput("Plot02", width = "100%", height = "500px"),
+                            downloadButton(outputId = "Download1", label = "Download"),
+                            tags$hr()
+                          ))
+                        )
+                      )
+                      ,
+                      htmlOutput("remarktext"),
+                      htmlOutput("history"),
+                      htmlOutput("gitcode"),
+                      htmlOutput("linkList")
+                      )
                   )),
            column(
              2,
@@ -74,13 +98,7 @@ shinyUI(fluidPage(
                ,
                "data-widget-id" = "449799943780200448",
                width = "100%",
-               height = "1000"
+               height = "2500"
              )
-           )),
-  fluidRow(column(
-    12,
-    htmlOutput("remarktext"),
-    htmlOutput("history"),
-    htmlOutput("gitcode")
-  ))
+           ))
 ))

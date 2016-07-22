@@ -1,6 +1,7 @@
 library(shiny)
 library(DT)
 options(shiny.maxRequestSize = 0.3 * 1024 ^ 2)
+options(download.file.method="libcurl")
 shinyServer(function(input, output, session) {
   importData <- reactive({
     inFile <- input$file
