@@ -1,4 +1,22 @@
 ```{r}
+username<-Sys.info()['user']
+fileName <- "defaultPath.csv"
+pathToFile <-
+  paste("C:/Users/", username, "/Desktop/pathToCSV/", sep = "")
+setwd(pathToFile)
+buf0 <-
+  read.csv(
+    fileName,
+    header = F,
+    skip = 0,
+    stringsAsFactor = F,
+    check.names = F,
+    na.strings = c(""),
+    fileEncoding = "utf-8"
+  )
+```
+
+```{r}
 library(lubridate)
 library(knitr)
 options(digits=12)
@@ -6,28 +24,33 @@ tmp<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-"
 SD<-Sys.Date();ST<-Sys.time()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 SD<-Sys.Date();ST<-Sys.time()
-username<-Sys.info()['user']
-pathOutput<-paste("C:/Users/",username,"/Desktop/R_Data_Write/",sep="")
+pathOutput<-paste("C:/Users/",username,buf0[2,1],sep="")
 setwd(pathOutput);getwd()
-htmlFile<-paste("amcc_TSEver2.html",sep="")
-cat("",file=htmlFile,append=F)
-cat(paste("
+htmlFile<-paste("am-consulting.co.jp-",year(ST),"-",month(ST),"-",day(ST),"-",hour(ST),"-",minute(ST),"-",floor(second(ST)),".html",sep="")
+block01<-block02<-block03<-block04<-block05<-block06<-block07<-block08<-block09<-block10<-block11<-""
+
+block01<-paste("
 <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js\"></script>
-<link href=\"http://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
-<script src=\"http://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js\"></script>
+<link  href=\"http://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css\" rel=\"stylesheet\">
+<script src=\"http://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js\"></script>
+<link  href=\"http://knowledgevault.saecanet.com/components/pace.css\" rel=\"stylesheet\">
+<script src=\"http://knowledgevault.saecanet.com/components/pace.min.js\"></script>
 <style>
 body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
 table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
 tr, td, th{white-space: nowrap;}
 td.highlight{font-weight:plain;color:red;}
 </style>
-<div align=\"right\">作成日時:",year(SD),"年",month(SD),"月",day(SD),"日",hour(ST),"時",minute(ST),"分",second(ST),"秒</div><hr>"),file=htmlFile,append=F)
-#kable part  
+<div align=\"right\">作成日時:",as.character(Sys.time()),"</div><hr>
+")
+
 kableData<-tmp[,-2]
 kableData<-data.frame(kableData,Week=kableData[,1],check.names=F)
 title<-paste("株式週間売買状況(二市場一･二部等、単位:兆円) ",kableData[1,1],"-",kableData[nrow(kableData),1])
 source<-"株式会社日本取引所グループ"
-cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+
+block02<-
+"<script type=\"text/javascript\" charset=\"utf-8\">
 $(document).ready(function(){
 $('#amcc_TSE2').dataTable({
 \"lengthMenu\":[[10,-1],[10,\"All\"]],
@@ -35,22 +58,28 @@ $('#amcc_TSE2').dataTable({
 \"searching\":true,
 \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
 \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
-createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+createdRow:function(row,data,index){\n"
+
+block03<-""
 for(ccc in 1:ncol(kableData)){
-  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
-  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
-  cat("}\n",file=htmlFile,append=T)
+  block03<-paste(block03 , paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""))
+  block03<-paste(block03 , paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""))
+  block03<-paste(block03 , "}\n")
 }
-cat("}  
-})});</script>\n\n",file=htmlFile,append=T)  
+block03<-paste(block03,"}})});</script>\n\n")
+
 table.argu<-paste("id=\"amcc_TSE2\" width=\"100%\" class=\"display compact\"",sep="")
-cat(paste("<div align=\"center\"><b>",title,
-"</b><br>データ出所:",source,"</div>-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>"),file=htmlFile,append=T)
-cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
-cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
-cat("</div><hr>\n",file=htmlFile,append=T)  
-#kable part 
-#detail part
+
+block04<-paste(
+  "<div align=\"center\"><b>",
+  title,
+  "</b><br>データ出所:",
+  source,
+  "</div>-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>",
+  "<div style=\"overflow-x:scroll;\">\n",
+  kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),
+  "</div><hr>\n",sep="")
+
 obj<-c("個　人","海外投資家","信託銀行")
 for(ddd in 1:length(obj)){
 buf<-tmp[,c(2,grep(obj[ddd],colnames(tmp)))]
@@ -59,7 +88,9 @@ buf<-buf[,-4]
 buf[,ncol(buf)]<-buf[,ncol(buf)]*10^4
 colnames(buf)[ncol(buf)]<-"差引き(買い-売り、億円)"
 kableData<-buf
-cat(paste("<script type=\"text/javascript\" charset=\"utf-8\">
+
+block05<-paste(block05,paste(
+"<script type=\"text/javascript\" charset=\"utf-8\">
 $(document).ready(function(){
 $('#amcc_TSE2",ddd,"').dataTable({
 \"lengthMenu\":[[5,-1],[5,\"All\"]],
@@ -67,20 +98,35 @@ $('#amcc_TSE2",ddd,"').dataTable({
 \"searching\":true,
 \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
 \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
-createdRow:function(row,data,index){\n",sep=""),file=htmlFile,append=T)
+createdRow:function(row,data,index){\n",sep=""))
+
 for(ccc in 1:ncol(kableData)){
-  cat(paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""),file=htmlFile,append=T)
-  cat(paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""),file=htmlFile,append=T)
-  cat("}\n",file=htmlFile,append=T)
+  block05<-paste(block05 , paste("if ( data[",ccc-1,"].replace(',' , '') * 1 < 0 ) {\n",sep=""))
+  block05<-paste(block05 , paste("$('td', row).eq(",ccc-1,").addClass('highlight');\n",sep=""))
+  block05<-paste(block05 , "}\n")
 }
-cat("}  
-})});</script>\n\n",file=htmlFile,append=T)  
+block05<-paste(block05 , "}})});</script>\n\n")  
+
 table.argu<-paste("id=\"amcc_TSE2",ddd,"\" width=\"100%\" class=\"display compact\"",sep="")
-cat(paste("<div align=\"center\"><b>",title,
-"</b><br>データ出所:",source,"</div>-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>"),file=htmlFile,append=T)
-cat("<div style=\"overflow-x:scroll;\">\n",file=htmlFile,append=T)
-cat(kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),file=htmlFile,append=T)
-cat("</div><hr>\n",file=htmlFile,append=T) 
+
+block05<-paste(block05,paste(
+  "<div align=\"center\"><b>",
+  title,
+  "</b><br>データ出所:",
+  source,
+  "</div>-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>",
+  "<div style=\"overflow-x:scroll;\">\n",
+  kable(kableData,'html',row.names=F,table.attr=table.argu,align=rep("r",ncol(kableData))),
+  "</div><hr>\n",sep="")) 
 }
 #detail part
+
+block06<-"
+<div align=\"center\"><a href=\"http://am-consulting.co.jp\" target=\"_blank\">アセット・マネジメント・コンサルティング株式会社</a></div>
+</body>
+</html>" 
+
+code0 <- paste(block01, block02, block03, block04, block05, block06, block07, block08, block09, block10, block11)
+cat(code0, file = (con <- file(htmlFile, "w", encoding = "UTF-8")), append = T)
+close(con)
 ```
