@@ -88,6 +88,7 @@ shinyServer(function(input, output, session)
     <b>History</b><br>
     <ol>
     <li>2016-06-29:ver.1.0.0</li>
+    <li>2016-07-24:ver.1.0.1</li>
     </ol>"
     HTML(str)
   })
@@ -100,5 +101,10 @@ shinyServer(function(input, output, session)
     </ol>"
     HTML(str)
   })
-  
+ 
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
+  })
+       
 })

@@ -1,5 +1,14 @@
 library(shiny)
 library(lubridate)
+library(RCurl)
+
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 shinyUI(fluidPage(
   tags$head(
     tags$link(rel = "stylesheet",
@@ -66,7 +75,8 @@ shinyUI(fluidPage(
                                12,
                                htmlOutput("remarktext"),
                                htmlOutput("history"),
-                               htmlOutput("gitcode")
+                               htmlOutput("gitcode"),
+                               htmlOutput("linkList")
                              )
                            ))
                   )),
@@ -80,7 +90,7 @@ shinyUI(fluidPage(
                ,
                "data-widget-id" = "449799943780200448",
                width = "100%",
-               height = "1500"
+               height = "2500"
              )
            ))
 ))
