@@ -16,6 +16,13 @@ script <-
 eval(parse(text = script))
 consumerpriceindex <<- origData0
 
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(fluidPage(
   tags$head(
@@ -138,7 +145,8 @@ shinyUI(fluidPage(
                         12,
                         htmlOutput("remarktext"),
                         htmlOutput("history"),
-                        htmlOutput("gitcode")
+                        htmlOutput("gitcode"),
+                        htmlOutput("linkList")
                       ))
                     )
                   )),
@@ -152,7 +160,7 @@ shinyUI(fluidPage(
                ,
                "data-widget-id" = "449799943780200448",
                width = "100%",
-               height = "3000"
+               height = "3500"
              )
            ))
 ))
