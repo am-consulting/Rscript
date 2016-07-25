@@ -7,6 +7,13 @@ script <-
   )
 eval(parse(text = script))
 
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 tmp1 <- which(regexpr("Japan", colnames(allData), ignore.case = T) != -1)
 tmp2 <- which(regexpr("china", colnames(allData), ignore.case = T) != -1)
 tmp3 <- which(regexpr("grand", colnames(allData), ignore.case = T) != -1)
@@ -251,7 +258,8 @@ shinyUI(fluidPage(
                           DT::dataTableOutput("allData"),
                           htmlOutput("remarktext"),
                           htmlOutput("history"),
-                          htmlOutput("gitcode")
+                          htmlOutput("gitcode"),
+                          htmlOutput("linkList")
                         )
                       )
                     )
@@ -266,7 +274,7 @@ shinyUI(fluidPage(
                ,
                "data-widget-id" = "449799943780200448",
                width = "100%",
-               height = "4500"
+               height = "5500"
              )
            ))
 ))

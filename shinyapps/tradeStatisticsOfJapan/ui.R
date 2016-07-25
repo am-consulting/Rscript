@@ -7,6 +7,13 @@ script <-
   )
 eval(parse(text = script))
 
+script <-
+  getURL(
+    "https://raw.githubusercontent.com/am-consulting/Rscript/master/amccLinkList.r",
+    ssl.verifypeer = FALSE
+  )
+eval(parse(text = script))
+
 latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(fluidPage(
   tags$head(
@@ -225,7 +232,8 @@ shinyUI(fluidPage(
                           DT::dataTableOutput("allData"),
                           htmlOutput("remarktext"),
                           htmlOutput("history"),
-                          htmlOutput("gitcode")
+                          htmlOutput("gitcode"),
+                          htmlOutput("linkList")
                         )
                       )
                     )
@@ -240,7 +248,7 @@ shinyUI(fluidPage(
                ,
                "data-widget-id" = "449799943780200448",
                width = "100%",
-               height = "4500"
+               height = "5500"
              )
            ))
 ))

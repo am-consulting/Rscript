@@ -361,6 +361,7 @@ shinyServer(function(input, output, session)
     <b>History</b><br>
     <ol>
     <li>2016-07-05:ver.1.0.0</li>
+    <li>2016-07-25:ver.1.0.1</li>
     </ol>"
     HTML(str)
   })
@@ -378,6 +379,11 @@ shinyServer(function(input, output, session)
     reactiveData()
     paste("Data downloaded time(UTC):" ,
           as.character(latestDataDownloadTime))
+  })
+  
+  output$linkList <- renderUI({
+    str <- linkList
+    HTML(str)
   })
   
 })
