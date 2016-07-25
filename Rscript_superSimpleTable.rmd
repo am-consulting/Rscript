@@ -30,7 +30,6 @@ addColumn<-0
 exception<-c(1)
 dataset<-buf
 dataset[,-exception]<-format(dataset[,-exception],big.mark=",",scientific=F)
-#if(is.Date(dataset[,1])==T){dataset[,1]<-as.Date(dataset[,1])}
 if(addColumn!=0){
 dataset<-data.frame(dataset,dataset[,addColumn],check.names=F)
 colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addColumn]
@@ -40,12 +39,15 @@ tail(dataset)
 ```
 
 ```{r}
-needRegular<-0 # 1 or other number
+timeseries<-1 # 1 or other number
+needRegular<-1 # 1 or other number
 needLinktable<-0  # 1 or other number
 individualPage<-1 # 1 or other number
-RegularObj<-c(2)
-title<-"毎月勤労統計調査 全国調査 原表 実数原表 2016年5月分"
-source<-"厚生労働省"
+RegularObj<-c(1:7)
+title<-"日本の実質輸出入動向 2016年6月分-国･地域別実質輸出指数"
+source<-"日本銀行"
+if(timeseries==1){dataset[,1]<-as.Date(dataset[,1])}
+if(length(unique(day(dataset[,1])))==1){dataset[,1]<-format(dataset[,1],"%Y-%m")}
 alignarg<-rep("r",ncol(dataset))
 alignarg<-c("r","l",rep("r",ncol(dataset)-3),"l")
 ST<-Sys.time();SD<-Sys.Date()
@@ -87,7 +89,7 @@ td.highlight{font-weight:plain;color:red;}
 $(document).ready(function(){
 $('#amcc_superSimpleTable",floor(as.numeric(ST)),"').dataTable({
 \"lengthMenu\":[[20,10,-1],[20,10,\"All\"]],
-\"order\":[[0,\"asc\"]],
+\"order\":[[0,\"desc\"]],
 \"searching\":true,
 \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
 \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
@@ -164,23 +166,23 @@ block07<-paste(block07 , paste("
 }  
 block07<-paste(block07,"</tbody></table><hr>")  
 
-block08<-"
+block08<-paste("
 <script>
 function filterGlobal () {
-$('#amcc_superSimpleTable').DataTable().search(
+$('#amcc_superSimpleTable",floor(as.numeric(ST)),"').DataTable().search(
 $('#global_filter').val(),
 $('#global_regex').prop('checked'),
 $('#global_smart').prop('checked')
 ).draw();
 }
 function filterColumn ( i ) {
-$('#amcc_superSimpleTable').DataTable().column( i ).search(
+$('#amcc_superSimpleTable",floor(as.numeric(ST)),"').DataTable().column( i ).search(
 $('#col'+i+'_filter').val(),
 $('#col'+i+'_regex').prop('checked'),
 $('#col'+i+'_smart').prop('checked')
 ).draw();
 }
-</script>"
+</script>",sep="")
 }  
 
 outputTable<-kable(dataset,'html',row.names=F,table.attr=table.argu,align=alignarg)
