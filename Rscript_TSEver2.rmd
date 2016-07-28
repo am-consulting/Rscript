@@ -24,9 +24,17 @@ tmp<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-"
 SD<-Sys.Date();ST<-Sys.time()
 windowsFonts(Meiryo=windowsFont("Meiryo"))
 SD<-Sys.Date();ST<-Sys.time()
-pathOutput<-paste("C:/Users/",username,buf0[2,1],sep="")
+pathOutput<-paste("C:/Users/",username,buf0[2,1],'/charts/',sep="")
 setwd(pathOutput);getwd()
-htmlFile<-paste("am-consulting.co.jp-",year(ST),"-",month(ST),"-",day(ST),"-",hour(ST),"-",minute(ST),"-",floor(second(ST)),".html",sep="")
+htmlFile<-paste(
+  "am-consulting.co.jp","-",
+  year(ST),"-",
+  formatC(month(ST), width=2, flag="0"),"-",
+  formatC(day(ST), width=2, flag="0"),"-",
+  formatC(hour(ST), width=2, flag="0"),"-",
+  formatC(minute(ST), width=2, flag="0"),"-",
+  formatC(floor(second(ST)), width=2, flag="0"),
+  ".html",sep="")
 block01<-block02<-block03<-block04<-block05<-block06<-block07<-block08<-block09<-block10<-block11<-""
 
 block01<-paste("
