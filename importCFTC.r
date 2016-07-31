@@ -59,7 +59,7 @@ for (ccc in 1:length(currency)) {
   dataset[[ccc]] <- dataset[[ccc]][grep(unit[ccc], dataset[[ccc]][, 5]), ]
   dataset[[ccc]] <- dataset[[ccc]][, c(2,3,4,6,1,5)]
   itemName <- substr(currency[ccc], 1, regexpr('\\s-', currency[ccc]) - 1)
-  colnames(dataset[[ccc]])[2:4] <- paste(colnames(dataset[[ccc]])[2:4], ':', itemName, sep = '')
+  colnames(dataset[[ccc]])[2:4] <- paste(colnames(dataset[[ccc]])[2:4], '-', itemName, sep = '')
   rrr <- order(dataset[[ccc]][, 1], decreasing = FALSE)
   dataset[[ccc]] <- dataset[[ccc]][rrr, ]
   print(tail(dataset[[ccc]]))
