@@ -19,11 +19,30 @@ for(iii in 1:length(dataset)){
 username<-Sys.info()['user']
 pathOutput<-paste("C:/Users/",username,"/Desktop/charts/",sep="")
 setwd(pathOutput)
-
+htmlFile<-'cftc.html'
 for(iii in c(1,2,4)){
   csvTitle <- substr(currency[iii],1,regexpr(" -",currency[iii])[1])
   csvFile <- gsub(" ","",paste("IMMポジション.",csvTitle,".csv",sep=""))    
   write.csv(dataset[[iii]],csvFile,row.names=F,append=F,quote=F,fileEncoding="UTF-8")
+  bufTable<-tail(dataset[[iii]][,1:4],10)
+  bufTable[,1]<-paste0("|",bufTable[,1],"|")
+  bufTable[,2]<-paste0(bufTable[,2],"|")
+  bufTable[,3]<-paste0(bufTable[,3],"|")
+  bufTable[,4]<-paste0(bufTable[,4],"|")
+  mdTable<- c('|-:|','-:|','-:|','-:|')
+  mdTableHead<-c(
+    paste0("|",colnames(bufTable)[1],"|"),   
+    paste0(colnames(bufTable)[2],"|"),   
+    paste0(colnames(bufTable)[3],"|"),   
+    paste0(colnames(bufTable)[4],"|")   
+  )  
+  bufTable0<-rbind(
+    mdTableHead,   
+    mdTable,
+    bufTable
+  )
+  cat('\n***\n',file=htmlFile,append=T)
+  write.table(bufTable0,file=htmlFile,append=T,row.names = F,col.names = F ,quote = F)
   for(ccc in c(2,3,4)){
     ST <- Sys.time()  
     pngFile <- paste(
@@ -33,18 +52,20 @@ for(iii in c(1,2,4)){
       sep=""
     )
     png(file = pngFile , width = 1920 , height = 1080)
-    par(mar = c(5, 6, 7, 3), family = 'Meiryo')
+    par(mar = c(5, 7, 8, 3), family = 'Meiryo')
     if(ccc!=4){
       barcolor<-'black'  
     }else{
       barcolor<-dataset[[iii]]$Col  
     }
+    lo <- loess(dataset[[iii]][,ccc]~as.numeric(dataset[[iii]][,1]))
     plot(
       dataset[[iii]][,1],
       dataset[[iii]][,ccc],
-      type = 'h',
+      type = 'o',
+      cex = 1.5,
       main = paste(colnames(dataset[[iii]])[ccc],'\n',dataset[[iii]][1,1],'~',dataset[[iii]][nrow(dataset[[iii]]),1]),
-      col = barcolor,
+      col = 'black', #barcolor,
       ylab = dataset[[iii]][1,6],
       xlab = '',
       panel.first = grid(
@@ -67,6 +88,8 @@ for(iii in c(1,2,4)){
       padj = 1,
       cex.axis = 2.5
     )
+    abline(h = 0, col = "red", lwd=4)
+    lines(dataset[[iii]][,1] , predict(lo) , col='blue', lwd=2)
     dev.off()
   }
 }
