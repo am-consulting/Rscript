@@ -1,0 +1,209 @@
+```{r}
+# http://www.e-stat.go.jp/SG1/estat/OtherList.do?bid=000001008860&cycode=1
+library(lubridate)
+windowsFonts(Meiryo = windowsFont('Meiryo'))
+origData <- list()
+username <- Sys.info()['user']
+folder.name <- c('TradeIndex')
+path <- paste('C:/Users/', username, '/Desktop', sep = '')
+folder.path <- file.path(path, folder.name)
+setwd(folder.path)
+for (iii in 1:length(dir(folder.path))) {
+  origData[[iii]] <-
+  read.table(
+    file = dir(folder.path)[iii],
+    header = T,
+    sep = ',',
+    as.is = T,
+    skip = 1,
+    stringsAsFactor = F,
+    check.names = FALSE
+  )
+}
+```
+
+```{r}
+needCSV <- 1
+data <- list()
+gitURL <- list()
+pathOutput <-
+paste('C:/Users/', username, '/Desktop/R_Data_Write/', sep = '')
+prepathToCSV <-
+paste('C:/Users/', username, '/Desktop/pathToCSV/', sep = '')
+setwd(prepathToCSV)
+tmp <-
+read.csv(
+  file = paste0(prepathToCSV, 'pathFolder.csv'),
+  header = F,
+  as.is = T,
+  skip = 0,
+  na.strings = c('', 'NA')
+)
+pathToCSV <- paste('C:/Users/', username, tmp[1, 2], sep = '')
+setwd(pathToCSV)
+SD <- Sys.Date()
+year <- c(2009:year(SD))
+month <- c('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec')
+area <- c('WORLD', 'USA', 'EU', 'ASIA', 'ASIA NIES', 'ASEAN', 'CHINA')
+buf <- NULL
+grandALLData <- NULL
+for (iii in 1:length(origData)) {
+  for (yyyy in 1:length(year)) {
+    for (mm in 1:length(month)) {
+      tmp <-
+      subset(origData[[iii]], match(origData[[iii]][, 1], paste(year[yyyy], ' ', month[mm], '.', sep ='')) != 0)
+      if (nrow(tmp) == 0) {
+        break
+      } else{
+        tmp[, 1] <- as.Date(paste(year[yyyy], '-', mm, '-1', sep = ''))
+        buf <- rbind(buf, tmp)
+      }
+    }
+  }
+}
+for(aaa in 1:length(area)) {
+  data[[aaa]] <- subset(buf, match(buf[, 2], area[aaa]) != 0)
+  tmp <- data[[aaa]]
+  colnames(tmp) <- paste(tmp[1, 2], '.', colnames(tmp), sep = '')
+  colnames(tmp)[1] <- colnames(data[[aaa]])[1] <- 'Date'
+  csvFile <- paste('財務省貿易統計指数.', tmp[1, 2], '.csv', sep = '')
+  write.csv(
+    tmp[, c(1, 4, 7, 10, 13)],
+    csvFile,
+    row.names = F,
+    quote = F,
+    fileEncoding = 'UTF-8'
+  )
+  grandALLData <- rbind(grandALLData, data[[aaa]])
+  gitURL[[aaa]] <-
+  paste(
+    'https://raw.githubusercontent.com/am-consulting/CSVDataAtGitHub/master/',
+    csvFile,
+    sep = ''
+  )
+}
+csvFile <- paste('財務省貿易統計指数', '.csv', sep = '')
+write.csv(
+  grandALLData,
+  csvFile,
+  row.names = F,
+  quote = F,
+  fileEncoding = 'UTF-8'
+)
+setwd(pathOutput)
+htmlFile<-'amcc_tradeindexBycountry.html'
+cat('',file=htmlFile,append=F)
+for(ddd in 1:length(data)){
+  bufTable<-tail(data[[ddd]][,c(1,2,4,7)],12)
+  bufTable[,1]<-format(bufTable[,1],'%Y-%m')
+  bufTable[,1]<-paste0('|',bufTable[,1],'|')
+  bufTable[,2]<-paste0(bufTable[,2],'|')
+  bufTable[,3]<-paste0(bufTable[,3],'|')
+  bufTable[,4]<-paste0(bufTable[,4],'|')
+  mdTable<- c('|-:|','-:|','-:|','-:|')
+  mdTableHead<-c(
+    paste0('|',colnames(bufTable)[1],'|'),   
+    paste0(colnames(bufTable)[2],'|'),   
+    paste0(colnames(bufTable)[3],'|'),   
+    paste0(colnames(bufTable)[4],'|')   
+  )  
+  bufTable0<-rbind(
+    mdTableHead,   
+    mdTable,
+    bufTable
+  )
+  cat('\n***\n',file=htmlFile,append=T)
+  write.table(bufTable0,file=htmlFile,append=T,row.names = F,col.names = F ,quote = F)
+  # cat(paste(
+  #   '[財務省貿易統計指数 地域:',
+  #   data[[ddd]][1,2],
+  #   '](',
+  #   gitURL[[ddd]],
+  #   ')',
+  #   sep=''
+  #   ),file=htmlFile,append=T)
+  cat(paste(
+    '<a href=\"',
+    gitURL[[ddd]],
+    '\" target=\"_blank\">',
+    '財務省貿易統計指数 地域:',
+    data[[ddd]][1,2],
+    '</a>\n',
+    sep=''
+    ),file=htmlFile,append=T)
+}
+```
+
+```{r}
+imageWidth <- 1900
+imageHeight <- 1000
+setwd(pathOutput)
+for (ddd in 1:length(data)) {
+  png.file <- paste0(data[[ddd]][nrow(data[[ddd]]), 1],'-',data[[ddd]][1, 2], '.png')
+  png(
+    file = png.file,
+    width = imageWidth,
+    height = imageHeight
+  )
+  mfrowTYpe <- c(2, 3)
+  par(
+    oma = c(3, 1, 7, 1),
+    mfrow = mfrowTYpe,
+    ps = 20,
+    mar = c(10, 3, 7, 3),
+    cex.main = 1.5,
+    cex.lab = 1.5,
+    cex.axis = 1.5,
+    family = 'Meiryo'
+  )
+  for (ccc in 9:14) {
+    tmp <- tail(data[[ddd]][, c(1, 2, ccc)], 24)
+    mainTitle <- paste(colnames(tmp)[3])
+    tmp$color <- 'blue'
+    tmp[tmp[, 3] < 0, ncol(tmp)] <- 'red'
+    xxx <-
+    barplot(
+      names.arg = format(tmp[, 1], '%Y/%m'),
+      tmp[, 3],
+      horiz = F,
+      las = 2,
+      main = mainTitle,
+      family = 'Meiryo',
+      ylab = '',
+      xlab = '',
+      col = tmp$color,
+      yaxt = 'n'
+    )
+    axis(
+      side = 2,
+      at = axTicks(2),
+      labels = formatC(axTicks(2), format = 'g', big.mark = ','),
+      las = 2
+    )
+    text(
+      xxx,
+      y = tmp[, 3],
+      labels = paste(tmp[, 3], sep = ''),
+      srt = 90,
+      cex = 1,
+      adj = c(-0.1, 0.5),
+      col = 'black',
+      family = 'Meiryo'
+    )
+  }
+  title(
+    paste(
+    'Area:',
+    tmp[1, 2],
+    ' , 期間:',
+    format(head(tmp[, 1], 1), '%Y/%m'),
+    '-',
+    format(tail(tmp[, 1], 1), '%Y/%m')
+    ),
+    outer = TRUE,
+    cex.main = 2,
+    family = 'Meiryo'
+  )
+  dev.off()
+}
+```
