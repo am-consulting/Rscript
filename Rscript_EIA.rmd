@@ -1,0 +1,137 @@
+```{r}
+funPlotTimeSeries <- function() {
+  imageWidth <- 1920
+  imageHeight <- 1080
+  png.file <- paste0('EIA', ooo, ".png")
+  png(file = png.file,
+      width = imageWidth,
+      height = imageHeight)
+  par(mar = c(6, 6, 10, 5), family = 'Meiryo')
+  obj01 <- 2
+  obj02 <- 3
+  plot(
+    dataSet[, 1],
+    dataSet[, obj01],
+    type = 'l',
+    col = 'blue',
+    xlab = '' ,
+    ylab = '' ,
+    panel.first = grid(
+      nx = NULL,
+      ny = NULL,
+      lty = 2,
+      equilogs = T,
+      lwd = 3
+    ) ,
+    xaxt = 'n',
+    main = paste(
+      colnames(dataSet)[2],
+      '\n',
+      format(first(dataSet[, 1]), dateFormat),
+      '~',
+      format(last(dataSet[, 1]), dateFormat),
+      '\nSource:U.S. Energy Information Administration (EIA) '
+    ),
+    cex.axis = 3,
+    cex.lab = 3,
+    cex.main = 3,
+    lwd = 3
+  )
+  lo <- loess(dataSet[, obj01] ~ as.numeric(dataSet[, 1]))
+  lines(dataSet[, 1] ,
+        predict(lo) ,
+        col = 'red',
+        lwd = 3,
+        lty = 2)
+  axis.Date(
+    side = 1,
+    at = dataSet[, 1],
+    format = dateFormat,
+    padj = 1,
+    cex.axis = 3
+  )
+  dev.off()
+}
+```
+
+```{r}
+library(XLConnect)
+library(dplyr)
+options(scipen = 999)
+windowsFonts(Meiryo = windowsFont("Meiryo"))
+username <- Sys.info()['user']
+pathOutput <-
+  paste("C:/Users/", username, "/Desktop/R_Data_Write/", sep = "")
+setwd(pathOutput)
+fileName <- 'psw09.xls'
+download.file(paste0('http://ir.eia.gov/wpsr/', fileName), fileName , mode =
+                "wb")
+targetSheet <- c(2:22)
+dateFormat <- '%Y-%m-%d'
+for (sss in 1:length(targetSheet)) {
+  buf <-
+    readWorksheetFromFile(
+      paste0(pathOutput, fileName),
+      sheet = targetSheet[sss]   ,
+      check.names = F,
+      header = F
+    )
+  colnames(buf) <-  unlist(buf[3,])
+  buf <- buf[-c(1:3),]
+  if (sss == 1) {
+    EIAData <- buf
+  } else{
+    EIAData <- merge(EIAData, buf, by = 'Date', all = T)
+  }
+}
+EIAData[, 1] <- as.Date(EIAData[, 1])
+EIAData <- EIAData[order(EIAData[, 1]),]
+EIAData <-
+  data.frame(EIAData[, 1, drop = F], apply(EIAData[, -1], 2, as.numeric), check.names = F)
+obj <- c(
+  'Weekly U.S. Ending Stocks excluding SPR of Crude Oil  ',
+  'Weekly Cushing, OK Ending Stocks excluding SPR of Crude Oil  ',
+  'Weekly U.S. Ending Stocks of Total Gasoline  ',
+  'Weekly U.S. Ending Stocks of Distillate Fuel Oil  ',
+  'Weekly U.S. Ending Stocks of Propane and Propylene  ',
+  'Weekly U.S. Refiner Net Input of Crude Oil  ',
+  'Weekly U.S. Percent Utilization of Refinery Operable Capacity ',
+  'Weekly U.S. Imports of Crude Oil  ',
+  'Weekly U.S. Imports of Total Gasoline  '
+)
+htmlFile <- paste0(Sys.Date(),'-amcc_EIA.md')
+cat('', file = htmlFile, append = F)
+for (ooo in 1:length(obj)) {
+  ccc <- grep(obj[ooo] , colnames(EIAData))
+  tmp <- EIAData[, c(1, ccc)]
+  tmp0 <- data.frame(tmp[-1, ], round(diff(tmp[, 2]), 10), check.names = F)
+  colnames(tmp0)[3] <- 'Changes from last week'
+  dataSet <- tail(tmp0, 523)
+  cat('\n***\n', file = htmlFile, append = T)
+  cat('#### ',paste0(colnames(tmp0)[2], '\n'),
+      file = htmlFile,
+      append = T)
+  colnames(tmp0)[2] <- 'Figure'
+  bufTable <- tail(tmp0, 5)
+  bufTable[, 1] <- format(bufTable[, 1], '%Y-%m-%d')
+  bufTable[, 1] <- paste0('|', bufTable[, 1], '|')
+  bufTable[, 2] <- paste0(bufTable[, 2], '|')
+  bufTable[, 3] <- paste0(bufTable[, 3], '|')
+  mdTable <- c('|-:|', '-:|', '-:|')
+  mdTableHead <- c(paste0('|', colnames(bufTable)[1], '|'),
+                   paste0(colnames(bufTable)[2], '|'),
+                   paste0(colnames(bufTable)[3], '|'))
+  bufTable0 <- rbind(mdTableHead,
+                     mdTable,
+                     bufTable)
+  write.table(
+    bufTable0,
+    file = htmlFile,
+    append = T,
+    row.names = F,
+    col.names = F ,
+    quote = F
+  )
+  funPlotTimeSeries()
+}
+```
