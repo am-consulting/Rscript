@@ -16,20 +16,24 @@ buf0 <-
   )
 ```
 
-```{r}
+```{r,warning=F,error=F,message=F,echo=F}
 library(knitr)
 library(lubridate)
 library(stringr)
+options(scipen = 999)
 buf<-read.table("clipboard",header=T,sep="\t",stringsAsFactor=F,na.strings=c("-","－"," ---- ","…"),check.names=F)
 #pathInput<-paste("C:/Users/",username,"/Desktop/R_Data_Read/",sep="")
 #data.file<-"shikin_data_sjis.csv" #ラポール・ジャパン
 #buf<- read.csv(paste( pathInput,data.file,sep = ""),header = T, skip = 0, stringsAsFactor = F, check.names = F, na.strings = c("-"))
-buf[is.na(buf)==T]<--9999
+buf[is.na(buf)==T]<-''
 #以降bufに変更は加えないこと
 addColumn<-0
-exception<-c(1)
+needBigmark<-1
+exception<-c(1,2,4,5,7,8,10)
 dataset<-buf
+if(needBigmark!=0){
 dataset[,-exception]<-format(dataset[,-exception],big.mark=",",scientific=F)
+}
 if(addColumn!=0){
 dataset<-data.frame(dataset,dataset[,addColumn],check.names=F)
 colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addColumn]
@@ -38,22 +42,24 @@ colnames(dataset)[ncol(dataset)]<-colnames(dataset)[addColumn]
 tail(dataset)
 ```
 
-```{r}
-timeseries<-1 # 1 or other number
-needRegular<-1 # 1 or other number
+```{r,warning=F,error=F,message=F,results='asis',echo=F}
+timeseries<-0 # 1 or other number
+needRegular<-0 # 1 or other number
 needLinktable<-0  # 1 or other number
 individualPage<-1 # 1 or other number
 RegularObj<-c(1:7)
-title<-"日本の実質輸出入動向 2016年6月分-国･地域別実質輸出指数"
-source<-"日本銀行"
-if(timeseries==1){dataset[,1]<-as.Date(dataset[,1])}
-if(length(unique(day(dataset[,1])))==1){dataset[,1]<-format(dataset[,1],"%Y-%m")}
+title<-"平成26年度国の財務書類(連結財務書類、財務省)、第130回事業年度(平成26年度、日本銀行)決算等について(財務諸表等)そしてその統合"
+source<-"財務省、日本銀行"
+if(timeseries==1){
+  dataset[,1]<-as.Date(dataset[,1])
+  if(length(unique(day(dataset[,1])))==1){dataset[,1]<-format(dataset[,1],"%Y-%m")}
+}
 alignarg<-rep("r",ncol(dataset))
 alignarg<-c("r","l",rep("r",ncol(dataset)-3),"l")
 ST<-Sys.time();SD<-Sys.Date()
-pathOutput<-paste("C:/Users/",username,buf0[2,1],sep="")
+pathOutput<-paste0("C:/Users/",username,buf0[2,1],'charts/')
 setwd(pathOutput);getwd()
-htmlFile<-paste("am-consulting.co.jp-",year(ST),"-",month(ST),"-",day(ST),"-",hour(ST),"-",minute(ST),"-",floor(second(ST)),".html",sep="")
+htmlFile<-paste("am-consulting.co.jp-",format(Sys.time(),'%Y-%m-%d-%H-%M-%S'),".html",sep="")
 table.argu<-paste("id=\"amcc_superSimpleTable",floor(as.numeric(ST)),"\" width=\"100%\" class=\"display compact\"",sep="")
 
 block01<-block02<-block03<-block04<-block05<-block06<-block07<-block08<-block09<-block10<-block11<-""
@@ -63,10 +69,6 @@ block01<-"
 <meta http-equiv=\"Pragma\" content=\"no-cache\">
 <meta http-equiv=\"cache-control\" content=\"no-cache\">
 <meta http-equiv=\"expires\" content=\"0\">
-<style>
-body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
-.dataTables_filter input {width: 50%;}
-</style>
 </head>
 <body>
 <!---->" 
@@ -80,16 +82,23 @@ block02<-paste("
 <script src=\"http://knowledgevault.saecanet.com/components/pace.min.js\"></script>
 <style>
 body{font-family:'Hiragino Kaku Gothic Pro','Meiryo UI',Verdana,sans-serif;}
-table{width:100%;border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
+.container{
+	width: 80%;
+	margin-left: auto;
+	margin-right: auto;
+}
+table{border-collapse:collapse;padding:0;border-spacing:1;margin-left:auto;margin-right:auto;font-size:100%;}
 tr, td, th{white-space: nowrap;}
 td.highlight{font-weight:plain;color:red;}
+.dataTables_filter input {width: 50%;}
 </style>
-<div align=\"right\">作成日時:",as.character(Sys.time()),"</div><hr>
+<div class=\"container\">
+<div align=\"right\">作成日時:",as.character(Sys.time()),"</div><br>
 <script type=\"text/javascript\" charset=\"utf-8\">
 $(document).ready(function(){
 $('#amcc_superSimpleTable",floor(as.numeric(ST)),"').dataTable({
 \"lengthMenu\":[[20,10,-1],[20,10,\"All\"]],
-\"order\":[[0,\"desc\"]],
+\"order\":[[0,\"asc\"]],
 \"searching\":true,
 \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
 \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
@@ -136,8 +145,9 @@ filterColumn( $(this).parents('tr').attr('data-column') );
 #正規表現
 
 block05<-paste("});</script>\n\n",
-paste("<div align=\"center\"><b>",title,"</b><br>データ出所:",source,"</div>"),
-"-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>")
+paste("<div align=\"center\"><b>",title,"</b><br>データ出所:",source,"</div>")
+#,"-9999は「データなし」または「データ欠損」または「NA」を意味します<hr>"
+)
 
 #正規表現
 if(needRegular==1){
@@ -274,6 +284,7 @@ block11<-"
 <!---->
 <hr>
 <div align=\"center\"><a href=\"http://am-consulting.co.jp\" target=\"_blank\">アセット・マネジメント・コンサルティング株式会社</a></div>
+</div>
 </body>
 </html>" 
 }  
