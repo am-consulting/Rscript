@@ -1,0 +1,79 @@
+```{r}
+library(qpcR)
+options(scipen = 999)
+username <- Sys.info()['user']
+fileName <- "defaultPath.csv"
+pathToFile <-
+  paste("C:/Users/", username, "/Desktop/pathToCSV/", sep = "")
+setwd(pathToFile)
+buf0 <-
+  read.csv(
+    fileName,
+    header = F,
+    skip = 0,
+    stringsAsFactor = F,
+    check.names = F,
+    na.strings = c(""),
+    fileEncoding = "utf-8"
+  )
+pathOutput <- paste0("C:/Users/", username, buf0[2, 1], 'csv/')
+setwd(pathOutput)
+getwd()
+```
+
+```{r,warning=F,error=F,message=F,echo=F}
+csvTitle <- '2016年都道府県別･用途別対前年平均変動率'
+```
+
+```{r,warning=F,error=F,message=F,echo=F}
+buf <-
+  read.table(
+    "clipboard",
+    header = T,
+    sep = "\t",
+    stringsAsFactor = F,
+    na.strings = c("-", "－", " ---- ", "…", ""),
+    check.names = F
+  )
+
+prefReshape <- function(x) {
+  if (x == '北海道') {
+    tmp <- '北海道'
+  } else
+    if (x == '東京') {
+      tmp <- '東京都'
+    } else
+      if (x == '大阪' | x == '京都') {
+        tmp <- paste0(x, '府')
+      } else
+      {
+        tmp <- paste0(x, '県')
+      }
+}
+```
+
+```{r,warning=F,error=F,message=F,echo=F}
+dataSet <- buf[rowSums(is.na(buf)) != ncol(buf), ]
+dataSet[, 1] <- gsub("\\s", "", dataSet[, 1])
+dataSet[, 1] <- apply(dataSet[, 1, drop = F], 1, prefReshape)
+bufUnit<-dataSet[1,]
+dataSet<-dataSet[-1,]
+dataSet[, -1] <- as.numeric(as.matrix(dataSet[, -1, drop = F]))
+dataSet0 <-
+  qpcR:::rbind.na(c('map', 'japan'), c('title', colnames(dataSet)[-1]), c('unit',unlist(bufUnit[-1])))
+dataSet0 <- data.frame(dataSet0, stringsAsFactors = F)
+colnames(dataSet0) <- colnames(dataSet)
+mandaraData <- rbind(dataSet0, dataSet)
+mandaraData[is.na(mandaraData) == T] <- ''
+csvFile <- paste0(csvTitle, '.csv')
+write.table(
+  mandaraData,
+  csvFile,
+  sep = ',',
+  row.names = F,
+  col.names = F,
+  append = F,
+  quote = F,
+  fileEncoding = "shift_jis"
+)
+```
