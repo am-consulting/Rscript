@@ -22,7 +22,7 @@ getwd()
 ```
 
 ```{r,warning=F,error=F,message=F,echo=F}
-csvTitle <- '2016年都道府県別･用途別対前年平均変動率'
+csvTitle <- '重要犯罪総数_認知件数_2016年1-5月_前年同期比'
 ```
 
 ```{r,warning=F,error=F,message=F,echo=F}
@@ -38,17 +38,21 @@ buf <-
 
 prefReshape <- function(x) {
   if (x == '北海道') {
-    tmp <- '北海道'
+    '北海道'
   } else
-    if (x == '東京') {
-      tmp <- '東京都'
+    if (length(grep('東京', x)) != 0) {
+      '東京都'
     } else
-      if (x == '大阪' | x == '京都') {
-        tmp <- paste0(x, '府')
+      if (length(grep('大阪', x)) != 0) {
+        '大阪府'
       } else
-      {
-        tmp <- paste0(x, '県')
-      }
+        if (length(grep('京都', x)) != 0) {
+          '京都府'
+        }
+  else
+  {
+    paste0(x, '県')
+  }
 }
 ```
 
