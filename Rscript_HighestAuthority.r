@@ -67,7 +67,7 @@ highestAuthority <- function() {
     "1960-7-19" ,    "Hayato Ikeda(1-3)",
     "1964-11-9" ,    "Eisaku Sato(1-3)",
     "1972-7-7"  ,    "Kakuei Tanaka(1-2)",
-    "1974-12-9" ,    "Takeo Mike",
+    "1974-12-9" ,    "Takeo Miki",
     "1976-12-24",    "Takeo Fukuda",
     "1978-12-7" ,    "Masayoshi Ohira(1-2)",
     "1980-7-17" ,    "Zenko Suzuki",
