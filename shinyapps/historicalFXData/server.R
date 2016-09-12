@@ -9,7 +9,7 @@ shinyServer(function(input, output)
   tabHistoricalFX <- 0
   makeReactiveBinding('tabHistoricalFX')
   
-  observeEvent(input$searchAction, {
+  observeEvent(input$searchActionFX, {
     script <-
       getURL(
         "https://raw.githubusercontent.com/am-consulting/Rscript/master/getFXhistoricalData.r",

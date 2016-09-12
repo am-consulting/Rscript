@@ -25,7 +25,7 @@ shinyUI(
                    "Historical Foreign Exchange Rate(exchange quotation,middle rate). Raw Data source:Mizuho Bank, Ltd."
                  ),
                  fluidRow(
-                   column(6,actionButton('searchAction', label = 'Import Historical FX Data(take a few seconds to import.)')),
+                   column(6,actionButton('searchActionFX', label = 'Import Historical FX Data(take a few seconds to import.)')),
                    column(6,align="right",textOutput('latestDataDownloadTime'))
                  ),
                  conditionalPanel(condition = "output.latestDataDownloadTime!=''",  tags$hr()), 
