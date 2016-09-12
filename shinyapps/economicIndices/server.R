@@ -25,8 +25,7 @@ shinyServer(function(input, output)
         "year",
         label = "Year",
         colnames(jgbData)[-1],
-        selected = colnames(jgbData)[11],
-        #default 10Y
+        selected = colnames(jgbData)[11], # default 10Y
         selectize = F
       )
     })
@@ -63,7 +62,7 @@ shinyServer(function(input, output)
         label = "Data Type",
         choices = list(
           `Level` = 1,
-          `1st difference` = 2  ,
+          `1st difference` = 2,
           `2nd difference` = 3
         ),
         selected = 1
@@ -88,18 +87,17 @@ shinyServer(function(input, output)
           paste("\\b", input$year , "\\b", sep = ""),
           colnames(jgbData)
         ))]
-      if (is.null(input$dataRange[1])) {
+      if (is.null(input$dataRange[1])) { # dataRangeの読み込みを待つために必要
         return(NULL)
       } else{
         dateRange <- input$dataRange[2] - input$dataRange[1] + 1
-        if (dateRange < 10) {
-          # adf.test: sample size must be greater than 8
+        if (dateRange < 10) { # adf.test: sample size must be greater than 8
           if (input$dataRange[2] < 10) {
             lowerRange <- 1
             upperRange <- 10
-          } else if (nrow(tmp0) - 9 < (input$dataRange[1])) {
-            lowerRange <- input$dataRange[2] - 9
-            upperRange <- input$dataRange[2]
+          # } else if (nrow(tmp0) - 9 < (input$dataRange[1])) {
+          #   lowerRange <- input$dataRange[2] - 9
+          #   upperRange <- input$dataRange[2]
           } else{
             lowerRange <- input$dataRange[2] - 9
             upperRange <- input$dataRange[2]
@@ -111,8 +109,7 @@ shinyServer(function(input, output)
         }
         dataSet <-
           subset(tmp0,
-                 lowerRange <= index(tmp0) & index(tmp0) <=
-                   upperRange)
+                 lowerRange <= index(tmp0) & index(tmp0) <= upperRange)
         buf <- colnames(dataSet)
         if (input$datatype == 2)
           #1st diff
@@ -132,9 +129,9 @@ shinyServer(function(input, output)
         }
         colnames(dataSet) <- buf
         x <- dataSet[, 2]
-        SV <- var(x) * (length(x) - 1) / length(x) #sample variance
-        UV <- var(x)#unbiased variance
-        SSD <- sqrt(SV)#sample standard deviation
+        SV <- var(x) * (length(x) - 1) / length(x) # sample variance
+        UV <- var(x) # unbiased variance
+        SSD <- sqrt(SV) # sample standard deviation
         latestData <- tail(dataSet, 1)
         minData <-
           tail(subset(dataSet, min(dataSet[, 2]) == dataSet[, 2]), 1)
@@ -143,9 +140,9 @@ shinyServer(function(input, output)
         statistic <-
           c(
             "n",
-            "Last Data within Period",
+            "Last Data within The Period",
             "Mean",
-            "median",
+            "Median",
             "Min",
             "Max",
             "Unbiassed Standard Deviation",
@@ -153,7 +150,7 @@ shinyServer(function(input, output)
             "Unbiassed Variance",
             "Sample Variance",
             "ADF test",
-            "Normality test",
+            ad.test(x)$method,
             "Skewness",
             "Kurtosis"
           )
@@ -189,11 +186,11 @@ shinyServer(function(input, output)
             "-",
             "-",
             "p-value",
-            paste(ad.test(x)$method, ": p-value"),
+            "p-value",
             "-",
             "-"
           )
-        statisticTable <<-
+        statisticTable <-
           data.frame(
             Item  = statistic,
             Value  = result,
@@ -223,9 +220,9 @@ shinyServer(function(input, output)
           )
         
         output$table2 <- DT::renderDataTable(
-          tail(tabledata, 100),
-          rownames = FALSE,
-          caption = "Table 2: Japanese Government Bonds Interest Rate(%). Last 100 dates",
+          tail(tabledata, 30),
+          rownames = F,
+          caption = "Table 2: Japanese Government Bonds Interest Rate(%). Last 30 dates",
           options = list(
             autoWidth = F,
             info = T,
@@ -233,16 +230,15 @@ shinyServer(function(input, output)
             ordering = T,
             searching = T,
             scrollX = F,
-            lengthMenu = list(c(5,
-                                15, -1), c("5", "15", "All")),
+            lengthMenu = list(c(5, 15, -1), c("5", "15", "All")),
             pageLength = 5,
-            orderClasses = TRUE,
+            orderClasses = T,
             order = list(list(0, "desc"))
           )
         )
 
         output$plot1 <- renderPlot({
-          par(mar = c(5, 4, 3, 3))
+          par(mar = c(5, 4, 4, 3))
           if (input$charttype == "hist")
           {
             hist(
@@ -277,7 +273,9 @@ shinyServer(function(input, output)
                 " CI=",
                 ci[1],
                 ",",
-                ci[2]
+                ci[2],
+                "\n",
+                "Number of periods for forecasting=",forecastN
               ),
               ylab = "",
               panel.first = grid(
@@ -320,6 +318,8 @@ shinyServer(function(input, output)
               cex.main = 1.5
             )
             abline(h = 0, col = "red")
+            lo <- loess(plotData[, 2]~as.numeric(plotData[, 1]), degree = 2)
+            lines(plotData[, 1] , predict(lo) , col='red', lwd=2,lty=2)            
             axis.Date(
               side = 1,
               at = plotData[, 1],
