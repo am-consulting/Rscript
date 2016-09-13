@@ -1,10 +1,4 @@
 library(shiny)
-library(tseries)
-library(forecast)
-library(DT)
-library(nortest)
-library(RCurl)
-library(e1071)
 shinyServer(function(input, output)
 {
   tabJGB <- 0
@@ -621,7 +615,12 @@ shinyServer(function(input, output)
             scrollX = F,
             lengthMenu = list(c(10, -1), c(10, "All")),
             orderClasses = T,
-            order = list(list(0, "asc"))
+            order = list(list(0, "asc")),
+            columnDefs = list(
+              list(width = '15%', targets = 1),
+              list(width = '10%', targets = 2),
+              list(width = '10%', targets = 3)
+            )
           )
         )
         

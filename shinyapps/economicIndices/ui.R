@@ -1,4 +1,10 @@
 library(shiny)
+library(tseries)
+library(forecast)
+library(DT)
+library(nortest)
+library(RCurl)
+library(e1071)
 shinyUI(
   tabsetPanel(
     tabPanel(
@@ -39,7 +45,7 @@ shinyUI(
                    )
                  ),
                  conditionalPanel(condition = "output.latestDataDownloadTime!=''",  tags$hr(),
-                                  fluidRow(column(10, DT::dataTableOutput("table2"))),
+                                  fluidRow(column(12, DT::dataTableOutput("table2"))),
                                   fluidRow(column(12, htmlOutput("remarktext")))
                  ),
                  fluidRow(column(12, htmlOutput("disclaimer")))
@@ -97,7 +103,7 @@ shinyUI(
                    )   
                  ),
                  conditionalPanel(condition = "output.latestDataDownloadTimeFX!=''",  tags$hr(),
-                                  fluidRow(column(10, DT::dataTableOutput("table2FX"))),
+                                  fluidRow(column(12, DT::dataTableOutput("table2FX"))),
                                   fluidRow(column(12, htmlOutput("remarktextFX")))
                  ),  
                  fluidRow(column(12, htmlOutput("disclaimerFX")))
