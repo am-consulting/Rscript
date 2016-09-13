@@ -1,5 +1,4 @@
 library(shiny)
-latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
 shinyUI(
   tabsetPanel(
     tabPanel(

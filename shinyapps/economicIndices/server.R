@@ -18,6 +18,8 @@ shinyServer(function(input, output)
       )
     eval(parse(text = script))
     
+    latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")    
+    
     jgbData <- na.omit(jgbData)
     
     output$year <- renderUI({
@@ -69,10 +71,6 @@ shinyServer(function(input, output)
       )
     })
     
-    tabledata <<-
-      data.frame(Date = format(jgbData[, 1], "%Y-%m-%d"),
-                 jgbData[, -1],
-                 check.names = F)
     
     tabJGB <<- 1
     jgbData <<- jgbData
@@ -95,9 +93,6 @@ shinyServer(function(input, output)
           if (input$dataRange[2] < 10) {
             lowerRange <- 1
             upperRange <- 10
-          # } else if (nrow(tmp0) - 9 < (input$dataRange[1])) {
-          #   lowerRange <- input$dataRange[2] - 9
-          #   upperRange <- input$dataRange[2]
           } else{
             lowerRange <- input$dataRange[2] - 9
             upperRange <- input$dataRange[2]
@@ -219,10 +214,15 @@ shinyServer(function(input, output)
             )
           )
         
+        tabledata <- subset(jgbData, lowerRange <= index(jgbData) & index(jgbData) <= upperRange)
+        tabledata[, 1] <- format(tabledata[, 1], "%Y-%m-%d")
+
         output$table2 <- DT::renderDataTable(
-          tail(tabledata, 30),
+          tabledata,
           rownames = F,
-          caption = "Table 2: Japanese Government Bonds Interest Rate(%). Last 30 dates",
+          caption = paste0(
+            "Table 2: Japanese Government Bonds Interest Rate(%). Period:", 
+            tabledata[1, 1], " - ", tabledata[nrow(tabledata), 1]),
           options = list(
             autoWidth = F,
             info = T,
