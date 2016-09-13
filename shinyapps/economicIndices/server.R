@@ -341,6 +341,7 @@ shinyServer(function(input, output)
     <ol>
     <li>Sample Variance = var(x)*(length(x)-1)/length(x)</li>
     <li>Sample Standard Deviation = √Sample Variance</li>
+    <li>The histogram cells are right-closed (left open) intervals.</li>
     </ol>"
     HTML(str)
   })
@@ -745,6 +746,7 @@ shinyServer(function(input, output)
     <li>Sample Variance = var(x)×(length(x)-1)/length(x)</li>
     <li>Sample Standard Deviation = √Sample Variance</li>
     <li>Variation Coefficient(VC,%)=(Sample Standard Deviation/Mean)×100</li>
+    <li>The histogram cells are right-closed (left open) intervals.</li>
     </ol>"
     HTML(str)
   })
