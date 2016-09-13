@@ -1,5 +1,5 @@
 library(shiny)
-latestDataDownloadTime <<- as.POSIXlt(Sys.time(), "GMT")
+
 shinyUI(
   tabsetPanel(
     tabPanel(
@@ -26,29 +26,29 @@ shinyUI(
                  ),
                  fluidRow(
                    column(6,actionButton('searchActionFX', label = 'Import Historical FX Data(take a few seconds to import.)')),
-                   column(6,align="right",textOutput('latestDataDownloadTime'))
+                   column(6,align="right",textOutput('latestDataDownloadTimeFX'))
                  ),
-                 conditionalPanel(condition = "output.latestDataDownloadTime!=''",  tags$hr()), 
+                 conditionalPanel(condition = "output.latestDataDownloadTimeFX!=''",  tags$hr()), 
                  fluidRow(
                    column(2,
-                          uiOutput("currency"), 
-                          uiOutput("dataRange"), 
-                          uiOutput("charttype"), 
-                          uiOutput("datatype") 
+                          uiOutput("currencyFX"), 
+                          uiOutput("dataRangeFX"), 
+                          uiOutput("charttypeFX"), 
+                          uiOutput("datatypeFX") 
                    ),
                    conditionalPanel(
-                     condition = "output.latestDataDownloadTime!=''",	
+                     condition = "output.latestDataDownloadTimeFX!=''",	
                      column(5,
-                            plotOutput("plot1", height = "600px")),
+                            plotOutput("plot1FX", height = "600px")),
                      column(5,
-                            DT::dataTableOutput("table1"))
+                            DT::dataTableOutput("table1FX"))
                    )   
                  ),
-                 conditionalPanel(condition = "output.latestDataDownloadTime!=''",  tags$hr(),
-                                  fluidRow(column(10, DT::dataTableOutput("table2"))),
-                                  fluidRow(column(12, htmlOutput("remarktext")))
+                 conditionalPanel(condition = "output.latestDataDownloadTimeFX!=''",  tags$hr(),
+                                  fluidRow(column(10, DT::dataTableOutput("table2FX"))),
+                                  fluidRow(column(12, htmlOutput("remarktextFX")))
                  ),  
-                 fluidRow(column(12, htmlOutput("disclaimer")))
+                 fluidRow(column(12, htmlOutput("disclaimerFX")))
           ),
           column(2,
                  a("@AMC2_Japan", class = "twitter-timeline",  href = "https://twitter.com/AMC2_Japan",

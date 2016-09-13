@@ -16,19 +16,20 @@ shinyServer(function(input, output)
         ssl.verifypeer = F
       )
     eval(parse(text = script))
+    latestDataDownloadTimeFX <<- as.POSIXlt(Sys.time(), "GMT")    
     
     origData <- na.omit(origData)
     
-    output$currency <- renderUI({
-      selectInput("currency",
+    output$currencyFX <- renderUI({
+      selectInput("currencyFX",
                   label = "Currency",
                   colnames(origData)[-1],
                   selectize = F)
     })
     
-    output$dataRange <- renderUI({
+    output$dataRangeFX <- renderUI({
       sliderInput(
-        "dataRange",
+        "dataRangeFX",
         label = "Data Range",
         min = 1,
         max = nrow(origData),
@@ -37,9 +38,9 @@ shinyServer(function(input, output)
       )
     })
     
-    output$charttype <- renderUI({
+    output$charttypeFX <- renderUI({
       radioButtons(
-        "charttype",
+        "charttypeFX",
         label = "Chart Type",
         choices = list(
           `Time series( Line )` = "l",
@@ -52,9 +53,9 @@ shinyServer(function(input, output)
       )
     })
     
-    output$datatype <- renderUI({
+    output$datatypeFX <- renderUI({
       radioButtons(
-        "datatype",
+        "datatypeFX",
         label = "Data Type",
         choices = list(
           Level = 1,
@@ -74,30 +75,30 @@ shinyServer(function(input, output)
     if (tabHistoricalFX == 0) {
       return(NULL)
     } else{
-      if (is.null(input$dataRange[1])) { # dataRangeの読み込みを待つために必要
+      if (is.null(input$dataRangeFX[1])) { # dataRangeFXの読み込みを待つために必要
         return(NULL)
       } else{
-        tmp0 <- origData[, c(1, which(input$currency == colnames(origData)))]
-        dateRange <- input$dataRange[2] - input$dataRange[1] + 1
+        tmp0 <- origData[, c(1, which(input$currencyFX == colnames(origData)))]
+        dateRange <- input$dataRangeFX[2] - input$dataRangeFX[1] + 1
         if (dateRange < 10) { # adf.test: sample size must be greater than 8
-          if (input$dataRange[2] < 10) {
+          if (input$dataRangeFX[2] < 10) {
             lowerRange <- 1
             upperRange <- 10
           } else{
-            lowerRange <- input$dataRange[2] - 9
-            upperRange <- input$dataRange[2]
+            lowerRange <- input$dataRangeFX[2] - 9
+            upperRange <- input$dataRangeFX[2]
           }
         }
         else{
-          lowerRange <- input$dataRange[1]
-          upperRange <- input$dataRange[2]
+          lowerRange <- input$dataRangeFX[1]
+          upperRange <- input$dataRangeFX[2]
         }
         dataSet <-
           subset(tmp0,
                  lowerRange <= index(tmp0) &
                    index(tmp0) <= upperRange)
         buf <- colnames(dataSet)
-        if (input$datatype == 2)
+        if (input$datatypeFX == 2)
           #1st diff
         {
           dataSet <-
@@ -105,7 +106,7 @@ shinyServer(function(input, output)
                        diff(dataSet[, 2], lag = 1, differences = 1),
                        check.names = F)
         }
-        if (input$datatype == 3)
+        if (input$datatypeFX == 3)
           #2nd diff
         {
           dataSet <-
@@ -171,9 +172,9 @@ shinyServer(function(input, output)
           )
         statisticTable <-
           data.frame(
-            Statistic = statistic,
-            Result = result,
-            Remark = remark,
+            Item = statistic,
+            Value = result,
+            Notes = remark,
             stringsAsFactors = F,
             check.names = F
           )
@@ -192,9 +193,9 @@ shinyServer(function(input, output)
         sdValue     <-
           as.vector(apply(buffxData[, -1], 2, variance), mode = 'numeric')
         latest1Data <-
-          as.vector(buffxData[nrow(buffxData) - 0, -1], mode = 'numeric')
+          as.vector(buffxData[nrow(buffxData), -1], mode = 'numeric')
         latest2Data <-
-          as.vector(buffxData[nrow(buffxData) - 1, -1], mode = 'numeric')
+          as.vector(buffxData[1, -1], mode = 'numeric')
         tmpDataset  <- data.frame(
           Currency = colnames(buffxData[, -1]),
           latest1 = latest1Data,
@@ -204,13 +205,13 @@ shinyServer(function(input, output)
           Max = as.vector(apply(buffxData[, -1], 2, max), mode = 'numeric'),
           Min = as.vector(apply(buffxData[, -1], 2, min), mode = 'numeric'),
           VariationCoefficient = sdValue / meanValue * 100,
-          FromTheDayBefore = (latest1Data - latest2Data) / latest2Data * 100,
+          ChangeWithinThePeriod = (latest1Data - latest2Data) / latest2Data * 100,
           row.names = NULL
         )
         tmpDataset[, c(5, 8, 9)] <-
           floor(1000 * (tmpDataset[, c(5, 8, 9)]) + 0.5) / 1000
         colnames(tmpDataset)[2:3] <-
-          c(as.character(buffxData[nrow(buffxData) - 0, 1]), as.character(buffxData[nrow(buffxData) - 1, 1]))
+          c(as.character(buffxData[nrow(buffxData), 1]), as.character(buffxData[1, 1]))
         colnames(tmpDataset)[8:9] <-
           paste0(colnames(tmpDataset)[8:9], '(%)')
         #一旦挟まないとdatatablesのエラーが出る
@@ -221,7 +222,7 @@ shinyServer(function(input, output)
                      tmpDataset,
                      check.names = F)
         
-        output$table1 <- DT::renderDataTable(
+        output$table1FX <- DT::renderDataTable(
           statisticTable,
           rownames = F,
           caption = paste0(
@@ -243,7 +244,7 @@ shinyServer(function(input, output)
           )
         )
         
-        output$table2 <- DT::renderDataTable(
+        output$table2FX <- DT::renderDataTable(
           currencyDataTable,
           rownames = F,
           caption = paste(
@@ -265,25 +266,26 @@ shinyServer(function(input, output)
           )
         )
         
-        output$plot1 <- renderPlot({
+        output$plot1FX <- renderPlot({
           par(mar = c(5, 4, 4, 3), family = "Noto Sans Japanese")
           subtitle <-
             paste(plotData[1, 1], " - ", plotData[nrow(plotData), 1])
-          if (input$charttype == "hist")
+          if (input$charttypeFX == "hist")
           {
             hist(
               plotData[, 2],
               breaks = 50,
               cex.axis = 1,
               cex.lab = 1,
-              cex.main = 1,
+              cex.main = 1.5,
               main = paste(colnames(plotData)[2], "Unit:JPY\n", subtitle),
-              xlab = ""
+              xlab = "",
+              col = "#808000"
             )
           }
-          if (input$charttype == "arima")
+          if (input$charttypeFX == "arima")
           {
-            ci = c(95, 99)
+            ci = c(80, 95)
             forecastN <- 30
             result.arima <-
               auto.arima(
@@ -298,9 +300,9 @@ shinyServer(function(input, output)
               result.forecast,
               main = paste(
                 colnames(plotData)[2],
-                "\n",
+                " , ",
                 subtitle,
-                " CI=",
+                " , CI=",
                 ci[1],
                 ",",
                 ci[2],
@@ -313,10 +315,11 @@ shinyServer(function(input, output)
                 ny = NULL,
                 lty = 2,
                 equilogs = T
-              )
+              ),
+              cex.main=1.5
             )
           }
-          if (input$charttype == "QQ")
+          if (input$charttypeFX == "QQ")
           {
             qqnorm(plotData[, 2],
                    panel.first = grid(
@@ -327,12 +330,12 @@ shinyServer(function(input, output)
                    ))
             qqline(plotData[, 2], col = "red")
           }
-          if (input$charttype == "l" || input$charttype == "h")
+          if (input$charttypeFX == "l" || input$charttypeFX == "h")
           {
             plot(
               plotData[, 1],
               plotData[, 2],
-              type = input$charttype,
+              type = input$charttypeFX,
               xlab = "",
               ylab = colnames(plotData)[2],
               panel.first = grid(
@@ -370,14 +373,14 @@ shinyServer(function(input, output)
     }
   })
   
-  output$latestDataDownloadTime <- renderText({
+  output$latestDataDownloadTimeFX <- renderText({
     if (tabHistoricalFX == 1) {
       paste("Data imported time(UTC):" ,
-            as.character(latestDataDownloadTime))
+            as.character(latestDataDownloadTimeFX))
     }
   })
   
-  output$remarktext <- renderUI({
+  output$remarktextFX <- renderUI({
     str <- "<hr>
     <b>Note</b><br>
     <ol>
@@ -388,7 +391,7 @@ shinyServer(function(input, output)
     HTML(str)
   })
   
-  output$disclaimer <- renderUI({
+  output$disclaimerFX <- renderUI({
     str <- "<hr>
     <b>Operating Company / Disclaimer</b><br>
     <ol>
