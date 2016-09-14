@@ -34,10 +34,12 @@ shinyServer(function(input, output)
     dataset24hour <<-  subset(dataset, (latestDataDownloadTimeEarthquake - 60 * 60 * 24) <= dataset$GMT)
     datasetM <<- subset(dataset, borderM <= dataset$mag)
     datasetJapan <<- dataset[grep("Japan", dataset$place),]
-    for(latestJapan in 5:30){
-      datasetJapanLatest <<- subset(datasetJapan, (latestDataDownloadTimeEarthquake - 60 * 60 * 24 * latestJapan) <= datasetJapan$GMT)
-      if(nrow(datasetJapanLatest)!=0){break}
-    }
+    # for(latestJapan in 5:30){
+    #   datasetJapanLatest <<- subset(datasetJapan, (latestDataDownloadTimeEarthquake - 60 * 60 * 24 * latestJapan) <= datasetJapan$GMT)
+    #   if(nrow(datasetJapanLatest)!=0){break}
+    # }
+    latestJapan <- 3
+    datasetJapanLatest <<- head(datasetJapan, latestJapan)
     titlegvis24hour <<-
       paste("Earthquakes in a 24-hour period.\nPeriod(UTC): ", latestDataDownloadTimeEarthquake - 60 * 60 * 24, "-", latestDataDownloadTimeEarthquake ,
             ". n=", nrow(dataset24hour))
@@ -45,14 +47,17 @@ shinyServer(function(input, output)
       paste("Earthquakes over Magnitude ", borderM, " in past 30 days. n=", nrow(datasetM))
     titlegvisJapan <<-
       paste("Earthquakes around Japan in past 30 days. n=", nrow(datasetJapan))
+    # titlegvisJapanLatest <<-
+    #   paste("Earthquakes around Japan in past" ,latestJapan, "days. n=", nrow(datasetJapanLatest))
     titlegvisJapanLatest <<-
-      paste("Earthquakes around Japan in past" ,latestJapan, "days. n=", nrow(datasetJapanLatest))
+      paste("Last",latestJapan,"Earthquakes around Japan.")
     selectList <<-
       c(
         "Earthquakes in a 24-hour period.",
         paste("Earthquakes over Magnitude ", borderM , " in past 30 days."),
         "Earthquakes around Japan in past 30 days.",
-        paste("Earthquakes around Japan in past",latestJapan, "days.")
+        # paste("Earthquakes around Japan in past",latestJapan, "days.")
+        paste("Last",latestJapan,"Earthquakes around Japan.")
       )
     
     tabEarthquake <<- 1
