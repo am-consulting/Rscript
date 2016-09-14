@@ -13,7 +13,8 @@ buf <-
     na.strings = c(""),
     fileEncoding = "cp932"
   )
-colnames(buf) <- buf[2,]
+colnames(buf) <- buf[2,] # English
+colnames(buf) <- buf[1,] # Japanese
 for (rrr in 1:nrow(buf)) {
   tmp <- as.numeric(substr(buf[rrr, 1], 1, 6))
   if (!is.na(tmp)) {
