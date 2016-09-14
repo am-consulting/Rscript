@@ -26,7 +26,8 @@ for (rrr in 1:nrow(buf)) {
   }
 }
 year <- tmp
-rrr <- rrr - 4 #caution
+# rrr <- rrr - 4 #caution English
+rrr <- rrr - 5 #caution Japanese
 bufdataSet <- buf[rrr:nrow(buf), 5:ncol(buf)] #caution
 for (ccc in 1:ncol(bufdataSet)) {
   if (bufdataSet[1, ccc] != "") {
@@ -36,7 +37,8 @@ for (ccc in 1:ncol(bufdataSet)) {
     paste(tmpcolname, "-",  bufdataSet[3, ccc], sep = "")
 }
 colnames(bufdataSet) <- bufdataSet[3, ]
-bufdataSet <- bufdataSet[-(1:3), ]
+# bufdataSet <- bufdataSet[-(1:3), ] # English
+bufdataSet <- bufdataSet[-(1:4), ] # Japanese
 startDate <- as.Date(paste(year, "-1-1", sep = ""))
 origData <-
   data.frame(Date = as.Date(seq(
