@@ -6,7 +6,7 @@ funPlotTimeSeries <- function() {
   png(file = png.file,
       width = imageWidth,
       height = imageHeight)
-  par(mar = c(6, 6, 10, 5), family = 'Meiryo')
+  par(mar = c(6, 6, 13, 5), family = 'Meiryo')
   obj01 <- 2
   obj02 <- 3
   plot(
@@ -26,6 +26,8 @@ funPlotTimeSeries <- function() {
     xaxt = 'n',
     main = paste(
       colnames(dataSet)[2],
+      '\n',
+      JapaneseTitle[ooo],
       '\n',
       format(first(dataSet[, 1]), dateFormat),
       '~',
@@ -64,8 +66,13 @@ pathOutput <-
   paste("C:/Users/", username, "/Desktop/R_Data_Write/", sep = "")
 setwd(pathOutput)
 fileName <- 'psw09.xls'
-download.file(paste0('http://ir.eia.gov/wpsr/', fileName), fileName , mode =
-                "wb")
+```
+
+```{r}
+download.file(paste0('http://ir.eia.gov/wpsr/', fileName), fileName , mode = "wb")
+```
+
+```{r}
 targetSheet <- c(2:22)
 dateFormat <- '%Y-%m-%d'
 for (sss in 1:length(targetSheet)) {
@@ -99,6 +106,17 @@ obj <- c(
   'Weekly U.S. Imports of Crude Oil  ',
   'Weekly U.S. Imports of Total Gasoline  '
 )
+JapaneseTitle <- c(
+  '戦略石油備蓄を除いた週間米国原油在庫量(1000バレル)',
+  '戦略石油備蓄を除いたオクラホマ州クッシングの週間米国原油在庫量(1000バレル)',
+  '週間米国ガソリン在庫量(1000バレル)',
+  '週間米国留出油在庫量(1000バレル)',
+  '週間米国プラパンおよびプロピレン在庫量(1000バレル)',
+  '週間米国製油所原油処理量(1000バレル/日)',
+  '週間米国製油所稼働率(%)',
+  '週間米国原油輸入量(1000バレル/日)',
+  '週間米国ガソリン輸入量(1000バレル/日)'
+)
 htmlFile <- paste0(Sys.Date(),'-amcc_EIA.md')
 cat('', file = htmlFile, append = F)
 for (ooo in 1:length(obj)) {
@@ -106,11 +124,9 @@ for (ooo in 1:length(obj)) {
   tmp <- EIAData[, c(1, ccc)]
   tmp0 <- data.frame(tmp[-1, ], round(diff(tmp[, 2]), 10), check.names = F)
   colnames(tmp0)[3] <- 'Changes from last week'
-  dataSet <- tail(tmp0, 523)
+  dataSet <- na.omit(tail(tmp0, 795))
   cat('\n***\n', file = htmlFile, append = T)
-  cat('#### ',paste0(colnames(tmp0)[2], '\n'),
-      file = htmlFile,
-      append = T)
+  cat('#### ',paste0(colnames(tmp0)[2], ' / ', JapaneseTitle[ooo], '\n'), file = htmlFile, append = T)
   colnames(tmp0)[2] <- 'Figure'
   bufTable <- tail(tmp0, 5)
   bufTable[, 1] <- format(bufTable[, 1], '%Y-%m-%d')
