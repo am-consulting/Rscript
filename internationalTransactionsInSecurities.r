@@ -20,7 +20,7 @@ for (rrr in 1:nrow(buf)) {
   }
 }
 tmp <- na.omit(buf[-(1:rrr), ])
-origData <-
+origData0 <-
   data.frame(tmp[, 1], apply(tmp[, -1], 2, function(x) {
     as.numeric(gsub(",", "", x))
   }), check.names = F)
@@ -74,7 +74,7 @@ namesE <<- c(
   "Liabilities-Short-term debt securities-Net",
   "Liabilities-Total-Net"
 )
-colnames(origData) <- namesE
-origData <<- data.frame(ID=seq(1,nrow(origData)),origData,check.names = F)
+colnames(origData0) <- namesE
+origData <<- data.frame(ID=seq(1,nrow(origData0)),origData0,check.names = F)
 titleJ<<-"対外及び対内証券売買契約等の状況(週次・指定報告機関ベース)"
 titleE<<-"International Transactions in Securities(Weekly; based on reports from designated major investors)"
