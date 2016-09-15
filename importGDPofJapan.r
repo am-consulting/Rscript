@@ -11,19 +11,21 @@ url <- c(
   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-mk1622.csv',
   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-jk1622.csv',
   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-mk1622.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-jk1622.csv'
+  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-jk1622.csv',
+  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/def-qk1622.csv'
 )
 titleJ <<- c("名目季節調整系列",
              "実質季節調整系列",
              "名目季節調整系列(年率)",
-             "実質季節調整系列(年率)
-             ")
+             "実質季節調整系列(年率)",
+             "4半期デフレーター季節調整系列"
+  )
 titleE <<- c(
   "Nominal Gross Domestic Product (seasonally adjusted series)",
   "Real Gross Domestic Product (seasonally adjusted series)",
   "Annualized rate of Changes from the previous quarter (Nominal: seasonally adjusted series)",
-  "Annualized rate of Changes from the previous quarter (Real: seasonally adjusted series)
-  "
+  "Annualized rate of Changes from the previous quarter (Real: seasonally adjusted series)",
+  "GDP Deflators(seasonally adjusted series)"
 )
 colnameDataJ <- c(
   "国内総生産(支出側)",
@@ -104,10 +106,9 @@ for (uuu in 1:length(url)) {
     gsub(",", "", x))
   buf[, -1] <- apply(buf[, -1], 2, function(x)
     as.numeric(x))
-  if (length(grep("ritu", url[uuu])) == 0) {
+  if (length(grep("ritu|def", url[uuu])) == 0) {
     buf[, -1] <-
-      apply(buf[, -1], 2, function(x)
-        x * (10 ^ -3))
+      apply(buf[, -1], 2, function(x) x * (10 ^ -3))
   }
   colnames(buf)[-1] <- colnameDataE
   assign(paste("gdp", uuu, sep = ""), buf, envir = .GlobalEnv)
