@@ -5,6 +5,10 @@ library(DT)
 library(nortest)
 library(RCurl)
 library(e1071)
+library(dplyr)
+library(pastecs)
+library(psych)
+library(quantmod)
 shinyUI(
   tabsetPanel(
     tabPanel(
