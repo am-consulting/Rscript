@@ -239,7 +239,8 @@ shinyServer(function(input, output)
   <hr>
   <b>Note</b><br>
   <ol>
-  <li>-</li>
+  <li><a href=\"https://nsidc.org/data/seaice_index/archives.html\" target=\"_blank\">Sea Ice Index Archives</a></li>
+  <li><a href=\"http://nsidc.org/data/docs/noaa/g02135_seaice_index/#jul-2016\" target=\"_blank\">July 2016: Sea Ice Index Updated to Version 2</a></li>
   </ol>"
     HTML(str)
   })
