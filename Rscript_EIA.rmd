@@ -62,7 +62,9 @@ fileName <- 'psw09.xls'
 ```
 
 ```{r}
+if(!file.exists(paste0(pathOutput, fileName))) {
 download.file(paste0('http://ir.eia.gov/wpsr/', fileName), fileName , mode = "wb")
+}
 ```
 
 ```{r}
