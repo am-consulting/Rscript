@@ -776,7 +776,7 @@ shinyServer(function(input, output)
       )
     eval(parse(text = script))
     
-    origData_FXOanda <- origData
+    origData_FXOanda <- origData_FXoanda
     
     latestDataDownloadTime_FXOanda <<- as.POSIXlt(Sys.time(), "GMT")    
     
@@ -829,8 +829,8 @@ shinyServer(function(input, output)
         )
         
         colnames(dataSet01P_FXOanda)[-1]<-paste0(colnames(dataSet01P_FXOanda)[-1],'-DoD')
-        subtitle01 <- paste0(first(dataSet_FXOanda[,1]) ,'~', last(dataSet_FXOanda[,1]))
-        subtitle02 <- paste0(first(dataSet01P_FXOanda[,1]) ,'~', last(dataSet01P_FXOanda[,1]))
+        subtitle01_FXOanda <- paste0(first(dataSet_FXOanda[,1]) ,'~', last(dataSet_FXOanda[,1]))
+        subtitle02_FXOanda <- paste0(first(dataSet01P_FXOanda[,1]) ,'~', last(dataSet01P_FXOanda[,1]))
         
         output$plot1_FXOanda <- renderPlot({
           par(mar = c(5, 5, 4, 3), mfrow=c(1, 3), oma=c(0, 0, 0, 0))
@@ -843,7 +843,7 @@ shinyServer(function(input, output)
               ylab = colnames(dataSet_FXOanda)[iii],
               panel.first = grid(nx = NULL, ny = NULL, lty = 2, equilogs = T),
               xaxt = "n",
-              main = paste(colnames(dataSet_FXOanda)[iii], "\n", subtitle01),
+              main = paste(colnames(dataSet_FXOanda)[iii], "\n", subtitle01_FXOanda),
               cex.axis = 2,
               cex.lab = 2,
               cex.main = 2
@@ -865,7 +865,7 @@ shinyServer(function(input, output)
               ylab = colnames(dataSet01P_FXOanda)[iii],
               panel.first = grid(nx = NULL, ny = NULL, lty = 2, equilogs = T),
               xaxt = "n",
-              main = paste(colnames(dataSet01P_FXOanda)[iii], "\n", subtitle02),
+              main = paste(colnames(dataSet01P_FXOanda)[iii], "\n", subtitle02_FXOanda),
               cex.axis = 2,
               cex.lab = 2,
               cex.main = 2
@@ -878,13 +878,13 @@ shinyServer(function(input, output)
         
         correlationMethod<- c("pearson", "kendall", "spearman")
         
-        output$title01_FXOanda <-   renderText({subtitle01})      
+        output$title01_FXOanda <-   renderText({subtitle01_FXOanda})      
         output$summary01_FXOanda <- renderPrint({summary(dataSet_FXOanda[,-1])})
         output$psych01_FXOanda <- renderPrint({psych::describe(dataSet_FXOanda[,-1])})
         output$pastecs01_FXOanda <- renderPrint({pastecs::stat.desc(dataSet_FXOanda[,-1])})
         output$adf01_FXOanda <- renderPrint({apply(dataSet_FXOanda[,-1], 2, adf.test)})
         
-        output$title02_FXOanda <-   renderText({subtitle02})      
+        output$title02_FXOanda <-   renderText({subtitle02_FXOanda})      
         output$summary02_FXOanda <- renderPrint({summary(dataSet01P_FXOanda[,-1])})
         output$psych02_FXOanda <- renderPrint({psych::describe(dataSet01P_FXOanda[,-1])})
         output$pastecs02_FXOanda <- renderPrint({pastecs::stat.desc(dataSet01P_FXOanda[,-1])}) 
