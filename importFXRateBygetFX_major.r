@@ -42,4 +42,4 @@ origData <-
     row.names = NULL,
     check.names = F
   )
-origData <<- origData
+origData_FXoanda <<- origData
