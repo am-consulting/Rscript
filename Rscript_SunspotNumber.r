@@ -1,8 +1,8 @@
 # License:GPL(version 2 or later)
 # Data source : http://www.sidc.be/silso/home
 options(download.file.method = "libcurl")
-sunSpot <- function() {
-  origData <<- list()
+# sunSpot <- function() {
+#   origData <<- list()
   datacolnames <- list()
   url <-
     c(
@@ -48,6 +48,7 @@ sunSpot <- function() {
     buf <-
       data.frame(as.Date(paste(buf[, 1], "-", buf[, 2], "-1", sep = "")), buf[, 3:ncol(buf)])
     colnames(buf) <- datacolnames[[iii]]
-    origData[[iii]] <<- buf
+    # origData[[iii]] <<- buf
+    assign(paste0('origData_sunspot0',iii), buf , envir = .GlobalEnv)
   }
-}
+# }
