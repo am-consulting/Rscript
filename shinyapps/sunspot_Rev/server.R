@@ -161,6 +161,12 @@ shinyServer(function(input, output)
           )
         )
         output$table2_Sunspot <- rdtNA_Sunspot
+        
+        stat01_Sunspot <- origData_sunspot01[,c(1,3)]
+        output$summary01_Sunspot <- renderPrint({summary(stat01_Sunspot)})
+        output$psych01_Sunspot <- renderPrint({psych::describe(stat01_Sunspot[,2,drop=F])})
+        output$pastecs01_Sunspot <- renderPrint({pastecs::stat.desc(stat01_Sunspot[,2,drop=F])})        
+        
       }
     }
   })

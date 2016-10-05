@@ -26,6 +26,11 @@ shinyUI(
                                       column(6, DT::dataTableOutput("table1_Sunspot")),
                                       column(6, DT::dataTableOutput("table2_Sunspot"))
                                ),
+                               column(12,tags$hr(),
+                                      verbatimTextOutput("summary01_Sunspot"),
+                                      verbatimTextOutput("psych01_Sunspot"), 
+                                      verbatimTextOutput("pastecs01_Sunspot")         
+                               ),
                                div(
                                  "Caution: Rows containing missing values or non-finite values are removed.",
                                  style = "color:black",
