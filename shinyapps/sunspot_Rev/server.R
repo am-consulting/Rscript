@@ -115,7 +115,7 @@ shinyServer(function(input, output)
             dataset_Sunspot[, 2],
             col = "grey",
             breaks = "scott",
-            main = mainTitle_Sunspot,
+            main = paste0(mainTitle_Sunspot,' : right-closed left open intervals'),
             xlab = colnames(dataset_Sunspot)[2],
             freq = T
           )

@@ -3,7 +3,7 @@ shinyUI(
   fluidPage(
     fluidRow(
       column(10,
-             headerPanel("Sunspot Number. Raw Data source: Royal Observatory of Belgium"),
+             headerPanel("Sunspot Number. Raw Data source: Royal Observatory of Belgium - http://www.astro.oma.be/"),
              fluidRow(
                column(6,actionButton('searchAction_Sunspot', label = 'Import Data(take a few seconds to import.)')),
                column(6,align="right",textOutput('latestDataDownloadTime_Sunspot'))
@@ -21,8 +21,8 @@ shinyUI(
                                column(12,
                                       column(6, wellPanel(plotOutput("plot3_Sunspot"))),
                                       column(6, wellPanel(plotOutput("plot4_Sunspot")))
-                               ),tags$hr(),
-                               column(12,
+                               ),
+                               column(12,tags$hr(),
                                       column(6, DT::dataTableOutput("table1_Sunspot")),
                                       column(6, DT::dataTableOutput("table2_Sunspot"))
                                ),
@@ -34,7 +34,8 @@ shinyUI(
                              )   
              )
              ),
-             conditionalPanel(fluidRow(column(12, htmlOutput("remarktext_Sunspot")))),  
+             conditionalPanel(condition = "output.latestDataDownloadTime_Sunspot!=''",  
+                              fluidRow(column(12, htmlOutput("remarktext_Sunspot")))),  
              fluidRow(column(12, htmlOutput("disclaimer_Sunspot")))
       ),
       column(2,
