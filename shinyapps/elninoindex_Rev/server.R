@@ -169,6 +169,7 @@ shinyServer(function(input, output)
 
           rp5_SST  <- renderPlot({
             x <- dataset_SST[, 2]
+            histChart <- hist(x)
             xfit <- seq(min(x), max(x), length=100) 
             yfit <- dnorm(xfit, mean=mean(x), sd=sd(x)) 
             yfit <- yfit*diff(histChart$mids[1:2])*length(x) 
@@ -251,10 +252,10 @@ shinyServer(function(input, output)
   })  
   
   output$figure01_SST <- renderUI({
-    str <-"<div align=\"center\"><a href=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\">
+    str_SST <-"<div align=\"center\"><a href=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\">
     <img src=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\" alt=\"\" width=\"50%\"></a>
     <br>Figure 1：Source http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html</div>"
-    HTML(paste(str))
+    HTML(paste(str_SST))
   }) 
   
 })
