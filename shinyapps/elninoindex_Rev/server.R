@@ -10,7 +10,8 @@ library(reshape2)
 library(xtable)
 library(rvest)
 library(RCurl)
-
+library(psych)
+library(pastecs)
 shinyServer(function(input, output)
 {
   tabSST <- 0
@@ -77,6 +78,7 @@ shinyServer(function(input, output)
             ccc <- 3
             dataset_SST <- origData_SST_3
           }
+          dataset_SST <- na.omit(dataset_SST)
           
           output$datatitle_SST <- renderText({
             paste0(datatitle_SST[ccc], "\nPeriod:", 
@@ -164,15 +166,37 @@ shinyServer(function(input, output)
             print(g4)
           })
           output$plot4_SST <- rp4_SST
-          
+
+          rp5_SST  <- renderPlot({
+            x <- dataset_SST[, 2]
+            xfit <- seq(min(x), max(x), length=100) 
+            yfit <- dnorm(xfit, mean=mean(x), sd=sd(x)) 
+            yfit <- yfit*diff(histChart$mids[1:2])*length(x) 
+            par(mar = c(3, 5, 3, 1))          
+            histChart <- hist(
+              x,
+              cex.axis = 1.2,
+              cex.lab = 1.2,
+              cex.main = 1.2,
+              main = colnames(dataset_SST)[2],
+              xlab = "",
+              col = '#ADD8E6',
+              ylim = c(0,max(x,yfit))
+            )
+            lines(xfit, yfit, col="red", lwd=2)  
+          })
+          output$plot5_SST <- rp5_SST
+
           Stat_lm<-na.omit(dataset_SST)
           attach(Stat_lm)
           fit <- lm(`NINO.3 Sea Surface Temperature(Celsius)` ~ `Date`)
-          summary(Stat_lm)
-          summary(fit)
-          confint(fit, 'Date', level=0.95)
-          adf.test(`NINO.3 Sea Surface Temperature(Celsius)`)
-          
+          output$summary_SST <- renderPrint({summary(Stat_lm[,2])})
+          output$summary_fit_SST <- renderPrint({summary(fit)})
+          output$confint_SST <- renderPrint({confint(fit, 'Date', level=0.95)})
+          output$psych_SST <- renderPrint({psych::describe(Stat_lm[,2,drop=F])})
+          # output$pastecs_SST <- renderPrint({pastecs::stat.desc(Stat_lm[,2])})
+          output$adf_SST <- renderPrint({adf.test(`NINO.3 Sea Surface Temperature(Celsius)`)})   
+
           datatableData_SST <- na.omit(dataset_SST)
           datatableData_SST[, 1] <- format(datatableData_SST[, 1], "%Y-%m")
           rdt_SST <- DT::renderDataTable(

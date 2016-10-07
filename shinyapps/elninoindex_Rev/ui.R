@@ -19,18 +19,20 @@ shinyUI(
                                ),
                                column(12,
                                       column(6, plotOutput("plot1_SST")),
-                                      column(6, plotOutput("plot2_SST"))
+                                      column(6, plotOutput("plot2_SST"),tags$hr())
                                ),
                                column(12,
                                       column(6, plotOutput("plot4_SST")),
                                       column(6, plotOutput("plot5_SST"))
-                                      
                                ),
                                column(12,tags$hr(),
                                       plotOutput("plot3_SST")
                                ),
                                column(12,tags$hr(),
-                                      column(6, DT::dataTableOutput("table1_SST"))
+                                      column(6, DT::dataTableOutput("table1_SST"), 
+                                             verbatimTextOutput("adf_SST"), verbatimTextOutput("psych_SST")),
+                                      column(6, verbatimTextOutput("summary_SST"), 
+                                             verbatimTextOutput("summary_fit_SST"), verbatimTextOutput("confint_SST"))
                                ),
                                div(
                                  "Caution: Rows containing missing values or non-finite values are removed.",
