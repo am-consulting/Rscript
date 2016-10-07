@@ -1,5 +1,8 @@
 library(shiny)
 shinyUI(
+  # Sea Surface Temperature
+  tabPanel(      
+    "Sea Surface Temperature",  
   fluidPage(
     fluidRow(
       column(10,
@@ -53,4 +56,6 @@ shinyUI(
       )
     ) 
   )
+  )
+  # Sea Surface Temperature
 )

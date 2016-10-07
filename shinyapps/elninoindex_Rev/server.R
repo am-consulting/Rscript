@@ -182,7 +182,7 @@ shinyServer(function(input, output)
               main = colnames(dataset_SST)[2],
               xlab = "",
               col = '#ADD8E6',
-              ylim = c(0,max(x,yfit))
+              ylim = c(0,max(x,yfit)*1.01)
             )
             lines(xfit, yfit, col="red", lwd=2)  
           })
@@ -252,10 +252,8 @@ shinyServer(function(input, output)
   })  
   
   output$figure01_SST <- renderUI({
-    str_SST <-"<div align=\"center\"><a href=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\">
-    <img src=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\" alt=\"\" width=\"50%\"></a>
-    <br>Figure 1：Source http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html</div>"
-    HTML(paste(str_SST))
+    str_SST <- "<div align=\"center\"><a href=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\"><img src=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\" alt=\"\" width=\"50%\"></a><br>Figure 1 Source http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html</div>"
+    HTML(str_SST)
   }) 
   
 })
