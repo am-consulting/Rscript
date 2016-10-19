@@ -138,7 +138,7 @@ shinyServer(function(input, output, session)
 
   output$datachecktime_01 <- renderText({
     reactiveData_01()
-    completionTime <- as.POSIXlt(Sys.time(), "GMT")
-    paste("Completion(UTC) :" , as.character(completionTime))
+    completionTime_01 <- as.POSIXlt(Sys.time(), "GMT")
+    paste("Completion(UTC) :" , as.character(completionTime_01))
   })
 })
