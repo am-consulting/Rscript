@@ -29,7 +29,7 @@ buf[is.na(buf)==T]<-''
 #以降bufに変更は加えないこと
 addColumn<-0
 needBigmark<-1
-exception<-c(1,2,4,5,7,8,10)
+exception <- c(1,2,4)
 dataset<-buf
 if(needBigmark!=0){
 dataset[,-exception]<-format(dataset[,-exception],big.mark=",",scientific=F)
@@ -46,10 +46,10 @@ tail(dataset)
 timeseries<-0 # 1 or other number
 needRegular<-0 # 1 or other number
 needLinktable<-0  # 1 or other number
-individualPage<-1 # 1 or other number
+individualPage <- 1 # 1 or other number
 RegularObj<-c(1:7)
-title<-"平成26年度国の財務書類(連結財務書類、財務省)、第130回事業年度(平成26年度、日本銀行)決算等について(財務諸表等)そしてその統合"
-source<-"財務省、日本銀行"
+title<-"人権侵犯事件統計 - 種類別人権侵犯事件 - 2015年"
+source<-"法務省"
 if(timeseries==1){
   dataset[,1]<-as.Date(dataset[,1])
   if(length(unique(day(dataset[,1])))==1){dataset[,1]<-format(dataset[,1],"%Y-%m")}
@@ -59,7 +59,7 @@ alignarg<-c("r","l",rep("r",ncol(dataset)-3),"l")
 ST<-Sys.time();SD<-Sys.Date()
 pathOutput<-paste0("C:/Users/",username,buf0[2,1],'charts/')
 setwd(pathOutput);getwd()
-htmlFile<-paste("am-consulting.co.jp-",format(Sys.time(),'%Y-%m-%d-%H-%M-%S'),".html",sep="")
+htmlFile<-paste("am-consulting.co.jp-",format(Sys.time(),'%Y%m%d%H%M%S'),".html",sep="")
 table.argu<-paste("id=\"amcc_superSimpleTable",floor(as.numeric(ST)),"\" width=\"100%\" class=\"display compact\"",sep="")
 
 block01<-block02<-block03<-block04<-block05<-block06<-block07<-block08<-block09<-block10<-block11<-""
@@ -99,6 +99,8 @@ $(document).ready(function(){
 $('#amcc_superSimpleTable",floor(as.numeric(ST)),"').dataTable({
 \"lengthMenu\":[[20,10,-1],[20,10,\"All\"]],
 \"order\":[[0,\"asc\"]],
+\"scrollX\": false,
+\"autoWidth\": false,
 \"searching\":true,
 \"columnDefs\":[{\"width\":\"5%\",\"targets\":0}],
 \"language\":{\"decimal\":\".\",\"thousands\":\",\"},
@@ -199,7 +201,7 @@ outputTable<-kable(dataset,'html',row.names=F,table.attr=table.argu,align=aligna
 tfoot<- str_extract(outputTable, "<thead>[\\w\\W]*?</thead>")
 tfoot<- paste(str_replace_all(tfoot, "thead","tfoot"),"</table>")
 outputTable<-gsub("</table>","",outputTable)
-block09<-paste("<div style=\"overflow-x:scroll;\">\n",outputTable,tfoot,"</div>\n",
+block09<-paste("<div>\n",outputTable,tfoot,"</div>\n",
 "Powered by<br>-DataTables( http://datatables.net/ )<br>-jQuery( https://jquery.com )<br>-PACE( http://github.hubspot.com/pace/docs/welcome/ )")
 
 if(needLinktable==1){
