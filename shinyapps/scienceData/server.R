@@ -3,12 +3,12 @@ shinyServer(function(input, output)
 {
   tabEarthquake <- 0
   makeReactiveBinding('tabEarthquake')
-  
+
   observeEvent(input$searchActionEarthquake, {
     latestDataDownloadTimeEarthquake <<- as.POSIXlt(Sys.time(), "GMT")
     Sys.sleep(1)
     borderM <- 5
-    
+
     data.file <- "all_month.csv"
     dataset <-
       read.csv(
@@ -59,13 +59,13 @@ shinyServer(function(input, output)
         # paste("Earthquakes around Japan in past",latestJapan, "days.")
         paste("Last",latestJapan,"Earthquakes around Japan.")
       )
-    
+
     tabEarthquake <<- 1
-    output$maptypeEarthquake <- renderUI({    
+    output$maptypeEarthquake <- renderUI({
       selectInput("maptypeEarthquake", label = "Select map", selectList, selectize = FALSE)
     })
   })
-  
+
   observe({
     if (tabEarthquake == 0) {
       return(NULL)
@@ -82,14 +82,14 @@ shinyServer(function(input, output)
           maptitle <- titlegvisJapan
         } else if (input$maptypeEarthquake == selectList[4]) {
           selectedData <- datasetJapanLatest
-          maptitle <- titlegvisJapanLatest      
-        }  
+          maptitle <- titlegvisJapanLatest
+        }
         colnames(selectedData)[1]<-paste0(colnames(selectedData)[1],'(UTC)')
-        
+
         output$titlegvisEarthquake <- renderText({
           maptitle
         })
-        
+
         output$dtTableEarthquake <-
           DT::renderDataTable(
             selectedData[, c(1, 2, 3, 4, 5, 6, 14)],
@@ -109,7 +109,7 @@ shinyServer(function(input, output)
               order = list(list(0, "desc"))
             )
           )
-        
+
         output$plot1Earthquake <- renderPlot({
           par(mar = c(5, 4, 5, 3))
           hist(
@@ -123,7 +123,7 @@ shinyServer(function(input, output)
             col = "#808000"
           )
         })
-        
+
         output$plot2Earthquake <- renderPlot({
           par(mar = c(5, 4, 5, 3))
           hist(
@@ -137,7 +137,7 @@ shinyServer(function(input, output)
             col = "#808000"
           )
         })
-        
+
         output$plot3Earthquake <- renderPlot({
           par(mar = c(5, 4, 5, 3))
           hist(
@@ -151,7 +151,7 @@ shinyServer(function(input, output)
             col = "#808000"
           )
         })
-        
+
         output$plot4Earthquake <- renderPlot({
           par(mar = c(5, 4, 5, 3))
           hist(
@@ -165,7 +165,7 @@ shinyServer(function(input, output)
             col = "#808000"
           )
         })
-        
+
         output$gvisEarthquake <- renderGvis({
           commonHeight <- 700
           gvisMap(
@@ -185,7 +185,7 @@ shinyServer(function(input, output)
       }
     }
   })
-  
+
   output$remarktextEarthquake <- renderUI({
     str <- "<hr>
     <b>Remarks</b><br>
@@ -195,14 +195,14 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  
+
   output$latestDataDownloadTimeEarthquake <- renderText({
     if (tabEarthquake == 1) {
       paste("Data imported time(UTC):" ,
             as.character(latestDataDownloadTimeEarthquake))
     }
   })
-  
+
   output$disclaimerEarthquake <- renderUI({
     str <- "<hr>
     <b>Operating Company / Disclaimer</b><br>
@@ -215,10 +215,10 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  # SeaIceIndex  
+  # SeaIceIndex
   tabSeaIceIndex <- 0
-  makeReactiveBinding('tabSeaIceIndex') 
-  
+  makeReactiveBinding('tabSeaIceIndex')
+
   observeEvent(input$searchAction_SeaIceIndex, {
     latestDataDownloadTime_SeaIceIndex <<- as.POSIXlt(Sys.time(), "GMT")
     datasetSeaIceIndex <- list()
@@ -286,7 +286,7 @@ shinyServer(function(input, output)
     buf_SeaIceIndex <<- buf_SeaIceIndex
     tabSeaIceIndex <<- 1
   })
-  
+
   observe({
     if (tabSeaIceIndex == 0) {
       return(NULL)
@@ -344,7 +344,7 @@ shinyServer(function(input, output)
           print(g)
         })
         output$plot1_SeaIceIndex <- rp1
-        
+
         rp2  <- renderPlot({
           par(mar = c(5, 4, 3, 3))
           seasonData_SeaIceIndex <- data.frame(plotData_SeaIceIndex, month = month.abb[month(plotData_SeaIceIndex$Date)])
@@ -362,7 +362,7 @@ shinyServer(function(input, output)
           print(g1)
         })
         output$plot2_SeaIceIndex <- rp2
-        
+
         rp3  <- renderPlot({
           par(mar = c(3, 5, 5, 3))
           acf(plotData_SeaIceIndex[, valueColumn],
@@ -371,7 +371,7 @@ shinyServer(function(input, output)
               main = mainTitle_SeaIceIndex)
         })
         output$plot3_SeaIceIndex <- rp3
-        
+
         rp4  <- renderPlot({
           plotData_SeaIceIndex$yearMonth <-
             as.Date(paste0(year(plotData_SeaIceIndex$Date), "-", month(plotData_SeaIceIndex$Date), "-1"))
@@ -385,7 +385,7 @@ shinyServer(function(input, output)
                 FUN = get(functionList[iii])
               )
             histTitle <-
-              paste0(mainTitle_SeaIceIndex, "\n", 
+              paste0(mainTitle_SeaIceIndex, "\n",
                      format(first(tmp_SeaIceIndex[, 1]), "%Y/%m"), "-", format(last(tmp_SeaIceIndex[, 1]), "%Y/%m"))
             hist(
               tmp_SeaIceIndex[, 2],
@@ -397,8 +397,8 @@ shinyServer(function(input, output)
             )
           }
         }, height = 650)
-        output$plot4_SeaIceIndex <- rp4    
-        
+        output$plot4_SeaIceIndex <- rp4
+
         datatableData_SeaIceIndex0 <- datasetSeaIceIndex03[, c(1, 5, 6, 10, 11, 12)]
         datatableData_SeaIceIndex <- tail(datatableData_SeaIceIndex0, 100)
         colnames(datatableData_SeaIceIndex)[-1] <- paste0(colnames(datatableData_SeaIceIndex)[-1] , "(", unlist(buf_SeaIceIndex[1,][4]), ")")
@@ -420,25 +420,25 @@ shinyServer(function(input, output)
           )
         )
         output$table1_SeaIceIndex <- rdt
-        
+
         datatableData_SeaIceIndex0 <- datatableData_SeaIceIndex0[, c(1, 2, 4, 6)]
         colnames(datatableData_SeaIceIndex0)[-1] <- paste0(colnames(datatableData_SeaIceIndex0)[-1],'-',"(", unlist(buf_SeaIceIndex[1,][4]), ")")
-        output$title01_SeaIceIndex <-   renderText({paste0('Fundamental Statistic:', 
-                                                           head(datatableData_SeaIceIndex0[,1],1),'~',tail(datatableData_SeaIceIndex0[,1],1))})      
+        output$title01_SeaIceIndex <-   renderText({paste0('Fundamental Statistic:',
+                                                           head(datatableData_SeaIceIndex0[,1],1),'~',tail(datatableData_SeaIceIndex0[,1],1))})
         output$summary01_SeaIceIndex <- renderPrint({summary(datatableData_SeaIceIndex0[,-1])})
         output$psych01_SeaIceIndex <-   renderPrint({psych::describe(datatableData_SeaIceIndex0[,-1])})
         output$pastecs01_SeaIceIndex <- renderPrint({pastecs::stat.desc(datatableData_SeaIceIndex0[,-1])})
       }
     }
   })
-  
+
   output$latestDataDownloadTime_SeaIceIndex <- renderText({
     if (tabSeaIceIndex == 1) {
       paste("Data imported time(UTC):" ,
             as.character(latestDataDownloadTime_SeaIceIndex))
     }
   })
-  
+
   output$remarktext_SeaIceIndex <- renderUI({
     str <- "
     <hr>
@@ -449,7 +449,7 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  
+
   output$disclaimer_SeaIceIndex<- renderUI({
     str <- "
     <hr>
@@ -463,40 +463,40 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  # SeaIceIndex  
-  # Sunspot  
+  # SeaIceIndex
+  # Sunspot
   tabSunspot <- 0
-  makeReactiveBinding('tabSunspot') 
-  
+  makeReactiveBinding('tabSunspot')
+
   observeEvent(input$searchAction_Sunspot, {
     latestDataDownloadTime_Sunspot <<- as.POSIXlt(Sys.time(), "GMT")
-    
+
     script <-
       getURL(
         "https://raw.githubusercontent.com/am-consulting/Rscript/master/Rscript_SunspotNumber.r",
         ssl.verifypeer = F
       )
     eval(parse(text = script))
-    
+
     datatitle_Sunspot <<- c(
       "Monthly mean total sunspot number",
       "North monthly mean sunspot number",
       "South monthly mean sunspot number")
-    
+
     output$region_Sunspot <- renderUI({
-      selectInput("region_Sunspot" , label = "Select" , datatitle_Sunspot , selectize = F)    
-    })    
-    
+      selectInput("region_Sunspot" , label = "Select" , datatitle_Sunspot , selectize = F)
+    })
+
     tabSunspot <<- 1
-  }) 
-  
+  })
+
   observe({
     if (tabSunspot == 0) {
       return(NULL)
     } else{
       if (is.null(input$region_Sunspot)) { # region_Sunspotの読み込みを待つために必要
         return(NULL)
-      } else {  
+      } else {
         if (input$region_Sunspot == datatitle_Sunspot[1]) {
           ccc <- 1
           dataset_Sunspot<-origData_sunspot01[, c(1, 3)]
@@ -507,7 +507,7 @@ shinyServer(function(input, output)
           ccc <- 3
           dataset_Sunspot<-origData_sunspot02[, c(1, 5)]
         }
-        
+
         output$datatitle_Sunspot <- renderText({
           paste(
             datatitle_Sunspot[ccc],
@@ -518,12 +518,12 @@ shinyServer(function(input, output)
             sep = ""
           )
         })
-        
+
         mainTitle_Sunspot <-
-          paste0(datatitle_Sunspot[ccc], 
-                 "\nPeriod:", 
+          paste0(datatitle_Sunspot[ccc],
+                 "\nPeriod:",
                  format(dataset_Sunspot[1, 1], "%Y-%m"), "-", format(dataset_Sunspot[nrow(dataset_Sunspot), 1], "%Y-%m"))
-        
+
         rp1_Sunspot  <- renderPlot({
           par(mar = c(5, 4, 3, 3))
           g <- ggplot(data = dataset_Sunspot, aes(x = dataset_Sunspot[, 1], y = dataset_Sunspot[, 2]))
@@ -541,7 +541,7 @@ shinyServer(function(input, output)
           print(g)
         })
         output$plot1_Sunspot <- rp1_Sunspot
-        
+
         rp2_Sunspot  <- renderPlot({
           par(mar = c(5, 4, 3, 3))
           seasonData_Sunspot <- data.frame(dataset_Sunspot, month = month.abb[month(dataset_Sunspot[, 1])])
@@ -560,7 +560,7 @@ shinyServer(function(input, output)
           print(g1)
         })
         output$plot2_Sunspot <- rp2_Sunspot
-        
+
         rp3_Sunspot  <- renderPlot({
           par(mar = c(3, 5, 5, 3))
           result_Sunspot <-
@@ -568,7 +568,7 @@ shinyServer(function(input, output)
           resultDataframe_Sunspot <<- data.frame(lag = result_Sunspot$lag, acf = result_Sunspot$acf)
         })
         output$plot3_Sunspot <- rp3_Sunspot
-        
+
         rp4_Sunspot  <- renderPlot({
           hist(
             dataset_Sunspot[, 2],
@@ -580,7 +580,7 @@ shinyServer(function(input, output)
           )
         })
         output$plot4_Sunspot <- rp4_Sunspot
-        
+
         datatableData_Sunspot <- dataset_Sunspot[, c(1, 2)]
         datatableData_Sunspot[, 1] <- format(dataset_Sunspot[, 1], "%Y-%m")
         rdt_Sunspot <- DT::renderDataTable(
@@ -601,7 +601,7 @@ shinyServer(function(input, output)
           )
         )
         output$table1_Sunspot <- rdt_Sunspot
-        
+
         rdtNA_Sunspot <- DT::renderDataTable(
           resultDataframe_Sunspot,
           rownames = F,
@@ -620,23 +620,23 @@ shinyServer(function(input, output)
           )
         )
         output$table2_Sunspot <- rdtNA_Sunspot
-        
+
         stat01_Sunspot <- origData_sunspot01[,c(1,3)]
         output$summary01_Sunspot <- renderPrint({summary(stat01_Sunspot)})
         output$psych01_Sunspot <- renderPrint({psych::describe(stat01_Sunspot[,2,drop=F])})
-        output$pastecs01_Sunspot <- renderPrint({pastecs::stat.desc(stat01_Sunspot[,2,drop=F])})        
-        
+        output$pastecs01_Sunspot <- renderPrint({pastecs::stat.desc(stat01_Sunspot[,2,drop=F])})
+
       }
     }
   })
-  
+
   output$latestDataDownloadTime_Sunspot <- renderText({
     if (tabSunspot == 1) {
       paste("Data imported time(UTC):" ,
             as.character(latestDataDownloadTime_Sunspot))
     }
   })
-  
+
   output$remarktext_Sunspot <- renderUI({
     str <- "<hr>
     <b>Note</b><br>
@@ -645,7 +645,7 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  
+
   output$disclaimer_Sunspot<- renderUI({
     str <- "<hr>
     <b>Operating Company / Disclaimer</b><br>
@@ -658,21 +658,21 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  # Sunspot  
-  # Carbon Dioxide Concentration  
+  # Sunspot
+  # Carbon Dioxide Concentration
   tabCO2 <- 0
-  makeReactiveBinding('tabCO2') 
-  
+  makeReactiveBinding('tabCO2')
+
   observeEvent(input$searchAction_CO2, {
     latestDataDownloadTime_CO2 <<- as.POSIXlt(Sys.time(), "GMT")
-    
+
     sourceURL_CO2 <- "\nhttp://ds.data.jma.go.jp/ghg/kanshi/info_co2.html"
     url_CO2 <- c(
       "http://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_ryo.csv",
       "http://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_mnm.csv",
       "http://ds.data.jma.go.jp/ghg/kanshi/obs/co2_monthave_yon.csv"
     )
-    datatitle_CO2 <<- c( 
+    datatitle_CO2 <<- c(
       "Monthly average of CO2 concentration(ppm):Ryōri",
       "Monthly average of CO2 concentration(ppm):Minami-Tori-shima",
       "Monthly average of CO2 concentration(ppm):Yonaguni-jima"
@@ -694,7 +694,7 @@ shinyServer(function(input, output)
       colnames(tmp_CO2)[2] <- paste(selectList_CO2[rrr], ".co2(ppm)", sep = "")
       assign(paste0('origData_CO2_',rrr), tmp_CO2, envir = .GlobalEnv)
     }
-    
+
     output$stationname_CO2 <- renderUI({
       selectInput(
         "stationname_CO2",
@@ -702,8 +702,8 @@ shinyServer(function(input, output)
         selectList_CO2,
         selectize = F
       )
-    })   
-    
+    })
+
     stations_CO2 <-
       data.frame(
         lat =  c(39.031333,    24.289418,  24.466518),
@@ -714,17 +714,17 @@ shinyServer(function(input, output)
     latlong_CO2 <- paste(stations_CO2[1, 1], stations_CO2[2, 1], sep = ":")
     stations_CO2$info <- paste(stations_CO2$info, "-", stations_CO2$latlong)
     stations_CO2 <<- stations_CO2
-    
+
     tabCO2 <<- 1
-  })  
-  
+  })
+
   observe({
     if (tabCO2 == 0) {
       return(NULL)
     } else{
       if (is.null(input$stationname_CO2)) { # stationname_CO2の読み込みを待つために必要
         return(NULL)
-      } else { 
+      } else {
         if (input$stationname_CO2 == selectList_CO2[1]) {
           obj_CO2 <- 1
         } else if (input$stationname_CO2 == selectList_CO2[2]) {
@@ -742,7 +742,7 @@ shinyServer(function(input, output)
         co2dataNA[, 1] <- format(co2dataNA[, 1], "%Y-%m")
         co2dataNA <- co2dataNA[is.na(co2dataNA[, 2]) == T, ]
         co2dataNA[, 2] <- as.character("Not Available")
-        
+
         output$table1_CO2 <- DT::renderDataTable(
           co2data,
           rownames = F,
@@ -760,7 +760,7 @@ shinyServer(function(input, output)
             order = list(list(0, "desc"))
           )
         )
-        
+
         # if (nrow(co2dataNA) != 0) {
         #   output$table2_CO2 <- DT::renderDataTable(
         #     co2dataNA,
@@ -780,7 +780,7 @@ shinyServer(function(input, output)
         #     )
         #   )
         # }
-        
+
         output$plot1_CO2 <- renderPlot({
           par(mar = c(5, 4, 3, 3))
           g1 <- ggplot(data = dataset_CO2,aes(x = Date, y = value))
@@ -797,7 +797,7 @@ shinyServer(function(input, output)
           g1 <- g1 + ylab("")
           print(g1)
         })
-        
+
         output$plot2_CO2 <- renderPlot({
           par(mar = c(5, 4, 3, 3))
           seasonData_CO2_mm <- data.frame(dataset_CO2, month = month.abb[month(dataset_CO2[, 1])])
@@ -814,7 +814,7 @@ shinyServer(function(input, output)
           g2 <- g2 + ylab("")
           print(g2)
         })
-        
+
         output$plot3_CO2 <- renderPlot({
           par(mar = c(5, 4, 3, 3))
           seasonData_CO2_yy <- data.frame(dataset_CO2, year = year(dataset_CO2[, 1]))
@@ -831,7 +831,7 @@ shinyServer(function(input, output)
           g3 <- g3 + ylab("")
           print(g3)
         })
-        
+
         output$plot4_CO2 <- renderPlot({
           par(mar = c(5, 4, 3, 3))
           seasonData_CO2_decade <- data.frame(dataset_CO2, decade = paste0(floor(year(dataset_CO2[, 1])/10)*10,'~'))
@@ -848,7 +848,7 @@ shinyServer(function(input, output)
           g4 <- g4 + ylab("")
           print(g4)
         })
-        
+
         output$gvis_CO2 <- renderGvis({
           commonHeight_CO2 <- 500
           gvisMap(
@@ -869,14 +869,14 @@ shinyServer(function(input, output)
       }
     }
   })
-  
+
   output$latestDataDownloadTime_CO2 <- renderText({
     if (tabCO2 == 1) {
       paste("Data imported time(UTC):" ,
             as.character(latestDataDownloadTime_CO2))
     }
   })
-  
+
   output$remarktext_CO2 <- renderUI({
     str <- "<hr>
     <b>Note</b><br>
@@ -885,7 +885,7 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  
+
   output$disclaimer_CO2<- renderUI({
     str <- "<hr>
     <b>Operating Company / Disclaimer</b><br>
@@ -895,15 +895,15 @@ shinyServer(function(input, output)
     </li>
     </ol>"
     HTML(str)
-  })  
-  # Carbon Dioxide Concentration  
+  })
+  # Carbon Dioxide Concentration
   # Monthly Mean Temperature Anomaly
   tabMMT <- 0
-  makeReactiveBinding('tabMMT') 
-  
+  makeReactiveBinding('tabMMT')
+
   observeEvent(input$searchAction_MMT, {
     latestDataDownloadTime_MMT <<- as.POSIXlt(Sys.time(), "GMT")
-    
+
     sourceURL_MMT <- c(
       "http://www.data.jma.go.jp/cpdinfo/temp/list/mon_wld.html",
       "http://www.data.jma.go.jp/cpdinfo/temp/list/mon_jpn.html"
@@ -926,26 +926,26 @@ shinyServer(function(input, output)
       buf_MMT[, -1] <- sapply(buf_MMT[, -1], function(x) {gsub("[^0-9|-|+|.]*?", "", x)})
       buf_MMT <- data.frame(Year = buf_MMT[, 1], sapply(buf_MMT[, -1], as.numeric), check.names = F,stringsAsFactors = F)
       assign(paste0('origData_MMT_',iii), buf_MMT, envir = .GlobalEnv)
-    }  
-    
+    }
+
     output$region_MMT <- renderUI({
-      selectInput("region_MMT", label = "Select Region",   datatitle_MMT  ,     selectize = F)   
-    })      
-    
+      selectInput("region_MMT", label = "Select Region",   datatitle_MMT  ,     selectize = F)
+    })
+
     tabMMT <<- 1
-  })  
-  
+  })
+
   observe({
     if (tabMMT == 0) {return(NULL)} else{
       if (is.null(input$region_MMT)) { # stationname_CO2の読み込みを待つために必要
-        return(NULL)} else { 
+        return(NULL)} else {
           if (input$region_MMT == datatitle_MMT[1]) {
             iii <- 1
           } else{
             iii <- 2
           }
-          output$datatitle_MMT <- renderText({datatitle_MMT[iii]})        
-          
+          output$datatitle_MMT <- renderText({datatitle_MMT[iii]})
+
           obj_MMT<-get(paste0('origData_MMT_',iii))
           start <- as.numeric(gsub("年", "", obj_MMT[1, 1]))
           tmpValue <- as.numeric(as.vector(t(obj_MMT[, -1])))
@@ -959,9 +959,9 @@ shinyServer(function(input, output)
           tdDataNA_MMT[, 2] <- as.character("Not Available")
           chartTitle <-
             paste(datatitle_MMT[iii],'\n',
-                  format(dataset_MMT[1, 1], "%Y-%m"), "-", format(dataset_MMT[nrow(dataset_MMT), 1], "%Y-%m"),"\nSource:JMA")  
+                  format(dataset_MMT[1, 1], "%Y-%m"), "-", format(dataset_MMT[nrow(dataset_MMT), 1], "%Y-%m"),"\nSource:JMA")
           colnames(tdData_MMT)[2] <- colnames(tdDataNA_MMT)[2] <- datatitle_MMT[iii]
-          
+
           rdt_MMT <- DT::renderDataTable(
             tdData_MMT,
             rownames = F,
@@ -981,7 +981,7 @@ shinyServer(function(input, output)
             )
           )
           output$table1_MMT <- rdt_MMT
-          
+
           if (nrow(tdDataNA_MMT) != 0) {
             rdtNA_MMT <- DT::renderDataTable(
               tdDataNA_MMT,
@@ -1003,7 +1003,7 @@ shinyServer(function(input, output)
             )
             output$table1NA_MMT <- rdtNA_MMT
           }
-          
+
           rp1_MMT  <- renderPlot({
             par(mar = c(5, 4, 3, 3))
             g1 <- ggplot(data = dataset_MMT, aes(x = Date, y = value))
@@ -1021,7 +1021,7 @@ shinyServer(function(input, output)
             print(g1)
           })
           output$plot1_MMT <- rp1_MMT
-          
+
           rp2_MMT <- renderPlot({
             par(mar = c(5, 4, 3, 3))
             seasonData <- data.frame(dataset_MMT, month = month.abb[month(dataset_MMT[, 1])])
@@ -1038,8 +1038,8 @@ shinyServer(function(input, output)
             g2 <- g2 + ggtitle(chartTitle)
             print(g2)
           })
-          output$plot2_MMT <- rp2_MMT        
-          
+          output$plot2_MMT <- rp2_MMT
+
           rp3_MMT <- renderPlot({
             par(mar = c(5, 4, 3, 3))
             seasonData <- data.frame(dataset_MMT, year = year(dataset_MMT[, 1]))
@@ -1056,8 +1056,8 @@ shinyServer(function(input, output)
             g3 <- g3 + ggtitle(chartTitle)
             print(g3)
           })
-          output$plot3_MMT <- rp3_MMT        
-          
+          output$plot3_MMT <- rp3_MMT
+
           rp4_MMT <- renderPlot({
             par(mar = c(5, 4, 3, 3))
             seasonData <- data.frame(dataset_MMT, decade = paste0(floor(year(dataset_MMT[, 1])/10)*10,'~'))
@@ -1074,14 +1074,14 @@ shinyServer(function(input, output)
             g4 <- g4 + ggtitle(chartTitle)
             print(g4)
           })
-          output$plot4_MMT <- rp4_MMT 
-          
+          output$plot4_MMT <- rp4_MMT
+
           rp5_MMT <- renderPlot({
             decadeData <- data.frame(dataset_MMT, decade = paste0(floor(year(dataset_MMT[, 1])/10)*10,'~'))
             decadeData <- na.omit(decadeData)
             decadeMean <- by(data = decadeData[,2], INDICES = decadeData$decade, FUN = mean)
             decadeSD <- by(data = decadeData[,2], INDICES = decadeData$decade, FUN = sd)
-            decadeCI <- by(data = decadeData[,2], 
+            decadeCI <- by(data = decadeData[,2],
                            INDICES = decadeData$decade, function(x){qt(0.975,df=length(x)-1)*sd(x)/sqrt(length(x))})
             maxY <- max(decadeMean+decadeSD)
             minY <- min(decadeMean-decadeSD)
@@ -1092,7 +1092,7 @@ shinyServer(function(input, output)
               type = 'o',
               col='black',
               ylim = c(minY,maxY),
-              lwd = 1,  
+              lwd = 1,
               xlab = '' ,
               ylab = '' ,
               panel.first = grid(nx = NULL, ny = NULL, lty = 2, equilogs = T) ,
@@ -1101,7 +1101,7 @@ shinyServer(function(input, output)
               cex.axis = 1.2,
               cex.lab = 1.2,
               cex.main = 1.2
-            )        
+            )
             arrows(xRange, decadeMean + decadeSD, xRange, decadeMean - decadeSD, angle = 90, length = 0.05, col = 'red')
             arrows(xRange, decadeMean - decadeSD, xRange, decadeMean + decadeSD, angle = 90, length = 0.05, col = 'red')
             arrows(xRange, decadeMean + decadeCI, xRange, decadeMean - decadeCI, angle = 90, length = 0.05, col = 'blue')
@@ -1114,18 +1114,18 @@ shinyServer(function(input, output)
               cex=1.3,bty='n')
             axis(side = 1, at = xRange, labels = unique(decadeData$decade), las=2,cex=1.2)
           })
-          output$plot5_MMT <- rp5_MMT 
-        }  
+          output$plot5_MMT <- rp5_MMT
+        }
     }
   })
-  
+
   output$latestDataDownloadTime_MMT <- renderText({
     if (tabMMT == 1) {
       paste("Data imported time(UTC):" ,
             as.character(latestDataDownloadTime_MMT))
     }
   })
-  
+
   output$remarktext_MMT <- renderUI({
     str <- "<hr>
     <b>Note</b><br>
@@ -1134,7 +1134,7 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  
+
   output$disclaimer_MMT<- renderUI({
     str <- "<hr>
     <b>Operating Company / Disclaimer</b><br>
@@ -1144,15 +1144,15 @@ shinyServer(function(input, output)
     </li>
     </ol>"
     HTML(str)
-  })  
+  })
 
   # Monthly Mean Temperature Anomaly
-  # Sea Surface Temperature  
+  # Sea Surface Temperature
   tabSST <- 0
-  makeReactiveBinding('tabSST')   
+  makeReactiveBinding('tabSST')
   observeEvent(input$searchAction_SST, {
-    latestDataDownloadTime_SST <<- as.POSIXlt(Sys.time(), "GMT") 
-    
+    latestDataDownloadTime_SST <<- as.POSIXlt(Sys.time(), "GMT")
+
     sourceURL <- "http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html"
     url_SST <- c(
       "http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/nino3abs.html",
@@ -1183,25 +1183,25 @@ shinyServer(function(input, output)
       dataset_SST <- data.frame(apply(dataset_SST, 2, as.numeric), stringsAsFactors = F, check.names = F)
       datasetDF <-
         data.frame(
-          Date = seq(as.Date(paste(dataset_SST[1, 1], "-1-1", sep = "")), 
-                     by = "month", length = nrow(dataset_SST) * 12), value = as.vector(t(dataset_SST)[-1, ]), 
+          Date = seq(as.Date(paste(dataset_SST[1, 1], "-1-1", sep = "")),
+                     by = "month", length = nrow(dataset_SST) * 12), value = as.vector(t(dataset_SST)[-1, ]),
           check.names = F,stringsAsFactors = F)
       datasetDF[datasetDF == 99.9] <- NA
       colnames(datasetDF)[2] <- datatitle_SST[[rrr]]
       assign(paste0('origData_SST_', rrr), datasetDF, envir = .GlobalEnv)
     }
-    
-    output$region_SST <- renderUI({    
-      selectInput("region_SST", label = "Select", datatitle_SST, selectize = F)    
+
+    output$region_SST <- renderUI({
+      selectInput("region_SST", label = "Select", datatitle_SST, selectize = F)
     })
-    
+
     tabSST <<- 1
   })
-  
+
   observe({
     if (tabSST == 0) {return(NULL)} else{
       if (is.null(input$region_SST)) { # stationname_CO2の読み込みを待つために必要
-        return(NULL)} else {  
+        return(NULL)} else {
           if (input$region_SST == datatitle_SST[1]) {
             ccc <- 1
             dataset_SST <- origData_SST_1
@@ -1213,15 +1213,15 @@ shinyServer(function(input, output)
             dataset_SST <- origData_SST_3
           }
           dataset_SST <- na.omit(dataset_SST)
-          
+
           output$datatitle_SST <- renderText({
-            paste0(datatitle_SST[ccc], "\nPeriod:", 
+            paste0(datatitle_SST[ccc], "\nPeriod:",
                    format(first(dataset_SST$Date), "%Y-%m"), "-", format(last(dataset_SST$Date), "%Y-%m"))
           })
-          
+
           mainTitle_SST <-
             paste0(datatitle_SST[ccc],"\nPeriod:",format(first(dataset_SST$Date),"%Y-%m"),"-",format(last(dataset_SST$Date),"%Y-%m"))
-          
+
           rp1_SST  <- renderPlot({
             par(mar = c(5, 4, 3, 3))
             plotData <<- na.omit(dataset_SST)
@@ -1238,12 +1238,12 @@ shinyServer(function(input, output)
             g1 <- g1 + ylab(paste(colnames(plotData)[2]))
             lmResult <- lm(plotData[, 2] ~ plotData$Date)
             g1 <- g1 + ggtitle(
-              paste(mainTitle_SST, "\nLiner Model Slope:", 
+              paste(mainTitle_SST, "\nLiner Model Slope:",
                     lmResult$coefficients[2], "\nUnit Root Test p-value:", adf.test(plotData[, 2])$p.value))
             print(g1)
           })
           output$plot1_SST <- rp1_SST
-          
+
           rp2_SST  <- renderPlot({
             par(mar = c(5, 4, 3, 3))
             seasonData <- data.frame(dataset_SST, month = month.abb[month(dataset_SST[, 1])])
@@ -1262,7 +1262,7 @@ shinyServer(function(input, output)
             print(g2)
           })
           output$plot2_SST <- rp2_SST
-          
+
           rp3_SST  <- renderPlot({
             par(mar = c(5, 4, 3, 3))
             seasonData <- data.frame(dataset_SST, year = year(dataset_SST[, 1]))
@@ -1281,7 +1281,7 @@ shinyServer(function(input, output)
             print(g3)
           })
           output$plot3_SST <- rp3_SST
-          
+
           rp4_SST  <- renderPlot({
             par(mar = c(5, 4, 3, 3))
             seasonData <- data.frame(dataset_SST, decade = floor(year(dataset_SST[, 1])/10)*10)
@@ -1300,14 +1300,14 @@ shinyServer(function(input, output)
             print(g4)
           })
           output$plot4_SST <- rp4_SST
-          
+
           rp5_SST  <- renderPlot({
             x <- dataset_SST[, 2]
             histChart <- hist(x)
-            xfit <- seq(min(x), max(x), length=100) 
-            yfit <- dnorm(xfit, mean=mean(x), sd=sd(x)) 
-            yfit <- yfit*diff(histChart$mids[1:2])*length(x) 
-            par(mar = c(3, 5, 3, 1))          
+            xfit <- seq(min(x), max(x), length=100)
+            yfit <- dnorm(xfit, mean=mean(x), sd=sd(x))
+            yfit <- yfit*diff(histChart$mids[1:2])*length(x)
+            par(mar = c(3, 5, 3, 1))
             histChart <- hist(
               x,
               cex.axis = 1.2,
@@ -1318,10 +1318,10 @@ shinyServer(function(input, output)
               col = '#ADD8E6',
               ylim = c(0,max(x,yfit)*1.01)
             )
-            lines(xfit, yfit, col="red", lwd=2)  
+            lines(xfit, yfit, col="red", lwd=2)
           })
           output$plot5_SST <- rp5_SST
-          
+
           Stat_lm<-na.omit(dataset_SST)
           attach(Stat_lm)
           fit <- lm(`NINO.3 Sea Surface Temperature(Celsius)` ~ `Date`)
@@ -1330,8 +1330,8 @@ shinyServer(function(input, output)
           output$confint_SST <- renderPrint({confint(fit, 'Date', level=0.95)})
           output$psych_SST <- renderPrint({psych::describe(Stat_lm[,2,drop=F])})
           # output$pastecs_SST <- renderPrint({pastecs::stat.desc(Stat_lm[,2])})
-          output$adf_SST <- renderPrint({adf.test(`NINO.3 Sea Surface Temperature(Celsius)`)})   
-          
+          output$adf_SST <- renderPrint({adf.test(`NINO.3 Sea Surface Temperature(Celsius)`)})
+
           datatableData_SST <- na.omit(dataset_SST)
           datatableData_SST[, 1] <- format(datatableData_SST[, 1], "%Y-%m")
           rdt_SST <- DT::renderDataTable(
@@ -1349,22 +1349,22 @@ shinyServer(function(input, output)
               pageLength = 5,
               orderClasses = T,
               order = list(list(0, "desc")),
-              escape = F, # or escape = 'v1'(特定のcolumn) テーブル内でhtmlマークアップする場合に必須 
+              escape = F, # or escape = 'v1'(特定のcolumn) テーブル内でhtmlマークアップする場合に必須
               filter = 'bottom'
             )
           )
           output$table1_SST <- rdt_SST
         }
     }
-  }) 
-  
+  })
+
   output$latestDataDownloadTime_SST <- renderText({
     if (tabSST == 1) {
       paste("Data imported time(UTC):" ,
             as.character(latestDataDownloadTime_SST))
     }
   })
-  
+
   output$remarktext_SST <- renderUI({
     str <- "<hr>
     <b>Note</b><br>
@@ -1373,7 +1373,7 @@ shinyServer(function(input, output)
     </ol>"
     HTML(str)
   })
-  
+
   output$disclaimer_SST<- renderUI({
     str <- "<hr>
     <b>Operating Company / Disclaimer</b><br>
@@ -1383,11 +1383,97 @@ shinyServer(function(input, output)
     </li>
     </ol>"
     HTML(str)
-  })  
-  
+  })
+
   output$figure01_SST <- renderUI({
     str_SST <- "<div align=\"center\"><a href=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\"><img src=\"http://www.data.jma.go.jp/gmd/cpd/elnino/kanshi_joho/fig/c_b_region_hp.png\" alt=\"\" width=\"50%\"></a><br>Figure 1 Source http://www.data.jma.go.jp/gmd/cpd/data/elnino/index/dattab.html</div>"
     HTML(str_SST)
   })
-  # Sea Surface Temperature  
+  # Sea Surface Temperature
+  # Earthquakes for the last week in Japan
+  tab1weekEQ <- 0
+  makeReactiveBinding('tab1weekEQ')
+
+  funDataTable_1weekEQ <- function(obj, ind = '', orderC = 0, orderD = 'asc', width0 = '10%', width1 = '10%') {
+    DT::renderDataTable(
+      obj,
+      options = list(
+        paging = T, autoWidth = F, info = T, lengthChange = T, ordering = T, searching = T,
+        scrollX = F, lengthMenu = list(c(10,-1, 1), c(10, 'All', 1)), orderClasses = T,
+        order = list(list(orderC, orderD)), search = list(regex = T, caseInsensitive = T),
+        columnDefs = list(list(width = width0, targets = 0),list(width = width1, targets = 1))
+      ),
+      rownames = F,   class = 'display compact', filter = 'bottom', caption = ind
+    )
+  }
+
+  observeEvent(input$searchAction_1weekEQ, {
+    sourceURL_1weekEQ <- "http://www.jma.go.jp/jp/quake/quake_local_index.html"
+    tmp_1weekEQ <- readHTMLTable(doc=sourceURL_1weekEQ, header=T, trim=T, stringsAsFactors=F, as.data.frame=T, which=4)
+    getTime_1weekEQ <<- Sys.time()
+    title_1weekEQ <<- paste0('Earthquakes for the last week in Japan. Source:JMA. Date-Time:', getTime_1weekEQ)
+    colnames(tmp_1weekEQ) <- iconv(colnames(tmp_1weekEQ),"utf-8")
+    buf_1weekEQ <- data.frame()
+    for(rrr in 1:nrow(tmp_1weekEQ)){
+      for(ccc in 1:ncol(tmp_1weekEQ)){
+        buf_1weekEQ[rrr,ccc] <- zen2han(tmp_1weekEQ[rrr,ccc])
+      }
+    }
+    colnames(buf_1weekEQ) <- colnames(tmp_1weekEQ)
+    buf_1weekEQ[,4] <- as.numeric(gsub('M','',buf_1weekEQ[,4]))
+    assign('dataSet_1weekEQ', buf_1weekEQ, envir = .GlobalEnv)
+
+    epicenter_1weekEQ <- unique(dataSet_1weekEQ[,3])
+    earthquakeTable_1weekEQ <- data.frame()
+    for(eee in 1:length(epicenter_1weekEQ)){
+      buf0 <- subset(dataSet_1weekEQ,dataSet_1weekEQ[,3]==epicenter_1weekEQ[eee])
+      earthquakeTable_1weekEQ[eee,1] <- epicenter_1weekEQ[eee]
+      earthquakeTable_1weekEQ[eee,2] <- nrow(buf0)
+      earthquakeTable_1weekEQ[eee,3] <- max(buf0[,4])
+      earthquakeTable_1weekEQ[eee,4] <- min(buf0[,4])
+      earthquakeTable_1weekEQ[eee,5] <- tail(buf0[,2],1)
+      earthquakeTable_1weekEQ[eee,6] <- head(buf0[,2],1)
+    }
+    colnames(earthquakeTable_1weekEQ) <- c('Epicenter', 'Total Number', 'Magnitude:Max', 'Magnitude:Min', 'First', 'Latest')
+    assign('earthquakeTable_1weekEQ',earthquakeTable_1weekEQ, envir = .GlobalEnv)
+
+    tab1weekEQ <<- 1
+  })
+
+  observe({
+    if (tab1weekEQ == 0) {return(NULL)} else{
+      rdt_1week01EQ <- funDataTable_1weekEQ(obj = dataSet_1weekEQ,
+                                            ind = title_1weekEQ, orderD = 'desc', width0 = '30%', width1 = '20%')
+      output$table1_1week01EQ <- rdt_1week01EQ
+      rdt_1week02EQ <- funDataTable_1weekEQ(obj = earthquakeTable_1weekEQ,
+                                            ind = title_1weekEQ, orderC = 1,  orderD = 'desc', width0 = '16%', width1 = '14%')
+      output$table2_1week02EQ <- rdt_1week02EQ
+
+    }
+  })
+
+  output$latestDataDownloadTime_1weekEQ <- renderText({
+    if (tab1weekEQ == 1) {paste("Data imported time(UTC):" , as.character(getTime_1weekEQ))}
+  })
+
+  output$remarktext_1weekEQ <- renderUI({
+    str <- "<hr>
+    <b>Note</b><br>
+    <ol>
+    <li><a href=\"http://www.jma.go.jp/jp/quake/quake_local_index.html\" target=\"_blank\">Japan Meteorological Agency</a></li>
+    </ol>"
+    HTML(str)
+  })
+
+  output$disclaimer_1weekEQ<- renderUI({
+    str <- "<hr>
+    <b>Operating Company / Disclaimer</b><br>
+    <ol>
+    <li><a href=\"http://am-consulting.co.jp\" target=\"_blank\">Asset Management Consulting Corporation -  http://am-consulting.co.jp</a></li>
+    <li><a href=\"http://am-consulting.co.jp/disclaimer/\" target=\"_blank\">Disclaimer</a>
+    </li>
+    </ol>"
+    HTML(str)
+  })
+  # Earthquakes for the last week in Japan
 })
