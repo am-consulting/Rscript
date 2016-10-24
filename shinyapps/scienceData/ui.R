@@ -364,7 +364,7 @@ shinyUI(
       fluidPage(
         fluidRow(
           column(10,
-                 headerPanel("Earthquakes for the last week in Japan. Raw Data source: Japan Meteorological Agency"),
+                 headerPanel("Earthquakes for the last week in Japan(SHINDO 1 or more). Raw Data source: Japan Meteorological Agency"),
                  fluidRow(
                    column(6,actionButton('searchAction_1weekEQ', label = 'Import Data(take a few seconds to import.)')),
                    column(6,align="right",textOutput('latestDataDownloadTime_1weekEQ'))

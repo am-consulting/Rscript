@@ -1411,7 +1411,7 @@ shinyServer(function(input, output)
     sourceURL_1weekEQ <- "http://www.jma.go.jp/jp/quake/quake_local_index.html"
     tmp_1weekEQ <- readHTMLTable(doc=sourceURL_1weekEQ, header=T, trim=T, stringsAsFactors=F, as.data.frame=T, which=4)
     getTime_1weekEQ <<- Sys.time()
-    title_1weekEQ <<- paste0('Earthquakes for the last week in Japan. Source:JMA. Date-Time:', getTime_1weekEQ)
+    title_1weekEQ <<- paste0('Earthquakes for the last week in Japan. Source : JMA. Date-Time : ', getTime_1weekEQ)
     colnames(tmp_1weekEQ) <- iconv(colnames(tmp_1weekEQ),"utf-8")
     buf_1weekEQ <- data.frame()
     for(rrr in 1:nrow(tmp_1weekEQ)){
