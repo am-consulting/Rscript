@@ -6,28 +6,22 @@ options(download.file.method='libcurl')
 perl <- gdata:::findPerl('perl')
 dataURL <-
   c('http://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001w9e-att/historical-y.xls')
-for (iii in 1:length(dataURL)) { 
-  Sys.sleep(1) #avoid to overload    
-  switch (iii,
-          objsheet <- 1)
-  switch (iii,
-          objcolumn <- c(1:7))
+  Sys.sleep(1) #avoid to overload
+  objcolumn <- c(1:7)
   buf0 <-
     read.xls(
-      dataURL[iii],
+      dataURL[1],
       perl = perl,
       check.names = F,
       header = F,
       stringsAsFactors = F,
-      sheet = objsheet,
+      sheet = 1,
       fileEncoding = 'utf-8'
     )
-  buf <- buf0[,objcolumn]
-  colnames(buf) <- gsub('\n','',unlist(buf[5, ]))
-  buf <- buf[-c(1:5),]
-  colnames(buf)[1]<-'Date'
-  buf[,1] <- as.Date(paste0(buf[,1],'/1'))
-  buf[,-1]<-apply(buf[,-1,drop=F],2,as.numeric)
-  assign(paste0('AverageYield'), buf, envir = .GlobalEnv)
-  gc();gc()
-}
+  buf1 <- buf0[,objcolumn]
+  colnames(buf1) <- paste0(buf1[1,1],'-',gsub('\n','',unlist(buf1[5, ])))
+  buf2 <- buf1[-c(1:5),]
+  colnames(buf2)[1]<-'Date'
+  buf2[, 1] <- as.Date(paste0(buf2[,1],'/1'))
+  buf2[,-1] <- apply(buf2[,-1,drop=F],2,as.numeric)
+  assign(paste0('averageYield'), buf2, envir = .GlobalEnv)
