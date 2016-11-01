@@ -6,15 +6,13 @@ options(download.file.method='libcurl')
 perl <- gdata:::findPerl('perl')
 dataURL <-
   c('http://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq00000015r6-att/j_longrange-perpbr.xls')
-for (iii in 1:length(dataURL)) { 
-  Sys.sleep(1) #avoid to overload    
-  switch (iii,
-          objsheet <- 3) # 連結総合(加重)
-  switch (iii,
-          objcolumn <- c(1:18))
+  Sys.sleep(1) #avoid to overload
+
+  objsheet <- 3; title <- '連結総合(加重)'
+  objcolumn <- c(1:18)
   buf0 <-
     read.xls(
-      dataURL[iii],
+      dataURL[1],
       perl = perl,
       check.names = F,
       header = F,
@@ -22,14 +20,13 @@ for (iii in 1:length(dataURL)) {
       sheet = objsheet,
       fileEncoding = 'utf-8'
     )
-  buf <- buf0[,objcolumn]
-  colnames(buf) <- gsub('\n','',unlist(buf[2, ]))
-  buf <- buf[-c(1:2),]
-  buf[,1] <- as.Date(paste0(buf[,1],'-',buf[,3],'-',buf[,2]))
-  buf <- buf[,c(1,4:8)] # 市場第一部
-  buf[,-1] <- apply(buf[,-1,drop=F],2,function(x)as.numeric(gsub(',','',x)))
-  assign(paste0('PERPBR'), buf, envir = .GlobalEnv)
-  gc();gc()
-  
-  
-}
+  buf1 <- buf0[,objcolumn]
+  colnames(buf1) <- gsub('\n','',unlist(buf1[2, ]))
+  buf2 <- buf1[,1:(grep('二部',buf1[1,])-1)]; title <- paste0(title,'-市場第一部')
+  buf3 <- buf2[-c(1:2),]
+  buf3[,1] <- as.Date(paste0(buf3[,1],'-',buf3[,3],'-',buf3[,2]))
+  buf4 <- buf3[,c(1,5,6)]
+  buf4[,-1] <- apply(buf4[,-1,drop=F],2,function(x)as.numeric(gsub(',','',x)))
+  colnames(buf4)[-1] <- paste0(title,'-',colnames(buf4)[-1])
+  colnames(buf4)[1] <- 'Date'
+  assign(paste0('PERPBR'), buf4, envir = .GlobalEnv)
