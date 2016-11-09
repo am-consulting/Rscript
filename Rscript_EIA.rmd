@@ -137,6 +137,7 @@ JapaneseTitle <- c(
 ```{r}
 htmlFile <- paste0(Sys.Date(),'-amcc_EIA.md')
 cat('', file = htmlFile, append = F)
+cat('<style>table{width:100%}</style>', file = htmlFile, append = T)
 for (ooo in 1:length(obj)) {
   ccc <- grep(obj[ooo] , colnames(EIAData))
   tmp <- EIAData[, c(1, ccc)]
@@ -146,9 +147,10 @@ for (ooo in 1:length(obj)) {
   wtiOil0 <- na.omit(subset(wtiOil, first(dataSet[, 1]) <= wtiOil[, 1] & wtiOil[, 1] <= last(dataSet[, 1])))
   dataSet <- merge(dataSet,wtiOil0,by='Date',all = T)
   cat('\n***\n', file = htmlFile, append = T)
-  cat('#### ',paste0(colnames(tmp0)[2], ' / ', JapaneseTitle[ooo], '\n'), file = htmlFile, append = T)
+  cat('<b>',paste0(colnames(tmp0)[2], '</b><br>'), file = htmlFile, append = T)
+  cat('<b>',paste0(JapaneseTitle[ooo], '</b>\n\n'), file = htmlFile, append = T)
   colnames(tmp0)[2] <- 'Figure'
-  bufTable <- tail(tmp0, 5)
+  bufTable <- tail(tmp0, 10)
   bufTable <- knitr::kable(bufTable,row.names = F)  
   cat(paste0(bufTable, '\n'), file = htmlFile, append = T)  
   # bufTable[, 1] <- format(bufTable[, 1], dateFormat)
@@ -171,19 +173,19 @@ for (ooo in 1:length(obj)) {
   #   quote = F
   # )
   # summaryTable <- data.frame(unclass(summary(dataSet[,2:3])), check.names = F, stringsAsFactors = F)
-  summaryTable <- data.frame(apply(dataSet[,2:3],2,summary), check.names = F, stringsAsFactors = F)
-  colnames(summaryTable) <- paste0(colnames(summaryTable), ':', first(dataSet[, 1]), '~', last(dataSet[, 1]))
-  summaryTable <- knitr::kable(summaryTable)
-  cat('<br> **基本統計量** \n\n', file = htmlFile, append = T)
-  cat(paste0(summaryTable, '\n'), file = htmlFile, append = T)
+  # summaryTable <- data.frame(apply(dataSet[,2:3],2,summary), check.names = F, stringsAsFactors = F)
+  # colnames(summaryTable) <- paste0(colnames(summaryTable), ':', first(dataSet[, 1]), '~', last(dataSet[, 1]))
+  # summaryTable <- knitr::kable(summaryTable)
+  # cat('<br> **基本統計量** \n\n', file = htmlFile, append = T)
+  # cat(paste0(summaryTable, '\n'), file = htmlFile, append = T)
   funPlotTimeSeries()
 }
 # summaryTable <- data.frame(unclass(summary(dataSet[,4,drop=F])), check.names = F, stringsAsFactors = F)
-summaryTable <- data.frame(apply(dataSet[,4,drop=F],2,summary), check.names = F, stringsAsFactors = F)
-colnames(summaryTable) <- paste0(colnames(summaryTable), ':', first(dataSet[, 1]), '~', last(dataSet[, 1]))
-summaryTable <- knitr::kable(summaryTable)
-cat('\n***\n', file = htmlFile, append = T)
-cat('#### ',paste0(colnames(dataSet)[4]), file = htmlFile, append = T)
-cat('<br> **基本統計量** \n\n', file = htmlFile, append = T)
-cat(paste0(summaryTable, '\n'), file = htmlFile, append = T)
+# summaryTable <- data.frame(apply(dataSet[,4,drop=F],2,summary), check.names = F, stringsAsFactors = F)
+# colnames(summaryTable) <- paste0(colnames(summaryTable), ':', first(dataSet[, 1]), '~', last(dataSet[, 1]))
+# summaryTable <- knitr::kable(summaryTable)
+# cat('\n***\n', file = htmlFile, append = T)
+# cat('#### ',paste0(colnames(dataSet)[4]), file = htmlFile, append = T)
+# cat('<br> **基本統計量** \n\n', file = htmlFile, append = T)
+# cat(paste0(summaryTable, '\n'), file = htmlFile, append = T)
 ```
