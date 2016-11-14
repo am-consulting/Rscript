@@ -1,12 +1,12 @@
 # License:GPL(version 2 or later)
 # Data Source:Cabinet Office, Government Of Japan
 options(download.file.method="libcurl")
-# url <- c(
-#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-mk1611.csv",
-#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-jk1611.csv",
-#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-mk1611.csv",
-#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-jk1611.csv"
-# )
+url <- c(
+  "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-mk1611.csv",
+  "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-jk1611.csv",
+  "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-mk1611.csv",
+  "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-jk1611.csv"
+)
 url <- c(
   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-mk1622.csv',
   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-jk1622.csv',
@@ -14,10 +14,17 @@ url <- c(
   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-jk1622.csv',
   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/def-qk1622.csv'
 )
+url <- c(
+  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/gaku-mk1631.csv',
+  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/gaku-jk1631.csv',
+  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/nritu-mk1631.csv',
+  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/nritu-jk1631.csv',
+  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/def-qk1631.csv'
+)
 titleJ <<- c("名目季節調整系列",
              "実質季節調整系列",
-             "名目季節調整系列(年率)",
-             "実質季節調整系列(年率)",
+             "年率換算の名目季節調整系列(前期比)",
+             "年率換算の実質季節調整系列(前期比)",
              "4半期デフレーター季節調整系列"
   )
 titleE <<- c(
