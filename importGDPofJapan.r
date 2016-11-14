@@ -1,39 +1,70 @@
 # License:GPL(version 2 or later)
 # Data Source:Cabinet Office, Government Of Japan
+# csv List part
+library(RCurl)
+sourceURL <- 'http://www.esri.cao.go.jp/jp/sna/sokuhou/sokuhou_top.html'
+htmlMarkup <- getURL(sourceURL,.encoding = 'utf-8')
+pattern <- "(<a\\shref=.+?\">)+?統計表一覧"
+pageList <- unlist(regmatches(htmlMarkup, gregexpr(pattern, htmlMarkup, fixed = F)))
+pattern <- '/.+?html'
+pageList <- unlist(regmatches(pageList, gregexpr(pattern, pageList, fixed = F)))
+targetURL <- paste0('http://www.esri.cao.go.jp/jp/sna',pageList)
+htmlMarkup <- getURL(targetURL,.encoding = 'utf-8')
+pattern <- "(<a.+?(.csv\")+?.+?>)+?.+?</a>"
+csvList <- unlist(regmatches(htmlMarkup, gregexpr(pattern, htmlMarkup, fixed = F)))
+pattern <- "<img.*?/>.*?</a>"
+csvList <- gsub(pattern,'',csvList)
+pattern <- "target=\"_blank\""
+csvList <- gsub(pattern,'',csvList)
+pattern <- "<a.+?>"
+csvList0 <- unlist(regmatches(csvList, gregexpr(pattern, csvList, fixed = F)))
+csvList1 <- gsub(pattern,'',csvList)
+pattern <- "/.*?\\.csv"
+csvList0 <- paste0('http://www.esri.cao.go.jp',unlist(regmatches(csvList0, gregexpr(pattern, csvList0, fixed = F))))
+GDPList <- data.frame(csvList0,csvList1,check.names = F,stringsAsFactors = F)
+GDPList0 <- rbind(
+  GDPList[grep('名目季節調整系列',GDPList[,2])[1],],
+  GDPList[grep('実質季節調整系列',GDPList[,2])[1],],
+  GDPList[grep('年率換算の名目季節調整系列',GDPList[,2])[1],],
+  GDPList[grep('年率換算の実質季節調整系列',GDPList[,2])[1],],
+  GDPList[grep('四半期デフレーター季節調整系列',GDPList[,2])[1],])
+url <- GDPList0[,1]
+titleJ <- GDPList0[,2]
+# csv List part
 options(download.file.method="libcurl")
-url <- c(
-  "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-mk1611.csv",
-  "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-jk1611.csv",
-  "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-mk1611.csv",
-  "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-jk1611.csv"
-)
-url <- c(
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-mk1622.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-jk1622.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-mk1622.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-jk1622.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/def-qk1622.csv'
-)
-url <- c(
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/gaku-mk1631.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/gaku-jk1631.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/nritu-mk1631.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/nritu-jk1631.csv',
-  'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/def-qk1631.csv'
-)
-titleJ <<- c("名目季節調整系列",
-             "実質季節調整系列",
-             "年率換算の名目季節調整系列(前期比)",
-             "年率換算の実質季節調整系列(前期比)",
-             "4半期デフレーター季節調整系列"
-  )
-titleE <<- c(
-  "Nominal Gross Domestic Product (seasonally adjusted series)",
-  "Real Gross Domestic Product (seasonally adjusted series)",
-  "Annualized rate of Changes from the previous quarter (Nominal: seasonally adjusted series)",
-  "Annualized rate of Changes from the previous quarter (Real: seasonally adjusted series)",
-  "GDP Deflators(seasonally adjusted series)"
-)
+# url <- c(
+#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-mk1611.csv",
+#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-jk1611.csv",
+#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-mk1611.csv",
+#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-jk1611.csv"
+# )
+# url <- c(
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-mk1622.csv',
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-jk1622.csv',
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-mk1622.csv',
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-jk1622.csv',
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/def-qk1622.csv'
+# )
+# url <- c(
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/gaku-mk1631.csv',
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/gaku-jk1631.csv',
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/nritu-mk1631.csv',
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/nritu-jk1631.csv',
+#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/def-qk1631.csv'
+# )
+# titleJ <<- c("名目季節調整系列",
+#              "実質季節調整系列",
+#              "年率換算の名目季節調整系列(前期比)",
+#              "年率換算の実質季節調整系列(前期比)",
+#              "4半期デフレーター季節調整系列"
+#   )
+# titleE <<- c(
+#   "Nominal Gross Domestic Product (seasonally adjusted series)",
+#   "Real Gross Domestic Product (seasonally adjusted series)",
+#   "Annualized rate of Changes from the previous quarter (Nominal: seasonally adjusted series)",
+#   "Annualized rate of Changes from the previous quarter (Real: seasonally adjusted series)",
+#   "GDP Deflators(seasonally adjusted series)"
+# )
 colnameDataJ <- c(
   "国内総生産(支出側)",
   "民間最終消費支出",
