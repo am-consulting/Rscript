@@ -37,7 +37,7 @@ if(nrow(buf01) != bufrrr){mm <- as.numeric(tail(buf01[,1],1))}else{mm <- as.nume
 rrrS <- which(buf01[,1]=='S41年 1月')
 buf01 <- buf01[rrrS:nrow(buf01),]
 buf01[,1] <- rev(seq(as.Date(paste0(yyyy,'-',mm,'-1')),by = '-1 month',length.out = nrow(buf01)))
-colnames(buf01) <- c('Date','新設住宅着工戸数(戸)','前年比(%,NSA)')
+colnames(buf01) <- c('Date','新設住宅着工戸数(戸)','前年比(%)')
 buf01[,-1] <- apply(buf01[,-1],2,function(x)as.numeric(gsub(',','',x)))
 NSAData <- buf01
 # 原数値パート
@@ -52,7 +52,7 @@ buf02 <- buf02[-c(1:5),]
 buf02 <- na.omit(buf02)
 buf02 <- tail(buf02,nrow(buf01))
 buf02[,1] <- buf01[,1]
-colnames(buf02) <- c('Date','新設住宅着工戸数(戸,季節調整値)','前年比(%,SA)')
+colnames(buf02) <- c('Date','新設住宅着工戸数(戸,季節調整値)','前月比(%)')
 buf02[,-1] <- apply(buf02[,-1],2,function(x)as.numeric(gsub(',','',x)))
 SAData <- buf02
 # 季節調整パート
