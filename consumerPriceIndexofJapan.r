@@ -1,8 +1,9 @@
 # License:GPL(version 2 or later)
 # Data Source:Statistics Bureau, Ministry of Internal Affairs and Communications
 options(download.file.method = "libcurl")
-file <-
-  "http://www.e-stat.go.jp/SG1/estat/Csvdl.do?sinfid=000011288589"
+# file <-
+#   "http://www.e-stat.go.jp/SG1/estat/Csvdl.do?sinfid=000011288589"
+file <- targetURL
 buf <-
   read.csv(
     file,
