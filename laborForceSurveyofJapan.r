@@ -1,7 +1,7 @@
 # License:GPL(version 2 or later)
 # Data Source:Statistics Bureau, Ministry of Internal Affairs and Communications
 # library(gdata);library(excel.link);
-library(XLConnect)
+library(XLConnect);library(Nippon)
 options(download.file.method = "libcurl")
 # perl <- gdata:::findPerl("perl")
 username <- Sys.info()['user']
@@ -51,5 +51,8 @@ origData[, -1] <-
   apply(origData[, -1], 2, function(x) {
     as.numeric(gsub("\\(|\\)|<|>", "", x)) #caution
   })
-colnames(origData)[-1] <- paste0(colnames(origData)[-1],'-',dataURL[2])
+colnames(origData)[-1] <- paste0(colnames(origData)[-1],':',dataURL[2])
+bufC <- grep('率',colnames(origData))
+colnames(origData)[-bufC] <-
+  gsub('-',paste0(zen2han(buf[4,5]),'-'),colnames(origData)[-bufC])
 assign('laborforcesurvey', na.omit(origData), envir = .GlobalEnv)
