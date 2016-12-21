@@ -30,6 +30,7 @@ GDPList0 <- rbind(
   GDPList[grep('四半期デフレーター季節調整系列',GDPList[,2])[1],])
 url <- GDPList0[,1]
 titleJ <- GDPList0[,2]
+appendJ <- substring(GDPList0[,2],1,sapply(GDPList0[,2],function(x)regexpr('csv',x,ignore.case = T))-2)
 # csv List part
 options(download.file.method="libcurl")
 # url <- c(
@@ -148,7 +149,7 @@ for (uuu in 1:length(url)) {
     buf[, -1] <-
       apply(buf[, -1], 2, function(x) x * (10 ^ -3))
   }
-  colnames(buf)[-1] <- colnameDataJ
+  colnames(buf)[-1] <- paste0(colnameDataJ,':',appendJ[uuu])
   assign(paste("gdp", uuu, sep = ""), buf, envir = .GlobalEnv)
 }
 # origData<<-gdp1 #representative
