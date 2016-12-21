@@ -31,7 +31,7 @@ origData <- apply(origData, 2, function(x) {
   as.numeric(x)
 })
 tmpDF <- data.frame(Date = seq(startDate, length.out = nrow(origData), by = "months"), origData, check.names = F)
-colnames(tmpDF)[-1] <- paste0('消費者物価指数:',colnames(tmpDF)[-1])
+colnames(tmpDF)[-1] <- paste0('消費者物価指数前年同月比(%):',colnames(tmpDF)[-1])
 assign('consumerPriceIndexofJapan',
        tmpDF,
        envir = .GlobalEnv)
