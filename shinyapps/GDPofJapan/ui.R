@@ -57,15 +57,15 @@ shinyUI(fluidPage(
                         selectInput(
                           "objective",
                           label = "Objective",
-                          colnames(origData)[-1],
+                          colnames(gdp1)[-1],
                           selectize = FALSE
                         ),
                       sliderInput(
                         "selectedRow",
                         label = "Select Rows",
                         min = 1,
-                        max = nrow(origData),
-                        value =  c(1, nrow(origData)),
+                        max = nrow(gdp1),
+                        value =  c(1, nrow(gdp1)),
                         step = 1
                       ),
                         radioButtons(

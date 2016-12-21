@@ -148,7 +148,7 @@ for (uuu in 1:length(url)) {
     buf[, -1] <-
       apply(buf[, -1], 2, function(x) x * (10 ^ -3))
   }
-  colnames(buf)[-1] <- colnameDataE
+  colnames(buf)[-1] <- colnameDataJ
   assign(paste("gdp", uuu, sep = ""), buf, envir = .GlobalEnv)
 }
-origData<<-gdp1 #representative
+# origData<<-gdp1 #representative
