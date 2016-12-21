@@ -33,6 +33,3 @@ origData <- apply(origData, 2, function(x) {
 assign('consumerPriceIndexofJapan',
        data.frame(Date = seq(startDate, length.out = nrow(origData), by = "months"), origData, check.names = F),
        envir = .GlobalEnv)
-assign('origData0',
-       data.frame(Date = seq(startDate, length.out = nrow(origData), by = "months"), origData, check.names = F),
-       envir = .GlobalEnv)

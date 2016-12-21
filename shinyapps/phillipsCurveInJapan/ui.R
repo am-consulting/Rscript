@@ -6,7 +6,7 @@ script <-
     ssl.verifypeer = FALSE
   )
 eval(parse(text = script))
-laborforcesurvey <<- origData
+# laborforcesurvey <<- origData
 
 script <-
   getURL(
@@ -14,7 +14,8 @@ script <-
     ssl.verifypeer = FALSE
   )
 eval(parse(text = script))
-consumerpriceindex <<- origData0
+# consumerpriceindex <<- origData0
+consumerpriceindex <<- consumerPriceIndexofJapan
 
 script <-
   getURL(
