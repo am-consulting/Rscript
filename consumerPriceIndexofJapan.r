@@ -30,9 +30,6 @@ origData <- buf[-(1:(rrr - 1)), 2:ncol(buf)]
 origData <- apply(origData, 2, function(x) {
   as.numeric(x)
 })
-origData0 <<-
-  data.frame(
-    Date = seq(startDate, length.out = nrow(origData), by = "months"),
-    origData,
-    check.names = F
-  )
+assign('consumerPriceIndexofJapan',
+       data.frame(Date = seq(startDate, length.out = nrow(origData), by = "months"), origData, check.names = F),
+       envir = .GlobalEnv)
