@@ -1,64 +1,18 @@
 ```{r}
-funPlotTimeSeries <- function() {
-  imageWidth <- 1920
-  imageHeight <- 1080
-  png.file <- paste0('EIA', ooo, ".png")
-  png(file = png.file, width = imageWidth, height = imageHeight)
-  par(mar = c(6, 8, 13, 9), family = 'Meiryo')
-  plot(
-    dataSet[, 1],
-    dataSet[, 2],
-    type = 'h',
-    col = 'blue',
-    xlab = '' ,
-    ylab = '' ,
-    xaxt = 'n',
-    main = paste(colnames(dataSet)[2], '\n',
-      JapaneseTitle[ooo], '\n',
-      format(first(dataSet[, 1]), dateFormat), '~',
-      format(last(dataSet[, 1]),  dateFormat), '\nSource:U.S. Energy Information Administration (EIA) '
-    ),
-    cex.axis = 2.5, cex.main = 2.5, lwd = 2
+library(RCurl)
+importAMCC <- c('R-dygraphsFunction.r','R-dataTablesFunction.r','R-turningPoint.r',
+                'transposeDataFrame.r','plotTimeSeries.r')
+for(iii in 1:length(importAMCC)){
+  script <- getURL(
+    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",importAMCC[iii]),
+    ssl.verifypeer = F
   )
-  panel.first = grid(nx = NULL, ny = NULL, lty = 2, equilogs = T, lwd = 2) 
-  # loessData <- na.omit(dataSet[,c(1,2)])
-  # lo <- loess(loessData[, 2] ~ as.numeric(loessData[, 1]))  
-  # lines(loessData[, 1] , predict(lo) , col = 'blue', lwd = 2, lty = 2,type = 'o')  
-  loessData <- dataSet[,c(1,2)]
-  loessData[, 2] <- na.approx(loessData[, 2])
-  lo <- loess(loessData[, 2] ~ as.numeric(loessData[, 1]))
-  lines(loessData[, 1] , predict(lo) , col = 'blue', lwd = 2, lty = 2)
-  par(new=T)
-  plot(
-    dataSet[, 1],
-    dataSet[, 4],
-    type = 'l',
-    col = 'red',
-    xlab = '' ,
-    ylab = '' ,
-    xaxt = 'n',
-    yaxt = 'n',
-    lwd = 2
-  )
-  panel.first = grid(nx = NULL, ny = NULL, lty = 2, equilogs = T, lwd = 2) 
-  loessData <- na.omit(dataSet[,c(1,4)])
-  lo <- loess(loessData[, 2] ~ as.numeric(loessData[, 1]))
-  # lines(loessData[, 1] , predict(lo) , col = 'red', lwd = 2, lty = 2)
-  axis(4, cex.axis = 2.5, las = 0, padj = 0.5)
-  mtext(colnames(dataSet)[2],  side = 2,  line = 5.2,  cex = 2)
-  mtext(gsub('-','\n',colnames(dataSet)[4]),  side = 4,  line = 6.2,  cex = 2)
-  axis.Date(side = 1, at = dataSet[, 1], format = dateFormat, padj = 1, cex.axis = 2)
-  graphics::legend(
-   'topleft',col=c('blue','red'),lty=1,legend=colnames(dataSet)[c(2,4)],cex=2.5,bty='n',lwd = 2)
-  dev.off()
+  eval(parse(text = script))
 }
 ```
 
 ```{r}
-library(XLConnect)
-library(dplyr)
-library(quantmod)
-library(zoo)
+library(grid);library(gridExtra);library(XLConnect);library(quantmod)
 options(scipen = 999)
 windowsFonts(Meiryo = windowsFont("Meiryo"))
 username <- Sys.info()['user']
@@ -135,7 +89,9 @@ JapaneseTitle <- c(
 ```
 
 ```{r}
+imageWidth <- 1920; imageHeight <- 1080
 htmlFile <- paste0(Sys.Date(),'-amcc_EIA.md')
+durationYear <- 10
 cat('', file = htmlFile, append = F)
 cat('<style>table{width:100%}</style>', file = htmlFile, append = T)
 for (ooo in 1:length(obj)) {
@@ -143,49 +99,41 @@ for (ooo in 1:length(obj)) {
   tmp <- EIAData[, c(1, ccc)]
   tmp0 <- data.frame(tmp[-1, ], round(diff(tmp[, 2]), 10), check.names = F)
   colnames(tmp0)[3] <- 'Changes from last week'
-  dataSet <- na.omit(tail(tmp0, ceiling(365 * 5 / 7 )))
+  dataSet <- na.omit(tail(tmp0, ceiling(365 * durationYear / 7 )))
   wtiOil0 <- na.omit(subset(wtiOil, first(dataSet[, 1]) <= wtiOil[, 1] & wtiOil[, 1] <= last(dataSet[, 1])))
   dataSet <- merge(dataSet,wtiOil0,by='Date',all = T)
   cat('\n***\n', file = htmlFile, append = T)
-  cat('<b>',paste0(colnames(tmp0)[2], '</b><br>'), file = htmlFile, append = T)
+  cat('<b>',paste0(colnames(dataSet)[2], '</b><br>'), file = htmlFile, append = T)
   cat('<b>',paste0(JapaneseTitle[ooo], '</b>\n\n'), file = htmlFile, append = T)
-  colnames(tmp0)[2] <- 'Figure'
-  bufTable <- tail(tmp0, 10)
-  bufTable <- knitr::kable(bufTable,row.names = F)  
-  cat(paste0(bufTable, '\n'), file = htmlFile, append = T)  
-  # bufTable[, 1] <- format(bufTable[, 1], dateFormat)
-  # bufTable[, 1] <- paste0('|', bufTable[, 1], '|')
-  # bufTable[, 2] <- paste0(bufTable[, 2], '|')
-  # bufTable[, 3] <- paste0(bufTable[, 3], '|')
-  # mdTable <- c('|-:|', '-:|', '-:|')
-  # mdTableHead <- c(paste0('|', colnames(bufTable)[1], '|'),
-  #                  paste0(colnames(bufTable)[2], '|'),
-  #                  paste0(colnames(bufTable)[3], '|'))
-  # bufTable0 <- rbind(mdTableHead,
-  #                    mdTable,
-  #                    bufTable)
-  # write.table(
-  #   bufTable0,
-  #   file = htmlFile,
-  #   append = T,
-  #   row.names = F,
-  #   col.names = F ,
-  #   quote = F
-  # )
-  # summaryTable <- data.frame(unclass(summary(dataSet[,2:3])), check.names = F, stringsAsFactors = F)
-  # summaryTable <- data.frame(apply(dataSet[,2:3],2,summary), check.names = F, stringsAsFactors = F)
-  # colnames(summaryTable) <- paste0(colnames(summaryTable), ':', first(dataSet[, 1]), '~', last(dataSet[, 1]))
-  # summaryTable <- knitr::kable(summaryTable)
-  # cat('<br> **基本統計量** \n\n', file = htmlFile, append = T)
-  # cat(paste0(summaryTable, '\n'), file = htmlFile, append = T)
-  funPlotTimeSeries()
+  dataSet0 <- na.omit(dataSet[,-4])
+  colnames(dataSet0)[2] <- 'Figure'
+  bufTable0 <- tail(dataSet0, 10)
+  cat(paste0(knitr::kable(bufTable0,row.names = F), '\n'), file = htmlFile, append = T)  
+  png.file <- paste0('EIA', ooo, ".png")
+  png(file = png.file, width = imageWidth, height = imageHeight)
+  fun_plotTimeSeries(obj = dataSet,
+                     chartType = 0, objX = 1, objYL = 2, typeL = 'l',
+                     dataTitle = paste(colnames(dataSet)[2], '\n', JapaneseTitle[ooo], '\n',
+                                       paste0(format(range(dataSet0[,1]),dateFormat), collapse = '~')),
+                     dataSource = 'U.S. Energy Information Administration (EIA)',
+                     cex.axis = 2.5, cex.main = 2.5, cex.lab = 2.0, 
+                     mar = c(6, 6, 13, 4), needLefLab = 0,
+                     lwdL = 2, fitLcolor = 2)
+  amccTheme <- 
+    gridExtra::ttheme_minimal(
+      core = list(fg_params = list(hjust=1, cex = 3.0, x = 1)),
+      colhead = list(fg_params = list(hjust=1, cex = 3.0, x = 1)),
+      rowhead = list(fg_params = list(hjust=1, cex = 3.0, x = 1)))
+  pushViewport(viewport(x = .2, y = .65))
+  grid.table(cbind(summary(na.omit(dataSet[,2]))), theme = amccTheme)
+  pushViewport(viewport(x = .8, y = .4))
+  grid.table(bufTable0, theme = amccTheme, rows = NULL)
+  abline(h = summary(na.omit(dataSet[,2]))[2], col = 'lightcoral')
+  text(x = head(dataSet[,1],1) ,y = summary(na.omit(dataSet[,2]))[2],labels = '1st Qu.', pos = 4, cex = 3)
+  abline(h = summary(na.omit(dataSet[,2]))[5], col = 'lightcoral')
+  text(x = head(dataSet[,1],1) ,y = summary(na.omit(dataSet[,2]))[5],labels = '3rd Qu.', pos = 4, cex = 3)
+  # plot, chart 内にデーブルを表示
+  # 参照 ftp://cran.r-project.org/pub/R/web/packages/gridExtra/vignettes/tableGrob.html
+  dev.off()
 }
-# summaryTable <- data.frame(unclass(summary(dataSet[,4,drop=F])), check.names = F, stringsAsFactors = F)
-# summaryTable <- data.frame(apply(dataSet[,4,drop=F],2,summary), check.names = F, stringsAsFactors = F)
-# colnames(summaryTable) <- paste0(colnames(summaryTable), ':', first(dataSet[, 1]), '~', last(dataSet[, 1]))
-# summaryTable <- knitr::kable(summaryTable)
-# cat('\n***\n', file = htmlFile, append = T)
-# cat('#### ',paste0(colnames(dataSet)[4]), file = htmlFile, append = T)
-# cat('<br> **基本統計量** \n\n', file = htmlFile, append = T)
-# cat(paste0(summaryTable, '\n'), file = htmlFile, append = T)
 ```
