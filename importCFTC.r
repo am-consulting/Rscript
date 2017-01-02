@@ -1,7 +1,10 @@
 library(lubridate)
 SD <- Sys.Date()
-# year <- c((year(SD) - 3):year(SD))
-year <- c((lastYear - 3):lastYear)
+if(exists('lastYear')==FALSE){
+  year <- c((year(SD) - 3):year(SD))
+}else{
+  year <- c((lastYear - 3):lastYear)
+}
 username <- Sys.info()['user']
 pathCFTC <- paste('C:/Users/', username, '/Desktop/CFTC/', sep = '')
 setwd(pathCFTC)
