@@ -80,7 +80,7 @@ JapaneseTitle <- c(
   '戦略石油備蓄を除いたオクラホマ州クッシングの週間米国原油在庫量(1000バレル)',
   '週間米国ガソリン在庫量(1000バレル)',
   '週間米国留出油在庫量(1000バレル)',
-  '週間米国プラパンおよびプロピレン在庫量(1000バレル)',
+  '週間米国プロパンおよびプロピレン在庫量(1000バレル)',
   '週間米国製油所原油処理量(1000バレル/日)',
   '週間米国製油所稼働率(%)',
   '週間米国原油輸入量(1000バレル/日)',
@@ -98,15 +98,19 @@ for (ooo in 1:length(obj)) {
   ccc <- grep(obj[ooo] , colnames(EIAData))
   tmp <- EIAData[, c(1, ccc)]
   tmp0 <- data.frame(tmp[-1, ], round(diff(tmp[, 2]), 10), check.names = F)
-  colnames(tmp0)[3] <- 'Changes from last week'
+  colnames(tmp0)[3] <- '前週差' # 'Changes from last week'
+  if(length(grep('percent', obj[ooo], ignore.case = T)) == 0){
+    tmp0 <- data.frame(tmp0, round(diff(tmp[, 2])/head(tmp[,2],-1)*100,1), check.names = F)
+    colnames(tmp0)[4] <- '前週比(%)' # 'Changes from last week(%)'
+  }
   dataSet <- na.omit(tail(tmp0, ceiling(365 * durationYear / 7 )))
   # wtiOil0 <- na.omit(subset(wtiOil, first(dataSet[, 1]) <= wtiOil[, 1] & wtiOil[, 1] <= last(dataSet[, 1])))
   # dataSet <- merge(dataSet,wtiOil0,by='Date',all = T)
   cat('\n***\n', file = htmlFile, append = T)
   cat('<b>',paste0(colnames(dataSet)[2], '</b><br>'), file = htmlFile, append = T)
   cat('<b>',paste0(JapaneseTitle[ooo], '</b>\n\n'), file = htmlFile, append = T)
-  dataSet0 <- na.omit(dataSet[,-4])
-  colnames(dataSet0)[2] <- 'Figure'
+  dataSet0 <- na.omit(dataSet)
+  colnames(dataSet0)[2] <- '結果'
   bufTable0 <- tail(dataSet0, 10)
   cat(paste0(knitr::kable(bufTable0,row.names = F), '\n'), file = htmlFile, append = T)  
   png.file <- paste0('EIA', ooo, ".png")
@@ -131,6 +135,36 @@ for (ooo in 1:length(obj)) {
   text(x = head(dataSet[,1],1) ,y = summary(na.omit(dataSet[,2]))[2],labels = '1st Qu.', pos = 4, cex = 3)
   abline(h = summary(na.omit(dataSet[,2]))[5], col = 'lightcoral')
   text(x = head(dataSet[,1],1) ,y = summary(na.omit(dataSet[,2]))[5],labels = '3rd Qu.', pos = 4, cex = 3)
+  dev.off()
+  png.file <- paste0('EIA', ooo, "-ACF.png")
+  png(file = png.file, width = imageWidth, height = imageHeight)
+  par(family = 'Meiryo', mar =c(10,10,13,10))
+  acfResult0 <-
+    na.omit(dataSet)
+  acfResult <-
+    acf(acfResult0[,2],
+        plot = T,
+        lag.max = 52 * 3,
+        col = 'blue',
+        main = NA,
+        lwd = 2,
+        panel.first = grid(nx = NULL,
+                           ny = NULL,
+                           lty = 2,
+                           equilogs = T),
+        cex.axis = 2.5, cex.lab = 2.5)
+  mtext(text = paste0('自己相関係数\n',
+                      colnames(acfResult0)[2],
+                      '\n',
+                      JapaneseTitle[ooo],
+                      '\n',
+                      paste0(range(acfResult0[,1]),collapse = '~')), 
+        side = 3,
+        cex = 3.0)
+  acfResult <-
+    data.frame(acfResult$lag, acfResult$acf)
+  colnames(acfResult) <- 
+    c('Lag','ACF')
   # plot, chart 内にデーブルを表示
   # 参照 ftp://cran.r-project.org/pub/R/web/packages/gridExtra/vignettes/tableGrob.html
   dev.off()
