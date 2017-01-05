@@ -29,16 +29,16 @@ download.file(paste0('http://ir.eia.gov/wpsr/', fileName), fileName , mode = "wb
 ```
 
 ```{r}
-tmp0 <- getSymbols('DCOILWTICO', src = 'FRED', auto.assign = F)
-tmp <-
-  data.frame(
-    Date = as.Date(index(tmp0)),
-    tmp0[, 1],
-    check.names = F,
-    row.names = NULL
-  )
-colnames(tmp)[2] <- 'Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma(Dollars per Barrel)'
-wtiOil <- tmp
+# tmp0 <- getSymbols('DCOILWTICO', src = 'FRED', auto.assign = F)
+# tmp <-
+#   data.frame(
+#     Date = as.Date(index(tmp0)),
+#     tmp0[, 1],
+#     check.names = F,
+#     row.names = NULL
+#   )
+# colnames(tmp)[2] <- 'Crude Oil Prices: West Texas Intermediate (WTI) - Cushing, Oklahoma(Dollars per Barrel)'
+# wtiOil <- tmp
 ```
 
 ```{r}
@@ -100,8 +100,8 @@ for (ooo in 1:length(obj)) {
   tmp0 <- data.frame(tmp[-1, ], round(diff(tmp[, 2]), 10), check.names = F)
   colnames(tmp0)[3] <- 'Changes from last week'
   dataSet <- na.omit(tail(tmp0, ceiling(365 * durationYear / 7 )))
-  wtiOil0 <- na.omit(subset(wtiOil, first(dataSet[, 1]) <= wtiOil[, 1] & wtiOil[, 1] <= last(dataSet[, 1])))
-  dataSet <- merge(dataSet,wtiOil0,by='Date',all = T)
+  # wtiOil0 <- na.omit(subset(wtiOil, first(dataSet[, 1]) <= wtiOil[, 1] & wtiOil[, 1] <= last(dataSet[, 1])))
+  # dataSet <- merge(dataSet,wtiOil0,by='Date',all = T)
   cat('\n***\n', file = htmlFile, append = T)
   cat('<b>',paste0(colnames(dataSet)[2], '</b><br>'), file = htmlFile, append = T)
   cat('<b>',paste0(JapaneseTitle[ooo], '</b>\n\n'), file = htmlFile, append = T)
@@ -113,8 +113,7 @@ for (ooo in 1:length(obj)) {
   png(file = png.file, width = imageWidth, height = imageHeight)
   fun_plotTimeSeries(obj = dataSet,
                      chartType = 0, objX = 1, objYL = 2, typeL = 'l',
-                     dataTitle = paste(colnames(dataSet)[2], '\n', JapaneseTitle[ooo], '\n',
-                                       paste0(format(range(dataSet0[,1]),dateFormat), collapse = '~')),
+                     dataTitle = JapaneseTitle[ooo],
                      dataSource = 'U.S. Energy Information Administration (EIA)',
                      cex.axis = 2.5, cex.main = 2.5, cex.lab = 2.0, 
                      mar = c(6, 6, 13, 4), needLefLab = 0,
