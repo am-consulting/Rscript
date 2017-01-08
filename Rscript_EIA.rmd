@@ -1,10 +1,15 @@
 ```{r}
 library(RCurl)
-importAMCC <- c('R-dygraphsFunction.r','R-dataTablesFunction.r','R-turningPoint.r',
-                'transposeDataFrame.r','plotTimeSeries.r')
-for(iii in 1:length(importAMCC)){
-  script <- getURL(
-    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",importAMCC[iii]),
+fileName <- 'functionList.csv'
+functionList <-
+  read.csv(
+    file = paste0('https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/csv/',
+                  fileName),
+    header = F,
+    as.is = T)
+for(iii in 1:nrow(functionList)){
+  script <- 
+    getURL(paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/", functionList[iii,1]),
     ssl.verifypeer = F
   )
   eval(parse(text = script))
@@ -12,7 +17,7 @@ for(iii in 1:length(importAMCC)){
 ```
 
 ```{r}
-library(grid);library(gridExtra);library(XLConnect);library(quantmod)
+library(grid);library(gridExtra);library(XLConnect);library(quantmod);library(forecast)
 options(scipen = 999)
 windowsFonts(Meiryo = windowsFont("Meiryo"))
 username <- Sys.info()['user']
@@ -170,5 +175,97 @@ for (ooo in 1:length(obj)) {
   # plot, chart 内にデーブルを表示
   # 参照 ftp://cran.r-project.org/pub/R/web/packages/gridExtra/vignettes/tableGrob.html
   dev.off()
+  # arfima part 自己回帰実数和分移動平均モデル
+  png.file <- paste0('EIA', ooo, "-ARFIMA.png")
+  png(file = png.file, width = imageWidth, height = imageHeight)
+  h <- 8
+  result_arfima <-
+    arfima(
+      y = dataSet[,2],
+      drange = c(0,1),
+      estim = 'mle',
+      lambda = NULL)
+  ciLevel <- c(0.99, 0.95, 0.9, 0.8)
+  forecastResult <- 
+    forecast(result_arfima, level = ciLevel, h = h, plot = F)
+  par(family = 'Meiryo', mfrow = c(1,2), mar = c(3,4,3,3), oma = c(6,3,9,3))
+  plot(forecastResult,
+       panel.first = grid(nx = NULL, ny = NULL, lty = 2, equilogs = T),
+       xaxt = 'n',
+       yaxt = 'n',
+       font.axis = 1,
+       font.main = 1,
+       font.lab = 1,
+       font.sub = 1,
+       cex.main = 2.5)
+  axis(side = 2, cex.axis = 2)
+  text(x = 1, 
+       y = forecastResult$x[1],
+       labels = dataSet[1,1],
+       pos = 4,
+       font = 1,
+       cex = 2.0)
+  lines(x = 1, 
+        y = forecastResult$x[1],
+        pch = 20,
+        type = 'p',
+        cex = 1.5,
+        col = 'red')
+  text(x = length(dataSet[,2]), 
+       y = forecastResult$x[length(dataSet[,2])],
+       labels = dataSet[length(dataSet[,2]),1],
+       pos = 2,
+       font = 1,
+       cex = 2.0)
+  lines(x = length(dataSet[,2]), 
+        y = forecastResult$x[length(dataSet[,2])],
+        pch = 20,
+        type = 'p',
+        cex = 1.5,
+        col = 'red')
+  ylim <- 
+    c(min(forecastResult$lower), max(forecastResult$upper))
+  xlim <- 
+    c(length(forecastResult$x) + 1, length(forecastResult$x) + h)
+  plot(forecastResult,
+       xlim = xlim,
+       ylim = ylim,
+       xaxt = 'n',
+       yaxt = 'n',
+       main = paste0('After This Week:C.I = ',paste0(ciLevel,collapse = ',')),
+       font.axis = 1,
+       font.main = 1,
+       font.lab = 1,
+       font.sub = 1,
+       cex.main = 2.5, cex.lab = 2.0)
+  panel.first = grid(nx = NULL,ny = NULL,lty = 2,equilogs = T)
+  axis(side = 1, 
+       at = seq(xlim[1],xlim[2]), 
+       labels = c('1st week','2nd week','3rd week','4th week','5th week','6th week','7th week','8th week'),
+       cex.axis = 2.0)
+  axis(side = 2, cex.axis = 2.0)
+  adfResult <- 
+    adf.test(dataSet[,2])
+  mtext(side = 3, 
+        line = 1, 
+        outer = T, 
+        text = paste0(JapaneseTitle[ooo],'\n',
+                      colnames(dataSet)[2],
+                      '\nADF Test:Lag order=',
+                      adfResult$parameter,
+                      ',p value=',
+                      round(adfResult$p.value,3),
+                      ',Alternative=',
+                      adfResult$alternative), 
+        cex = 2.5,
+        font = 1)
+  mtext(side = 1, 
+        line = 1, 
+        outer = T, 
+        text = 'Financial transactions and future forecasts based on the data of this video are absolutely prohibited.', 
+        cex = 2.5,
+        font = 3)
+  dev.off()
+  # arfima part
 }
 ```
