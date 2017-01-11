@@ -1,7 +1,6 @@
 # License:GPL(version 2 or later)
 # Data Source:Cabinet Office, Government Of Japan
-# csv List part
-library(RCurl)
+library(RCurl);library(Nippon)
 sourceURL <- 'http://www.esri.cao.go.jp/jp/sna/sokuhou/sokuhou_top.html'
 htmlMarkup <- getURL(sourceURL,.encoding = 'utf-8')
 pattern <- "(<a\\shref=.+?\">)+?統計表一覧"
@@ -27,45 +26,20 @@ GDPList0 <- rbind(
   GDPList[grep('実質季節調整系列',GDPList[,2])[1],],
   GDPList[grep('年率換算の名目季節調整系列',GDPList[,2])[1],],
   GDPList[grep('年率換算の実質季節調整系列',GDPList[,2])[1],],
-  GDPList[grep('四半期デフレーター季節調整系列',GDPList[,2])[1],])
+  GDPList[grep('四半期デフレーター季節調整系列',GDPList[,2])[1],],
+  GDPList[grep('名目原系列',GDPList[,2])[1],],
+  GDPList[grep('実質原系列',GDPList[,2])[1],],
+  GDPList[grep('名目暦年',GDPList[,2])[1],],
+  GDPList[grep('実質暦年',GDPList[,2])[1],],
+  GDPList[grep('名目原系列\\(前年同期比\\)',GDPList[,2])[1],],
+  GDPList[grep('名目季節調整系列\\(前期比\\)',GDPList[,2])[1],],
+  GDPList[grep('名目暦年\\(前年比\\)',GDPList[,2])[1],],
+  GDPList[grep('実質原系列\\(前年同期比\\)',GDPList[,2])[1],],
+  GDPList[grep('実質季節調整系列\\(前期比\\)',GDPList[,2])[1],],
+  GDPList[grep('実質暦年\\(前年比\\)',GDPList[,2])[1],])
 url <- GDPList0[,1]
 titleJ <- GDPList0[,2]
 appendJ <- substring(GDPList0[,2],1,sapply(GDPList0[,2],function(x)regexpr('csv',x,ignore.case = T))-2)
-# csv List part
-options(download.file.method="libcurl")
-# url <- c(
-#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-mk1611.csv",
-#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/gaku-jk1611.csv",
-#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-mk1611.csv",
-#   "http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe161/__icsFiles/afieldfile/2016/05/17/nritu-jk1611.csv"
-# )
-# url <- c(
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-mk1622.csv',
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/gaku-jk1622.csv',
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-mk1622.csv',
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/nritu-jk1622.csv',
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe162_2/__icsFiles/afieldfile/2016/09/07/def-qk1622.csv'
-# )
-# url <- c(
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/gaku-mk1631.csv',
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/gaku-jk1631.csv',
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/nritu-mk1631.csv',
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/nritu-jk1631.csv',
-#   'http://www.esri.cao.go.jp/jp/sna/data/data_list/sokuhou/files/2016/qe163/__icsFiles/afieldfile/2016/11/11/def-qk1631.csv'
-# )
-# titleJ <<- c("名目季節調整系列",
-#              "実質季節調整系列",
-#              "年率換算の名目季節調整系列(前期比)",
-#              "年率換算の実質季節調整系列(前期比)",
-#              "4半期デフレーター季節調整系列"
-#   )
-# titleE <<- c(
-#   "Nominal Gross Domestic Product (seasonally adjusted series)",
-#   "Real Gross Domestic Product (seasonally adjusted series)",
-#   "Annualized rate of Changes from the previous quarter (Nominal: seasonally adjusted series)",
-#   "Annualized rate of Changes from the previous quarter (Real: seasonally adjusted series)",
-#   "GDP Deflators(seasonally adjusted series)"
-# )
 colnameDataJ <- c(
   "国内総生産(支出側)",
   "民間最終消費支出",
@@ -107,49 +81,48 @@ for (uuu in 1:length(url)) {
       check.names = F,
       fileEncoding = "cp932"
     )
-  for (rrr in 1:nrow(tmp)) {
-    if (is.na(tmp[rrr, 1]) == F) {
-      if (is.na(as.numeric(substring(tmp[rrr, 1], 1, 4))) == F) {
-        break
-      }
-    }
+  firstDateRow <-
+    which(!is.na(as.numeric(substring(tmp[,1],1,4))))[1]
+  buf <-
+    gsub('\\s','',tmp[firstDateRow,1])
+  firstYear <-
+    as.numeric(substring(buf,1,4))
+  firstMonth <-
+    as.numeric(substring(buf,6,regexpr('-',buf)-1))
+  if(length(grep('暦年|前年比', tmp[1,1]))==0){
+    DateColumn <-
+      seq(as.Date(paste0(firstYear,'-',firstMonth+2,'-1')), by = "3 month", length.out = nrow(tmp)-firstDateRow +1)
+  }else{
+    DateColumn <-
+      seq(as.Date(paste0(firstYear,'-',firstMonth,'-1')), by = "12 month", length.out = nrow(tmp)-firstDateRow +1)
   }
-  for (ccc in 1:ncol(tmp)) {
-    if (is.na(tmp[4, ccc]) == F) {
-      if ((tmp[4, ccc] == "輸入") == T) {
-        break
-      }
-    }
+  sheetTitle <- zen2han(tmp[1,1])
+  valueColumn <-
+    tmp[-c(1:(firstDateRow - 1)), -1]
+  dataSetWithoutColnames <-
+    data.frame(DateColumn,valueColumn,stringsAsFactors = F)
+  endColumn <-
+    grep('参考',tmp[1,])-2
+  dataSetWithoutColnames <- dataSetWithoutColnames[,1:(endColumn-1)]
+  tmp0 <- tmp[,1:(endColumn-1)]
+  buf <- NA
+  for(ccc in 1:ncol(tmp0)){
+    if(!is.na(tmp0[3,ccc])){buf <- tmp0[3,ccc]}
+    tmp0[3,ccc] <- buf
   }
-  bufNumeric <- tmp[-c(1:(rrr - 1)), 2:ccc]
-  for (aaa in nrow(bufNumeric):1) {
-    if (is.na(bufNumeric[aaa, 1]) == F) {
-      break
-    }
+  buf <- NA
+  for(ccc in 1:ncol(tmp0)){
+    if(!is.na(tmp0[4,ccc])){buf <- tmp0[4,ccc]}
+    if(length(grep('民間最終消費支出', tmp0[3,ccc]))!=0){tmp0[4,ccc] <- buf}
   }
-  bufNumeric <- bufNumeric[1:aaa,]
-  bufstartDate <- nchar(tmp[rrr, 1])
-  bufDate <-
-    seq(as.Date(paste(
-      substring(tmp[rrr, 1], 1, 4),
-      "-",
-      substring(tmp[rrr, 1], bufstartDate - 1, bufstartDate - 1),
-      "-1",
-      sep = ""
-    )),
-    by = "3 month",
-    length.out = nrow(bufNumeric))
-  buf <- data.frame(bufDate, bufNumeric)
-  colnames(buf)[1] <- "Date"
-  buf[, -1] <- apply(buf[, -1], 2, function(x)
-    gsub(",", "", x))
-  buf[, -1] <- apply(buf[, -1], 2, function(x)
-    as.numeric(x))
-  if (length(grep("ritu|def", url[uuu])) == 0) {
-    buf[, -1] <-
-      apply(buf[, -1], 2, function(x) x * (10 ^ -3))
-  }
-  colnames(buf)[-1] <- paste0(colnameDataJ,':',appendJ[uuu])
-  assign(paste("gdp", uuu, sep = ""), buf, envir = .GlobalEnv)
+  dataSetColnames <-
+    paste0(sheetTitle,':',sapply(gsub(':na','',paste0(tmp0[3,],':',tmp0[4,],':',tmp0[5,]),ignore.case = T),zen2han))
+  colnames(dataSetWithoutColnames) <- dataSetColnames
+  colnames(dataSetWithoutColnames)[1] <- 'Date'
+  dataSetWithoutColnames[,-1] <-
+    apply(dataSetWithoutColnames[,-1],2,function(x)as.numeric(gsub(',','',x)))
+  dataSet <-
+    dataSetWithoutColnames[-which((ncol(dataSetWithoutColnames)-1) <=
+                                  apply(dataSetWithoutColnames,1,function(x)sum(is.na(x)))),]
+  assign(paste("gdp", uuu, sep = ""), dataSet, envir = .GlobalEnv)
 }
-# origData<<-gdp1 #representative
