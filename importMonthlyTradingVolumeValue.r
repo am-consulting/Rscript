@@ -22,6 +22,6 @@ dataURL <-
   buf  <- buf2[-c(1:9),]
   buf[,1] <- as.Date(paste0(buf[,1],'/1'))
   colnames(buf)<-c('Date','一部･1日平均売買高(億株)','一部･1日平均売買代金高(兆円)')
-  buf[,2]<-apply(buf[,2,drop=F],2,function(x)as.numeric(gsub(',','',x))*10^-5)
-  buf[,3]<-apply(buf[,3,drop=F],2,function(x)as.numeric(gsub(',','',x))*10^-6)
+  buf[,2] <- sapply(buf[,2],function(x)as.numeric(gsub(',','',x))*10^-5)
+  buf[,3] <- sapply(buf[,3],function(x)as.numeric(gsub(',','',x))*10^-6)
   assign(paste0('monthlyTradingVolumeValue'), buf, envir = .GlobalEnv)
