@@ -117,6 +117,7 @@ for (ooo in 1:length(obj)) {
   dataSet0 <- na.omit(dataSet)
   colnames(dataSet0)[2] <- '結果'
   bufTable0 <- tail(dataSet0, 30)
+  bufTable0$No <- seq(nrow(bufTable0))
   cat(paste0(knitr::kable(bufTable0,row.names = F), '\n'), file = htmlFile, append = T)  
   png.file <- paste0('EIA', ooo, ".png")
   png(file = png.file, width = imageWidth, height = imageHeight)
