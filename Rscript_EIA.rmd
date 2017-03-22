@@ -116,7 +116,7 @@ for (ooo in 1:length(obj)) {
   cat('<b>',paste0(JapaneseTitle[ooo], '</b>\n\n'), file = htmlFile, append = T)
   dataSet0 <- na.omit(dataSet)
   colnames(dataSet0)[2] <- '結果'
-  bufTable0 <- tail(dataSet0, 10)
+  bufTable0 <- tail(dataSet0, 30)
   cat(paste0(knitr::kable(bufTable0,row.names = F), '\n'), file = htmlFile, append = T)  
   png.file <- paste0('EIA', ooo, ".png")
   png(file = png.file, width = imageWidth, height = imageHeight)
@@ -267,5 +267,18 @@ for (ooo in 1:length(obj)) {
         font = 3)
   dev.off()
   # arfima part
+  # historical volatility part
+  png.file <- paste0('EIA', ooo, "-HV.png")
+  png(file = png.file, width = imageWidth, height = imageHeight)
+  width <- 30
+  fun_historicalVolatility(obj = dataSet,objColumn = 2,width = width)
+  fun_plotTimeSeries(obj = historicalVolatility,
+                     chartType = 0,
+                     lwdL = 2,
+                     fitLcolor = 2,
+                     cex.axis = 2.5, cex.main = 2.5, cex.lab = 2.0,mar = c(6, 6, 13, 4),
+                     dataSource = 'EIA',dataTitle = paste0(JapaneseTitle[ooo],'. Width:',width,'weeks'))
+  dev.off()
+  # historical volatility part
 }
 ```
