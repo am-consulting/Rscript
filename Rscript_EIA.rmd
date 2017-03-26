@@ -116,7 +116,7 @@ for (ooo in 1:length(obj)) {
   cat('<b>',paste0(JapaneseTitle[ooo], '</b>\n\n'), file = htmlFile, append = T)
   dataSet0 <- na.omit(dataSet)
   colnames(dataSet0)[2] <- '結果'
-  bufTable0 <- tail(dataSet0, 30)
+  bufTable0 <- tail(dataSet0, 10)
   bufTable0$No <- seq(nrow(bufTable0))
   cat(paste0(knitr::kable(bufTable0,row.names = F), '\n'), file = htmlFile, append = T)  
   png.file <- paste0('EIA', ooo, ".png")
