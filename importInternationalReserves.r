@@ -86,9 +86,9 @@ origData5 <-
 colnames(origData5)[2] <- "USD/JPY"
 #ドル円為替レート
 # csv出力パート
-fun_writeCSVtoFolder(objData = origData1,dataType = 1,csvFileName = 'InternationalReserves_1MillionDollars')
-fun_writeCSVtoFolder(objData = origData2,dataType = 1,csvFileName = 'InternationalReserves_CompositionRatio')
-fun_writeCSVtoFolder(objData = origData3,dataType = 1,csvFileName = 'InternationalReserves_1trillionYen')
-fun_writeCSVtoFolder(objData = origData4,dataType = 1,csvFileName = 'InternationalReservesGoldWeight_1MillionTroyOunce')
-fun_writeCSVtoFolder(objData = origData5,dataType = 1,csvFileName = 'USDJPYExchangeRate')
+fun_writeCSVtoFolder(objData = origData1,dataType = 1,csvFileName = '日本の外貨準備高(百万ドル)')
+fun_writeCSVtoFolder(objData = origData2,dataType = 1,csvFileName = '日本の外貨準備高構成比')
+fun_writeCSVtoFolder(objData = origData3,dataType = 1,csvFileName = '日本の外貨準備高(兆円)')
+fun_writeCSVtoFolder(objData = origData4,dataType = 1,csvFileName = '日本の外貨準備高_金(百万トロイオンス)')
+fun_writeCSVtoFolder(objData = origData5,dataType = 1,csvFileName = '米ドル円為替レート')
 # csv出力パート
