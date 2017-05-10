@@ -82,7 +82,7 @@ origData4 <- buf6[,c(1,15)]
 #金:(重量[百万トロイオンス])
 #ドル円為替レート
 origData5 <-
-  data.frame(Date = row.names(exRate),exRate,row.names = NULL,stringsAsFactors = F,check.names = F)
+  data.frame(Date = as.Date(row.names(exRate)),exRate,row.names = NULL,stringsAsFactors = F,check.names = F)
 colnames(origData5)[2] <- "USD/JPY"
 #ドル円為替レート
 # csv出力パート
