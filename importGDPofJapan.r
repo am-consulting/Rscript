@@ -1,5 +1,14 @@
 # License:GPL(version 2 or later)
 # Data Source:Cabinet Office, Government Of Japan
+# csv出力パート
+scriptFile <- 'R-writeCSVtoFolder.r'
+script <-
+  RCurl::getURL(
+    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",
+           scriptFile),
+    ssl.verifypeer = F)
+eval(parse(text = script))
+# csv出力パート
 library(RCurl);library(Nippon)
 sourceURL <- 'http://www.esri.cao.go.jp/jp/sna/sokuhou/sokuhou_top.html'
 htmlMarkup <- getURL(sourceURL,.encoding = 'utf-8')
@@ -99,4 +108,7 @@ for (uuu in 1:length(url)) {
     dataSetWithoutColnames[which((ncol(dataSetWithoutColnames)-1) >
                                   apply(dataSetWithoutColnames,1,function(x)sum(is.na(x)))),]
   assign(paste("gdp", uuu, sep = ""), dataSet, envir = .GlobalEnv)
+  # csv出力パート
+  fun_writeCSVtoFolder(objData = get(paste0("gdp",uuu)),dataType = 1,csvFileName = sheetTitlesJ[uuu])
+  # csv出力パート
 }
