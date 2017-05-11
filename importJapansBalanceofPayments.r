@@ -1,106 +1,96 @@
 # License:GPL(version 2 or later)
 # Data Source:Ministry of Finance Japan
-options(download.file.method="libcurl")
-datacolnames1 <- c(
-  "Current account/経常収支",
-  "Goods & services/貿易･サービス収支",
-  "Goods/貿易収支",
-  "Goods-Exports/貿易収支-輸出",
-  "Goods-Imports/貿易収支-輸入",
-  "Services/サービス収支",
-  "Primary income/第一次所得収支",
-  "Secondary income/第二次所得収支",
-  "Capital account/資本移転等収支",
-  "Financial account/金融収支",
-  "Financial account-Direct investment/金融収支-直接投資",
-  "Financial account-Portfolio investment/金融収支-証券投資",
-  "Financial account-Financial derivatives(other than reserves)/金融収支-金融派生商品",
-  "Financial account-Other investment/金融収支-その他投資",
-  "Financial account-Reserve assets/金融収支-外貨準備",
-  "Net errors & omissions/誤差脱漏"
-)
-datacolnames2 <- c(
-  "Services/サービス収支",
-  "Services-Transport/サービス収支-輸送",
-  "Services-Travel/サービス収支-旅行",
-  "Services-Other services/サービス収支-その他サービス",
-  "Services-Other services-Manufacturing services on physical inputs owned by others/サービス収支-その他サービス-委託加工サービス",
-  "Services-Other services-Maintenance and repair services n.i.e./サービス収支-その他サービス-維持修理サービス",
-  "Services-Other services-Construction/サービス収支-その他サービス-建設",
-  "Services-Other services-Insurance and pension services/サービス収支-その他サービス-保険・年金サービス",
-  "Services-Other services-Financial services/サービス収支-その他サービス-金融サービス",
-  "Services-Other services-Charges for the use of intellectual property n.i.e./サービス収支-その他サービス-知的財産権等使用料",
-  "Services-Other services-Telecommunications, computer, and information services/サービス収支-その他サービス-通信・コンピュータ・情報サービス",
-  "Services-Other services-Other business services/サービス収支-その他サービス-その他業務サービス",
-  "Services-Other services-Personal, cultural, and recreational services/サービス収支-その他サービス-個人・文化・娯楽サービス",
-  "Services-Other services-Government goods and services, n.i.e./サービス収支-その他サービス-公的サービス等"
-)
-datacolnames3 <- c(
-  "Primary income/第一次所得収支",
-  "Primary income-Compensation of employees/第一次所得収支-雇用者報酬",
-  "Primary income-Investment income/第一次所得収支-投資収益",
-  "Primary income-Investment income-Direct Investment/第一次所得収支-投資収益-直接投資収益",
-  "Primary income-Investment income-Direct Investment-Dividends and withdrawals from income of quasi-corporations/第一次所得収支-投資収益-直接投資収益-配当金・配分済支店収益",
-  "Primary income-Investment income-Direct Investment-Reinvested earnings/第一次所得収支-投資収益-直接投資収益-再投資収益",
-  "Primary income-Investment income-Direct Investment-Interest/第一次所得収支-投資収益-直接投資収益-利子所得等",
-  "Primary income-Investment income-Portfolio Investment/第一次所得収支-投資収益-証券投資収益",
-  "Primary income-Investment income-Portfolio Investment-Investment income on equity and investment fund shares/第一次所得収支-投資収益-証券投資収益-配当金",
-  "Primary income-Investment income-Portfolio Investment-Interest/第一次所得収支-投資収益-証券投資収益-債券利子",
-  "Primary income-Investment income-Other investment/第一次所得収支-投資収益-その他投資収益",
-  "Primary income-Other primary income/第一次所得収支-その他第一次所得"
-)
-datacolnames4 <- c(
-  "Financial account/金融収支",
-  "Financial account-Direct investment/金融収支-直接投資",
-  "Financial account-Direct investment-Equity other than reinvestment of earnings/金融収支-直接投資-株式資本",
-  "Financial account-Direct investment-Reinvestment of earnings/金融収支-直接投資-収益の再投資",
-  "Financial account-Direct investment-Debt instruments/金融収支-直接投資-負債性資本",
-  "Financial account-Portfolio investment/金融収支-証券投資",
-  "Financial account-Portfolio investment-Equity securities other than investment fund shares/金融収支-証券投資-株式",
-  "Financial account-Portfolio investment-Investment fund shares or unit/金融収支-証券投資-投資ファンド持分",
-  "Financial account-Portfolio investment-Long-term debt securities/金融収支-証券投資-中長期債",
-  "Financial account-Portfolio investment-Short-term debt securities/金融収支-証券投資-短期債",
-  "Financial account-Financial derivatives (other than reserves)/金融収支-金融派生商品",
-  "Financial account-Other investment/金融収支-その他投資",
-  "Financial account-Reserve assets/金融収支-外貨準備"
-)
+library(Nippon)
+# csv出力パート
+scriptFile <- 'R-writeCSVtoFolder.r'
+script <-
+  RCurl::getURL(
+    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",
+           scriptFile),
+    ssl.verifypeer = F)
+eval(parse(text = script))
+# csv出力パート
 sourceURL <- c(
   "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-1/6s-1-4.csv",
   "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-2/6s-2-4.csv",
   "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-3/6s-3-4.csv",
-  "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-4/6s-4-4.csv"
-)
+  "http://www.mof.go.jp/international_policy/reference/balance_of_payments/bp_trend/bpnet/sbp/s-4/6s-4-4.csv")
+username <- Sys.info()['user']
+pathOutput <- paste0("C:/Users/", username, "/Desktop/R_Data_Write/")
+setwd(pathOutput)
+sheetUnit <- sheetTitle <- vector()
 for (ddd in 1:length(sourceURL)) {
   Sys.sleep(1)
-  tmp <-
+  tmp0 <-
     read.csv(
       sourceURL[ddd],
       header = F,
       skip = 0,
       stringsAsFactor = F,
       check.names = F,
-      fileEncoding = "cp932"
-    )
-  nonNumeric <- c(1, 2, 3, 4)
-  tmp <-
-    data.frame(Date = tmp[, nonNumeric],
-               apply(tmp[, -nonNumeric], 2, function(x) {
-                 as.numeric(gsub(",", "", x))
-               }),
-               check.names = F)
-  rrr <- nrow(tmp)
-  while (tmp[rrr, 2] != "") {
-    rrr <- rrr - 1
+      fileEncoding = "cp932")
+  setwd(pathOutput)
+  download.file(url = sourceURL[ddd],destfile = paste0('origData',ddd,'.csv'),mode = 'wb')
+  objRow <- !is.na(as.numeric(gsub(',','',tmp0[,5])))
+  buf1 <- tmp0[objRow,]
+  sheetUnit[ddd] <-
+    gsub('.+単位.?(.+)\\)','\\1',zen2han(tmp0[5,1]))
+  sheetTitle[ddd] <-
+    gsub('.+\\.','',zen2han(tmp0[2,1]))
+  if(ddd==1){
+    keyWord1 <- '^経常収支.+\\)$'
+    namesRow <- c(1,3,5,6)}
+  if(ddd==2){
+    keyWord1 <- '^サービス収支$'
+    namesRow <- c(1,3,4)}
+  if(ddd==3){
+    keyWord1 <- '^第一次所得収支$'
+    namesRow <- c(1,3,5,6)}
+  if(ddd==4){
+    keyWord1 <- '^金融収支.?$'
+    namesRow <- c(1,3,4)}
+  objRow1 <- which(apply(tmp0,1,function(x)(length(grep(keyWord1,x,ignore.case = T))))!=0)
+  objCol1 <- which(apply(tmp0,2,function(x)(length(grep(keyWord1,x,ignore.case = T))))!=0)
+  buf2 <-
+    tmp0[objRow1:tail(which(objRow),1),objCol1:ncol(tmp0)]
+  buf3 <-
+    buf2[,apply(buf2,2,function(x)sum(is.na(x)))!=nrow(buf2)]
+  row.names(buf3) <- NULL
+  for(objRow in seq(length(namesRow))){
+    tmp <- ''
+    for(ccc in seq(ncol(buf3))){
+      if(ccc!=1 & objRow!=1){
+        if(buf3[namesRow[objRow-1],ccc-1]!=buf3[namesRow[objRow-1],ccc]){tmp <- ''}
+      }
+      if(buf3[namesRow[objRow],ccc]!=''){tmp <- gsub('\\(.+\\)|\\s','',zen2han(buf3[namesRow[objRow],ccc]))}
+      buf3[namesRow[objRow],ccc] <- tmp
+    }
   }
-  startDate <-
-    as.Date(paste(tmp[rrr + 1, 3], "-", match(tmp[rrr + 1, 4], month.abb), "-1", sep =
-                    ""))
-  date <- seq(startDate, by = "month", length.out = nrow(tmp) - rrr)
-  colName <- get(paste("datacolnames", ddd, sep = ""))
-  tmp <- tmp[(rrr + 1):nrow(tmp), 5:ncol(tmp)]
-  colnames(tmp) <- colName
-  assign(paste("origData", ddd, sep = ""),
-         data.frame(Date = date, tmp, check.names =
-                      F),
-         envir = .GlobalEnv)
+  gsubPattern <- '\\s|:{2,5}|:$|:[a-z]+'
+  if(length(namesRow)==4){
+  colnames(buf3) <-
+    gsub(gsubPattern,'',
+         sapply(paste0(buf3[namesRow[1],],':',
+                       buf3[namesRow[2],],':',
+                       buf3[namesRow[3],],':',
+                       buf3[namesRow[4],]),zen2han),ignore.case = T)
+  }
+  if(length(namesRow)==3){
+    colnames(buf3) <-
+      gsub(gsubPattern,'',
+           sapply(paste0(buf3[namesRow[1],],':',
+                         buf3[namesRow[2],],':',
+                         buf3[namesRow[3],]),zen2han),ignore.case = T)
+  }
+  buf4 <-
+    buf3[head(which(!is.na(as.numeric(gsub(',','',buf3[,1])))),1):nrow(buf3),]
+  row.names(buf4) <- NULL
+  Date <-
+    seq(as.Date(paste0(buf1[1,3],'-',gsub('月','',buf1[1,2]),'-1')),by='month',length.out=nrow(buf1))
+  buf4 <- apply(buf4,2,function(x)as.numeric(gsub(',','',x)))
+  buf5 <-
+    data.frame(Date,buf4,check.names = F,stringsAsFactors = F,row.names = NULL)
+  fun_writeCSVtoFolder(objData = buf5,dataType = 1,
+                       csvFileName = paste0(sheetTitle[ddd],'_',sheetUnit[ddd]))
+  assign(paste0("origData",ddd),buf5)
 }
