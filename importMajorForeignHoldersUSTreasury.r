@@ -38,4 +38,14 @@ for(ccc in 1:length(bufDate)) {
     allData <- merge(allData, bufData1, all =  T)
   }
 }
-allData<<-allData
+# allData<<-allData
+# csv出力パート
+scriptFile <- 'R-writeCSVtoFolder.r'
+script <-
+  RCurl::getURL(
+    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",
+           scriptFile),
+    ssl.verifypeer = F)
+eval(parse(text = script))
+fun_writeCSVtoFolder(objData = allData,dataType = 1,csvFileName = 'MajorForeignHoldersUSTreasury')
+# csv出力パート
