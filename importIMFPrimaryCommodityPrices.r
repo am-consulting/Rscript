@@ -102,4 +102,14 @@ origData[, 1] <-
   as.Date(paste(substr(origData[, 1], 1, 4), "-", substr(origData[, 1], 6, 7), "-1", sep =
                   ""))
 colnames(origData)[1] <- "Date"
-origData <<- origData
+origData <- origData
+# csv出力パート
+scriptFile <- 'R-writeCSVtoFolder.r'
+script <-
+  RCurl::getURL(
+    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",
+           scriptFile),
+    ssl.verifypeer = F)
+eval(parse(text = script))
+fun_writeCSVtoFolder(objData = origData,dataType = 1,csvFileName = 'IMFPrimaryCommodityPrices')
+# csv出力パート
