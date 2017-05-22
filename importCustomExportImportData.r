@@ -77,6 +77,22 @@ for (iii in 1:length(file.name)) {
   origData <- origData[rowNotZero,]
   # origData <- na.omit(origData) 一部にNAを含む行がomitされるため注意
   # 全系列ともゼロ値またはNAの行を削除(オリジナルデータは最新年の12月分まで枠が生成されている
-  assign(paste("origData", iii, sep = ""), origData,envir = .GlobalEnv)
+  row.names(origData) <- NULL
+  origData <-
+    origData[apply(origData,1,function(x)sum(is.na(x)))!=ncol(origData),]
+  assign(paste("origData", iii, sep = ""), origData)
 }
-assign(paste("origData",iii+1,sep=""),data.frame(Date=origData1[,1],Net=origData1[,2]-origData1[,3]),envir = .GlobalEnv)
+assign(paste("origData",iii+1,sep=""),data.frame(Date=origData1[,1],Net=origData1[,2]-origData1[,3]))
+# csv出力パート
+scriptFile <- 'R-writeCSVtoFolder.r'
+script <-
+  RCurl::getURL(
+    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",
+           scriptFile),
+    ssl.verifypeer = F)
+eval(parse(text = script))
+fun_writeCSVtoFolder(objData = origData1,dataType = 1,csvFileName = '財務省貿易統計_輸出及び輸入_兆円')
+fun_writeCSVtoFolder(objData = origData2,dataType = 1,csvFileName = '財務省貿易統計_輸出_財別_億円')
+fun_writeCSVtoFolder(objData = origData3,dataType = 1,csvFileName = '財務省貿易統計_輸入_財別_億円')
+fun_writeCSVtoFolder(objData = origData4,dataType = 1,csvFileName = '財務省貿易統計_貿易収支_兆円')
+# csv出力パート
