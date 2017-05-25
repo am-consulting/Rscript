@@ -32,6 +32,14 @@ origData <- apply(origData, 2, function(x) {
 })
 tmpDF <- data.frame(Date = seq(startDate, length.out = nrow(origData), by = "months"), origData, check.names = F)
 colnames(tmpDF)[-1] <- paste0('消費者物価指数前年同月比(%):',colnames(tmpDF)[-1])
-assign('consumerPriceIndexofJapan',
-       tmpDF,
-       envir = .GlobalEnv)
+assign('consumerPriceIndexofJapan',tmpDF)
+# csv出力パート
+scriptFile <- 'R-writeCSVtoFolder.r'
+script <-
+  RCurl::getURL(
+    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",
+           scriptFile),
+    ssl.verifypeer = F)
+eval(parse(text = script))
+fun_writeCSVtoFolder(objData = consumerPriceIndexofJapan,dataType = 1,csvFileName = '消費者物価指数前年同月比')
+# csv出力パート
