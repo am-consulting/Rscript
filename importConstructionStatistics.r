@@ -66,3 +66,14 @@ buf02[,-1] <-
 row.names(buf02) <- NULL
 SAData <- buf02
 # 季節調整パート
+# csv出力パート
+scriptFile <- 'R-writeCSVtoFolder.r'
+script <-
+  RCurl::getURL(
+    paste0("https://raw.githubusercontent.com/am-consulting/am-consulting.github.io/master/",
+           scriptFile),
+    ssl.verifypeer = F)
+eval(parse(text = script))
+fun_writeCSVtoFolder(objData = NSAData,dataType = 1,csvFileName = '新設住宅着工戸数_戸_原数値')
+fun_writeCSVtoFolder(objData = SAData,dataType = 1,csvFileName = '新設住宅着工戸数_戸_季節調整値')
+# csv出力パート
